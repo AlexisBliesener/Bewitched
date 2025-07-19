@@ -82,6 +82,24 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 0
+--- !u!114 &-7163233199795385035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/SoundEffects.bank
+  m_EditorClassIdentifier: 
+  Path: FMODAssets/Desktop/SoundEffects.bank
+  Name: SoundEffects
+  StudioPath: bank:/SoundEffects
+  lastModified: 638882805363908774
+  FileSizes: []
+  Exists: 1
 --- !u!114 &-6690432416780269300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,6 +199,33 @@ MonoBehaviour:
   - Name: 
     Value: 1328
   Exists: 1
+--- !u!114 &-863521037318854396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Witch/WitchPush
+  m_EditorClassIdentifier: 
+  Path: event:/Witch/WitchPush
+  Guid:
+    Data1: 909717039
+    Data2: 1305211238
+    Data3: 1032619392
+    Data4: -804335635
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,24 +239,99 @@ MonoBehaviour:
   m_Name: FMODStudioCache
   m_EditorClassIdentifier: 
   EditorBanks:
-  - {fileID: -1786499933911759255}
-  - {fileID: 7876352227032393128}
-  - {fileID: 4104358207950486337}
+  - {fileID: 514383828594159934}
+  - {fileID: 5487224190662886207}
+  - {fileID: -7163233199795385035}
   EditorEvents:
-  - {fileID: -8684364662792151748}
-  - {fileID: -6690432416780269300}
-  - {fileID: -8376243737240815239}
-  - {fileID: -4276926041675134504}
-  - {fileID: 1706066209273956058}
-  - {fileID: -7749571102466820880}
-  - {fileID: 7865926758294133872}
+  - {fileID: 260812511577048473}
+  - {fileID: 3533273795952370920}
+  - {fileID: 5635855644834193615}
+  - {fileID: -863521037318854396}
+  - {fileID: 1492431987720183181}
+  - {fileID: 5416100295022578428}
+  - {fileID: 2604812284881068776}
   EditorParameters: []
   MasterBanks:
-  - {fileID: 7876352227032393128}
+  - {fileID: 5487224190662886207}
   StringsBanks:
-  - {fileID: -1786499933911759255}
-  cacheTime: 638868982895186841
+  - {fileID: 514383828594159934}
+  cacheTime: 638882805364785199
   cacheVersion: 131623
+--- !u!114 &260812511577048473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: snapshot:/LeaveBody
+  m_EditorClassIdentifier: 
+  Path: snapshot:/LeaveBody
+  Guid:
+    Data1: 1172729398
+    Data2: 1137318003
+    Data3: 1413620356
+    Data4: -1875783998
+  Banks:
+  - {fileID: 5487224190662886207}
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 0
+  MaxDistance: 0
+  Length: 0
+--- !u!114 &514383828594159934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.strings.bank
+  m_EditorClassIdentifier: 
+  Path: FMODAssets/Desktop/Master.strings.bank
+  Name: Master.strings
+  StudioPath: bank:/Master.strings
+  lastModified: 638882805364785199
+  FileSizes:
+  - Name: 
+    Value: 1328
+  Exists: 1
+--- !u!114 &1492431987720183181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Witch/CreepyBreathing
+  m_EditorClassIdentifier: 
+  Path: event:/Witch/CreepyBreathing
+  Guid:
+    Data1: 463004495
+    Data2: 1104540071
+    Data3: -823035718
+    Data4: -1603550879
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &1706066209273956058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,6 +359,85 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 0
+--- !u!114 &2604812284881068776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Witch/Blink
+  m_EditorClassIdentifier: 
+  Path: event:/Witch/Blink
+  Guid:
+    Data1: 1982957305
+    Data2: 1289026969
+    Data3: -1681063523
+    Data4: -1535221785
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &3533273795952370920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Witch/PossessionOrb
+  m_EditorClassIdentifier: 
+  Path: event:/Witch/PossessionOrb
+  Guid:
+    Data1: -640024295
+    Data2: 1116057267
+    Data3: 698623873
+    Data4: 354769899
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters:
+  - {fileID: 3669032395474280531}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 12500
+--- !u!114 &3669032395474280531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/PossessionOrb/Hit
+  m_EditorClassIdentifier: 
+  Name: Hit
+  StudioPath: 
+  Min: 0
+  Max: 2
+  Default: 0
+  ID:
+    data1: 2387425477
+    data2: 2638914989
+  Type: 1
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
 --- !u!114 &4104358207950486337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,6 +456,78 @@ MonoBehaviour:
   lastModified: 638868982894861912
   FileSizes: []
   Exists: 1
+--- !u!114 &5416100295022578428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Test
+  m_EditorClassIdentifier: 
+  Path: event:/Test
+  Guid:
+    Data1: 976271006
+    Data2: 1193338763
+    Data3: 1265355408
+    Data4: -380355955
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &5487224190662886207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.bank
+  m_EditorClassIdentifier: 
+  Path: FMODAssets/Desktop/Master.bank
+  Name: Master
+  StudioPath: bank:/Master
+  lastModified: 638882805364196039
+  FileSizes: []
+  Exists: 1
+--- !u!114 &5635855644834193615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Witch/LeaveBody
+  m_EditorClassIdentifier: 
+  Path: event:/Witch/LeaveBody
+  Guid:
+    Data1: -25712595
+    Data2: 1167809050
+    Data3: 310335119
+    Data4: -1114193009
+  Banks:
+  - {fileID: -7163233199795385035}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 2000
 --- !u!114 &7865926758294133872
 MonoBehaviour:
   m_ObjectHideFlags: 0
