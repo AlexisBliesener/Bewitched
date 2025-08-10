@@ -5,12 +5,10 @@ on:
   push: 
     branches:
       - main
-# temp for testing
-      - programming/devops
   pull_request: 
   # cron will trigger this pipeline everyday at 7.00 AM UTC
-  # schedule: 
-  # - cron: '00 7 * * *'
+  schedule: 
+     - cron: '00 7 * * *'
 
 jobs:
   # Test:
@@ -47,6 +45,11 @@ jobs:
   #         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
   #       with:
   #         githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # - uses: actions/upload-artifact@v4
+      # with:
+      #   name: Test results
+      #   path: test/artifact
 
   buildForAllSupportedPlatforms:
     name: Build for ${{ matrix.targetPlatform }}
