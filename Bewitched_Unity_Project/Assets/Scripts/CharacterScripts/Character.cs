@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
+    const string FILE_ENDING = ".json";
 
     [Header("Character Settings")]
     [Tooltip("Character Name")]
@@ -86,6 +88,47 @@ public abstract class Character : MonoBehaviour
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    #region Saving/Loading
+
+    [ContextMenu("Save to JSON")]
+    public void SaveToJson()
+    {
+        string characterStatsStr = JsonUtility.ToJson(this);
+
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        SeeFilePath();
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
+        File.WriteAllText(filePath, characterStatsStr);
+    }
+
+    [ContextMenu("See File Path")]
+    public void SeeFilePath()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        Debug.Log("Path To JSON File:");
+        Debug.Log(folderPath);
+    }
+
+    [ContextMenu("Load From JSON")]
+    public void LoadFromJson()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
+
+        string jsonStr = File.ReadAllText(filePath);
+        JsonUtility.FromJsonOverwrite(jsonStr, this);
+    }
+
+    #endregion
 
     public virtual void PrimaryAttack()
     {
