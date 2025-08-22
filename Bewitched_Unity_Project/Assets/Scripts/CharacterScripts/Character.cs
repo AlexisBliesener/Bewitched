@@ -96,7 +96,7 @@ public abstract class Character : MonoBehaviour
     {
         string characterStatsStr = JsonUtility.ToJson(this);
 
-        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
         SeeFilePath();
         if (!Directory.Exists(folderPath))
@@ -106,6 +106,8 @@ public abstract class Character : MonoBehaviour
 
         string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
         File.WriteAllText(filePath, characterStatsStr);
+
+        UnityEditor.AssetDatabase.Refresh();
     }
 
     [ContextMenu("See File Path")]
@@ -120,12 +122,14 @@ public abstract class Character : MonoBehaviour
     [ContextMenu("Load From JSON")]
     public void LoadFromJson()
     {
-        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
         string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
         JsonUtility.FromJsonOverwrite(jsonStr, this);
+
+        UnityEditor.AssetDatabase.Refresh();
     }
 
     #endregion
