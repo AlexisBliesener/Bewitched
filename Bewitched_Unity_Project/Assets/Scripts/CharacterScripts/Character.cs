@@ -94,7 +94,7 @@ public abstract class Character : MonoBehaviour
     [ContextMenu("Save to JSON")]
     public void SaveToJson()
     {
-        string characterStatsStr = JsonUtility.ToJson(this);
+        string characterStatsStr = JsonUtility.ToJson(this, true);
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
