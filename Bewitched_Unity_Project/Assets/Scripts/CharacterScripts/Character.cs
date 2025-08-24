@@ -107,7 +107,12 @@ public abstract class Character : MonoBehaviour
         string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
         File.WriteAllText(filePath, characterStatsStr);
 
+
+#if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
+#endif
+
+
     }
 
     [ContextMenu("See File Path")]
@@ -129,7 +134,10 @@ public abstract class Character : MonoBehaviour
         string jsonStr = File.ReadAllText(filePath);
         JsonUtility.FromJsonOverwrite(jsonStr, this);
 
+#if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
+#endif
+
     }
 
     #endregion
