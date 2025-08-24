@@ -47,7 +47,7 @@ public class Goblin : Enemy
         base.PrimaryAttack();
 
         GameObject shank = Instantiate(knifePrefab, transform);
-        shank.GetComponent<KnifeHitBox>().Init(this, knifeDamage, thrustSpeed);
+        shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed);
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -69,7 +69,7 @@ public class Goblin : Enemy
         PlayerController.instance.SetAllowMovement(false);
 
         GameObject hitbox = Instantiate(dashHitbox, transform);
-        hitbox.GetComponent<DashHitBox>().Init(this, dashDamage);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: dashDamage);
 
         StartCoroutine(HandleDashMovement(hitbox));
     }
@@ -80,7 +80,7 @@ public class Goblin : Enemy
 
         while (timeSinceStarted < dashDuration)
         {
-            if (hitbox.GetComponent<DashHitBox>().HitWall())
+            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
             {
                 StartCoroutine(EnableMovement());
                 isDashing = false;

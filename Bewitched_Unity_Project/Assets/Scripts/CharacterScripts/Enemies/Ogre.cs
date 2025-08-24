@@ -7,6 +7,8 @@ public class Ogre : Enemy
     [Header("Ogre Settings")]
     [Tooltip("Ogre Bat Prefab")]
     [SerializeField] GameObject batHitboxPrefab;
+    [Tooltip("Pivot Prefab")]
+    [SerializeField] GameObject batPivot;
 
     [Tooltip("Minimum Bat Swing Damage")]
     [SerializeField] float minimumBatSwingDamage;
@@ -27,6 +29,13 @@ public class Ogre : Enemy
     [SerializeField] float batSwingDuration;
     [Tooltip("Maximum Bat Swing Charge Time")]
     [SerializeField] float batSwingChargeTime;
+
+    [Tooltip("Bat Swing Status Effects")]
+    [SerializeField] Dictionary<string, float> batSwingStatusEffects = new Dictionary<string, float>()
+    {
+        {"knockback", 5 },
+        {"timeStop", .15f }
+    };
 
     [Tooltip("Ogre Slam Bat Hitbox")]
     [SerializeField] GameObject slamHitboxPrefab;
@@ -131,8 +140,15 @@ public class Ogre : Enemy
         minAngle = Quaternion.Euler(0, currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
         maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
 
-        GameObject pivot = Instantiate(batHitboxPrefab, transform);
-        pivot.GetComponent<SwingPivot>().Init(this, currentBatSwingDamage, currentBatSwingKnockback);
+        GameObject pivot = Instantiate(batPivot, transform);
+        pivot.GetComponent<DefaultHitbox>().Init(this);
+        pivot.SetActive(false);
+
+        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
+        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingStatusEffects);
+        batHitbox.GetComponent<DefaultHitbox>().SetAttackName("batSwing");
+        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+
         StartCoroutine(SwingBat(pivot));
     }
 

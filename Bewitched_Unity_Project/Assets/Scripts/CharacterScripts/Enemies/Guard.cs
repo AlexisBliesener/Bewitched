@@ -5,14 +5,26 @@ using UnityEngine;
 public class Guard : Enemy
 {
     [Header("Guard Settings")]
-    [Tooltip("Lance Prefab")]
-    [SerializeField] GameObject lancePrefab;
+    [Tooltip("Lance Handle Prefab")]
+    [SerializeField] GameObject lanceHandlePrefab;
+    [Tooltip("Lance Tip Prefab")]
+    [SerializeField] GameObject lanceTipPrefab;
     [Tooltip("Thrust Speed")]
     [SerializeField] float thrustSpeed = 10;
-    [Tooltip("Knife Damage")]
-    [SerializeField] float lanceDamage = 20;
-    [Tooltip("Lance Knockback")]
-    [SerializeField] float lanceKnockback = 5;
+    [Tooltip("Lance Handle Damage")]
+    [SerializeField] float lanceHandleDamage = 20;
+    [Tooltip("Lance Tip Damage")]
+    [SerializeField] float lanceTipDamage = 5;
+
+    private Dictionary<string, float> lanceHandleEffects = new Dictionary<string, float>()
+    {
+        { "knockback", 5 }
+    };
+
+    private Dictionary<string, float> lanceTipEffects = new Dictionary<string, float>()
+    {
+        { "knockback", 5 }
+    };
 
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
@@ -31,6 +43,14 @@ public class Guard : Enemy
     [SerializeField] float minimumShieldBashKnockback;
     [Tooltip("Shield Bash Maximum Knockback")]
     [SerializeField] float maximumShieldBashKnockback;
+
+    [Tooltip("Shield Bash Effects")]
+    [SerializeField]
+    Dictionary<string, float> shieldBashEffects = new Dictionary<string, float>()
+    {
+        { "knockback", 5 },
+        { "timeStop", .15f}
+    };
 
     [Tooltip("Charge Time to Max")]
     [SerializeField] float maxShieldBashChargeTime;
@@ -77,8 +97,12 @@ public class Guard : Enemy
     {
         base.PrimaryAttack();
 
-        GameObject lance = Instantiate(lancePrefab, transform);
-        lance.GetComponent<LanceHitBox>().Init(this, lanceDamage, thrustSpeed, lanceKnockback);
+        GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, lanceHandleDamage, thrustSpeed, 0, lanceHandleEffects);
+
+        GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, lanceTipDamage, thrustSpeed, 0, lanceTipEffects);
+        lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -129,7 +153,9 @@ public class Guard : Enemy
         invincible = true;
 
         GameObject hitbox = Instantiate(shieldPrefab, transform);
-        hitbox.GetComponent<ShieldBashHitBox>().Init(this, currentShieldBashDamage, currentShieldBashKnockback);
+        shieldBashEffects["knockback"] = currentShieldBashKnockback;
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects);
+        hitbox.GetComponent<DefaultHitbox>().SetAttackName("shieldBash");
         StartCoroutine(HandleBashMovement(hitbox));
     }
 
@@ -139,7 +165,7 @@ public class Guard : Enemy
 
         while (timeSinceStarted < bashDuration)
         {
-            if (hitbox.GetComponent<ShieldBashHitBox>().HitWall())
+            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
             {
                 StartCoroutine(EnableMovement());
                 invincible = false;
@@ -166,7 +192,7 @@ public class Guard : Enemy
         attackingSecondary = false;
     }
 
-    public Vector3 GetCurrentSpeedVector()
+    public override Vector3 GetCurrentSpeedVector()
     {
         return currentShieldBashSpeed * transform.forward.normalized;
     }
