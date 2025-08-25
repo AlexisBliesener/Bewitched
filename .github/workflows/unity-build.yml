@@ -15,28 +15,21 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-   #   Checkout (without LFS)
+      # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
-
-  #    Git LFS
-      - name: Create LFS file list
-        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
-
-      - name: Restore LFS cache
-        uses: actions/cache@v3
-        id: lfs-cache
         with:
-          path: .git/lfs
-          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+          lfs: true
 
-      - name: Git LFS Pull
-        run: |
-          git lfs pull
-          git add .
-          git reset --hard
+      # Cache
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
 
-  #    Test
+      # Test
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
         env:
