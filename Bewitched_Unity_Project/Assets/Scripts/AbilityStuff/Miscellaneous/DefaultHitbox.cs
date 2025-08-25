@@ -18,13 +18,17 @@ public class DefaultHitbox : MonoBehaviour
     private List<Character> hitChars;
 
     protected float damage;
+    protected float slamDamage;
     protected float timeAlive;
+
+    protected float slamDist;
 
     protected DefaultHitbox parent = null; 
 
-    protected List<DefaultHitbox> children;
+    protected List<DefaultHitbox> children = new List<DefaultHitbox>();
 
-    protected Dictionary<string, float> statusEffects; // Will be changed to a list of buff classes when they are made so that effects can be applied through there
+    protected AttackStatusEffects statusEffects; // Will be changed to a class when it is made so that effects can be applied through there
+    protected AttackStatusEffects impactEffects;
 
     protected float currentSpeed = 0;
     protected float currentRotationalSpeed = 0;
@@ -33,6 +37,8 @@ public class DefaultHitbox : MonoBehaviour
     protected Quaternion rotationalVelocity;
 
     protected string attackName = ""; // Temporary for dealing with knockback types
+
+    public LayerMask characters;
 
     public void AddToHit(Character character)
     {
@@ -63,16 +69,19 @@ public class DefaultHitbox : MonoBehaviour
         return hitWall;
     }
 
-    public virtual void Init(Character character, float dmg = 0, float forwardVelocity = 0, float rotationalVelocity = 0, Dictionary<string, float> status = null)
+    public virtual void Init(Character character, float dmg = 0, float slamDMG = 0, float forwardVelocity = 0, float rotationalVelocity = 0, AttackStatusEffects status = null, float slamRange = 0)
     {
         user = character;
         hitChars = new List<Character>();
         damage = dmg;
+        slamDamage = slamDMG;
         timeAlive = Time.time;
         velocity = user.transform.forward.normalized;
         thrustSpeed = forwardVelocity;
         rotationalSpeed = rotationalVelocity;
         statusEffects = status;
+        characters = LayerMask.NameToLayer("Character");
+        slamDist = slamRange;
     }
 
     void Update()
@@ -125,43 +134,7 @@ public class DefaultHitbox : MonoBehaviour
 
     private void AddStatusEffects(Character character)
     {
-        /*
-        foreach (statusEffects effect in statusEffects)
-        {
-            statusEffects.ApplyEffect(character);
-        }
-        */
-
-        // Temporary until status effects are implemented
-        if (statusEffects != null)
-        {
-            if (statusEffects.ContainsKey("knockback"))
-            {
-                if (attackName == "shieldBash")
-                {
-                    Vector3 knockbackDirection = user.GetCurrentSpeedVector() + (character.transform.position - transform.position).normalized;
-
-                    character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, statusEffects["knockback"]);
-                }
-                else if (attackName == "batSwing")
-                {
-                    float knockbackAngle = transform.parent.rotation.eulerAngles.y - 90;
-                    Vector3 knockbackDirection = new Vector3(Mathf.Sin(knockbackAngle * Mathf.Deg2Rad), 0, Mathf.Cos(knockbackAngle * Mathf.Deg2Rad));
-
-                    character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, statusEffects["knockback"]);
-                }
-                else
-                {
-                    character.GetComponent<KnockbackControl>().AddImpact(transform.forward.normalized, statusEffects["knockback"]);
-                }
-            }
-
-            if (statusEffects.ContainsKey("timeStop"))
-            {
-                Time.timeScale = 0;
-                StartCoroutine(character.StartTime(statusEffects["timeStop"]));
-            }
-        }
+        statusEffects.ApplyStatusEffects(user, character, this);
     }
 
     public void AttachHitbox(DefaultHitbox hitbox)
@@ -177,6 +150,22 @@ public class DefaultHitbox : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+
+    public void SlamImpact(AttackStatusEffects impactEffects)
+    {
+        Collider[] impacts = Physics.OverlapSphere(transform.position, slamDist, characters);
+
+        for (int i = 0; i < impacts.Length; i++)
+        {
+            if (impacts[i].TryGetComponent(out Character hitChar) && hitChar.teamID != user.teamID)
+            {
+                impactEffects.ApplyStatusEffects(user, hitChar, this);
+                hitChar.SubHealth(slamDamage);
+            }
+        }
+
+        Destroy(gameObject);
     }
 }
 
