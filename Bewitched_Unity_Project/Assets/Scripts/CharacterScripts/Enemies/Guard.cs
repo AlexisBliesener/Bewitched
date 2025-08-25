@@ -26,6 +26,9 @@ public class Guard : Enemy
         { "knockback", 5 }
     };
 
+    [SerializeField] AttackStatusEffects lanceTipEffects2;
+    [SerializeField] AttackStatusEffects lanceHandleEffects2;
+
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
 
@@ -51,6 +54,8 @@ public class Guard : Enemy
         { "knockback", 5 },
         { "timeStop", .15f}
     };
+
+    [SerializeField] AttackStatusEffects shieldBashEffects2;
 
     [Tooltip("Charge Time to Max")]
     [SerializeField] float maxShieldBashChargeTime;
@@ -98,10 +103,10 @@ public class Guard : Enemy
         base.PrimaryAttack();
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
-        lanceHandle.GetComponent<DefaultHitbox>().Init(this, lanceHandleDamage, thrustSpeed, 0, lanceHandleEffects);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects2);
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
-        lanceTip.GetComponent<DefaultHitbox>().Init(this, lanceTipDamage, thrustSpeed, 0, lanceTipEffects);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, forwardVelocity: thrustSpeed, status: lanceTipEffects2);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
 
         timeLastPrimary = Time.time;
@@ -154,7 +159,7 @@ public class Guard : Enemy
 
         GameObject hitbox = Instantiate(shieldPrefab, transform);
         shieldBashEffects["knockback"] = currentShieldBashKnockback;
-        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects2);
         hitbox.GetComponent<DefaultHitbox>().SetAttackName("shieldBash");
         StartCoroutine(HandleBashMovement(hitbox));
     }

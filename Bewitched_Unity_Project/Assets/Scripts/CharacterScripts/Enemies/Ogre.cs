@@ -37,6 +37,8 @@ public class Ogre : Enemy
         {"timeStop", .15f }
     };
 
+    [SerializeField] AttackStatusEffects batSwingEffects2;
+
     [Tooltip("Ogre Slam Bat Hitbox")]
     [SerializeField] GameObject slamHitboxPrefab;
     [Tooltip("Ogre Jump Gravity")]
@@ -52,7 +54,18 @@ public class Ogre : Enemy
     [Tooltip("Ogre Jump Maximum Knockback")]
     [SerializeField] float ogreJumpKnockbackMaximum;
     [Tooltip("Ogre Slam Knockback Range")]
-    [SerializeField] float ogreJumpKnockbackRange;
+    [SerializeField] float ogreJumpSlamImpactRange = 8;
+
+    [Tooltip("Slam Status Effects")]
+    [SerializeField]
+    Dictionary<string, float> slamBatEffects = new Dictionary<string, float>()
+    {
+        {"knockbackMin", 20 },
+        {"knockbackMax", 70 },
+        {"knockbackRange", 8 }
+    };
+    [SerializeField] AttackStatusEffects slamBatEffects2;
+    [SerializeField] AttackStatusEffects slamImpactEffects;
 
     bool isSwinging = false;
     bool isCharging = false;
@@ -145,7 +158,7 @@ public class Ogre : Enemy
         pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingStatusEffects);
+        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects2);
         batHitbox.GetComponent<DefaultHitbox>().SetAttackName("batSwing");
         pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
 
@@ -199,14 +212,14 @@ public class Ogre : Enemy
                 jumping = false;
                 // Instantiate bat hitbox
                 slamBatHitbox = Instantiate(slamHitboxPrefab, transform);
-                slamBatHitbox.GetComponent<SlamHitbox>().Init(this, ogreJumpBatDamage, ogreJumpSlamDamage, ogreJumpKnockbackMinimum, ogreJumpKnockbackMaximum, ogreJumpKnockbackRange);
+                slamBatHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: ogreJumpBatDamage, slamDMG: ogreJumpSlamDamage, status: slamBatEffects2);
             }
 
             if (transform.position.y <= groundHeight) // Hit ground
             {
                 transform.position = new Vector3(transform.position.x, groundHeight, transform.position.z);
 
-                slamBatHitbox.GetComponent<SlamHitbox>().SlamImpact();
+                slamBatHitbox.GetComponent<DefaultHitbox>().SlamImpact(slamImpactEffects);
 
                 attackingSecondary = false;
                 StartCoroutine(EnableMovement());
