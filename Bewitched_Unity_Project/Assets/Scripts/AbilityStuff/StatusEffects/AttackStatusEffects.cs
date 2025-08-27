@@ -41,7 +41,10 @@ public class AttackStatusEffects : MonoBehaviour
 
     #region Saving/Loading
 
-    [ContextMenu("Save to JSON")]
+    /// <summary>
+    /// Saves this instance as a json string
+    /// </summary>
+    /// <returns> A JSON string </returns>
     public string SaveToJson()
     {
         string statusStr = JsonUtility.ToJson(this, true);
@@ -53,7 +56,10 @@ public class AttackStatusEffects : MonoBehaviour
         return statusStr;
     }
 
-    [ContextMenu("Load From JSON")]
+    /// <summary>
+    /// Loads values from a JSON string into this instance
+    /// </summary>
+    /// <param name="str"> JSON string to set values with </param>
     public void LoadFromJson(string str)
     {
         JsonUtility.FromJsonOverwrite(str, this);
@@ -67,6 +73,10 @@ public class AttackStatusEffects : MonoBehaviour
 
     #region Getters
 
+    /// <summary>
+    /// Gets the knockback range
+    /// </summary>
+    /// <returns> The knockback range </returns>
     public float GetKnockbackRange()
     {
         return knockbackRange;
@@ -74,20 +84,12 @@ public class AttackStatusEffects : MonoBehaviour
 
     #endregion
 
-    public void AddKnockback(KnockbackType type, float amt = 0, float minAmt = 0, float maxAmt = 0, float range = 0)
-    {
-        knockbackType = type;
-        knockbackAmount = amt;
-        knockbackMinimum = minAmt;
-        knockbackMaximum = maxAmt;
-        knockbackRange = range;
-    }
-
-    public void AddTimeStop(float duration = 0)
-    {
-        timeStopDuration = duration;
-    }
-
+    /// <summary>
+    /// Applies the knockback
+    /// </summary>
+    /// <param name="user"> User of the attack </param>
+    /// <param name="character"> Character attack is being used on </param>
+    /// <param name="hitbox"> Hitbox the attack is using </param>
     public void ApplyKnockback(Character user, Character character, DefaultHitbox hitbox)
     {
         if (knockbackType == KnockbackType.Bash)
@@ -119,12 +121,24 @@ public class AttackStatusEffects : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies the time stop
+    /// </summary>
+    /// <param name="user"> User of the attack </param>
+    /// <param name="character"> Character attack is being used on </param>
+    /// <param name="hitbox"> Hitbox the attack is using </param>
     public void ApplyTimeStop(Character user, Character character, DefaultHitbox hitbox)
     {
         Time.timeScale = 0;
         user.StartCoroutine(user.StartTime(timeStopDuration));
     }
 
+    /// <summary>
+    /// Applies the status effects
+    /// </summary>
+    /// <param name="user"> User of the attack </param>
+    /// <param name="character"> Character attack is being used on </param>
+    /// <param name="hitbox"> Hitbox the attack is using </param>
     public void ApplyStatusEffects(Character user, Character character, DefaultHitbox hitbox)
     {
         ApplyKnockback(user, character, hitbox);

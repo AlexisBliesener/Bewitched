@@ -38,11 +38,23 @@ public class DefaultHitbox : MonoBehaviour
 
     public LayerMask characters;
 
+    /// <summary>
+    /// Add a character to the list of hit characters
+    /// </summary>
+    /// <param name="character"> The character that has been hit </param>
     public void AddToHit(Character character)
     {
-        hitChars.Add(character);
+        if (!HasBeenHit(character))
+        {
+            hitChars.Add(character);
+        }
     }
 
+    /// <summary>
+    /// Checks to see if a character has been hit
+    /// </summary>
+    /// <param name="character"> Character to check </param>
+    /// <returns></returns>
     public bool HasBeenHit(Character character)
     {
         if (hitChars.Contains(character))
@@ -52,21 +64,34 @@ public class DefaultHitbox : MonoBehaviour
         return false;
     }
 
-    public void SetAttackName(string name)
-    {
-        attackName = name;
-    }
-
+    /// <summary>
+    /// Sets the hitbox active/inactive
+    /// </summary>
+    /// <param name="val"> Bool for whether it should be active or not </param>
     public void SetActive(bool val)
     {
         active = val;
     }
 
+    /// <summary>
+    /// Checks to see if the hitbox has hit the wall
+    /// </summary>
+    /// <returns> True if it has, false otherwise </returns>
     public bool HasHitWall()
     {
         return hitWall;
     }
 
+    /// <summary>
+    /// Initialize function for a hitbox
+    /// </summary>
+    /// <param name="character"> Character using the hitbox </param>
+    /// <param name="dmg"> Damage the hitbox deals </param>
+    /// <param name="slamDMG"> Damage the slam impact deals </param>
+    /// <param name="forwardVelocity"> Velocity of the hitbox moving forward </param>
+    /// <param name="rotationalVelocity"> Velocity of the hitbox rotation </param>
+    /// <param name="status"> Status effects of attack </param>
+    /// <param name="attackDuration"> Duration of the attack </param>
     public virtual void Init(Character character, float dmg = 0, float slamDMG = 0, float forwardVelocity = 0, float rotationalVelocity = 0, AttackStatusEffects status = null, float attackDuration = 0)
     {
         user = character;
@@ -119,19 +144,19 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && character.teamID != user.teamID && character != user)
+                if (character && character.teamID != user.teamID && !hitChars.Contains(character))
                 {
                     character.SubHealth(damage);
                     AddStatusEffects(character);
-                    hitChars.Add(character);
+                    AddToHit(character);
 
                     foreach (DefaultHitbox hitbox in children)
                     {
-                        hitbox.hitChars.Add(character);
+                        hitbox.AddToHit(character);
                     }
                     if (parent)
                     {
-                        parent.hitChars.Add(character);
+                        parent.AddToHit(character);
                     }
                 }
             }
@@ -142,6 +167,10 @@ public class DefaultHitbox : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds status effects to the character
+    /// </summary>
+    /// <param name="character"> Character to add status effects to </param>
     private void AddStatusEffects(Character character)
     {
         if (character && user) // Both the applied character and user are still alive
@@ -151,6 +180,10 @@ public class DefaultHitbox : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Attaches another hitbox as a child
+    /// </summary>
+    /// <param name="hitbox"> Hitbox to add as child </param>
     public void AttachHitbox(DefaultHitbox hitbox)
     {
         children.Add(hitbox);
@@ -167,6 +200,10 @@ public class DefaultHitbox : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Slam function for impacts
+    /// </summary>
+    /// <param name="impactEffects"> Effects to use in slam </param>
     public void SlamImpact(AttackStatusEffects impactEffects)
     {
         Collider[] impacts = Physics.OverlapSphere(transform.position, impactEffects.GetKnockbackRange());
