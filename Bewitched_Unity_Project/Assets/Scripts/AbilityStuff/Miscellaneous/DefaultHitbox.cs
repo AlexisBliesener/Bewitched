@@ -21,8 +21,6 @@ public class DefaultHitbox : MonoBehaviour
     protected float slamDamage;
     protected float timeAlive;
 
-    protected float slamDist;
-
     protected DefaultHitbox parent = null; 
 
     protected List<DefaultHitbox> children = new List<DefaultHitbox>();
@@ -69,7 +67,7 @@ public class DefaultHitbox : MonoBehaviour
         return hitWall;
     }
 
-    public virtual void Init(Character character, float dmg = 0, float slamDMG = 0, float forwardVelocity = 0, float rotationalVelocity = 0, AttackStatusEffects status = null, float slamRange = 0)
+    public virtual void Init(Character character, float dmg = 0, float slamDMG = 0, float forwardVelocity = 0, float rotationalVelocity = 0, AttackStatusEffects status = null, float attackDuration = 0)
     {
         user = character;
         hitChars = new List<Character>();
@@ -81,13 +79,16 @@ public class DefaultHitbox : MonoBehaviour
         rotationalSpeed = rotationalVelocity;
         statusEffects = status;
         characters = LayerMask.NameToLayer("Character");
-        slamDist = slamRange;
+        duration = attackDuration;
+
+        Debug.Log(dmg);
     }
 
     void Update()
     {
         if (user == null)
         {
+            Debug.Log("No User");
             Destroy(gameObject);
             foreach (DefaultHitbox child in children)
             {
@@ -96,7 +97,11 @@ public class DefaultHitbox : MonoBehaviour
             return;
         }
 
-        if (Time.time - timeAlive > duration) Destroy(gameObject);
+        if (Time.time - timeAlive > duration)
+        {
+            user.EndAttacks();
+            Destroy(gameObject);
+        }
 
         currentSpeed = Mathf.Lerp(currentSpeed, thrustSpeed, 1);
         currentRotationalSpeed = Mathf.Lerp(currentRotationalSpeed, rotationalSpeed, 1);
@@ -114,16 +119,21 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                character.SubHealth(damage);
-                AddStatusEffects(character);
-                hitChars.Add(character);
-
-                foreach (DefaultHitbox hitbox in children)
+                if (character && character.teamID != user.teamID && character != user)
                 {
-                    hitbox.hitChars.Add(character);
-                }
+                    character.SubHealth(damage);
+                    AddStatusEffects(character);
+                    hitChars.Add(character);
 
-                parent.hitChars.Add(character);
+                    foreach (DefaultHitbox hitbox in children)
+                    {
+                        hitbox.hitChars.Add(character);
+                    }
+                    if (parent)
+                    {
+                        parent.hitChars.Add(character);
+                    }
+                }
             }
             else if (other.gameObject.layer == 8)
             {
@@ -134,7 +144,11 @@ public class DefaultHitbox : MonoBehaviour
 
     private void AddStatusEffects(Character character)
     {
-        statusEffects.ApplyStatusEffects(user, character, this);
+        if (character && user) // Both the applied character and user are still alive
+        {
+            Debug.Log(this);
+            statusEffects.ApplyStatusEffects(user, character, this);
+        }
     }
 
     public void AttachHitbox(DefaultHitbox hitbox)
@@ -146,6 +160,7 @@ public class DefaultHitbox : MonoBehaviour
 
     public void OnDestroy()
     {
+        Debug.Log("Destroying");
         foreach (DefaultHitbox child in children)
         {
             Destroy(child.gameObject);
@@ -154,10 +169,12 @@ public class DefaultHitbox : MonoBehaviour
 
     public void SlamImpact(AttackStatusEffects impactEffects)
     {
-        Collider[] impacts = Physics.OverlapSphere(transform.position, slamDist, characters);
+        Collider[] impacts = Physics.OverlapSphere(transform.position, impactEffects.GetKnockbackRange());
+        Debug.Log(impactEffects.GetKnockbackRange());
 
         for (int i = 0; i < impacts.Length; i++)
         {
+            Debug.Log(impacts[i]);
             if (impacts[i].TryGetComponent(out Character hitChar) && hitChar.teamID != user.teamID)
             {
                 impactEffects.ApplyStatusEffects(user, hitChar, this);

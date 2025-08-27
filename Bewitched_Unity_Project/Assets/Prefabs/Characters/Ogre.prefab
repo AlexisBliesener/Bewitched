@@ -234,6 +234,7 @@ MonoBehaviour:
   maximumBatSwingKnockback: 120
   batSwingDuration: 0.5
   batSwingChargeTime: 3
+  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
@@ -241,7 +242,9 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpKnockbackRange: 8
+  ogreJumpSlamImpactRange: 4
+  slamBatEffects: {fileID: 672220797181763766, guid: 4ef1297a2bac1c24db95078cf34b564a, type: 3}
+  slamImpactEffects: {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0

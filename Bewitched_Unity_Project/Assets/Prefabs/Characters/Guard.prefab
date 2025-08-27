@@ -229,6 +229,9 @@ MonoBehaviour:
   thrustSpeed: 6
   lanceHandleDamage: 20
   lanceTipDamage: 5
+  lanceDuration: 0.5
+  lanceTipEffects: {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  lanceHandleEffects: {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
   shieldPrefab: {fileID: 5297234261058955286, guid: 3a6774d7279d5db47991fcb9a194ed59, type: 3}
   minimumShieldBashSpeed: 10
   maximumShieldBashSpeed: 20
@@ -236,6 +239,7 @@ MonoBehaviour:
   maximumShieldBashDamage: 55
   minimumShieldBashKnockback: 15
   maximumShieldBashKnockback: 35
+  shieldBashEffects: {fileID: 7832356536935564024, guid: 9f8127adddd75f943b23ebf5b51cc310, type: 3}
   maxShieldBashChargeTime: 2
   bashDuration: 0.65
   chargingMovementSpeed: 2

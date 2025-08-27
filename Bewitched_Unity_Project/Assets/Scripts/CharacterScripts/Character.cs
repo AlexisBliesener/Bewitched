@@ -398,7 +398,6 @@ public abstract class Character : MonoBehaviour
         {
             if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
             {
-                Debug.Log(attackingPrimary);
                 animator.SetTrigger("StartRunning");
             }
         }
@@ -461,5 +460,21 @@ public abstract class Character : MonoBehaviour
     public virtual Vector3 GetCurrentSpeedVector()
     {
         return new Vector3(0, 0, 0);
+    }
+
+    public void EndAttacks()
+    {
+        SetPrimaryAttack(false);
+        SetSecondaryAttack(false);
+    }
+
+    public void SetPrimaryAttack(bool val)
+    {
+        attackingPrimary = val;
+    }
+
+    public void SetSecondaryAttack(bool val)
+    {
+        attackingSecondary = val;
     }
 }

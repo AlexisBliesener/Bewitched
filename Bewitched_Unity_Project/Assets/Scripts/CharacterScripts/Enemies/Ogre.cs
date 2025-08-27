@@ -31,13 +31,7 @@ public class Ogre : Enemy
     [SerializeField] float batSwingChargeTime;
 
     [Tooltip("Bat Swing Status Effects")]
-    [SerializeField] Dictionary<string, float> batSwingStatusEffects = new Dictionary<string, float>()
-    {
-        {"knockback", 5 },
-        {"timeStop", .15f }
-    };
-
-    [SerializeField] AttackStatusEffects batSwingEffects2;
+    [SerializeField] AttackStatusEffects batSwingEffects = new AttackStatusEffects();
 
     [Tooltip("Ogre Slam Bat Hitbox")]
     [SerializeField] GameObject slamHitboxPrefab;
@@ -56,15 +50,10 @@ public class Ogre : Enemy
     [Tooltip("Ogre Slam Knockback Range")]
     [SerializeField] float ogreJumpSlamImpactRange = 8;
 
-    [Tooltip("Slam Status Effects")]
-    [SerializeField]
-    Dictionary<string, float> slamBatEffects = new Dictionary<string, float>()
-    {
-        {"knockbackMin", 20 },
-        {"knockbackMax", 70 },
-        {"knockbackRange", 8 }
-    };
-    [SerializeField] AttackStatusEffects slamBatEffects2;
+    [Tooltip("Slam Bat Status Effects")]
+    [SerializeField] AttackStatusEffects slamBatEffects;
+
+    [Tooltip("Slam Impact Status Effects")]
     [SerializeField] AttackStatusEffects slamImpactEffects;
 
     bool isSwinging = false;
@@ -154,13 +143,16 @@ public class Ogre : Enemy
         maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
 
         GameObject pivot = Instantiate(batPivot, transform);
-        pivot.GetComponent<DefaultHitbox>().Init(this);
+        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
         pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects2);
+        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         batHitbox.GetComponent<DefaultHitbox>().SetAttackName("batSwing");
         pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+
+        pivot.SetActive(true);
+        Debug.Log(batSwingDuration);
 
         StartCoroutine(SwingBat(pivot));
     }
@@ -212,7 +204,7 @@ public class Ogre : Enemy
                 jumping = false;
                 // Instantiate bat hitbox
                 slamBatHitbox = Instantiate(slamHitboxPrefab, transform);
-                slamBatHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: ogreJumpBatDamage, slamDMG: ogreJumpSlamDamage, status: slamBatEffects2);
+                slamBatHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: ogreJumpBatDamage, slamDMG: ogreJumpSlamDamage, status: slamBatEffects, attackDuration: 10);
             }
 
             if (transform.position.y <= groundHeight) // Hit ground
