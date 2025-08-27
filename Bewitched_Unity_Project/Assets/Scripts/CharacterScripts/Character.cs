@@ -276,6 +276,7 @@ public abstract class Character : MonoBehaviour
 
     public IEnumerator StartTime(float stopTime)
     {
+        Debug.Log("Here");
         yield return new WaitForSecondsRealtime(stopTime);
 
         if (!GameObject.FindGameObjectWithTag("PauseMenu")) // If not paused set timescale normal

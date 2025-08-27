@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// A class for a hitbox
+/// This hitbox will apply  effects through it on trigger with other characters
+/// </summary>
 public class DefaultHitbox : MonoBehaviour
 {
     public Character user;
@@ -15,7 +19,7 @@ public class DefaultHitbox : MonoBehaviour
 
     public float duration;
 
-    private List<Character> hitChars;
+    protected List<Character> hitChars;
 
     protected float damage;
     protected float slamDamage;
@@ -47,6 +51,11 @@ public class DefaultHitbox : MonoBehaviour
         if (!HasBeenHit(character))
         {
             hitChars.Add(character);
+            parent.AddToHit(character);
+            foreach (DefaultHitbox hitbox in children)
+            {
+                hitbox.AddToHit(character);
+            }
         }
     }
 
@@ -105,8 +114,6 @@ public class DefaultHitbox : MonoBehaviour
         statusEffects = status;
         characters = LayerMask.NameToLayer("Character");
         duration = attackDuration;
-
-        Debug.Log(dmg);
     }
 
     void Update()

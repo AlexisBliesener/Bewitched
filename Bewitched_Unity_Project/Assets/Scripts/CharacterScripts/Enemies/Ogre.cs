@@ -148,7 +148,6 @@ public class Ogre : Enemy
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
         batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
-        batHitbox.GetComponent<DefaultHitbox>().SetAttackName("batSwing");
         pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
 
         pivot.SetActive(true);

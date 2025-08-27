@@ -82,6 +82,30 @@ public class AttackStatusEffects : MonoBehaviour
         return knockbackRange;
     }
 
+    /// <summary>
+    /// Gets the knockback type
+    /// </summary>
+    /// <returns> Knockback type enum </returns>
+    public KnockbackType GetKnockbackType()
+    {
+        return knockbackType;
+    }
+
+    #endregion
+
+    #region Setters
+
+    public void SetKnockback(KnockbackType type, float amt) // For testing
+    {
+        knockbackType = type;
+        knockbackAmount = amt;
+    }
+
+    public void SetTimeStop(float duration) // For testing
+    {
+        timeStopDuration = duration;
+    }
+
     #endregion
 
     /// <summary>

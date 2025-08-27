@@ -146,7 +146,6 @@ public class Guard : Enemy
 
         GameObject hitbox = Instantiate(shieldPrefab, transform);
         hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
-        hitbox.GetComponent<DefaultHitbox>().SetAttackName("shieldBash");
         StartCoroutine(HandleBashMovement(hitbox));
     }
 
