@@ -208,6 +208,11 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  - {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
+  - {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
+  effectJSONs: []
   agent: {fileID: 8810894426884420593}
   ground:
     serializedVersion: 2
@@ -243,7 +248,7 @@ MonoBehaviour:
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
   ogreJumpSlamImpactRange: 4
-  slamBatEffects: {fileID: 672220797181763766, guid: 4ef1297a2bac1c24db95078cf34b564a, type: 3}
+  slamBatEffects: {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
   slamImpactEffects: {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:

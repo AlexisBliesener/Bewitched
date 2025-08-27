@@ -42,52 +42,25 @@ public class AttackStatusEffects : MonoBehaviour
     #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
-    public void SaveToJson()
+    public string SaveToJson()
     {
         string statusStr = JsonUtility.ToJson(this, true);
 
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "AttackStatusEffects");
-        SeeFilePath();
-        if (!Directory.Exists(folderPath))
-        {
-            Directory.CreateDirectory(folderPath);
-        }
-
-        string filePath = Path.Combine(folderPath, attackName + FILE_ENDING);
-        File.WriteAllText(filePath, statusStr);
-
-
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
 #endif
 
-
-    }
-
-    [ContextMenu("See File Path")]
-    public void SeeFilePath()
-    {
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "AttackStatusEffects");
-        Debug.Log("Path To JSON File:");
-        Debug.Log(folderPath);
+        return statusStr;
     }
 
     [ContextMenu("Load From JSON")]
-    public void LoadFromJson()
+    public void LoadFromJson(string str)
     {
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "AttackStatusEffects");
-        string filePath = Path.Combine(folderPath, attackName + FILE_ENDING);
-
-        string jsonStr = File.ReadAllText(filePath);
-        JsonUtility.FromJsonOverwrite(jsonStr, this);
+        JsonUtility.FromJsonOverwrite(str, this);
 
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
 #endif
-
     }
 
     #endregion

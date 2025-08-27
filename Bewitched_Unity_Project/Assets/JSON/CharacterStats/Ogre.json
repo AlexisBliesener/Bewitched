@@ -31,6 +31,18 @@
         "serializedVersion": "2",
         "m_Bits": 128
     },
+    "attackEffects": [
+        {
+            "instanceID": 143900
+        },
+        {
+            "instanceID": 2668708
+        },
+        {
+            "instanceID": 99298
+        }
+    ],
+    "effectJSONs": [],
     "agent": {
         "instanceID": 51920
     },
@@ -67,7 +79,9 @@
     "maximumBatSwingKnockback": 120.0,
     "batSwingDuration": 0.5,
     "batSwingChargeTime": 3.0,
-    "batSwingEffects2": {},
+    "batSwingEffects": {
+        "instanceID": 143900
+    },
     "slamHitboxPrefab": {
         "instanceID": 51932
     },
@@ -77,7 +91,35 @@
     "ogreJumpSlamDamage": 20.0,
     "ogreJumpKnockbackMinimum": 20.0,
     "ogreJumpKnockbackMaximum": 70.0,
-    "ogreJumpSlamImpactRange": 8.0,
-    "slamBatEffects2": {},
-    "slamImpactEffects": {}
+    "ogreJumpSlamImpactRange": 4.0,
+    "slamBatEffects": {
+        "instanceID": 2668708
+    },
+    "slamImpactEffects": {
+        "instanceID": 99298
+    }
+}|{
+    "attackName": "OgreBatSwing",
+    "knockbackAmount": 5.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 2,
+    "timeStopDuration": 0.15000000596046449
+}|{
+    "attackName": "OgreSlamBatEffects",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
+}|{
+    "attackName": "OgreSlamImpact",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 20.0,
+    "knockbackMaximum": 70.0,
+    "knockbackRange": 30.0,
+    "knockbackType": 1,
+    "timeStopDuration": 0.15000000596046449
 }

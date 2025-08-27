@@ -208,6 +208,20 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  - {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
+  - {fileID: 7832356536935564024, guid: 9f8127adddd75f943b23ebf5b51cc310, type: 3}
+  effectJSONs:
+  - "{\n    \"attackName\": \"LanceTipEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 0,\n    \"timeStopDuration\": 0.0\n}"
+  - "{\n    \"attackName\": \"LanceHandleEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 0,\n    \"timeStopDuration\": 0.0\n}"
+  - "{\n    \"attackName\": \"ShieldBashEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 3,\n    \"timeStopDuration\": 0.15000000596046449\n}"
   agent: {fileID: 297698976383686993}
   ground:
     serializedVersion: 2
