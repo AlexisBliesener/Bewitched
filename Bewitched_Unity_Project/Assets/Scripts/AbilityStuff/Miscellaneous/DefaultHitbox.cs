@@ -8,39 +8,58 @@ using UnityEngine;
 /// </summary>
 public class DefaultHitbox : MonoBehaviour
 {
-    public Character user;
+    [Tooltip("The Character using this Hitbox")]
+    protected Character user;
 
+    [Tooltip("If the Hitbox is Active")]
     protected bool active = true;
 
+    [Tooltip("If the Hitbox has Hit a Wall")]
     protected bool hitWall = false;
 
+    [Tooltip("Forward Speed")]
     protected float thrustSpeed;
+    [Tooltip("Rotational Speed")]
     protected float rotationalSpeed;
 
-    public float duration;
+    [Tooltip("The Duration the Hitbox Stays Alive")]
+    protected float duration;
 
+    [Tooltip("The Characters this Hitbox has hit")]
     protected List<Character> hitChars;
 
+    [Tooltip("The Damage Dealt")]
     protected float damage;
+
+    [Tooltip("The Slam Damage Dealt")]
     protected float slamDamage;
+
+    [Tooltip("The Time the Hitbox has been Alive")]
     protected float timeAlive;
 
+    [Tooltip("The Parent of this Hitbox")]
     protected DefaultHitbox parent = null; 
 
+    [Tooltip("The Children of this Hitbox")]
     protected List<DefaultHitbox> children = new List<DefaultHitbox>();
 
-    protected AttackStatusEffects statusEffects; // Will be changed to a class when it is made so that effects can be applied through there
+    [Tooltip("Standard Status Effects")]
+    protected AttackStatusEffects statusEffects;
+
+    [Tooltip("The Slam Status Effects")]
     protected AttackStatusEffects impactEffects;
 
+    [Tooltip("The Current Speed")]
     protected float currentSpeed = 0;
+
+    [Tooltip("The Current Rotational Speed")]
     protected float currentRotationalSpeed = 0;
 
+    [Tooltip("The Current Velocity")]
     protected Vector3 velocity;
+
+    [Tooltip("The Current Rotational Velocity")]
     protected Quaternion rotationalVelocity;
-
-    protected string attackName = ""; // Temporary for dealing with knockback types
-
-    public LayerMask characters;
 
     /// <summary>
     /// Add a character to the list of hit characters
@@ -115,7 +134,6 @@ public class DefaultHitbox : MonoBehaviour
         thrustSpeed = forwardVelocity;
         rotationalSpeed = rotationalVelocity;
         statusEffects = status;
-        characters = LayerMask.NameToLayer("Character");
         duration = attackDuration;
     }
 

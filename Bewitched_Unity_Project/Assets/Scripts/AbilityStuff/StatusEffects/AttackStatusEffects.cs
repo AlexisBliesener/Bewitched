@@ -11,9 +11,12 @@ using System.IO;
 [System.Serializable]
 public class AttackStatusEffects : MonoBehaviour
 {
-    const string FILE_ENDING = ".json";
+    [Tooltip("The Name of the Attack")]
     [SerializeField] string attackName;
-
+    
+    /// <summary>
+    /// Knockback types for dealing knockback in different directions/methods
+    /// </summary>
     public enum KnockbackType // For handling knockback
     {
         BasicForward,
@@ -25,18 +28,23 @@ public class AttackStatusEffects : MonoBehaviour
     [Header("Knockback Values")]
 
     // For when knockback is constant
+    [Tooltip("The Base Knockback Amount")]
     [SerializeField] float knockbackAmount = 0;
 
     // For when knockback is in a range
+    [Tooltip("The Minimum Knockback Amount")]
     [SerializeField] private float knockbackMinimum = 0;
+    [Tooltip("The Maximum Knockback Amount")]
     [SerializeField] private float knockbackMaximum = 0;
+    [Tooltip("The Range of Knockback")]
     [SerializeField] private float knockbackRange = 0;
 
     // The knockback type this is
+    [Tooltip("The Type of Knockback to Apply")]
     [SerializeField] private KnockbackType knockbackType = KnockbackType.BasicForward;
 
     [Header("Time Stop Values")]
-
+    [Tooltip("The Duration of the Time Stop")]
     [SerializeField] float timeStopDuration = 0;
 
     #region Saving/Loading
