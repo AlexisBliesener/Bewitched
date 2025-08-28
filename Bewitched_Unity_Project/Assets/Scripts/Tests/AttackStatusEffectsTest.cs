@@ -96,6 +96,8 @@ public class AttackStatusEffectsTest
     }
 
     TestingStatusEffects effects;
+    TestCharacter user;
+    TestCharacter enemy;
 
     /// <summary>
     /// Sets up the scene for testing
@@ -103,6 +105,8 @@ public class AttackStatusEffectsTest
     [SetUp]
     public void SetUp()
     {
+        user = new GameObject("user").AddComponent<TestCharacter>();
+        enemy = new GameObject("enemy").AddComponent<TestCharacter>();
         effects = new GameObject("effects").AddComponent<TestingStatusEffects>();
     }
 
@@ -113,6 +117,7 @@ public class AttackStatusEffectsTest
     public void TearDown()
     {
         Object.Destroy(effects.gameObject);
+        Time.timeScale = 1;
     }
 
     /// <summary>
@@ -155,9 +160,8 @@ public class AttackStatusEffectsTest
     [Test]
     public void TestKnockback_OnEnemy()
     {
-        Character user = new GameObject("user").AddComponent<Ogre>();
-        Character enemy = new GameObject("enemy").AddComponent<Goblin>();
         enemy.gameObject.AddComponent<KnockbackControl>();
+        enemy.gameObject.AddComponent<CharacterController>();
         DefaultHitbox hitbox = new GameObject("hitbox").AddComponent<DefaultHitbox>();
 
         effects.SetKnockback(AttackStatusEffects.KnockbackType.BasicForward, 10);
@@ -165,13 +169,12 @@ public class AttackStatusEffectsTest
         effects.ApplyKnockback(user, enemy, hitbox);
 
         Assert.IsTrue(enemy.GetComponent<KnockbackControl>().gettingKnockback);
+        Object.DestroyImmediate(hitbox);
     }
 
     [UnityTest]
     public IEnumerator TestTimeStop_Basic()
     {
-        TestCharacter user = new GameObject("user").AddComponent<TestCharacter>();
-        TestCharacter enemy = new GameObject("enemy").AddComponent<TestCharacter>();
         DefaultHitbox hitbox = new GameObject("hitbox").AddComponent<DefaultHitbox>();
 
         hitbox.Init(user, attackDuration: 3);
@@ -185,8 +188,6 @@ public class AttackStatusEffectsTest
         yield return new WaitForSecondsRealtime(0.25f);
         Assert.AreEqual(1, Time.timeScale);
 
-        Object.Destroy(user.gameObject);
-        Object.Destroy(enemy.gameObject);
-        Object.Destroy(hitbox.gameObject);
+        Object.DestroyImmediate(hitbox.gameObject);
     }
 }

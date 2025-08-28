@@ -51,7 +51,10 @@ public class DefaultHitbox : MonoBehaviour
         if (!HasBeenHit(character))
         {
             hitChars.Add(character);
-            parent.AddToHit(character);
+            if (parent)
+            {
+                parent.AddToHit(character);
+            }
             foreach (DefaultHitbox hitbox in children)
             {
                 hitbox.AddToHit(character);

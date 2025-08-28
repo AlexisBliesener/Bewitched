@@ -100,9 +100,6 @@ public class DefaultHitboxTest
         }
     }
 
-    GameObject userObj = new GameObject("user");
-    GameObject enemyObj = new GameObject("enemy");
-
     Ogre user;
     Goblin enemy;
 
@@ -112,8 +109,8 @@ public class DefaultHitboxTest
     [SetUp]
     public void SetUp()
     {
-        user = userObj.AddComponent<Ogre>();
-        enemy = enemyObj.AddComponent<Goblin>();
+        user = new GameObject("user").AddComponent<Ogre>();
+        enemy = new GameObject("enemy").AddComponent<Goblin>();
 
         user.transform.position = new Vector3(0, 0, 0);
         enemy.transform.position = new Vector3(0, 0, 1);
@@ -132,8 +129,11 @@ public class DefaultHitboxTest
     [TearDown]
     public void TearDown()
     {
-        Object.Destroy(user);
-        Object.Destroy(enemy);
+        Object.DestroyImmediate(user);
+        Object.DestroyImmediate(enemy);
+
+        Object.DestroyImmediate(hitbox);
+        Object.DestroyImmediate(second);
     }
 
     /// <summary>
