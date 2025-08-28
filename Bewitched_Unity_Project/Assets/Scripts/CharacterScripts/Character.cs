@@ -12,8 +12,15 @@ public abstract class Character : MonoBehaviour
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
+
+    [Header("Movement Settings")]
     [Tooltip("Speed the Character Can Move")]
     public float movementSpeed = 5;
+    [Tooltip("Acceleration of the Character")]
+    public float acceleration = 5;
+    [Tooltip("Deceleration of the Character")]
+    public float deceleration = 5;
+
     [Tooltip("Weight of the character")]
     public float weight = 10;
     [Tooltip("Character Hitbox Radius")]

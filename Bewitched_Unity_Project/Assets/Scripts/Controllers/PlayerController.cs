@@ -131,7 +131,16 @@ public class PlayerController : MonoBehaviour
             if (input.sqrMagnitude > 0.01)
             {
                 Vector3 desiredVelocity = direction * speed;
-                velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
+                if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
+                {
+                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.acceleration);
+                }
+                else
+                {
+                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.deceleration);
+                }
+                
+                
 
                 characterController.Move(velocity * Time.deltaTime);
                 currentCharacter.AnimateMove();
