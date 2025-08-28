@@ -9,6 +9,9 @@ public abstract class Enemy : Character
     [Tooltip("Navmesh Agent on this character")]
     public NavMeshAgent agent;
 
+    [Tooltip("Minimum Stopping Distance")]
+    public float minStopDistance = 0.5f;
+
     protected PlayerController playerController;
 
     protected Hag hag;
@@ -62,6 +65,14 @@ public abstract class Enemy : Character
     protected bool isStunned = false;
 
     private bool inAttackDelay = false;
+
+    private Vector3 previousVelocity = new Vector3(0, 0, 0);
+
+    public void SetAgentValues()
+    {
+        agent.stoppingDistance = minStopDistance;
+        agent.acceleration = acceleration;
+    }
 
     public void SetPlayerInfo()
     {
@@ -205,19 +216,21 @@ public abstract class Enemy : Character
         {
             Patrol();
         }
+
+        HandleDeceleration();
     }
 
     public void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
         {
-            agent.stoppingDistance = target.sizeRadius;
+            agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(transform.position);
             AnimateIdle();
         }
         else
         {
-            agent.stoppingDistance = target.sizeRadius;
+            agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(target.transform.position);
             AnimateMove();
         }
@@ -233,6 +246,7 @@ public abstract class Enemy : Character
 
         if (walkPointSet)
         {
+            agent.stoppingDistance = minStopDistance;
             agent.SetDestination(walkPoint);
             AnimateMove();
         }
@@ -376,5 +390,22 @@ public abstract class Enemy : Character
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Handles decelerating the character based on the values in Character.cs
+    /// </summary>
+    public void HandleDeceleration()
+    {
+        if (agent.velocity.magnitude < previousVelocity.magnitude)
+        {
+            agent.acceleration = deceleration;
+        }
+        else
+        {
+            agent.acceleration = acceleration;
+        }
+
+        previousVelocity = agent.velocity;
     }
 }

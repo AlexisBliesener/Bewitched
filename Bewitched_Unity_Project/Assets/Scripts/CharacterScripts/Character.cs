@@ -14,7 +14,7 @@ public abstract class Character : MonoBehaviour
     public string characterName;
 
     [Header("Movement Settings")]
-    [Tooltip("Speed the Character Can Move")]
+    [Tooltip("Speed the Character Can Move While Chasing")]
     public float movementSpeed = 5;
     [Tooltip("Acceleration of the Character")]
     public float acceleration = 5;

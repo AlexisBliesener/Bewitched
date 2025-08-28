@@ -28,6 +28,7 @@ public class Goblin : Enemy
         SetPlayerInfo();
         SetHealthToMax();
         SetBaseStats();
+        SetAgentValues();
     }
 
     private void Update()
