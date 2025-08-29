@@ -12,6 +12,8 @@ public class Goblin : Enemy
     [SerializeField] float thrustSpeed = 10;
     [Tooltip("Knife Damage")]
     [SerializeField] float knifeDamage = 20;
+    [Tooltip("Knife Effects")]
+    [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
     [SerializeField] GameObject dashHitbox;
     [Tooltip("Dash Speed")]
@@ -20,6 +22,8 @@ public class Goblin : Enemy
     [SerializeField] float dashDuration = 0.5f;
     [Tooltip("Dash Damage")]
     [SerializeField] float dashDamage = 30;
+    [Tooltip("Dash Effects")]
+    [SerializeField] AttackStatusEffects dashEffects;
 
     private bool isDashing = false;
 
@@ -47,7 +51,7 @@ public class Goblin : Enemy
         base.PrimaryAttack();
 
         GameObject shank = Instantiate(knifePrefab, transform);
-        shank.GetComponent<KnifeHitBox>().Init(this, knifeDamage, thrustSpeed);
+        shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -69,7 +73,7 @@ public class Goblin : Enemy
         PlayerController.instance.SetAllowMovement(false);
 
         GameObject hitbox = Instantiate(dashHitbox, transform);
-        hitbox.GetComponent<DashHitBox>().Init(this, dashDamage);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: dashDamage, attackDuration: dashDuration, status: dashEffects);
 
         StartCoroutine(HandleDashMovement(hitbox));
     }
@@ -80,7 +84,7 @@ public class Goblin : Enemy
 
         while (timeSinceStarted < dashDuration)
         {
-            if (hitbox.GetComponent<DashHitBox>().HitWall())
+            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
             {
                 StartCoroutine(EnableMovement());
                 isDashing = false;

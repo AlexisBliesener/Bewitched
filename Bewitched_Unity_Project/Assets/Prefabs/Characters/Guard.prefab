@@ -208,6 +208,20 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  - {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
+  - {fileID: 7832356536935564024, guid: 9f8127adddd75f943b23ebf5b51cc310, type: 3}
+  effectJSONs:
+  - "{\n    \"attackName\": \"LanceTipEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 0,\n    \"timeStopDuration\": 0.0\n}"
+  - "{\n    \"attackName\": \"LanceHandleEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 0,\n    \"timeStopDuration\": 0.0\n}"
+  - "{\n    \"attackName\": \"ShieldBashEffects\",\n    \"knockbackAmount\": 5.0,\n   
+    \"knockbackMinimum\": 0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\":
+    0.0,\n    \"knockbackType\": 3,\n    \"timeStopDuration\": 0.15000000596046449\n}"
   agent: {fileID: 297698976383686993}
   ground:
     serializedVersion: 2
@@ -224,10 +238,14 @@ MonoBehaviour:
   leaveBodyExplosionMaximumDamage: 40
   leaveBodyExplosionMinimumKnockback: 10
   leaveBodyExplosionMaximumKnockback: 30
-  lancePrefab: {fileID: 14054118119602519, guid: 66bdb1ae328c2074b9adad40659156b9, type: 3}
+  lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
+  lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6
-  lanceDamage: 22.5
-  lanceKnockback: 5
+  lanceHandleDamage: 20
+  lanceTipDamage: 5
+  lanceDuration: 0.5
+  lanceTipEffects: {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  lanceHandleEffects: {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
   shieldPrefab: {fileID: 5297234261058955286, guid: 3a6774d7279d5db47991fcb9a194ed59, type: 3}
   minimumShieldBashSpeed: 10
   maximumShieldBashSpeed: 20
@@ -235,6 +253,7 @@ MonoBehaviour:
   maximumShieldBashDamage: 55
   minimumShieldBashKnockback: 15
   maximumShieldBashKnockback: 35
+  shieldBashEffects: {fileID: 7832356536935564024, guid: 9f8127adddd75f943b23ebf5b51cc310, type: 3}
   maxShieldBashChargeTime: 2
   bashDuration: 0.65
   chargingMovementSpeed: 2

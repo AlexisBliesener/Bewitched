@@ -5,13 +5,13 @@
     "sizeRadius": 0.6000000238418579,
     "teamID": 2,
     "animator": {
-        "instanceID": 52160
+        "instanceID": 52170
     },
     "primaryFireIcon": {
-        "instanceID": 52162
+        "instanceID": 52172
     },
     "secondaryFireIcon": {
-        "instanceID": 52164
+        "instanceID": 52174
     },
     "attackDelay": 1.0,
     "primaryCooldown": 0.5,
@@ -24,15 +24,24 @@
     "primaryAttackRange": 1.0,
     "maxHealth": 75.0,
     "hitStunPrefab": {
-        "instanceID": 51876
+        "instanceID": 51926
     },
     "hitStunDuration": 0.5,
     "characters": {
         "serializedVersion": "2",
         "m_Bits": 128
     },
+    "attackEffects": [
+        {
+            "instanceID": 2668458
+        },
+        {
+            "instanceID": 2668480
+        }
+    ],
+    "effectJSONs": [],
     "agent": {
-        "instanceID": 52156
+        "instanceID": 52166
     },
     "ground": {
         "serializedVersion": "2",
@@ -45,7 +54,7 @@
     "sightRange": 15.0,
     "patrolRange": 5.0,
     "miniBarPrefab": {
-        "instanceID": 51878
+        "instanceID": 51928
     },
     "attackDelayAI": 0.5,
     "leaveBodyExplosionRadius": 5.0,
@@ -54,14 +63,36 @@
     "leaveBodyExplosionMinimumKnockback": 10.0,
     "leaveBodyExplosionMaximumKnockback": 30.0,
     "knifePrefab": {
-        "instanceID": 52166
+        "instanceID": 52176
     },
     "thrustSpeed": 10.0,
     "knifeDamage": 20.0,
+    "knifeEffects": {
+        "instanceID": 2668458
+    },
     "dashHitbox": {
-        "instanceID": 52168
+        "instanceID": 52178
     },
     "dashSpeed": 30.0,
     "dashDuration": 0.25,
-    "dashDamage": 30.0
+    "dashDamage": 30.0,
+    "dashEffects": {
+        "instanceID": 2668480
+    }
+}|{
+    "attackName": "GoblinStab",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
+}|{
+    "attackName": "GoblinDash",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
 }

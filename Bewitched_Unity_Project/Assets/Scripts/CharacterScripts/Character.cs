@@ -89,12 +89,24 @@ public abstract class Character : MonoBehaviour
 
     private int currentPrimaryComboStep = 0;
 
+    public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
+    [SerializeField] private List<string> effectJSONs = new List<string>();
+
     #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
     public void SaveToJson()
     {
+        effectJSONs = new List<string>();
         string characterStatsStr = JsonUtility.ToJson(this, true);
+
+        foreach (AttackStatusEffects effect in attackEffects)
+        {
+            string statusStr = effect.SaveToJson();
+            characterStatsStr += "|";
+            characterStatsStr += statusStr;
+            effectJSONs.Add(statusStr);
+        }
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
@@ -127,12 +139,20 @@ public abstract class Character : MonoBehaviour
     [ContextMenu("Load From JSON")]
     public void LoadFromJson()
     {
+
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
         string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
-        JsonUtility.FromJsonOverwrite(jsonStr, this);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+        for (int i = 1; i < jsons.Length; i++)
+        {
+            attackEffects[i - 1].LoadFromJson(jsons[i]);
+        }
 
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
@@ -256,6 +276,7 @@ public abstract class Character : MonoBehaviour
 
     public IEnumerator StartTime(float stopTime)
     {
+        Debug.Log("Here");
         yield return new WaitForSecondsRealtime(stopTime);
 
         if (!GameObject.FindGameObjectWithTag("PauseMenu")) // If not paused set timescale normal
@@ -398,7 +419,6 @@ public abstract class Character : MonoBehaviour
         {
             if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
             {
-                Debug.Log(attackingPrimary);
                 animator.SetTrigger("StartRunning");
             }
         }
@@ -456,5 +476,26 @@ public abstract class Character : MonoBehaviour
     public virtual void Explode()
     {
 
+    }
+
+    public virtual Vector3 GetCurrentSpeedVector()
+    {
+        return new Vector3(0, 0, 0);
+    }
+
+    public void EndAttacks()
+    {
+        SetPrimaryAttack(false);
+        SetSecondaryAttack(false);
+    }
+
+    public void SetPrimaryAttack(bool val)
+    {
+        attackingPrimary = val;
+    }
+
+    public void SetSecondaryAttack(bool val)
+    {
+        attackingSecondary = val;
     }
 }

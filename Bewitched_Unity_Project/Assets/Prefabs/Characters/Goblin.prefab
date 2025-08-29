@@ -173,6 +173,16 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
+  - {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
+  effectJSONs:
+  - "{\n    \"attackName\": \"GoblinStab\",\n    \"knockbackAmount\": 0.0,\n    \"knockbackMinimum\":
+    0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\": 0.0,\n    \"knockbackType\":
+    0,\n    \"timeStopDuration\": 0.0\n}"
+  - "{\n    \"attackName\": \"GoblinDash\",\n    \"knockbackAmount\": 0.0,\n    \"knockbackMinimum\":
+    0.0,\n    \"knockbackMaximum\": 0.0,\n    \"knockbackRange\": 0.0,\n    \"knockbackType\":
+    0,\n    \"timeStopDuration\": 0.0\n}"
   agent: {fileID: 5347660582151986861}
   ground:
     serializedVersion: 2
@@ -192,10 +202,12 @@ MonoBehaviour:
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
   thrustSpeed: 10
   knifeDamage: 20
+  knifeEffects: {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashSpeed: 30
   dashDuration: 0.25
   dashDamage: 30
+  dashEffects: {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0

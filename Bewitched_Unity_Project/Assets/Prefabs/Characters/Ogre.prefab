@@ -208,6 +208,11 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  - {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
+  - {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
+  effectJSONs: []
   agent: {fileID: 8810894426884420593}
   ground:
     serializedVersion: 2
@@ -224,7 +229,8 @@ MonoBehaviour:
   leaveBodyExplosionMaximumDamage: 40
   leaveBodyExplosionMinimumKnockback: 10
   leaveBodyExplosionMaximumKnockback: 30
-  batHitboxPrefab: {fileID: 3839853102873102876, guid: 996153408a866c743a3495e5e940b1ee, type: 3}
+  batHitboxPrefab: {fileID: 3266930682550461916, guid: f9791627755f53043a950c79ed274ac2, type: 3}
+  batPivot: {fileID: 326237258621897175, guid: f6d6591cea902ca4891bb476ce9ea268, type: 3}
   minimumBatSwingDamage: 20
   maximumBatSwingDamage: 60
   minimumBatSwingAngle: 45
@@ -233,6 +239,7 @@ MonoBehaviour:
   maximumBatSwingKnockback: 120
   batSwingDuration: 0.5
   batSwingChargeTime: 3
+  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
@@ -240,7 +247,9 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpKnockbackRange: 8
+  ogreJumpSlamImpactRange: 4
+  slamBatEffects: {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
+  slamImpactEffects: {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0
