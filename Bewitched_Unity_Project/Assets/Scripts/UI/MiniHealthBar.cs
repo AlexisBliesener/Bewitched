@@ -10,7 +10,7 @@ public class MiniHealthBar : MonoBehaviour
     private Enemy character;
     [Tooltip("life time in seconds before health bar disappear if enemy is not recently hit")]
     public float lifeTime = 3;
-    private HealthViewModel healthVM;
+    private HealthController healthController;
     private float timeLastHit;
 
     [Header("Positioning Variables")]
@@ -24,7 +24,7 @@ public class MiniHealthBar : MonoBehaviour
 
     void Update()
     {
-        if (character == null || healthVM == null)
+        if (character == null || healthController == null)
         {
             Destroy(gameObject);
             return;
@@ -46,17 +46,17 @@ public class MiniHealthBar : MonoBehaviour
     {
         character = inst;
     }
-    public void Subscribe(HealthViewModel vm)
+    public void Subscribe(HealthController hc)
     {
-        healthVM = vm;
+        healthController = hc;
 
         // Set initial values
-        slider.maxValue = healthVM.Max;
-        slider.value = healthVM.Current;
+        slider.maxValue = healthController.GetMax();
+        slider.value = healthController.GetCurrent();
 
         // Subscribe to updates
-        healthVM.OnHealthChanged += SetValues;
-        healthVM.OnDeath += HandleDeath;
+        healthController.OnHealthChanged += SetValues;
+        healthController.OnDeath += HandleDeath;
 
         mainCamera = Camera.main;
         canvas = GameObject.FindGameObjectWithTag("MiniBars").GetComponent<Canvas>();

@@ -271,7 +271,7 @@ public abstract class Enemy : Character
         {
             minibar = Instantiate(miniBarPrefab);
             minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
-            minibar.GetComponent<MiniHealthBar>().Subscribe(health.viewModel);
+            minibar.GetComponent<MiniHealthBar>().Subscribe(health);
         }
     }
 

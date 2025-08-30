@@ -7,22 +7,23 @@ using TMPro;
 public class HealthBar : MonoBehaviour
 {
     [Header("Health Bar Settings")]
-    private HealthViewModel viewModel;
     public Slider slider;
+    private HealthController healthController;
 
-    public void Subscribe(HealthViewModel vm)
+    public void Subscribe(HealthController hc)
     {
-        viewModel = vm;
-        slider.maxValue = vm.Max;
-        slider.value = vm.Current;
+        if (hc == null || slider == null) return;
+        healthController = hc;
+        slider.maxValue = hc.GetMax();
+        slider.value = hc.GetCurrent();
 
-        viewModel.OnHealthChanged += SetValues;
+        hc.OnHealthChanged += SetValues;
     }
     
     private void OnDestroy()
     {
-        if (viewModel != null)
-            viewModel.OnHealthChanged -= SetValues; // unsubscribe
+        if (healthController != null)
+            healthController.OnHealthChanged -= SetValues; // unsubscribe
     }
     
     public void SetValues(float current, float max)

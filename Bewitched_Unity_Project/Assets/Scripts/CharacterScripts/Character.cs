@@ -51,7 +51,7 @@ public abstract class Character : MonoBehaviour
     public float maxHealth;
     [Tooltip("Decay rate for this character (per second)")]
     public float defaultDecay = 0f;
-    [Tooltip("Attach the HealthController component to this, or we will do it under the hood for you and only for you bc you're special <3")]
+    [Tooltip("Attach the HealthController component to this, or we will do it under the hood for you and only for you bc you're special :)")]
     [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
@@ -171,7 +171,6 @@ public abstract class Character : MonoBehaviour
             {
                 Debug.LogWarning("No HealthController found on " + gameObject.name + ", adding one automatically.");
                 health = gameObject.AddComponent<HealthController>();
-                health.Init();
             }
         }
 
@@ -183,6 +182,7 @@ public abstract class Character : MonoBehaviour
             health.OnDamaged += OnDamaged;
             health.OnHealthChanged += OnHealthChanged;
             health.OnDeath += OnDeath;
+            
         }
 
         SetBaseStats();
@@ -267,7 +267,8 @@ public abstract class Character : MonoBehaviour
 
     public virtual void SubHealth(float dmg)
     {
-        if (!invincible && health != null) {
+        if (!invincible && health != null)
+        {
             health.TakeDamage(dmg);
         }
     }
@@ -275,7 +276,7 @@ public abstract class Character : MonoBehaviour
     public virtual void DrainLife(float amt)
     {
         if (!invincible && health != null) {
-            health.TakeDamage(amt);
+            health.DrainLife(amt);
         }
     }
 
@@ -289,7 +290,7 @@ public abstract class Character : MonoBehaviour
 
     public bool IsAlive()
     {
-        return health != null && !health.viewModel.IsDead;
+        return health != null && !health.IsDead;
     }
 
     public virtual void SetControlled(bool v) { }
@@ -302,7 +303,8 @@ public abstract class Character : MonoBehaviour
     public IEnumerator EnableMovement() // Call this after any movement abilities
     {
         yield return new WaitForSeconds(0.1f);
-        PlayerController.instance.SetAllowMovement(true);
+        if (PlayerController.instance != null)
+            PlayerController.instance.SetAllowMovement(true);
     }
 
     public IEnumerator StartTime(float stopTime)

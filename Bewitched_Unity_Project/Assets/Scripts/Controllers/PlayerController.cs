@@ -90,11 +90,11 @@ public class PlayerController : MonoBehaviour
         if (hagHealth != null)
         {
             hagHealth.SetToMax();
-        }
-        if (hagHealthBar != null)
-        {
-            hagHealthBar.GetComponent<HealthBar>().Subscribe(hagHealth.viewModel);
-            hagHealthBar.SetActive(true);
+            if (hagHealthBar != null)
+            {
+                hagHealthBar.GetComponent<HealthBar>().Subscribe(hagHealth);
+                hagHealthBar.SetActive(true);
+            }
         }
     }
 
@@ -339,11 +339,11 @@ public class PlayerController : MonoBehaviour
             {
                 newHealth.SetDecay(lifeDrainCoefficient);
                 newHealth.EnableUpdateModel(true);
-            }
-            if (secondaryHealthBar != null)
-            {
-                secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth.viewModel);
-                secondaryHealthBar.SetActive(true);
+                if (secondaryHealthBar != null )
+                {
+                    secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
+                    secondaryHealthBar.SetActive(true);
+                }
             }
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;

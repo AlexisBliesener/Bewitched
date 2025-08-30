@@ -93,8 +93,25 @@ public class CharacterTests
         public void SetHealthController(HealthController hc)
         {
             health = hc;
-            hc.Init();
+            SubscribeHealth(hc);
         }
+        /// <summary>
+        /// Subscribe to events from a given HealthController instance.
+        /// </summary>
+        public void SubscribeHealth(HealthController hc)
+        {
+            health.OnDamaged += OnDamaged;
+            health.OnDeath += OnDeath;
+        }
+        /// <summary>
+        /// Unsubscribe to events from a given HealthController instance.
+        /// </summary>
+        public void UnsubscribeHealth(HealthController hc)
+        {
+            health.OnDamaged -= OnDamaged;
+            health.OnDeath -= OnDeath;
+        }
+
         /// <summary>
         /// Overrides Character.OnDamaged() for testing; marks that CreateHitStun() was called.
         /// </summary>
@@ -102,6 +119,14 @@ public class CharacterTests
         {
             CreateHitStun();
         }
+        /// <summary>
+        /// Overrides Character.OnDeath() for testing; marks that Die() was called.
+        /// </summary>
+        protected override void OnDeath()
+        {
+            Die();
+        }
+
         /// <summary>
         /// Creates a dummy hitstun GameObject to simulate hitstun logic.
         /// </summary>
@@ -124,6 +149,8 @@ public class CharacterTests
         testCharacterGameObject = new GameObject("Character");
         testCharacter = testCharacterGameObject.AddComponent<TestCharacter>();
 
+        // Add and initialize HealthController for the character
+        testCharacter.SetHealthController(testCharacterGameObject.AddComponent<HealthController>()); 
 
         // Setup default values
         testCharacter.characterName = "TestChar";
@@ -136,8 +163,7 @@ public class CharacterTests
         testCharacter.primaryComboExtraCooldown = 1f;
         testCharacter.primaryComboResetTime = 0.5f;
 
-        // Add and initialize HealthController for the character
-        testCharacter.SetHealthController(testCharacterGameObject.AddComponent<HealthController>()); 
+
     }
 
     /// <summary>
@@ -146,6 +172,7 @@ public class CharacterTests
     [TearDown]
     public void TearDown()
     {
+        testCharacter.UnsubscribeHealth(testCharacter.health);
         Object.Destroy(testCharacterGameObject);
     }
 
