@@ -405,7 +405,6 @@ public abstract class Character : MonoBehaviour
         {
             if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
             {
-                Debug.Log(attackingPrimary);
                 animator.SetTrigger("StartRunning");
             }
         }

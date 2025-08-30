@@ -21,6 +21,26 @@ public class Goblin : Enemy
     [Tooltip("Dash Damage")]
     [SerializeField] float dashDamage = 30;
 
+    [Header("Goblin AI Settings")]
+    [Tooltip("Surrounding Range")]
+    [SerializeField] float surroundRange = 2;
+
+    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
+    private bool inProcess = false;
+
+    private enum GoblinAIState
+    {
+        Patrolling,
+        Chasing,
+        Searching,
+        Surrounding,
+        AttackStab,
+        AttackSpin
+    }
+
+    [Tooltip("The Current AI State of the Goblin")]
+    private GoblinAIState aiState = GoblinAIState.Patrolling;
+
     private bool isDashing = false;
 
     private void Start()
@@ -29,6 +49,8 @@ public class Goblin : Enemy
         SetHealthToMax();
         SetBaseStats();
         SetAgentValues();
+        SetDebuggingValues();
+        StartCoroutine(LookAround());
     }
 
     private void Update()
@@ -38,9 +60,9 @@ public class Goblin : Enemy
         {
             SetRangeChecks();
             SetBehavior();
-            agent.speed = movementSpeed;
         }
         HandleHitStun();
+        HandleDeceleration();
     }
 
     public override void PrimaryAttack()
@@ -53,7 +75,7 @@ public class Goblin : Enemy
         timeLastPrimary = Time.time;
         attackingPrimary = true;
     }
-    
+
     public override void SecondaryAttack()
     {
         base.SecondaryAttack();
@@ -106,5 +128,116 @@ public class Goblin : Enemy
         isDashing = false;
         invincible = false;
         attackingSecondary = false;
+    }
+
+    /// <summary>
+    /// Function that follows the flow chart to set behavior for the goblin
+    /// </summary>
+    public override void SetBehavior()
+    {
+        if (!agent.enabled || inProcess) return;
+
+        if (aiState == GoblinAIState.Patrolling) // If patrolling
+        {
+            Patrol();
+        }
+        else if (aiState == GoblinAIState.Chasing)
+        {
+            Chase();
+        }
+        else if (aiState == GoblinAIState.Surrounding)
+        {
+            Chase();
+        }
+        else if (aiState == GoblinAIState.Searching)
+        {
+            Chase();
+        }
+    }
+
+    /// <summary>
+    /// Override function handling patrol functionality for the Goblin
+    /// </summary>
+    public override void Patrol()
+    {
+        if (walkPointSet)
+        {
+            agent.stoppingDistance = minStopDistance;
+        }
+
+
+        if (agent.remainingDistance <= minStopDistance) // If we are within stopping range
+        {
+            agent.SetDestination(transform.position); // Stop character
+            StartCoroutine(LookAround()); // Look around
+        }
+
+        if (debugging)
+        {
+            DrawPath();
+        }
+    }
+
+    /// <summary>
+    /// Coroutine to handle the goblin when it reaches it's patrol destination
+    /// </summary>
+    /// <returns> Waits for animation to be done and looks for player </returns>
+    private IEnumerator LookAround()
+    {
+        if (debugging)
+        {
+            pathVisualizer.positionCount = 0;
+            Destroy(destinationMarker);
+        }
+
+        inProcess = true;
+        AnimateIdle(); // Play animation (temporarily idle)
+        float timer = 0;
+
+        while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
+        {
+            if (LookForPlayer())
+            {
+                StartCoroutine(SpotPlayer());
+                yield break;
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        while (!SetWalkPoint()) 
+        {
+            yield return null;
+        }
+
+        inProcess = false;
+    }
+
+    /// <summary>
+    /// Coroutine that plays when the player is spotted
+    /// </summary>
+    /// <returns> Waits for animation to be done </returns>
+    private IEnumerator SpotPlayer()
+    {
+        if (debugging)
+        {
+            pathVisualizer.positionCount = 0;
+        }
+
+        inProcess = true;
+
+        // Play animation/noise that the player has been seen
+        yield return new WaitForSeconds(1);
+
+        inProcess = false;
+        aiState = GoblinAIState.Chasing;
+    }
+
+    /// <summary>
+    /// Chase function for the Goblin - should set paths that focus on surrounding the player
+    /// </summary>
+    public override void Chase()
+    {
+        
     }
 }

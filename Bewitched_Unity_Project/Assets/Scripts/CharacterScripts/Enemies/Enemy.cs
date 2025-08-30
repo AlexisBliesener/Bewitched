@@ -12,6 +12,12 @@ public abstract class Enemy : Character
     [Tooltip("Minimum Stopping Distance")]
     public float minStopDistance = 0.5f;
 
+    [Tooltip("Highest Priority")]
+    public int highestPriority;
+
+    [Tooltip("Lowest Priority")]
+    public int lowestPriority;
+
     protected PlayerController playerController;
 
     protected Hag hag;
@@ -46,32 +52,51 @@ public abstract class Enemy : Character
     [Tooltip("Leave Body Explosion Maximum Knockback")]
     public float leaveBodyExplosionMaximumKnockback = 30;
 
+    [Header("Debug Options")]
+    [Tooltip("Show Paths, Destinations, etc")]
+    public bool debugging = false;
+    [Tooltip("Destination Marker Prefab")]
+    public GameObject destinationMarkerPrefab;
+    [Tooltip("Line Renderer for Path")]
+    public LineRenderer pathVisualizer;
+
+    protected GameObject destinationMarker;
+
     protected bool walkPointSet = false;
     protected bool playerInSightRange, currentInSightRange, targetInSightRange = false;
     protected bool targetInPrimaryRange = false;
 
     protected bool playerControlling = false; // flag for determining actions (player or AI)
 
-    private Vector3 walkPoint;
+    protected Vector3 walkPoint;
 
-    private Character target;
+    protected Character target;
 
-    private Vector3 lastTargetLocation;
+    protected Vector3 lastTargetLocation;
 
-    private bool seenTarget = false;
+    protected bool seenTarget = false;
 
-    private GameObject minibar;
+    protected GameObject minibar;
 
     protected bool isStunned = false;
 
-    private bool inAttackDelay = false;
+    protected bool inAttackDelay = false;
 
-    private Vector3 previousVelocity = new Vector3(0, 0, 0);
+    protected Vector3 previousVelocity = new Vector3(0, 0, 0);
 
     public void SetAgentValues()
     {
         agent.stoppingDistance = minStopDistance;
+        agent.speed = movementSpeed;
         agent.acceleration = acceleration;
+        agent.avoidancePriority = Random.Range(highestPriority, lowestPriority);
+    }
+
+    public void SetDebuggingValues()
+    {
+        pathVisualizer.startWidth = .15f;
+        pathVisualizer.endWidth = .15f;
+        pathVisualizer.positionCount = 0;
     }
 
     public void SetPlayerInfo()
@@ -180,7 +205,22 @@ public abstract class Enemy : Character
         }
     }
 
-    public void SetBehavior()
+    /// <summary>
+    /// Searches for the player, handling variables if it can see them
+    /// </summary>
+    /// <returns> True if player is visible to enemy </returns>
+    public bool LookForPlayer()
+    {
+        if (targetInSightRange && CheckCharacterBehindEnvironment(target.transform))
+        {
+            seenTarget = true;
+            lastTargetLocation = target.transform.position;
+            return true;
+        }
+        return false;
+    }
+
+    public virtual void SetBehavior()
     {
         if(!agent.enabled) return;
         if (inAttackDelay) return;
@@ -220,7 +260,7 @@ public abstract class Enemy : Character
         HandleDeceleration();
     }
 
-    public void Chase()
+    public virtual void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
         {
@@ -236,7 +276,7 @@ public abstract class Enemy : Character
         }
     }
 
-    public void Patrol()
+    public virtual void Patrol()
     {
         if(!agent.enabled) return;
         if (!walkPointSet)
@@ -259,7 +299,7 @@ public abstract class Enemy : Character
         }
     }
 
-    public void SetWalkPoint()
+    public bool SetWalkPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
         float randomZ = Random.Range(-patrolRange, patrolRange);
@@ -272,9 +312,19 @@ public abstract class Enemy : Character
             {
                 walkPoint = hit.position;
                 walkPointSet = true;
-                return;
+                agent.SetDestination(walkPoint);
+                AnimateMove();
+
+                if (debugging)
+                {
+                    destinationMarker = Instantiate(destinationMarkerPrefab);
+                    destinationMarker.transform.position = walkPoint;
+                }
+
+                return true;
             }
         }
+        return false;
     }
 
     public override void SubHealth(float dmg)
@@ -399,13 +449,34 @@ public abstract class Enemy : Character
     {
         if (agent.velocity.magnitude < previousVelocity.magnitude)
         {
+            Debug.Log("Decelerating");
             agent.acceleration = deceleration;
         }
         else
         {
+            Debug.Log("Accelerating");
             agent.acceleration = acceleration;
         }
 
         previousVelocity = agent.velocity;
+    }
+
+    /// <summary>
+    /// Draws a path the agent follows
+    /// </summary>
+    public void DrawPath()
+    {
+        pathVisualizer.positionCount = agent.path.corners.Length;
+        pathVisualizer.SetPosition(0, transform.position);
+
+        if (agent.path.corners.Length < 2)
+        {
+            return;
+        }
+
+        for (int i = 1; i < agent.path.corners.Length; i++)
+        {
+            pathVisualizer.SetPosition(i, agent.path.corners[i]);
+        }
     }
 }
