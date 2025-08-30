@@ -28,7 +28,6 @@ public class PossessionOrb : MonoBehaviour
     {
         if(other.TryGetComponent(out Character character) && character!=player){
             PlayerController.CharacterControlChangeEvent?.Invoke(character);
-            Debug.Log("invoked");
             character.SetControlled(true);
             //Ends the audio event
             orbEvent.setParameterByName("Hit",1f);
