@@ -271,12 +271,13 @@ public abstract class Enemy : Character
         {
             minibar = Instantiate(miniBarPrefab);
             minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
+            minibar.GetComponent<MiniHealthBar>().Subscribe(health.viewModel);
         }
     }
 
     public float GetTimeLastHit()
     {
-        return timeLastHit;
+        return health != null ? health.TimeLastHit : timeLastHit;
     }
 
     public override void CreateHitStun()

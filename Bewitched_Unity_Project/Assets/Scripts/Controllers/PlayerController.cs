@@ -86,6 +86,16 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         instance = this;
+        HealthController hagHealth = oldHag.GetComponent<HealthController>();
+        if (hagHealth != null)
+        {
+            hagHealth.SetToMax();
+        }
+        if (hagHealthBar != null)
+        {
+            hagHealthBar.GetComponent<HealthBar>().Subscribe(hagHealth.viewModel);
+            hagHealthBar.SetActive(true);
+        }
     }
 
     private void Awake()
@@ -94,11 +104,6 @@ public class PlayerController : MonoBehaviour
 
         characterController = currentCharacter.GetComponent<CharacterController>();
         CharacterControlChangeEvent+=SwitchCharacter;
-
-        oldHag.SetHealthToMax();
-
-        hagHealthBar.GetComponent<HealthBar>().SetCharacter(oldHag);
-        hagHealthBar.SetActive(true);
     }
 
     void OnDisable()
@@ -145,7 +150,6 @@ public class PlayerController : MonoBehaviour
 
         if (currentCharacter != oldHag)
         {
-            currentCharacter.DrainLife(lifeDrainCoefficient * Time.deltaTime);
             oldHag.AnimateIdle();
         }
     }
@@ -297,23 +301,50 @@ public class PlayerController : MonoBehaviour
     public void SwitchCharacter(Character newCharacter){
         
         characterController = newCharacter.GetComponent<CharacterController>();
-
+        HealthController hagHealth = oldHag.GetComponent<HealthController>();
+        HealthController newHealth = newCharacter.GetComponent<HealthController>();
         if (newCharacter == oldHag)
         {
-            secondaryHealthBar.SetActive(false);
+            // This means we are switching back to the hag
+            if (hagHealth != null)
+            {
+                hagHealth.SetDecay(0f); // Hag does not decay
+                hagHealth.EnableUpdateModel(true);
+            }
+            if (secondaryHealthBar != null)
+            {
+                secondaryHealthBar.SetActive(false);
+            }
             currentCharacter.SetTeamID(2);
             SetAllowMovement(true);
             //Might need to change this once I get to enemy specific death sounds
-            if(AudioManager.TryGetReference("LeaveBody",out EventReference evRef)){
-                    EventInstance ev = RuntimeManager.CreateInstance(evRef);
-                    ev.start();
-                    ev.release();
-                }
+
+            // I have commented this out for now as it was causing issues with fmod and that caused a problem with switching characters
+            
+
+            // if(AudioManager.TryGetReference("LeaveBody",out EventReference evRef)){
+            //         EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            //         ev.start();
+            //         ev.release();
+            //     }
         }
         else
         {
-            secondaryHealthBar.GetComponent<HealthBar>().SetCharacter(newCharacter);
-            secondaryHealthBar.SetActive(true);
+            // Possess an enemy
+            if (hagHealth != null)
+            {
+                hagHealth.SetDecay(0f);
+            }
+            if (newHealth != null)
+            {
+                newHealth.SetDecay(lifeDrainCoefficient);
+                newHealth.EnableUpdateModel(true);
+            }
+            if (secondaryHealthBar != null)
+            {
+                secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth.viewModel);
+                secondaryHealthBar.SetActive(true);
+            }
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;
         }

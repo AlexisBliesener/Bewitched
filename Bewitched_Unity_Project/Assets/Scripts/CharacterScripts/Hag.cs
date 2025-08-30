@@ -29,9 +29,11 @@ public class Hag : Character
         SetBaseStats();
     }
 
-    void Awake()
+    protected override void Awake()
     {
-        if(knockBackCone){
+        base.Awake();
+        if (knockBackCone)
+        {
             knockBackCone.SetActive(true);
             knockBackCone.GetComponent<KnockbackCone>().playerTrans = transform;
             knockBackCone.GetComponent<KnockbackCone>().knockbackAmount = knockbackAmount;

@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 297698976383686993}
   - component: {fileID: 1936789453594467898}
   - component: {fileID: -4911733195017043695}
+  - component: {fileID: 315991996323581663}
   m_Layer: 7
   m_Name: Guard
   m_TagString: Untagged
@@ -203,6 +204,8 @@ MonoBehaviour:
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
   maxHealth: 150
+  defaultDecay: 0
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.3
   characters:
@@ -257,6 +260,18 @@ MonoBehaviour:
   maxShieldBashChargeTime: 2
   bashDuration: 0.65
   chargingMovementSpeed: 2
+--- !u!114 &315991996323581663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345228425115439027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 663c247c7929945a2b8045313ff3e861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2563528445496889038
 PrefabInstance:
   m_ObjectHideFlags: 0

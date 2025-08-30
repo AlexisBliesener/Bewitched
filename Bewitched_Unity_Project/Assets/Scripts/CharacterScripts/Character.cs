@@ -49,6 +49,10 @@ public abstract class Character : MonoBehaviour
 
     [Tooltip("Maximum Health")]
     public float maxHealth;
+    [Tooltip("Decay rate for this character (per second)")]
+    public float defaultDecay = 0f;
+    [Tooltip("Attach the HealthController component to this, or we will do it under the hood for you and only for you bc you're special <3")]
+    [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
@@ -63,10 +67,6 @@ public abstract class Character : MonoBehaviour
     protected float timeLastSecondary = -Mathf.Infinity;
 
     protected float timeLastAny;
-
-    protected float currentHealth;
-
-    private bool alive = true;
 
     protected bool invincible = false; // Title card
 
@@ -162,6 +162,52 @@ public abstract class Character : MonoBehaviour
 
     #endregion
 
+    protected virtual void Awake()
+    {
+        if (health == null)
+        {
+            health = GetComponent<HealthController>();
+            if (health == null)
+            {
+                Debug.LogWarning("No HealthController found on " + gameObject.name + ", adding one automatically.");
+                health = gameObject.AddComponent<HealthController>();
+                health.Init();
+            }
+        }
+
+        // Apply inspector values to health controller
+        if (health != null)
+        {
+            health.SetMaxHealth(maxHealth);
+            health.SetDecay(defaultDecay);
+            health.OnDamaged += OnDamaged;
+            health.OnHealthChanged += OnHealthChanged;
+            health.OnDeath += OnDeath;
+        }
+
+        SetBaseStats();
+    }
+    protected virtual void OnDestroy()
+    {
+        if (health != null)
+        {
+            health.OnDamaged -= OnDamaged;
+            health.OnHealthChanged -= OnHealthChanged;
+            health.OnDeath -= OnDeath;
+        }
+    }
+    protected virtual void OnDamaged(float amount)
+    {
+        timeLastHit = health != null ? health.TimeLastHit : Time.time;
+        CreateHitStun();
+    }
+
+    protected virtual void OnHealthChanged(float current, float max) {}
+
+    protected virtual void OnDeath()
+    {
+        Die();
+    }
     public virtual void PrimaryAttack()
     {
     }
@@ -202,63 +248,48 @@ public abstract class Character : MonoBehaviour
 
         return true;
     }
-
     public float GetHealth()
     {
-        return currentHealth;
+        return health != null ? health.GetCurrent() : 0f;
     }
 
     public float GetMaxHealth()
     {
-        return maxHealth;
+        return health != null ? health.GetMax() : maxHealth; 
     }
 
     public void AddHealth(float amt)
     {
-        currentHealth += amt;
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
+        if (health != null){
+            health.Heal(amt);
         }
     }
 
     public virtual void SubHealth(float dmg)
     {
-        if (!invincible)
-        {
-            timeLastHit = Time.time;
-            currentHealth -= dmg;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-            else
-            {
-                CreateHitStun();
-            }
+        if (!invincible && health != null) {
+            health.TakeDamage(dmg);
         }
     }
 
     public virtual void DrainLife(float amt)
     {
-        if (!invincible)
-        {
-            currentHealth -= amt;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
+        if (!invincible && health != null) {
+            health.TakeDamage(amt);
         }
     }
 
     public void SetHealthToMax()
     {
-        currentHealth = maxHealth;
+        if (health != null)
+        {
+            health.SetToMax();
+        }
     }
 
     public bool IsAlive()
     {
-        return alive;
+        return health != null && !health.viewModel.IsDead;
     }
 
     public virtual void SetControlled(bool v) { }
@@ -320,7 +351,7 @@ public abstract class Character : MonoBehaviour
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 Destroy(hitStunActual);
                 hitStunActual = null;

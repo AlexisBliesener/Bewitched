@@ -6,9 +6,12 @@ using UnityEngine.UI;
 public class MiniHealthBar : MonoBehaviour
 {
     [Header("Health Bar Settings")]
-    public Enemy character;
     public Slider slider;
+    private Enemy character;
+    [Tooltip("life time in seconds before health bar disappear if enemy is not recently hit")]
     public float lifeTime = 3;
+    private HealthViewModel healthVM;
+    private float timeLastHit;
 
     [Header("Positioning Variables")]
     [Tooltip("Main Camera")]
@@ -17,21 +20,15 @@ public class MiniHealthBar : MonoBehaviour
     public float heightOffset = 1;
     [Tooltip("Canvas to Write On")]
     public Canvas canvas;
-
-    private float currentHealth;
-    private float maxHealth;
     private RectTransform rectTransform;
 
     void Update()
     {
-        if (character == null)
+        if (character == null || healthVM == null)
         {
             Destroy(gameObject);
             return;
         }
-
-        currentHealth = character.GetHealth();
-        slider.value = currentHealth;
 
         Vector3 charPosition = new Vector3(character.transform.position.x, character.transform.position.y + heightOffset, character.transform.position.z);
         Vector3 screenPos = mainCamera.WorldToScreenPoint(charPosition);
@@ -48,20 +45,37 @@ public class MiniHealthBar : MonoBehaviour
     public void SetCharacter(Enemy inst)
     {
         character = inst;
-        SetValues();
+    }
+    public void Subscribe(HealthViewModel vm)
+    {
+        healthVM = vm;
+
+        // Set initial values
+        slider.maxValue = healthVM.Max;
+        slider.value = healthVM.Current;
+
+        // Subscribe to updates
+        healthVM.OnHealthChanged += SetValues;
+        healthVM.OnDeath += HandleDeath;
+
         mainCamera = Camera.main;
         canvas = GameObject.FindGameObjectWithTag("MiniBars").GetComponent<Canvas>();
         transform.parent = canvas.transform;
         rectTransform = GetComponent<RectTransform>();
+
+        timeLastHit = Time.time;
     }
 
-    public void SetValues()
+    public void SetValues(float newHealth, float maxHealth)
     {
-        slider.maxValue = character.GetMaxHealth();
-        maxHealth = character.GetMaxHealth();
-        slider.value = character.GetHealth();
+        slider.maxValue = maxHealth;
+        slider.value = newHealth;
 
         // Sets bar size proportional to health (2 pixels per hp)
         gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0.5f * maxHealth, 15);
+    }
+    private void HandleDeath()
+    {
+        Destroy(gameObject);
     }
 }
