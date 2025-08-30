@@ -288,6 +288,7 @@ public class PlayerController : MonoBehaviour
 
         if (newCharacter == oldHag)
         {
+            oldHag.gameObject.SetActive(true);
             secondaryHealthBar.SetActive(false);
             currentCharacter.SetTeamID(2);
             SetAllowMovement(true);
@@ -300,6 +301,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            oldHag.gameObject.SetActive(false);
             secondaryHealthBar.GetComponent<HealthBar>().SetCharacter(newCharacter);
             secondaryHealthBar.SetActive(true);
             newCharacter.SetTeamID(1);
@@ -381,11 +383,11 @@ public class PlayerController : MonoBehaviour
                 currentCharacter.Die();
                 // Apply shunt damage
             }
-            else
-            {
-                currentCharacter.SetControlled(false);
-                CharacterControlChangeEvent?.Invoke(oldHag);
-            }
+
+            // respawn old Hag
+            oldHag.transform.position = currentCharacter.transform.position;
+            currentCharacter.SetControlled(false);
+            CharacterControlChangeEvent?.Invoke(oldHag);
         }
     }
 }
