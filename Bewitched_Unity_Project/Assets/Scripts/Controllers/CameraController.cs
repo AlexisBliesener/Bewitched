@@ -99,8 +99,12 @@ public class CameraController : MonoBehaviour
     {
         Vector2 lookInput = context.ReadValue<Vector2>();
 
-        // scale input
-        yaw += lookInput.x * xSensitivity;
+        if (context.action.activeControl.device.description.deviceClass != "Mouse")
+        {
+            lookInput.x *= 20;
+        }
+            // scale input
+            yaw += lookInput.x * xSensitivity;
 
         // apply rotations
         characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
