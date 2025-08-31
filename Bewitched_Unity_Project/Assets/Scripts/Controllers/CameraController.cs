@@ -1,10 +1,14 @@
+using Cinemachine;
 using FMODUnity;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Cinemachine;
 
 public class CameraController : MonoBehaviour
 {
+    const string FILE_ENDING = ".json";
+
     [Tooltip("Singleton of the CameraController")]
     public static CameraController instance { get; private set; }
 
@@ -32,6 +36,59 @@ public class CameraController : MonoBehaviour
     [Tooltip("The side of the player the camera is currently targeting to be on, 1 = right side, 0 = middle, -1 = left side")]
     private float targetCamSide = 1f;
 
+    #region Saving/Loading
+
+    [ContextMenu("Save to JSON")]
+    public void SaveToJson()
+    {
+        string cameraStatsStr = JsonUtility.ToJson(this, true);
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CameraStats");
+        SeeFilePath();
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
+        File.WriteAllText(filePath, cameraStatsStr);
+
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+    }
+
+    [ContextMenu("See File Path")]
+    public void SeeFilePath()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CameraStats");
+        Debug.Log("Path To JSON File:");
+        Debug.Log(folderPath);
+    }
+
+    [ContextMenu("Load From JSON")]
+    public void LoadFromJson()
+    {
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CameraStats");
+        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
+
+        string jsonStr = File.ReadAllText(filePath);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+    }
+
+    #endregion
 
     /// <summary>
     /// Handles camera rotation based on player input.
