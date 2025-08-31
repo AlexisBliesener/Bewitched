@@ -33,8 +33,6 @@ public class LevelManagerEditor : Editor
             string stageLabel = $"Stage {s + 1} - Name";
             stage.stageName = EditorGUILayout.TextField(stageLabel, stage.stageName);
 
-            stage.isRandomized = EditorGUILayout.Toggle("Randomize Stage ?", stage.isRandomized);
-
             EditorGUILayout.LabelField("Levels:");
 
             for (int l = 0; l < stage.levels.Count; l++)
@@ -103,6 +101,7 @@ public class LevelManagerEditor : Editor
         {
             EditorUtility.SetDirty(manager);
             manager.SaveToJson();
+            Debug.Log("LevelManager data changed, saved to JSON. All Stages: " + manager.levelData.stages.Count);
         }
 
         serializedObject.ApplyModifiedProperties();

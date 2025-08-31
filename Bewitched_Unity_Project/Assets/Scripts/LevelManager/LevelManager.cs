@@ -18,11 +18,7 @@ public class LevelManager : MonoBehaviour
     public LevelData levelData = new LevelData();
 
     [Tooltip("Current Stage Index")]
-    [SerializeField] private int currentStageIndex = 0;
-    [Tooltip("Current Level Index in non-randomized stage")]
-    [SerializeField] private int currentLevelIndex = 0;
-    [Tooltip("Remaining Levels in Current Stage")]
-    private List<string> remainingLevels = new List<string>();
+    [SerializeField] private int currentStageIndex = -1;
     [Tooltip("Level loaded event")]
     public event Action<string> OnLevelLoaded;
     [Tooltip("Stage changed event")]
@@ -42,19 +38,19 @@ public class LevelManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadFromJson();
-        InitializeStage();
     }
 
     #region Level Loading
 
     /// <summary>
-    /// Load the next level based on current stage and randomization settings.
+    /// Load the next level based on current stage. It selects a random level from the stage
     /// </summary>
     public void LoadNextLevel()
     {
         // No stages available
         if (levelData.stages.Count == 0) return;
-
+        // Move to the next stage 
+        currentStageIndex++;
         // All stages completed
         if (currentStageIndex >= levelData.stages.Count)
         {
@@ -65,36 +61,23 @@ public class LevelManager : MonoBehaviour
         StageData stage = levelData.stages[currentStageIndex];
         string levelName = null;
 
-        if (stage.isRandomized)
+        if (stage.levels.Count > 0)
         {
-            if (remainingLevels == null || remainingLevels.Count == 0)
-            {
-                LoadNextStage();
-                return;
-            }
-
-            int index = UnityEngine.Random.Range(0, remainingLevels.Count);
-            levelName = remainingLevels[index];
-            remainingLevels.RemoveAt(index);
+            int index = UnityEngine.Random.Range(0, stage.levels.Count);
+            levelName = stage.levels[index];
         }
         else
         {
-            if (currentLevelIndex >= stage.levels.Count)
-            {
-                LoadNextStage();
-                return;
-            }
-
-            levelName = stage.levels[currentLevelIndex];
-            currentLevelIndex++; 
-
+            Debug.LogWarning("No levels found in the current stage");
+            return;
         }
-
+        OnStageChanged?.Invoke(stage.stageName);
         OnLevelLoaded?.Invoke(levelName);
 
         // Only load scene if levelName is valid (avoid errors in tests)
         if (!string.IsNullOrEmpty(levelName))
             LoadScene(levelName);
+    
     }
     /// <summary>
     /// Loads a scene by name. Omade it virtual to allow overriding in tests
@@ -102,50 +85,6 @@ public class LevelManager : MonoBehaviour
     protected virtual void LoadScene(string levelName)
     {
         SceneManager.LoadScene(levelName);
-    }
-
-    /// <summary>
-    /// Initialize the current stage, setting up remaining levels based on randomization.
-    /// </summary>
-    private void InitializeStage()
-    {
-        if (levelData.stages.Count == 0 || currentStageIndex < 0 || currentStageIndex >= levelData.stages.Count)
-        {
-            remainingLevels = null;
-            Debug.LogWarning("No stages available or invalid stage index");
-            return;
-        }
-
-        StageData stage = levelData.stages[currentStageIndex];
-
-        if (stage.isRandomized)
-        {
-            remainingLevels = new List<string>(stage.levels);
-            currentLevelIndex = 0;
-        }
-        else
-        {
-            remainingLevels = null;
-            currentLevelIndex = 0;
-        }
-        Debug.Log("Moved to stage: " + stage.stageName);
-        OnStageChanged?.Invoke(stage.stageName);
-    }
-
-    /// <summary>
-    /// Move to the next stage and initialize it.
-    /// </summary>
-    private void LoadNextStage()
-    {
-        currentStageIndex++;
-        if (currentStageIndex >= levelData.stages.Count)
-        {
-            Debug.Log("all stages are completed!");
-            return;
-        }
-
-        InitializeStage();
-        LoadNextLevel();
     }
 
     #endregion
@@ -205,23 +144,6 @@ public class LevelManager : MonoBehaviour
             Debug.LogWarning("Invalid stage index");
         }
         currentStageIndex = index;
-        InitializeStage();
-
-    }
-    /// <summary>
-    /// Get remaining levels in current stage
-    /// </summary>
-
-    public List<string> GetRemainingLevels()
-    {
-        return remainingLevels;
-    }
-    /// <summary>
-    /// Set remaining levels in current stage
-    /// </summary>
-    public void SetRemainingLevels(List<string> levels)
-    {
-        remainingLevels = levels;
     }
     #endregion
 }
