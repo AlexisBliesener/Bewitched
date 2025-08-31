@@ -27,7 +27,7 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Secondary Fire Image")]
     public Sprite secondaryFireIcon;
     [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
-    private Vector3 shoulderOffset = new Vector3(1.5f, 2f, 1f);
+    private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
     [Tooltip("Attack Delay")]
     public float attackDelay = 1;
