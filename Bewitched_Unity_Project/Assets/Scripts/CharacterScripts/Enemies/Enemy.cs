@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : Character
 {
     [Header("Enemy AI Settings")]
@@ -83,7 +84,6 @@ public abstract class Enemy : Character
             agent.enabled = true;
         }
     }
-
     public override void Die()
     {
         if (playerControlling)
@@ -352,4 +352,8 @@ public abstract class Enemy : Character
             }
         }
     }
+    /// <summary>
+    ///  Returns whether the player is currently controlling this enemy.
+    /// </summary>
+    public bool IsPlayerControlling() => playerControlling;
 }

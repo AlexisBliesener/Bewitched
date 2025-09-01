@@ -175,7 +175,6 @@ public class DefaultHitbox : MonoBehaviour
                 if (character && character.teamID != user.teamID && !hitChars.Contains(character))
                 {
                     character.health.SubHealth(damage);
-                    character.health.ShowMiniHealthBar(true, character);
                     AddStatusEffects(character);
                     AddToHit(character);
 

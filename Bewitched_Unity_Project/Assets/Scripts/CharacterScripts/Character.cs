@@ -68,8 +68,6 @@ public abstract class Character : MonoBehaviour
     protected float timeLastAny;
     protected GameObject hitStunActual = null;
 
-    protected float timeLastHit;
-
     protected bool attackingPrimary = false;
     protected bool attackingSecondary = false;
 
@@ -176,14 +174,21 @@ public abstract class Character : MonoBehaviour
         health.OnHealthChanged -= OnHealthChanged;
         health.OnDeath -= OnDeath;
     }
+    /// <summary>
+    /// OnDamaged is called when the character is damaged.
+    /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        timeLastHit = health != null ? health.TimeLastHit : Time.time;
         CreateHitStun();
     }
-
-    protected virtual void OnHealthChanged(float current, float max) {}
-
+    
+    /// <summary>
+    /// OnHealthChanged is called when the character's health changes.
+    /// </summary>
+    protected virtual void OnHealthChanged(float current, float max) { }
+    /// <summary>
+    /// OnDeath is called when the character dies.
+    /// </summary>
     protected virtual void OnDeath()
     {
         Die();

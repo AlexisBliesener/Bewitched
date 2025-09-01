@@ -1,11 +1,14 @@
 using UnityEngine;
 using System;
+using System.IO;
 
 /// <summary>
 /// This has to be attached to a character (player or enemy)
 /// </summary>
 public class HealthController : MonoBehaviour
 {
+    [Tooltip("File ending for saving/loading.")]
+    const string FILE_ENDING = ".json";
     [Tooltip("Maximum health for this character.")]
     [SerializeField] private float maxHealth = 100f;
     [Tooltip("Health decay per second.")]
@@ -23,6 +26,9 @@ public class HealthController : MonoBehaviour
     /// <summary>Returns true if the character is dead.</summary>
     public bool IsDead => CurrentHealth <= 0f;
 
+    // <summary> Get current character.</summary>
+    private Character currentCharacter;
+
     /// Timestamp of last received damage (set by this controller)
     public float TimeLastHit { get; private set; } = -Mathf.Infinity;
 
@@ -33,6 +39,7 @@ public class HealthController : MonoBehaviour
 
     private void Awake()
     {
+
         CurrentHealth = maxHealth;
         NotifyHealthChanged();
     }
@@ -82,7 +89,7 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Reduces health by some amount. Updates damage events and timestamp.
     /// </summary>
-    public void SubHealth(float amt)
+    public virtual void SubHealth(float amt)
     {
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
@@ -129,6 +136,15 @@ public class HealthController : MonoBehaviour
     {
         decayRate = Mathf.Max(0f, perSecond);
     }
+    /// <summary>
+    /// Returns the current character. 
+    /// </summary>
+    public Character GetCharacter() {
+        if (currentCharacter == null){
+            currentCharacter = GetComponent<Character>();
+        }
+        return currentCharacter;
+    }
 
     public void ShowMiniHealthBar(bool show, Character character = null)
     {
@@ -170,4 +186,69 @@ public class HealthController : MonoBehaviour
         // This sends out current and max health values
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }
+
+
+    #region Saving/Loading
+
+    [ContextMenu("Save to JSON")]
+    /// <summary>
+    /// Save the data of the health into json
+    /// </summary>
+    public void SaveToJson()
+    {
+        string healthStatsStr = JsonUtility.ToJson(this, true);
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "HealthStats");
+        SeeFilePath();
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+        string filePath = Path.Combine(folderPath, GetCharacter().characterName + "Health" + FILE_ENDING);
+        File.WriteAllText(filePath, healthStatsStr);
+
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+    }
+
+    [ContextMenu("See File Path")]
+    /// <summary>
+    /// To see the file path of json 
+    /// </summary>
+    public void SeeFilePath()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "HealthStats");
+        Debug.Log("Path To JSON File:");
+        Debug.Log(folderPath);
+    }
+
+    [ContextMenu("Load From JSON")]
+    /// <summary>
+    /// Load the data of the health into json
+    /// </summary>
+    public void LoadFromJson()
+    {
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "HealthStats");
+        string filePath = Path.Combine(folderPath, GetCharacter().characterName + "Health" + FILE_ENDING);
+
+        string jsonStr = File.ReadAllText(filePath);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+    }
+
+    #endregion
 }
+
+
