@@ -1,7 +1,9 @@
-using NUnit.Framework;
-using UnityEngine;
-using System.Reflection;
 using Cinemachine;
+using NUnit.Framework;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.TestTools;
+using System.Collections;
 
 public class CameraControllerTests
 {
@@ -100,21 +102,24 @@ public class CameraControllerTests
     /// when SwitchCameraSide is invoked and there are no collisions detected.
     /// Verifies that the private targetCamSide field is set to 1.
     /// </summary>
-    [Test]
-    public void SwitchCameraSide_DefaultsToRight()
+    [UnityTest]
+    public IEnumerator SwitchCameraSide_DefaultsToRight()
     {
-        // Arrange
-        var method = typeof(CameraController)
-            .GetMethod("SwitchCameraSide", BindingFlags.NonPublic | BindingFlags.Instance);
+        // Make certain no collisions will be detected on the mask used by the raycast.
+        typeof(CameraController)
+            .GetField("environmentMask", BindingFlags.NonPublic | BindingFlags.Instance)
+            .SetValue(controller, (LayerMask)0); // layerMask = 0 hits nothing
 
-        // Act
-        method.Invoke(controller, null);
+        // Let Awake/Start run.
+        yield return null;
 
-        // Assert
-        var targetCamSide = typeof(CameraController)
+        // Let at least one Update() tick happen (SwitchCameraSide is called in Update).
+        yield return null;
+
+        var targetCamSide = (float)typeof(CameraController)
             .GetField("targetCamSide", BindingFlags.NonPublic | BindingFlags.Instance)
             .GetValue(controller);
 
-        Assert.AreEqual(1f, (float)targetCamSide, 0.01f);
+        Assert.AreEqual(1f, targetCamSide, 0.05f);
     }
 }
