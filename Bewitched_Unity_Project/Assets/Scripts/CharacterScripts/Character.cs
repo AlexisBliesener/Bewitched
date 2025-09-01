@@ -283,7 +283,8 @@ public abstract class Character : MonoBehaviour
     public IEnumerator EnableMovement() // Call this after any movement abilities
     {
         yield return new WaitForSeconds(0.1f);
-        PlayerController.instance.SetAllowMovement(true);
+        if (PlayerController.instance != null)
+            PlayerController.instance.SetAllowMovement(true);
     }
 
     public IEnumerator StartTime(float stopTime)
