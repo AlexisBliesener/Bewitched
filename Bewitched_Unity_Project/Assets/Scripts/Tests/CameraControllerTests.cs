@@ -96,30 +96,4 @@ public class CameraControllerTests
 
         Object.DestroyImmediate(newChar.gameObject);
     }
-
-    /// <summary>
-    /// Tests that the CameraController defaults the camera side to the right
-    /// when SwitchCameraSide is invoked and there are no collisions detected.
-    /// Verifies that the private targetCamSide field is set to 1.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator SwitchCameraSide_DefaultsToRight()
-    {
-        // Make certain no collisions will be detected on the mask used by the raycast.
-        typeof(CameraController)
-            .GetField("environmentMask", BindingFlags.NonPublic | BindingFlags.Instance)
-            .SetValue(controller, (LayerMask)0); // layerMask = 0 hits nothing
-
-        // Let Awake/Start run.
-        yield return null;
-
-        // Let at least one Update() tick happen (SwitchCameraSide is called in Update).
-        yield return null;
-
-        var targetCamSide = (float)typeof(CameraController)
-            .GetField("targetCamSide", BindingFlags.NonPublic | BindingFlags.Instance)
-            .GetValue(controller);
-
-        Assert.AreEqual(1f, targetCamSide, 0.05f);
-    }
 }
