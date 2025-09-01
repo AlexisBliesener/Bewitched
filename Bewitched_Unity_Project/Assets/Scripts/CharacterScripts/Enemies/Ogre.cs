@@ -80,7 +80,7 @@ public class Ogre : Enemy
     void Start()
     {
         SetPlayerInfo();
-        SetHealthToMax();
+        health.SetHealthToMax();
         SetBaseStats();
     }
 

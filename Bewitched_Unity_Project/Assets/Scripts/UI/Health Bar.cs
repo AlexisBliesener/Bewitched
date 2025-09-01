@@ -14,8 +14,8 @@ public class HealthBar : MonoBehaviour
     {
         if (hc == null || slider == null) return;
         healthController = hc;
-        slider.maxValue = hc.GetMax();
-        slider.value = hc.GetCurrent();
+        slider.maxValue = hc.GetMaxHealth();
+        slider.value = hc.GetHealth();
 
         hc.OnHealthChanged += SetValues;
     }

@@ -89,7 +89,7 @@ public class PlayerController : MonoBehaviour
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         if (hagHealth != null)
         {
-            hagHealth.SetToMax();
+            hagHealth.SetHealthToMax();
             if (hagHealthBar != null)
             {
                 hagHealthBar.GetComponent<HealthBar>().Subscribe(hagHealth);

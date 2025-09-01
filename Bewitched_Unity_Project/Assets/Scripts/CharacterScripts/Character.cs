@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
+[RequireComponent(typeof(HealthController))]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
@@ -49,11 +50,7 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
-    [Tooltip("Maximum Health")]
-    public float maxHealth;
-    [Tooltip("Decay rate for this character (per second)")]
-    public float defaultDecay = 0f;
-    [Tooltip("Attach the HealthController component to this, or we will do it under the hood for you and only for you bc you're special :)")]
+    [Header("Note: Health settings can be changed on the Health Controller component!")]
     [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
@@ -69,9 +66,6 @@ public abstract class Character : MonoBehaviour
     protected float timeLastSecondary = -Mathf.Infinity;
 
     protected float timeLastAny;
-
-    protected bool invincible = false; // Title card
-
     protected GameObject hitStunActual = null;
 
     protected float timeLastHit;
@@ -169,34 +163,18 @@ public abstract class Character : MonoBehaviour
         if (health == null)
         {
             health = GetComponent<HealthController>();
-            if (health == null)
-            {
-                Debug.LogWarning("No HealthController found on " + gameObject.name + ", adding one automatically.");
-                health = gameObject.AddComponent<HealthController>();
-            }
         }
-
-        // Apply inspector values to health controller
-        if (health != null)
-        {
-            health.SetMaxHealth(maxHealth);
-            health.SetDecay(defaultDecay);
-            health.OnDamaged += OnDamaged;
-            health.OnHealthChanged += OnHealthChanged;
-            health.OnDeath += OnDeath;
-            
-        }
+        health.OnDamaged += OnDamaged;
+        health.OnHealthChanged += OnHealthChanged;
+        health.OnDeath += OnDeath;
 
         SetBaseStats();
     }
     protected virtual void OnDestroy()
     {
-        if (health != null)
-        {
-            health.OnDamaged -= OnDamaged;
-            health.OnHealthChanged -= OnHealthChanged;
-            health.OnDeath -= OnDeath;
-        }
+        health.OnDamaged -= OnDamaged;
+        health.OnHealthChanged -= OnHealthChanged;
+        health.OnDeath -= OnDeath;
     }
     protected virtual void OnDamaged(float amount)
     {
@@ -250,15 +228,6 @@ public abstract class Character : MonoBehaviour
 
         return true;
     }
-    public float GetHealth()
-    {
-        return health != null ? health.GetCurrent() : 0f;
-    }
-
-    public float GetMaxHealth()
-    {
-        return health != null ? health.GetMax() : maxHealth; 
-    }
 
     /// <summary>
     /// Returns the shoulder offset vector for the character.
@@ -268,41 +237,6 @@ public abstract class Character : MonoBehaviour
     public Vector3 GetShoulderOffset()
     {
         return shoulderOffset;
-    }
-
-    public void AddHealth(float amt)
-    {
-        if (health != null){
-            health.Heal(amt);
-        }
-    }
-
-    public virtual void SubHealth(float dmg)
-    {
-        if (!invincible && health != null)
-        {
-            health.TakeDamage(dmg);
-        }
-    }
-
-    public virtual void DrainLife(float amt)
-    {
-        if (!invincible && health != null) {
-            health.DrainLife(amt);
-        }
-    }
-
-    public void SetHealthToMax()
-    {
-        if (health != null)
-        {
-            health.SetToMax();
-        }
-    }
-
-    public bool IsAlive()
-    {
-        return health != null && !health.IsDead;
     }
 
     public virtual void SetControlled(bool v) { }

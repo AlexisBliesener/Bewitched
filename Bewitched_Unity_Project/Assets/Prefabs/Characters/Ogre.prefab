@@ -194,6 +194,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 2
   primaryCooldown: 3
   primaryComboExtraCooldown: 0
@@ -203,8 +204,6 @@ MonoBehaviour:
   secondaryCooldown: 5
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 240
-  defaultDecay: 0
   health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
@@ -225,7 +224,6 @@ MonoBehaviour:
     m_Bits: 256
   sightRange: 10
   patrolRange: 5
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 1
   leaveBodyExplosionRadius: 5
   leaveBodyExplosionMinimumDamage: 10
@@ -250,7 +248,9 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpKnockbackRange: 8
+  ogreJumpSlamImpactRange: 8
+  slamBatEffects: {fileID: 0}
+  slamImpactEffects: {fileID: 0}
 --- !u!114 &1378927635482013846
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,6 +263,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 663c247c7929945a2b8045313ff3e861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 240
+  decayRate: 0
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -6,14 +6,18 @@ using System;
 /// </summary>
 public class HealthController : MonoBehaviour
 {
-    [Header("Note designers: Max health and decay rate per second can be changed on the character stats!")]
-
     [Tooltip("Maximum health for this character.")]
-    private float maxHealth = 100f;
+    [SerializeField] private float maxHealth = 100f;
     [Tooltip("Health decay per second.")]
-    private float decayRate = 0f;
+    [SerializeField] private float decayRate = 0f;
     [Tooltip("Enable automatic health decay each frame.")]
     private bool updateOnModel = true;
+    [Tooltip("If true, this character cannot take damage from TakeDamage and DrainLife.")]
+    private bool invincible = false;
+    [Tooltip("Prefab for mini health bar.")]
+    public GameObject miniBarPrefab;
+    /// <summary> Reference to the mini health bar instance. </summary>
+    private GameObject minibar;
     /// <summary>Current health value.</summary>
     public float CurrentHealth { get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
@@ -51,11 +55,11 @@ public class HealthController : MonoBehaviour
 
     #region Public Functions
     /// <summary> Get current health</summary>
-    public float GetCurrent() => CurrentHealth;
+    public float GetHealth() => CurrentHealth;
     /// <summary> Get max health</summary>
-    public float GetMax() => maxHealth;
+    public float GetMaxHealth() => maxHealth;
     /// <summary> Get current health decay rate per second.</summary>
-    public float GetDecay() => decayRate;
+    public float GetDecayRate() => decayRate;
     /// <summary>
     /// Set current health directly. Clamped between 0 and max health.
     /// Does not trigger OnDamaged or OnHealed events, but will trigger OnDeath if set to zero.
@@ -70,7 +74,7 @@ public class HealthController : MonoBehaviour
     /// Set current health to max health.
     /// and will trigger OnHealthChanged event.
     /// </summary>
-    public void SetToMax()
+    public void SetHealthToMax()
     {
         CurrentHealth = maxHealth;
         NotifyHealthChanged();
@@ -78,9 +82,9 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Reduces health by some amount. Updates damage events and timestamp.
     /// </summary>
-    public void TakeDamage(float amt)
+    public void SubHealth(float amt)
     {
-        if (IsDead || amt <= 0f) return;
+        if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
@@ -97,7 +101,7 @@ public class HealthController : MonoBehaviour
     public void DrainLife(float amt)
     {
 
-        if (IsDead || amt <= 0f) return;
+        if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
@@ -107,7 +111,7 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Heal the character.
     /// </summary>
-    public void Heal(float amt)
+    public void AddHealth(float amt)
     {
         if (IsDead || amt <= 0f) return;
 
@@ -126,6 +130,20 @@ public class HealthController : MonoBehaviour
         decayRate = Mathf.Max(0f, perSecond);
     }
 
+    public void ShowMiniHealthBar(bool show, Character character = null)
+    {
+        if (!show)
+        {
+            if (minibar != null) Destroy(minibar);
+            return;
+        }
+        if (minibar != null) Destroy(minibar);
+        Debug.Log("Showing mini health bar");
+        minibar = Instantiate(miniBarPrefab);
+        minibar.GetComponent<MiniHealthBar>().SetCharacter(character);
+        minibar.GetComponent<MiniHealthBar>().Subscribe(this);
+    }
+
     /// <summary>
     /// Set maximum health. Clamped to 1 or more. 
     /// Current health is adjusted if above new max.
@@ -140,6 +158,11 @@ public class HealthController : MonoBehaviour
     /// Enable or disable automatic health decay each frame.
     /// </summary>
     public void EnableUpdateModel(bool enable) => updateOnModel = enable;
+
+    /// <summary>
+    /// Set invincibility state. If true, character cannot take damage or be healed.
+    /// </summary>
+    public void SetInvincible(bool value) => invincible = value;
 
     #endregion
     private void NotifyHealthChanged()

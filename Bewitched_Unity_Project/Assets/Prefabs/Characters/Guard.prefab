@@ -194,6 +194,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1.25
   primaryComboExtraCooldown: 0
@@ -203,8 +204,6 @@ MonoBehaviour:
   secondaryCooldown: 6
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 150
-  defaultDecay: 0
   health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.3
@@ -234,7 +233,6 @@ MonoBehaviour:
     m_Bits: 256
   sightRange: 10
   patrolRange: 5
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
   leaveBodyExplosionRadius: 5
   leaveBodyExplosionMinimumDamage: 10
@@ -272,6 +270,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 663c247c7929945a2b8045313ff3e861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 150
+  decayRate: 0
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!1001 &2563528445496889038
 PrefabInstance:
   m_ObjectHideFlags: 0

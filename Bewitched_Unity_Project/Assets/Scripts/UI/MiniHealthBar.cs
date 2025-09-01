@@ -7,11 +7,10 @@ public class MiniHealthBar : MonoBehaviour
 {
     [Header("Health Bar Settings")]
     public Slider slider;
-    private Enemy character;
+    private Character character;
     [Tooltip("life time in seconds before health bar disappear if enemy is not recently hit")]
     public float lifeTime = 3;
     private HealthController healthController;
-    private float timeLastHit;
 
     [Header("Positioning Variables")]
     [Tooltip("Main Camera")]
@@ -36,13 +35,13 @@ public class MiniHealthBar : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform, screenPos, canvas.worldCamera, out canvasPos);
         rectTransform.anchoredPosition = canvasPos;
 
-        if (Time.time - character.GetTimeLastHit() > lifeTime)
+        if (Time.time - character.health.TimeLastHit > lifeTime)
         {
             Destroy(gameObject);
         }
     }
 
-    public void SetCharacter(Enemy inst)
+    public void SetCharacter(Character inst)
     {
         character = inst;
     }
@@ -51,8 +50,8 @@ public class MiniHealthBar : MonoBehaviour
         healthController = hc;
 
         // Set initial values
-        slider.maxValue = healthController.GetMax();
-        slider.value = healthController.GetCurrent();
+        slider.maxValue = healthController.GetMaxHealth();
+        slider.value = healthController.GetHealth();
 
         // Subscribe to updates
         healthController.OnHealthChanged += SetValues;
@@ -63,7 +62,6 @@ public class MiniHealthBar : MonoBehaviour
         transform.parent = canvas.transform;
         rectTransform = GetComponent<RectTransform>();
 
-        timeLastHit = Time.time;
     }
 
     public void SetValues(float newHealth, float maxHealth)

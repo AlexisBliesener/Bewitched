@@ -114,8 +114,8 @@ public class HealthControllerTests
     [Test]
     public void GetCurrent_ReturnsMaxHealthOnInitialization()
     {
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
-        Assert.AreEqual(100f, testHealthController.GetMax());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
+        Assert.AreEqual(100f, testHealthController.GetMaxHealth());
     }
 
     /// <summary>Character should start alive obviously</summary>
@@ -136,7 +136,7 @@ public class HealthControllerTests
     [Test]
     public void GetDecay_ReturnsZeroOnInitialization()
     {
-        Assert.AreEqual(0f, testHealthController.GetDecay());
+        Assert.AreEqual(0f, testHealthController.GetDecayRate());
     }
 
     #region Health Getting/Setting
@@ -145,14 +145,14 @@ public class HealthControllerTests
     [Test]
     public void GetCurrent_ReturnsCurrentHealthValue()
     {
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
     }
 
     /// <summary>GetMax should return the maximum health value.</summary>
     [Test]
     public void GetMax_ReturnsMaxHealthValue()
     {
-        Assert.AreEqual(100f, testHealthController.GetMax());
+        Assert.AreEqual(100f, testHealthController.GetMaxHealth());
     }
 
     /// <summary>SetCurrentHealth should update current health and trigger the events.</summary>
@@ -163,7 +163,7 @@ public class HealthControllerTests
         
         testHealthController.SetCurrentHealth(50f);
         
-        Assert.AreEqual(50f, testHealthController.GetCurrent());
+        Assert.AreEqual(50f, testHealthController.GetHealth());
         Assert.IsTrue(healthChangedCalled);
         Assert.AreEqual(50f, lastCurrentHealth);
         Assert.AreEqual(100f, lastMaxHealth);
@@ -174,10 +174,10 @@ public class HealthControllerTests
     public void SetCurrentHealth_ClampsValuesBetweenZeroAndMax()
     {
         testHealthController.SetCurrentHealth(150f);
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
 
         testHealthController.SetCurrentHealth(-50f);
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     /// <summary>SetCurrentHealth to zero should trigger death action.</summary>
@@ -199,9 +199,9 @@ public class HealthControllerTests
         testHealthController.SetCurrentHealth(25f);
         ResetEventFlags();
         
-        testHealthController.SetToMax();
+        testHealthController.SetHealthToMax();
         
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
         Assert.IsTrue(healthChangedCalled);
     }
 
@@ -214,8 +214,8 @@ public class HealthControllerTests
         
         testHealthController.SetMaxHealth(50f);
         
-        Assert.AreEqual(50f, testHealthController.GetMax());
-        Assert.AreEqual(50f, testHealthController.GetCurrent());
+        Assert.AreEqual(50f, testHealthController.GetMaxHealth());
+        Assert.AreEqual(50f, testHealthController.GetHealth());
         Assert.IsTrue(healthChangedCalled);
     }
 
@@ -224,10 +224,10 @@ public class HealthControllerTests
     public void SetMaxHealth_EnforcesMinimumValueOfOne()
     {
         testHealthController.SetMaxHealth(0f);
-        Assert.AreEqual(1f, testHealthController.GetMax());
+        Assert.AreEqual(1f, testHealthController.GetMaxHealth());
         
         testHealthController.SetMaxHealth(-10f);
-        Assert.AreEqual(1f, testHealthController.GetMax());
+        Assert.AreEqual(1f, testHealthController.GetMaxHealth());
     }
 
     #endregion
@@ -241,9 +241,9 @@ public class HealthControllerTests
         ResetEventFlags();
         float initialTime = Time.time;
         
-        testHealthController.TakeDamage(30f);
+        testHealthController.SubHealth(30f);
         
-        Assert.AreEqual(70f, testHealthController.GetCurrent());
+        Assert.AreEqual(70f, testHealthController.GetHealth());
         Assert.IsTrue(damagedCalled);
         Assert.IsTrue(healthChangedCalled);
         Assert.AreEqual(30f, lastDamageAmount);
@@ -254,9 +254,9 @@ public class HealthControllerTests
     [Test]
     public void TakeDamage_ClampsHealthAtZero()
     {
-        testHealthController.TakeDamage(150f);
+        testHealthController.SubHealth(150f);
         
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
         Assert.IsTrue(testHealthController.IsDead);
     }
 
@@ -266,7 +266,7 @@ public class HealthControllerTests
     {
         ResetEventFlags();
         
-        testHealthController.TakeDamage(100f);
+        testHealthController.SubHealth(100f);
         
         Assert.IsTrue(testHealthController.IsDead);
         Assert.IsTrue(deathCalled);
@@ -278,16 +278,16 @@ public class HealthControllerTests
     {
         ResetEventFlags();
         
-        testHealthController.TakeDamage(0f);
+        testHealthController.SubHealth(0f);
         
         Assert.IsFalse(damagedCalled);
         Assert.IsFalse(healthChangedCalled);
         
-        testHealthController.TakeDamage(-10f);
+        testHealthController.SubHealth(-10f);
         
         Assert.IsFalse(damagedCalled);
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
     }
 
     /// <summary>TakeDamage should do nothing when already dead.</summary>
@@ -297,11 +297,11 @@ public class HealthControllerTests
         testHealthController.SetCurrentHealth(0f);
         ResetEventFlags();
         
-        testHealthController.TakeDamage(50f);
+        testHealthController.SubHealth(50f);
         
         Assert.IsFalse(damagedCalled);
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     #endregion
@@ -317,7 +317,7 @@ public class HealthControllerTests
         
         testHealthController.DrainLife(25f);
         
-        Assert.AreEqual(75f, testHealthController.GetCurrent());
+        Assert.AreEqual(75f, testHealthController.GetHealth());
         Assert.IsFalse(damagedCalled);
         Assert.IsTrue(healthChangedCalled);
         Assert.AreEqual(initialTimeLastHit, testHealthController.TimeLastHit);
@@ -334,7 +334,7 @@ public class HealthControllerTests
         Assert.IsTrue(testHealthController.IsDead);
         Assert.IsTrue(deathCalled);
         Assert.IsFalse(damagedCalled);
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     /// <summary>DrainLife should ignore zero or the negative amounts.</summary>
@@ -347,7 +347,7 @@ public class HealthControllerTests
         testHealthController.DrainLife(-10f);
         
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
     }
 
     /// <summary>DrainLife should do nothing when the character already dead.</summary>
@@ -360,7 +360,7 @@ public class HealthControllerTests
         testHealthController.DrainLife(50f);
         
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     #endregion
@@ -374,9 +374,9 @@ public class HealthControllerTests
         testHealthController.SetCurrentHealth(50f);
         ResetEventFlags();
         
-        testHealthController.Heal(25f);
+        testHealthController.AddHealth(25f);
         
-        Assert.AreEqual(75f, testHealthController.GetCurrent());
+        Assert.AreEqual(75f, testHealthController.GetHealth());
         Assert.IsTrue(healedCalled);
         Assert.IsTrue(healthChangedCalled);
         Assert.AreEqual(25f, lastHealAmount);
@@ -388,9 +388,9 @@ public class HealthControllerTests
     {
         testHealthController.SetCurrentHealth(90f);
         
-        testHealthController.Heal(25f);
+        testHealthController.AddHealth(25f);
         
-        Assert.AreEqual(100f, testHealthController.GetCurrent());
+        Assert.AreEqual(100f, testHealthController.GetHealth());
     }
 
     /// <summary>Heal should ignore zero or negative amounts.</summary>
@@ -400,12 +400,12 @@ public class HealthControllerTests
         testHealthController.SetCurrentHealth(50f);
         ResetEventFlags();
         
-        testHealthController.Heal(0f);
-        testHealthController.Heal(-10f);
+        testHealthController.AddHealth(0f);
+        testHealthController.AddHealth(-10f);
         
         Assert.IsFalse(healedCalled);
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(50f, testHealthController.GetCurrent());
+        Assert.AreEqual(50f, testHealthController.GetHealth());
     }
 
     /// <summary>Heal should do nothing when already dead.</summary>
@@ -415,11 +415,11 @@ public class HealthControllerTests
         testHealthController.SetCurrentHealth(0f);
         ResetEventFlags();
         
-        testHealthController.Heal(50f);
+        testHealthController.AddHealth(50f);
         
         Assert.IsFalse(healedCalled);
         Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     #endregion
@@ -431,7 +431,7 @@ public class HealthControllerTests
     public void SetDecay_UpdatesDecayRate()
     {
         testHealthController.SetDecay(5f);
-        Assert.AreEqual(5f, testHealthController.GetDecay());
+        Assert.AreEqual(5f, testHealthController.GetDecayRate());
     }
 
     /// <summary>SetDecay should enforce minimum value of zero.</summary>
@@ -439,7 +439,7 @@ public class HealthControllerTests
     public void SetDecay_EnforcesMinimumZero()
     {
         testHealthController.SetDecay(-5f);
-        Assert.AreEqual(0f, testHealthController.GetDecay());
+        Assert.AreEqual(0f, testHealthController.GetDecayRate());
     }
 
     /// <summary>Decay should reduce health over time when enabled.</summary>
@@ -452,7 +452,7 @@ public class HealthControllerTests
         
         yield return new WaitForSeconds(0.5f);
         
-        Assert.Less(testHealthController.GetCurrent(), 100f);
+        Assert.Less(testHealthController.GetHealth(), 100f);
         Assert.IsTrue(healthChangedCalled);
     }
 
@@ -477,11 +477,11 @@ public class HealthControllerTests
     {
         testHealthController.SetDecay(10f);
         testHealthController.EnableUpdateModel(false);
-        float initialHealth = testHealthController.GetCurrent();
+        float initialHealth = testHealthController.GetHealth();
         
         yield return new WaitForSeconds(0.5f);
         
-        Assert.AreEqual(initialHealth, testHealthController.GetCurrent());
+        Assert.AreEqual(initialHealth, testHealthController.GetHealth());
     }
 
     /// <summary>Decay should not occur when already dead.</summary>
@@ -494,7 +494,7 @@ public class HealthControllerTests
         
         yield return new WaitForSeconds(0.2f);
         
-        Assert.AreEqual(0f, testHealthController.GetCurrent());
+        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     #endregion
@@ -508,7 +508,7 @@ public class HealthControllerTests
         testHealthController.EnableUpdateModel(false);
         testHealthController.SetDecay(10f);
         
-        Assert.AreEqual(10f, testHealthController.GetDecay());
+        Assert.AreEqual(10f, testHealthController.GetDecayRate());
     }
 
     #endregion
@@ -522,11 +522,11 @@ public class HealthControllerTests
         int damageEventCount = 0;
         testHealthController.OnDamaged += (amount) => damageEventCount++;
         
-        testHealthController.TakeDamage(10f);
-        testHealthController.TakeDamage(20f);
-        testHealthController.TakeDamage(15f);
+        testHealthController.SubHealth(10f);
+        testHealthController.SubHealth(20f);
+        testHealthController.SubHealth(15f);
         
-        Assert.AreEqual(55f, testHealthController.GetCurrent());
+        Assert.AreEqual(55f, testHealthController.GetHealth());
         Assert.AreEqual(3, damageEventCount);
     }
 
@@ -547,7 +547,7 @@ public class HealthControllerTests
             if (!deathCalled) healthChangedFiredBeforeDeath = true;
         };
         
-        testHealthController.TakeDamage(100f);
+        testHealthController.SubHealth(100f);
         
         Assert.IsTrue(damagedFiredBeforeDeath);
         Assert.IsTrue(healthChangedFiredBeforeDeath);

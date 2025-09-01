@@ -24,9 +24,6 @@ public abstract class Enemy : Character
     [Tooltip("Walk Point Range")]
     public float patrolRange;
 
-    [Tooltip("Mini Health Bar Prefab")]
-    public GameObject miniBarPrefab;
-
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
 
@@ -57,8 +54,6 @@ public abstract class Enemy : Character
 
     private bool seenTarget = false;
 
-    private GameObject minibar;
-
     protected bool isStunned = false;
 
     private bool inAttackDelay = false;
@@ -81,11 +76,7 @@ public abstract class Enemy : Character
         if (val)
         {
             agent.enabled = false;
-            if (minibar)
-            {
-                Destroy(minibar);
-                minibar = null;
-            }
+            health.ShowMiniHealthBar(false);
         }
         else
         {
@@ -102,8 +93,7 @@ public abstract class Enemy : Character
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
-        Destroy(minibar);
-        minibar = null;
+        health.ShowMiniHealthBar(false);
         StopAllCoroutines();
         Destroy(gameObject);
     }
@@ -263,23 +253,6 @@ public abstract class Enemy : Character
         }
     }
 
-    public override void SubHealth(float dmg)
-    {
-        base.SubHealth(dmg);
-
-        if (minibar == null && !playerControlling)
-        {
-            minibar = Instantiate(miniBarPrefab);
-            minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
-            minibar.GetComponent<MiniHealthBar>().Subscribe(health);
-        }
-    }
-
-    public float GetTimeLastHit()
-    {
-        return health != null ? health.TimeLastHit : timeLastHit;
-    }
-
     public override void CreateHitStun()
     {
         if (!playerControlling)
@@ -293,7 +266,7 @@ public abstract class Enemy : Character
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 if (playerControlling) StartCoroutine(EnableMovement());
                 else agent.enabled = true;
@@ -372,7 +345,8 @@ public abstract class Enemy : Character
                     float dmg = Mathf.Lerp(leaveBodyExplosionMinimumDamage, leaveBodyExplosionMaximumDamage, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
                     float knockback = Mathf.Lerp(leaveBodyExplosionMinimumKnockback, leaveBodyExplosionMaximumKnockback, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
 
-                    hitChar.SubHealth(dmg);
+                    hitChar.health.SubHealth(dmg);
+                    if (!playerControlling) {health.ShowMiniHealthBar(true, hitChar);}
                     hitChar.GetComponent<KnockbackControl>().AddImpact(direction, knockback);
                 }
             }

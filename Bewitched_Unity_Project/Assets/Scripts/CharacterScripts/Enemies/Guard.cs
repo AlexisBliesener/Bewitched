@@ -62,7 +62,7 @@ public class Guard : Enemy
     void Start()
     {
         SetPlayerInfo();
-        SetHealthToMax();
+        health.SetHealthToMax();
         SetBaseStats();
     }
 
@@ -142,7 +142,7 @@ public class Guard : Enemy
         timeLastSecondary = Time.time;
         playerController.SetAllowMovement(false);
 
-        invincible = true;
+        health.SetInvincible(true);
 
         GameObject hitbox = Instantiate(shieldPrefab, transform);
         hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
@@ -158,7 +158,7 @@ public class Guard : Enemy
             if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
             {
                 StartCoroutine(EnableMovement());
-                invincible = false;
+                health.SetInvincible(false);
                 movementSpeed = baseMovementSpeed;
                 attackingSecondary = false;
 
@@ -177,7 +177,7 @@ public class Guard : Enemy
         Destroy(hitbox);
 
         StartCoroutine(EnableMovement());
-        invincible = false;
+        health.SetInvincible(false);
         movementSpeed = baseMovementSpeed;
         attackingSecondary = false;
     }
