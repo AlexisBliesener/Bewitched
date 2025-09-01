@@ -5,6 +5,7 @@ using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -91,7 +92,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         currentCharacter = oldHag;
-        currentCharacter.ActivateSurroundingPoints();
+        currentCharacter.ToggleAIControls(true);
 
         characterController = currentCharacter.GetComponent<CharacterController>();
         CharacterControlChangeEvent+=SwitchCharacter;
@@ -307,7 +308,7 @@ public class PlayerController : MonoBehaviour
     public void SwitchCharacter(Character newCharacter){
         
         characterController = newCharacter.GetComponent<CharacterController>();
-        currentCharacter.DeactivateSurroundingPoints();
+        currentCharacter.ToggleAIControls(false);
 
         if (newCharacter == oldHag)
         {
@@ -329,7 +330,7 @@ public class PlayerController : MonoBehaviour
             timePossessing = Time.time;
         }
         currentCharacter = newCharacter;
-        currentCharacter.ActivateSurroundingPoints();
+        currentCharacter.ToggleAIControls(true);
     }
 
     public Hag GetHag()

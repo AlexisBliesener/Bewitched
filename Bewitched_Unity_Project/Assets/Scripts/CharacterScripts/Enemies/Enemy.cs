@@ -437,6 +437,21 @@ public abstract class Enemy : Character
             destinationMarker = Instantiate(destinationMarkerPrefab);
             destinationMarker.transform.position = walkPoint;
         }
+
+        pathVisualizer.positionCount = 0;
+
+        pathVisualizer.positionCount = agent.path.corners.Length;
+        pathVisualizer.SetPosition(0, transform.position);
+
+        if (agent.path.corners.Length < 2)
+        {
+            return;
+        }
+
+        for (int i = 1; i < agent.path.corners.Length; i++)
+        {
+            pathVisualizer.SetPosition(i, agent.path.corners[i]);
+        }
     }
 
     /// <summary>
@@ -444,9 +459,17 @@ public abstract class Enemy : Character
     /// </summary>
     public void UpdatePath()
     {
+        if (destinationMarker)
+        {
+            destinationMarker.transform.position = agent.destination;
+        }
+
         pathVisualizer.positionCount = 0;
 
         pathVisualizer.positionCount = agent.path.corners.Length;
+
+        if (pathVisualizer.positionCount == 0) return;
+
         pathVisualizer.SetPosition(0, transform.position);
 
         if (agent.path.corners.Length < 2)

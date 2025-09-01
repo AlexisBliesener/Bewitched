@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEngine.AI;
 
 public abstract class Character : MonoBehaviour
 {
@@ -499,5 +500,25 @@ public abstract class Character : MonoBehaviour
     public GameObject FindClosestSurroundingPoint(Enemy enemy)
     {
         return surroundingPoints.AssignPoint(enemy);
+    }
+
+    /// <summary>
+    /// Turns items on the character on/off for enemies to navigate to/around
+    /// </summary>
+    /// <param name="val"> If to activate or deactivate </param>
+    public void ToggleAIControls(bool val)
+    {
+        NavMeshObstacle obstacle = GetComponent<NavMeshObstacle>();
+        obstacle.enabled = val;
+
+        if (val)
+        {
+            ActivateSurroundingPoints();
+            obstacle.radius = surroundingRadius - 0.5f; // To allow room for path
+        }
+        else
+        {
+            DeactivateSurroundingPoints();
+        }
     }
 }

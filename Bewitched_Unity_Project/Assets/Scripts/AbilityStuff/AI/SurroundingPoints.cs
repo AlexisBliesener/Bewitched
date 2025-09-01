@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -13,6 +14,9 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Dictionary of Points to Characters Using Them")]
     Dictionary<GameObject, Enemy> points = new Dictionary<GameObject, Enemy>();
 
+    [Tooltip("If the Points are Active")]
+    bool pointsActive = false;
+
     private void Update()
     {
         List<GameObject> resetters = new List<GameObject>();
@@ -24,7 +28,7 @@ public class SurroundingPoints : MonoBehaviour
             if (enemy)
             {
                 NavMeshPath path = new NavMeshPath();
-                if (!(enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete))
+                if (!(enemy.agent.CalculatePath(point.transform.position, path) || path.status != NavMeshPathStatus.PathComplete))
                 {
                     points[point].RemoveTargetPoint();
                     resetters.Add(point);
@@ -49,11 +53,12 @@ public class SurroundingPoints : MonoBehaviour
         for (int i = 0; i < numPoints; i++)
         {
             GameObject point = new GameObject("point" + (i + 1));
-            point.transform.parent = gameObject.transform;
+            point.transform.SetParent(transform, worldPositionStays: true);
 
             point.transform.localPosition = new Vector3(radius * Mathf.Sin(2 * Mathf.PI * i / numPoints), 0, radius * Mathf.Cos(2 * Mathf.PI * i / numPoints));
             points[point] = null;
         }
+        pointsActive = true;
     }
 
     /// <summary>
@@ -64,10 +69,14 @@ public class SurroundingPoints : MonoBehaviour
         foreach (GameObject point in points.Keys)
         {
             // Set each enemy's point to null
-            points[point].RemoveTargetPoint();
+            if (points[point])
+            {
+                points[point].RemoveTargetPoint();
+            }
             Destroy(point);
         }
         points = new Dictionary<GameObject, Enemy>();
+        pointsActive = false;
     }
 
     /// <summary>
@@ -84,6 +93,8 @@ public class SurroundingPoints : MonoBehaviour
 
         foreach (GameObject point in finiteCopy)
         {
+            if (!enemy.agent.enabled || !pointsActive) { return null; } // Return out if enemy is possessed
+
             NavMeshPath path = new NavMeshPath(); // Check if position is accessible by enemy
             if (enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete)
             {
@@ -93,7 +104,13 @@ public class SurroundingPoints : MonoBehaviour
                     if (points[point]) // If not null
                     {
                         Enemy tempCompetition = points[point];
-                        if (enemy.GetType() == tempCompetition.GetType()) // If the same type - same relative priority
+                        if (enemy == tempCompetition)
+                        {
+                            competition = tempCompetition;
+                            closestPoint = point;
+                            closestDist = distance;
+                        }
+                        else if (enemy.GetType() == tempCompetition.GetType()) // If the same type - same relative priority
                         {
                             if (distance < (tempCompetition.transform.position - point.transform.position).magnitude) // If this is closer
                             {
@@ -102,14 +119,11 @@ public class SurroundingPoints : MonoBehaviour
                                 closestDist = distance;
                             }
                         }
-                        else // If not the same type, compare priority
+                        else if (enemy.agent.avoidancePriority < tempCompetition.agent.avoidancePriority) // If not the same type, compare priority
                         {
-                            if (enemy.agent.avoidancePriority < tempCompetition.agent.avoidancePriority) // If higher priority, replace it
-                            {
-                                competition = tempCompetition;
-                                closestPoint = point;
-                                closestDist = distance;
-                            }
+                            competition = tempCompetition;
+                            closestPoint = point;
+                            closestDist = distance;
                         }
                     }
                     else // If null, hold onto it
@@ -126,6 +140,11 @@ public class SurroundingPoints : MonoBehaviour
         {
             if (points.ContainsKey(closestPoint))
             {
+                foreach (var item in points.Where(kvp => kvp.Value == enemy).ToList()) // If enemy assigned different point
+                {
+                    points[item.Key] = null; // Assign old points null
+                }
+
                 points[closestPoint] = enemy;
 
                 if (competition) // If removing another character, make character assign a new point
