@@ -91,6 +91,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         currentCharacter = oldHag;
+        currentCharacter.ActivateSurroundingPoints();
 
         characterController = currentCharacter.GetComponent<CharacterController>();
         CharacterControlChangeEvent+=SwitchCharacter;
@@ -306,6 +307,7 @@ public class PlayerController : MonoBehaviour
     public void SwitchCharacter(Character newCharacter){
         
         characterController = newCharacter.GetComponent<CharacterController>();
+        currentCharacter.DeactivateSurroundingPoints();
 
         if (newCharacter == oldHag)
         {
@@ -327,6 +329,7 @@ public class PlayerController : MonoBehaviour
             timePossessing = Time.time;
         }
         currentCharacter = newCharacter;
+        currentCharacter.ActivateSurroundingPoints();
     }
 
     public Hag GetHag()

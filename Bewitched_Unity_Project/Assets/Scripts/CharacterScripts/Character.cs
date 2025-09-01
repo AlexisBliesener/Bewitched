@@ -25,6 +25,10 @@ public abstract class Character : MonoBehaviour
     public float weight = 10;
     [Tooltip("Character Hitbox Radius")]
     public float sizeRadius;
+    [Tooltip("Number of Points to Surround")]
+    public int numSurroundingPoints = 8;
+    [Tooltip("Radius of Surrounding Points (For AI Navigation)")]
+    public float surroundingRadius = 2;
     [Tooltip("Team of the character")]
     public int teamID;
     [Tooltip("Character Animator")]
@@ -95,6 +99,8 @@ public abstract class Character : MonoBehaviour
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    private SurroundingPoints surroundingPoints;
 
     #region Saving/Loading
 
@@ -462,5 +468,36 @@ public abstract class Character : MonoBehaviour
     public virtual void Explode()
     {
 
+    }
+
+    /// <summary>
+    /// Create surrounding points for AI navigation
+    /// </summary>
+    public void ActivateSurroundingPoints()
+    {
+        if (!surroundingPoints)
+        {
+            gameObject.TryGetComponent<SurroundingPoints>(out surroundingPoints);
+        }
+
+        surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
+    }
+
+    /// <summary>
+    /// Destroy the surrounding points when inactive
+    /// </summary>
+    public void DeactivateSurroundingPoints()
+    {
+        surroundingPoints.DestroyPoints();
+    }
+
+    /// <summary>
+    /// Finds the closest available surrounding point
+    /// </summary>
+    /// <param name="enemy"> Enemy searching for a point </param>
+    /// <returns></returns>
+    public GameObject FindClosestSurroundingPoint(Enemy enemy)
+    {
+        return surroundingPoints.AssignPoint(enemy);
     }
 }

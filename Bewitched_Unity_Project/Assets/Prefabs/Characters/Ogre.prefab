@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 1425984857738050746}
   - component: {fileID: 732372681308907037}
   - component: {fileID: 6417695604396302911}
+  - component: {fileID: -550221043697874190}
   m_Layer: 7
   m_Name: Ogre
   m_TagString: Untagged
@@ -192,6 +193,7 @@ MonoBehaviour:
   deceleration: 5
   weight: 10
   sizeRadius: 1
+  surroundingRadius: 2
   teamID: 2
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
@@ -354,6 +356,18 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &-550221043697874190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0

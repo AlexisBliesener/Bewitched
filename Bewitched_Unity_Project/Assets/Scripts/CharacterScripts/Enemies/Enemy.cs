@@ -52,6 +52,9 @@ public abstract class Enemy : Character
     [Tooltip("Leave Body Explosion Maximum Knockback")]
     public float leaveBodyExplosionMaximumKnockback = 30;
 
+    [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
+    protected GameObject surroundPoint;
+
     [Header("Debug Options")]
     [Tooltip("Show Paths, Destinations, etc")]
     public bool debugging = false;
@@ -146,17 +149,9 @@ public abstract class Enemy : Character
 
     public void SetRangeChecks()
     {
-        playerInSightRange = (hag.transform.position - transform.position).magnitude < sightRange;
-        float distToHag = (hag.transform.position - transform.position).magnitude;
-        if (playerInSightRange)
-        {
-            if (Physics.Raycast(transform.position, hag.transform.position-transform.position, distToHag, environment))
-            {
-                playerInSightRange = false;
-            }
-        }
+        if (!hag.isActiveAndEnabled) return;
 
-        currentInSightRange = (currentPlayer.transform.position - transform.position).magnitude < sightRange;
+        currentInSightRange = (target.transform.position - transform.position).magnitude < sightRange;
         float distToChar = (currentPlayer.transform.position - transform.position).magnitude;
         if (currentInSightRange)
         {
@@ -165,44 +160,20 @@ public abstract class Enemy : Character
                 currentInSightRange = false;
             }
         }
+    }
 
-        if (playerInSightRange && currentInSightRange)
+    /// <summary>
+    /// Checks if the target is visible to the enemy with distance
+    /// </summary>
+    /// <param name="location"> Transform of the character </param>
+    /// <returns> True if in range </returns>
+    public bool CheckTargetInRange(Transform location)
+    {
+        if ((location.position - transform.position).magnitude < sightRange)
         {
-            targetInSightRange = true;
-
-            if (distToHag < distToChar)
-            {
-                target = hag;
-            }
-            else
-            {
-                target = currentPlayer;
-            }
+            return true;
         }
-        else if (playerInSightRange)
-        {
-            target = hag;
-            targetInSightRange = true;
-        }
-        else if (currentInSightRange)
-        {
-            target = currentPlayer;
-            targetInSightRange = true;
-        }
-        else
-        {
-            targetInSightRange = false;
-            target = hag;
-        }
-
-        if ((target.transform.position - transform.position).magnitude - target.sizeRadius < primaryAttackRange)
-        {
-            targetInPrimaryRange = true;
-        }
-        else
-        {
-            targetInPrimaryRange = false;
-        }
+        return false;
     }
 
     /// <summary>
@@ -211,7 +182,7 @@ public abstract class Enemy : Character
     /// <returns> True if player is visible to enemy </returns>
     public bool LookForPlayer()
     {
-        if (targetInSightRange && CheckCharacterBehindEnvironment(target.transform))
+        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
         {
             seenTarget = true;
             lastTargetLocation = target.transform.position;
@@ -449,23 +420,32 @@ public abstract class Enemy : Character
     {
         if (agent.velocity.magnitude < previousVelocity.magnitude)
         {
-            Debug.Log("Decelerating");
             agent.acceleration = deceleration;
         }
         else
         {
-            Debug.Log("Accelerating");
             agent.acceleration = acceleration;
         }
 
         previousVelocity = agent.velocity;
     }
 
+    public void StartPath()
+    {
+        if (destinationMarker == null)
+        {
+            destinationMarker = Instantiate(destinationMarkerPrefab);
+            destinationMarker.transform.position = walkPoint;
+        }
+    }
+
     /// <summary>
     /// Draws a path the agent follows
     /// </summary>
-    public void DrawPath()
+    public void UpdatePath()
     {
+        pathVisualizer.positionCount = 0;
+
         pathVisualizer.positionCount = agent.path.corners.Length;
         pathVisualizer.SetPosition(0, transform.position);
 
@@ -478,5 +458,20 @@ public abstract class Enemy : Character
         {
             pathVisualizer.SetPosition(i, agent.path.corners[i]);
         }
+    }
+
+    public void DestroyPath()
+    {
+        if (destinationMarker != null)
+        {
+            Destroy(destinationMarker);
+            destinationMarker = null;
+        }
+        pathVisualizer.positionCount = 0;
+    }
+
+    public void RemoveTargetPoint()
+    {
+        surroundPoint = null;
     }
 }

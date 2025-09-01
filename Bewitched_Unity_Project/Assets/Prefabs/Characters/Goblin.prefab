@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 5347660582151986861}
   - component: {fileID: -6918275186734421657}
   - component: {fileID: 1348470291095463243}
+  - component: {fileID: 1604847013949478277}
   m_Layer: 7
   m_Name: Goblin
   m_TagString: Untagged
@@ -157,6 +158,7 @@ MonoBehaviour:
   deceleration: 14
   weight: 2
   sizeRadius: 0.6
+  surroundingRadius: 2
   teamID: 2
   animator: {fileID: 6563345434283436252}
   primaryFireIcon: {fileID: 21300000, guid: b79c25c267f0e6149becb38c5d850ba5, type: 3}
@@ -345,6 +347,18 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1604847013949478277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2305004250363809269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2856675562672059631
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -58,7 +58,6 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
         if (!playerControlling)
         {
-            SetRangeChecks();
             SetBehavior();
         }
         HandleHitStun();
@@ -135,6 +134,7 @@ public class Goblin : Enemy
     /// </summary>
     public override void SetBehavior()
     {
+        target = playerController.currentCharacter; // Always update this
         if (!agent.enabled || inProcess) return;
 
         if (aiState == GoblinAIState.Patrolling) // If patrolling
@@ -160,11 +160,17 @@ public class Goblin : Enemy
     /// </summary>
     public override void Patrol()
     {
+        // Check if player is visible
+        if (LookForPlayer())
+        {
+            StartCoroutine(SpotPlayer());
+            return;
+        }
+
         if (walkPointSet)
         {
             agent.stoppingDistance = minStopDistance;
         }
-
 
         if (agent.remainingDistance <= minStopDistance) // If we are within stopping range
         {
@@ -174,7 +180,7 @@ public class Goblin : Enemy
 
         if (debugging)
         {
-            DrawPath();
+            UpdatePath();
         }
     }
 
@@ -186,8 +192,7 @@ public class Goblin : Enemy
     {
         if (debugging)
         {
-            pathVisualizer.positionCount = 0;
-            Destroy(destinationMarker);
+            DestroyPath();
         }
 
         inProcess = true;
@@ -211,6 +216,10 @@ public class Goblin : Enemy
         }
 
         inProcess = false;
+        if (debugging)
+        {
+            StartPath();
+        }
     }
 
     /// <summary>
@@ -221,7 +230,7 @@ public class Goblin : Enemy
     {
         if (debugging)
         {
-            pathVisualizer.positionCount = 0;
+            DestroyPath();
         }
 
         inProcess = true;
@@ -238,6 +247,16 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
-        
+        surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
+
+        if (surroundPoint) // If there is a valid point
+        {
+            agent.SetDestination(surroundPoint.transform.position);
+            
+            if (debugging)
+            {
+                UpdatePath();
+            }
+        }
     }
 }
