@@ -102,7 +102,7 @@ public class Hag : Character
     public void Blink()
     {
         PlayerController.instance.SetAllowMovement(false); // Prevent movement during blink
-        CameraController.instance.SetTeleporting();        // Stop camera snap
+
 
         RaycastHit hit;
         if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environment))

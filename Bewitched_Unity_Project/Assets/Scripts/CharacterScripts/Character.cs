@@ -26,6 +26,8 @@ public abstract class Character : MonoBehaviour
     public Sprite primaryFireIcon;
     [Tooltip("Secondary Fire Image")]
     public Sprite secondaryFireIcon;
+    [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
+    private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
     [Tooltip("Attack Delay")]
     public float attackDelay = 1;
@@ -256,6 +258,16 @@ public abstract class Character : MonoBehaviour
     public float GetMaxHealth()
     {
         return health != null ? health.GetMax() : maxHealth; 
+    }
+
+    /// <summary>
+    /// Returns the shoulder offset vector for the character.
+    /// This is used by the camera to determine its relative positioning when following the character.
+    /// </summary>
+    /// <returns>The shoulder offset as a Vector3.</returns>
+    public Vector3 GetShoulderOffset()
+    {
+        return shoulderOffset;
     }
 
     public void AddHealth(float amt)

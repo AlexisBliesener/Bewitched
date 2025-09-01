@@ -62,9 +62,9 @@ public class PlayerController : MonoBehaviour
 
     private CharacterController characterController;
 
-    private Vector2 input;
+    public Vector2 input;
 
-    private Vector3 direction;
+    public Vector3 direction;
 
     private Vector3 velocity = new Vector3(0,0,0);
 
@@ -117,25 +117,13 @@ public class PlayerController : MonoBehaviour
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        Ray ray = myCamera.ScreenPointToRay(Input.mousePosition);
-
         if (allowMovement)
         {
-
-            if (groundPlane.Raycast(ray, out float enter))
-            {
-                Vector3 mouseWorldPosition = ray.GetPoint(enter);
-                Vector3 lookDirection = (mouseWorldPosition - currentCharacter.transform.position).normalized;
-
-                float targetAngle = Mathf.Atan2(lookDirection.x, lookDirection.z) * Mathf.Rad2Deg;
-                currentCharacter.transform.rotation = Quaternion.Euler(0, targetAngle, 0);
-            }
-
-        
             if (input.sqrMagnitude > 0.01)
             {
+                
                 Vector3 desiredVelocity = direction * speed;
+                desiredVelocity = currentCharacter.transform.TransformDirection(desiredVelocity);
                 velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
                 characterController.Move(velocity * Time.deltaTime);
@@ -313,6 +301,7 @@ public class PlayerController : MonoBehaviour
             }
             if (secondaryHealthBar != null)
             {
+                oldHag.gameObject.SetActive(true);
                 secondaryHealthBar.SetActive(false);
             }
             currentCharacter.SetTeamID(2);
@@ -342,6 +331,7 @@ public class PlayerController : MonoBehaviour
                 if (secondaryHealthBar != null )
                 {
                     secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
+                    oldHag.gameObject.SetActive(false);
                     secondaryHealthBar.SetActive(true);
                 }
             }
@@ -424,11 +414,11 @@ public class PlayerController : MonoBehaviour
                 currentCharacter.Die();
                 // Apply shunt damage
             }
-            else
-            {
-                currentCharacter.SetControlled(false);
-                CharacterControlChangeEvent?.Invoke(oldHag);
-            }
+
+            // respawn old Hag
+            oldHag.transform.position = currentCharacter.transform.position;
+            currentCharacter.SetControlled(false);
+            CharacterControlChangeEvent?.Invoke(oldHag);
         }
     }
 }
