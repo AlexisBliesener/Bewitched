@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
+[RequireComponent(typeof(HealthController))]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
@@ -49,8 +50,8 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
-    [Tooltip("Maximum Health")]
-    public float maxHealth;
+    [Header("Note: Health settings can be changed on the Health Controller component!")]
+    [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
@@ -65,16 +66,7 @@ public abstract class Character : MonoBehaviour
     protected float timeLastSecondary = -Mathf.Infinity;
 
     protected float timeLastAny;
-
-    protected float currentHealth;
-
-    private bool alive = true;
-
-    protected bool invincible = false; // Title card
-
     protected GameObject hitStunActual = null;
-
-    protected float timeLastHit;
 
     protected bool attackingPrimary = false;
     protected bool attackingSecondary = false;
@@ -164,6 +156,43 @@ public abstract class Character : MonoBehaviour
 
     #endregion
 
+    protected virtual void Awake()
+    {
+        if (health == null)
+        {
+            health = GetComponent<HealthController>();
+        }
+        health.OnDamaged += OnDamaged;
+        health.OnHealthChanged += OnHealthChanged;
+        health.OnDeath += OnDeath;
+
+        SetBaseStats();
+    }
+    protected virtual void OnDestroy()
+    {
+        health.OnDamaged -= OnDamaged;
+        health.OnHealthChanged -= OnHealthChanged;
+        health.OnDeath -= OnDeath;
+    }
+    /// <summary>
+    /// OnDamaged is called when the character is damaged.
+    /// </summary>
+    protected virtual void OnDamaged(float amount)
+    {
+        CreateHitStun();
+    }
+    
+    /// <summary>
+    /// OnHealthChanged is called when the character's health changes.
+    /// </summary>
+    protected virtual void OnHealthChanged(float current, float max) { }
+    /// <summary>
+    /// OnDeath is called when the character dies.
+    /// </summary>
+    protected virtual void OnDeath()
+    {
+        Die();
+    }
     public virtual void PrimaryAttack()
     {
     }
@@ -205,16 +234,6 @@ public abstract class Character : MonoBehaviour
         return true;
     }
 
-    public float GetHealth()
-    {
-        return currentHealth;
-    }
-
-    public float GetMaxHealth()
-    {
-        return maxHealth;
-    }
-
     /// <summary>
     /// Returns the shoulder offset vector for the character.
     /// This is used by the camera to determine its relative positioning when following the character.
@@ -223,54 +242,6 @@ public abstract class Character : MonoBehaviour
     public Vector3 GetShoulderOffset()
     {
         return shoulderOffset;
-    }
-
-    public void AddHealth(float amt)
-    {
-        currentHealth += amt;
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    public virtual void SubHealth(float dmg)
-    {
-        if (!invincible)
-        {
-            timeLastHit = Time.time;
-            currentHealth -= dmg;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-            else
-            {
-                CreateHitStun();
-            }
-        }
-    }
-
-    public virtual void DrainLife(float amt)
-    {
-        if (!invincible)
-        {
-            currentHealth -= amt;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-        }
-    }
-
-    public void SetHealthToMax()
-    {
-        currentHealth = maxHealth;
-    }
-
-    public bool IsAlive()
-    {
-        return alive;
     }
 
     public virtual void SetControlled(bool v) { }
@@ -333,7 +304,7 @@ public abstract class Character : MonoBehaviour
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 Destroy(hitStunActual);
                 hitStunActual = null;

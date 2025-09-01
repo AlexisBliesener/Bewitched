@@ -7,44 +7,28 @@ using TMPro;
 public class HealthBar : MonoBehaviour
 {
     [Header("Health Bar Settings")]
-    public Character character;
     public Slider slider;
+    private HealthController healthController;
 
-    private float currentHealth;
-    private float maxHealth;
-
-    // Update is called once per frame
-    void Update()
+    public void Subscribe(HealthController hc)
     {
-        currentHealth = character.GetHealth();
-        slider.value = currentHealth;
+        if (hc == null || slider == null) return;
+        healthController = hc;
+        slider.maxValue = hc.GetMaxHealth();
+        slider.value = hc.GetHealth();
+
+        hc.OnHealthChanged += SetValues;
     }
-
-    private void OnEnable()
+    
+    private void OnDestroy()
     {
-        if (character)
-        {
-            SetValues();
-        }
-        else
-        {
-            gameObject.SetActive(false);
-        }
+        if (healthController != null)
+            healthController.OnHealthChanged -= SetValues; // unsubscribe
     }
-
-    private void OnDisable()
+    
+    public void SetValues(float current, float max)
     {
-    }
-
-    public void SetCharacter(Character inst)
-    {
-        character = inst;
-    }
-
-    public void SetValues()
-    {
-        slider.maxValue = character.GetMaxHealth();
-        maxHealth = character.GetMaxHealth();
-        slider.value = character.GetHealth();
+        slider.maxValue = max;
+        slider.value = current;
     }
 }

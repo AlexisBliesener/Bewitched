@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 297698976383686993}
   - component: {fileID: 1936789453594467898}
   - component: {fileID: -4911733195017043695}
+  - component: {fileID: 6302369574877686289}
   m_Layer: 7
   m_Name: Guard
   m_TagString: Untagged
@@ -193,6 +194,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1.25
   primaryComboExtraCooldown: 0
@@ -202,7 +204,7 @@ MonoBehaviour:
   secondaryCooldown: 6
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 150
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.3
   characters:
@@ -231,7 +233,6 @@ MonoBehaviour:
     m_Bits: 256
   sightRange: 10
   patrolRange: 5
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
   leaveBodyExplosionRadius: 5
   leaveBodyExplosionMinimumDamage: 10
@@ -257,6 +258,21 @@ MonoBehaviour:
   maxShieldBashChargeTime: 2
   bashDuration: 0.65
   chargingMovementSpeed: 2
+--- !u!114 &6302369574877686289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345228425115439027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a6aeef76141464e8deb312572272c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 150
+  decayRate: 0
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!1001 &2563528445496889038
 PrefabInstance:
   m_ObjectHideFlags: 0

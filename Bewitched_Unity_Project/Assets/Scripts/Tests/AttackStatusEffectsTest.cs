@@ -30,15 +30,15 @@ public class AttackStatusEffectsTest
         [Tooltip("Exposes the releaseSecondaryImm flag.")]
         public bool ReleaseSecondaryImmFlag => releaseSecondaryImm;
         [Tooltip("Gets the character's current health.")]
-        public float CurrentHealth => currentHealth;
+        public float CurrentHealth => health.GetHealth();
 
         /// <summary>
         /// Sets the character's current health to a specified value.
         /// </summary>
-        /// <param name="health">The new health value to assign.</param>
-        public void SetCurrentHealth(float health)
+        /// <param name="healthAmt">The new health value to assign.</param>
+        public void SetCurrentHealth(float healthAmt)
         {
-            currentHealth = health;
+            health.SetCurrentHealth(healthAmt);
         }
 
         /// <summary>

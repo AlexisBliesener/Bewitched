@@ -174,7 +174,7 @@ public class DefaultHitbox : MonoBehaviour
             {
                 if (character && character.teamID != user.teamID && !hitChars.Contains(character))
                 {
-                    character.SubHealth(damage);
+                    character.health.SubHealth(damage);
                     AddStatusEffects(character);
                     AddToHit(character);
 
@@ -243,7 +243,7 @@ public class DefaultHitbox : MonoBehaviour
             if (impacts[i].TryGetComponent(out Character hitChar) && hitChar.teamID != user.teamID)
             {
                 impactEffects.ApplyStatusEffects(user, hitChar, this);
-                hitChar.SubHealth(slamDamage);
+                hitChar.health.SubHealth(slamDamage);
             }
         }
 

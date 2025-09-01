@@ -30,7 +30,7 @@ public class Goblin : Enemy
     private void Start()
     {
         SetPlayerInfo();
-        SetHealthToMax();
+        health.SetHealthToMax();
         SetBaseStats();
     }
 
@@ -69,7 +69,7 @@ public class Goblin : Enemy
     public void Dash()
     {
         isDashing = true;
-        invincible = true;
+        health.SetInvincible(true);
         PlayerController.instance.SetAllowMovement(false);
 
         GameObject hitbox = Instantiate(dashHitbox, transform);
@@ -88,7 +88,7 @@ public class Goblin : Enemy
             {
                 StartCoroutine(EnableMovement());
                 isDashing = false;
-                invincible = false;
+                health.SetInvincible(false);
                 attackingSecondary = false;
 
                 transform.position = transform.position - transform.forward.normalized * dashSpeed * Time.deltaTime;
@@ -107,7 +107,7 @@ public class Goblin : Enemy
 
         StartCoroutine(EnableMovement());
         isDashing = false;
-        invincible = false;
+        health.SetInvincible(false);
         attackingSecondary = false;
     }
 }
