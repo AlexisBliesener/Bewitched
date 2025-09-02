@@ -195,6 +195,7 @@ MonoBehaviour:
   maxSightAngle: 30
   hearingRange: 2
   patrolRange: 10
+  timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
   leaveBodyExplosionRadius: 5
@@ -364,6 +365,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugging: 0
+  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
 --- !u!1 &8672433769665520731
 GameObject:
   m_ObjectHideFlags: 0

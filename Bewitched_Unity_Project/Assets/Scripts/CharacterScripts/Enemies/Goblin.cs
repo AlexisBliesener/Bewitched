@@ -175,7 +175,7 @@ public class Goblin : Enemy
         }
         else if (CanHearTarget(target.transform))
         {
-            // Start search mode
+            TransitionToSearch();
         }
 
         if (walkPointSet)
@@ -292,6 +292,8 @@ public class Goblin : Enemy
 
         inProcess = true;
 
+        timePlayerLastSeen = Time.time;
+
         // Play animation/noise that the player has been seen
         yield return new WaitForSeconds(1);
 
@@ -306,6 +308,16 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
+        if (LookForPlayer())
+        {
+            timePlayerLastSeen = Time.time;
+        }
+
+        if (Time.time - timePlayerLastSeen > timeBeforeSearch)
+        {
+            TransitionToSearch();
+        }
+
         surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
 
         if (surroundPoint) // If there is a valid point
@@ -317,5 +329,39 @@ public class Goblin : Enemy
                 UpdatePath();
             }
         }
+    }
+
+    /// <summary>
+    /// Function that executes when the Goblin is searching
+    /// Will navigate to the last known player location then go back to patrolling
+    /// </summary>
+    public void Search()
+    {
+        if (LookForPlayer()) // Constantly look for player
+        {
+            StartCoroutine(SpotPlayer());
+        }
+
+        if (CanHearTarget(currentPlayer.transform)) // Constantly listen for player
+        {
+            TransitionToSearch();
+        }
+
+        agent.SetDestination(lastTargetLocation);
+
+        if ((lastTargetLocation - transform.position).magnitude <= agent.stoppingDistance)
+        {
+            StartCoroutine(LookAround());
+        }
+    }
+
+    /// <summary>
+    /// Function that is called when changing to search mode
+    /// Sets state and last target location
+    /// </summary>
+    public void TransitionToSearch()
+    {
+        lastTargetLocation = currentPlayer.transform.position;
+        aiState = GoblinAIState.Searching;
     }
 }

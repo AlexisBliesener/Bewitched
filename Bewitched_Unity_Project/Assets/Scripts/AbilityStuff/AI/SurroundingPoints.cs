@@ -11,14 +11,31 @@ using UnityEngine.AI;
 /// </summary>
 public class SurroundingPoints : MonoBehaviour
 {
+    [Tooltip("The Environment Layer")]
+    public LayerMask environment;
+
+    [Tooltip("Turns on debug mode")]
+    [SerializeField] bool debugging = false;
+
+    [Tooltip("Debugging Prefab")]
+    [SerializeField] GameObject pointObjPrefab;
+
     [Tooltip("Dictionary of Points to Characters Using Them")]
     Dictionary<GameObject, Enemy> points = new Dictionary<GameObject, Enemy>();
+
+    [Tooltip("Parent point")]
+    GameObject parentPoint;
 
     [Tooltip("If the Points are Active")]
     bool pointsActive = false;
 
     private void Update()
     {
+        if (parentPoint)
+        {
+            parentPoint.transform.position = transform.position;
+        }
+
         List<GameObject> resetters = new List<GameObject>();
         int i = 0;
 
@@ -28,7 +45,7 @@ public class SurroundingPoints : MonoBehaviour
             if (enemy)
             {
                 NavMeshPath path = new NavMeshPath();
-                if (!(enemy.agent.CalculatePath(point.transform.position, path) || path.status != NavMeshPathStatus.PathComplete))
+                if (!(enemy.agent.CalculatePath(point.transform.position, path) || path.status != NavMeshPathStatus.PathComplete || PointAccessibleByParent(point)))
                 {
                     points[point].RemoveTargetPoint();
                     resetters.Add(point);
@@ -50,15 +67,43 @@ public class SurroundingPoints : MonoBehaviour
     /// <param name="radius"> Radius of point placement </param>
     public void Init(int numPoints, float radius)
     {
+        parentPoint = new GameObject("Parent Point");
         for (int i = 0; i < numPoints; i++)
         {
-            GameObject point = new GameObject("point" + (i + 1));
-            point.transform.SetParent(transform, worldPositionStays: true);
+            GameObject point;
+            if (debugging)
+            {
+                point = Instantiate(pointObjPrefab, parent: parentPoint.transform, worldPositionStays: true);
+                point.name = "point" + (i + 1);
+            }
+            else
+            {
+                point = new GameObject("point" + (i + 1));
+            }
+            point.transform.SetParent(parentPoint.transform, worldPositionStays: true);
 
-            point.transform.localPosition = new Vector3(radius * Mathf.Sin(2 * Mathf.PI * i / numPoints), 0, radius * Mathf.Cos(2 * Mathf.PI * i / numPoints));
+            point.transform.localPosition = new Vector3(radius * Mathf.Sin(Mathf.Deg2Rad * i * 360 / numPoints), 0, radius * Mathf.Cos(Mathf.Deg2Rad * i * 360 / numPoints));
             points[point] = null;
         }
         pointsActive = true;
+    }
+
+    /// <summary>
+    /// Checks if there is a line between the point and parent unhindered by the environment
+    /// </summary>
+    /// <param name="point"> Point to check </param>
+    /// <returns> True if unhindered point </returns>
+    public bool PointAccessibleByParent(GameObject point)
+    {
+        Vector3 direction = (parentPoint.transform.position - point.transform.position).normalized;
+        float distance = (parentPoint.transform.position - point.transform.position).magnitude;
+
+        if (Physics.Raycast(transform.position, direction, distance, environment)) // If environment between points
+        {
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -66,6 +111,8 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void DestroyPoints()
     {
+        Destroy(parentPoint);
+        parentPoint = null;
         foreach (GameObject point in points.Keys)
         {
             // Set each enemy's point to null
@@ -96,7 +143,7 @@ public class SurroundingPoints : MonoBehaviour
             if (!enemy.agent.enabled || !pointsActive) { return null; } // Return out if enemy is possessed
 
             NavMeshPath path = new NavMeshPath(); // Check if position is accessible by enemy
-            if (enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete)
+            if (enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete && PointAccessibleByParent(point))
             {
                 float distance = 0;
                 for (int i = 1; i < path.corners.Length; i++) // Finds the distance of the path, not just the transform distance

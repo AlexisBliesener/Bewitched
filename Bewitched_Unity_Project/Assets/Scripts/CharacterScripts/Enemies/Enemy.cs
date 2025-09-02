@@ -39,6 +39,9 @@ public abstract class Enemy : Character
     [Tooltip("Walk Point Range")]
     public float patrolRange;
 
+    [Tooltip("Time before searching")]
+    public float timeBeforeSearch = 5;
+
     [Tooltip("Mini Health Bar Prefab")]
     public GameObject miniBarPrefab;
 
@@ -92,6 +95,8 @@ public abstract class Enemy : Character
     protected bool inAttackDelay = false;
 
     protected Vector3 previousVelocity = new Vector3(0, 0, 0);
+
+    protected float timePlayerLastSeen;
 
     public void SetAgentValues()
     {
