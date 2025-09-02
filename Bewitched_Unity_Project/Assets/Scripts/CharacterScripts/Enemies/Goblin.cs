@@ -23,8 +23,8 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
 
     [Header("Goblin AI Settings")]
-    [Tooltip("Minimum Patrol Distance")]
-    [SerializeField] float minPatrolDistance = 5;
+    [Tooltip("Maximum Patrol Distance")]
+    [SerializeField] float maxPatrolDistance = 5;
 
     [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
     private bool inProcess = false;
@@ -173,6 +173,10 @@ public class Goblin : Enemy
             StartCoroutine(SpotPlayer());
             return;
         }
+        else if (CanHearTarget(target.transform))
+        {
+            // Start search mode
+        }
 
         if (walkPointSet)
         {
@@ -199,6 +203,11 @@ public class Goblin : Enemy
         patrolOrigin = transform.position;
     }
 
+    /// <summary>
+    /// Override function for setting a walkpoint
+    /// This version uses a point of origin separate from the Goblin to place points
+    /// </summary>
+    /// <returns></returns>
     public override bool SetWalkPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
@@ -213,7 +222,7 @@ public class Goblin : Enemy
             {
                 distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
             }
-            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && distance >= minPatrolDistance)
+            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && distance <= maxPatrolDistance)
             {
                 walkPoint = hit.position;
                 walkPointSet = true;
@@ -247,7 +256,7 @@ public class Goblin : Enemy
         AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
-        while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
+        while (timer < .5f) // Wait .5 seconds for now, will change this to be a bool checking the end of looking animation
         {
             if (LookForPlayer())
             {
@@ -285,6 +294,8 @@ public class Goblin : Enemy
 
         // Play animation/noise that the player has been seen
         yield return new WaitForSeconds(1);
+
+        // Alert nearby Goblins of player
 
         inProcess = false;
         aiState = GoblinAIState.Chasing;

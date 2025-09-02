@@ -193,6 +193,7 @@ MonoBehaviour:
   deceleration: 5
   weight: 7
   sizeRadius: 0.6
+  numSurroundingPoints: 8
   surroundingRadius: 2
   teamID: 2
   animator: {fileID: 0}
@@ -213,6 +214,7 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  obstacle: {fileID: 0}
   agent: {fileID: 297698976383686993}
   minStopDistance: 0.5
   highestPriority: 50
@@ -224,6 +226,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   sightRange: 10
+  maxSightAngle: 40
+  hearingRange: 2
   patrolRange: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5

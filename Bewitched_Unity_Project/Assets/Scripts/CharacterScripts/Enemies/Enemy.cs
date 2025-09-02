@@ -30,6 +30,12 @@ public abstract class Enemy : Character
     [Tooltip("Sight Range")]
     public float sightRange;
 
+    [Tooltip("Maximum Sight Angle")]
+    public float maxSightAngle;
+
+    [Tooltip("Hearing Range")]
+    public float hearingRange;
+
     [Tooltip("Walk Point Range")]
     public float patrolRange;
 
@@ -177,12 +183,41 @@ public abstract class Enemy : Character
     }
 
     /// <summary>
+    /// Checks if the target can "hear" the player
+    /// We can make this more interesting (have it depend on player weight/speed as well) later
+    /// </summary>
+    /// <param name="location"> Location of target </param>
+    /// <returns> True if it can hear the target </returns>
+    public bool CanHearTarget(Transform location)
+    {
+        if ((location.position - transform.position).magnitude < hearingRange)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool IsLookingAtPlayer(Transform location)
+    {
+        Vector3 playerDirection = (location.position - transform.position).normalized;
+        float dp = Vector3.Dot(transform.forward, playerDirection);
+
+
+        if (dp >= Mathf.Cos(Mathf.Deg2Rad * maxSightAngle))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Searches for the player, handling variables if it can see them
     /// </summary>
     /// <returns> True if player is visible to enemy </returns>
     public bool LookForPlayer()
     {
-        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
+        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform) && IsLookingAtPlayer(currentPlayer.transform))
         {
             seenTarget = true;
             lastTargetLocation = target.transform.position;

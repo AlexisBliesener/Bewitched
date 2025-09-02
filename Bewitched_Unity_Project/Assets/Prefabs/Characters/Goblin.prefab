@@ -192,6 +192,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   sightRange: 15
+  maxSightAngle: 30
+  hearingRange: 2
   patrolRange: 10
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
@@ -210,7 +212,7 @@ MonoBehaviour:
   dashSpeed: 30
   dashDuration: 0.25
   dashDamage: 30
-  surroundRange: 2
+  maxPatrolDistance: 5
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0
