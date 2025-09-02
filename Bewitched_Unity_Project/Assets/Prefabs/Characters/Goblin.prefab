@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 7573160092936169644}
   m_Layer: 7
   m_Name: Goblin
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -153,6 +153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Goblin
   movementSpeed: 7
+  jumpSpeed: 0
   weight: 2
   sizeRadius: 0.6
   teamID: 2
