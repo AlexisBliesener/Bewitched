@@ -31,7 +31,6 @@ public class RoomSystem : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
         SubscribeToExistingRooms();
     }
