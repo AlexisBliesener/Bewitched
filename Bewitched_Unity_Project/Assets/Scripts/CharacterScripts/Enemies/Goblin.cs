@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Goblin : Enemy
 {
@@ -22,8 +23,8 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
 
     [Header("Goblin AI Settings")]
-    [Tooltip("Surrounding Range")]
-    [SerializeField] float surroundRange = 2;
+    [Tooltip("Minimum Patrol Distance")]
+    [SerializeField] float minPatrolDistance = 5;
 
     [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
     private bool inProcess = false;
@@ -41,6 +42,9 @@ public class Goblin : Enemy
     [Tooltip("The Current AI State of the Goblin")]
     private GoblinAIState aiState = GoblinAIState.Patrolling;
 
+    [Tooltip("The Goblin's Patrol Point Origin")]
+    private Vector3 patrolOrigin;
+
     private bool isDashing = false;
 
     private void Start()
@@ -50,6 +54,7 @@ public class Goblin : Enemy
         SetBaseStats();
         SetAgentValues();
         SetDebuggingValues();
+        SetPatrolOrigin();
         StartCoroutine(LookAround());
     }
 
@@ -157,6 +162,8 @@ public class Goblin : Enemy
 
     /// <summary>
     /// Override function handling patrol functionality for the Goblin
+    /// This patrol method sets a point before the first frame and the goblin will patrol
+    /// randomly within a circle of that point
     /// </summary>
     public override void Patrol()
     {
@@ -182,6 +189,47 @@ public class Goblin : Enemy
         {
             UpdatePath();
         }
+    }
+
+    /// <summary>
+    /// Called in first frame, sets the patrol origin to Goblin position
+    /// </summary>
+    public void SetPatrolOrigin()
+    {
+        patrolOrigin = transform.position;
+    }
+
+    public override bool SetWalkPoint()
+    {
+        float randomX = Random.Range(-patrolRange, patrolRange);
+        float randomZ = Random.Range(-patrolRange, patrolRange);
+
+        walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
+        if (NavMesh.SamplePosition(walkPoint, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+        {
+            NavMeshPath path = new NavMeshPath();
+            float distance = 0;
+            for (int i = 1; i < path.corners.Length; i++) // Finds the distance of the path, not just the transform distance
+            {
+                distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+            }
+            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && distance >= minPatrolDistance)
+            {
+                walkPoint = hit.position;
+                walkPointSet = true;
+                agent.SetDestination(walkPoint);
+                AnimateMove();
+
+                if (debugging)
+                {
+                    destinationMarker = Instantiate(destinationMarkerPrefab);
+                    destinationMarker.transform.position = walkPoint;
+                }
+
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

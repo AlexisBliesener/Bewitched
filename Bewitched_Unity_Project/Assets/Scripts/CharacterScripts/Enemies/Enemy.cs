@@ -270,7 +270,7 @@ public abstract class Enemy : Character
         }
     }
 
-    public bool SetWalkPoint()
+    public virtual bool SetWalkPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
         float randomZ = Random.Range(-patrolRange, patrolRange);
