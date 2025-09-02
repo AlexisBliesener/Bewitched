@@ -9,6 +9,7 @@ using UnityEngine;
 /// Enemies will remain despawned/inactive until the room is entered.
 /// If the last enemy is defeated, the doors unlock automatically.
 /// </summary>
+[RequireComponent(typeof(BoxCollider))]
 public class RoomController : MonoBehaviour
 {
     [Header("Room Configuration")]
@@ -76,6 +77,15 @@ public class RoomController : MonoBehaviour
     /// Gets the enemy tag
     /// </summary>
     public string GetEnemyTag() => enemyTag;
+    /// <summary>
+    /// Get all the enemy count 
+    /// </summary>
+    public int GetEnemyCount() => roomEnemies.Count;
+
+    /// <summary> 
+    /// Sets the enemy tag 
+    /// </summary>
+    public void SetLayerMask(LayerMask mask) => enemyLayerMask = mask;
 
     /// <summary>
     /// This will be triggered when the player enter the room
@@ -98,6 +108,13 @@ public class RoomController : MonoBehaviour
     {
         InitializeDoors();
         DetectEnemiesInBounds();
+
+        // Gets the entry trigger bounds and sets it to the box collider 
+        // so it matches the bounds of the entry trigger that was set in the editor
+        BoxCollider trigger = GetComponent<BoxCollider>();
+        trigger.isTrigger = true;
+        trigger.center = entryTriggerBounds.center;
+        trigger.size = entryTriggerBounds.size;
     }
 
     private void Start()
@@ -108,10 +125,6 @@ public class RoomController : MonoBehaviour
 
     private void Update()
     {
-        // Check if player is within entry trigger bounds
-        // This will be called only when the room is inactive
-        CheckPlayerInEntryTrigger();
-
         // Only check enemy status when room is active to not waste performance :) 
         // and only for specific time interval
         if (currentState == RoomState.Active && Time.time - lastEnemyCheckTime >= enemyCheckInterval)
@@ -120,7 +133,16 @@ public class RoomController : MonoBehaviour
             lastEnemyCheckTime = Time.time;
         }
     }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (currentState != RoomState.Inactive) return;
 
+        // Check if this is the player
+        if (other.CompareTag("Player"))
+        {
+            EnterRoom();
+        }
+    }
 
     /// <summary>
     /// Activating enemies and locking doors
@@ -150,26 +172,6 @@ public class RoomController : MonoBehaviour
         UnlockDoors();
 
         OnRoomCleared?.Invoke(this);
-    }
-
-    /// <summary>
-    /// Check if the player is within the entry trigger bounds and then activate the room if it was needed
-    /// </summary>
-    private void CheckPlayerInEntryTrigger()
-    {
-        if (currentState != RoomState.Inactive) return;
-
-        // Get the player 
-        Character player = PlayerController.instance.GetCurrentCharacter();
-        if (player == null) return;
-
-        // Check if player is within the entry bounds
-        Bounds worldEntryBounds = new Bounds(transform.position + entryTriggerBounds.center, entryTriggerBounds.size);
-
-        if (worldEntryBounds.Contains(player.transform.position))
-        {
-            EnterRoom();
-        }
     }
 
     /// <summary>
@@ -333,3 +335,4 @@ public class RoomController : MonoBehaviour
     }
     #endregion
 }
+
