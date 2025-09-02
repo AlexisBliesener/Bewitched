@@ -98,7 +98,12 @@ public class SurroundingPoints : MonoBehaviour
             NavMeshPath path = new NavMeshPath(); // Check if position is accessible by enemy
             if (enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete)
             {
-                float distance = (enemy.transform.position - point.transform.position).magnitude;
+                float distance = 0;
+                for (int i = 1; i < path.corners.Length; i++) // Finds the distance of the path, not just the transform distance
+                {
+                    distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+
                 if (distance < closestDist) // If the point is closer
                 {
                     if (points[point]) // If not null
