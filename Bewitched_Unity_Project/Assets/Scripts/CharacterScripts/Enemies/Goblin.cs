@@ -156,7 +156,7 @@ public class Goblin : Enemy
         }
         else if (aiState == GoblinAIState.Searching)
         {
-            Chase();
+            Search();
         }
     }
 
