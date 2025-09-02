@@ -47,9 +47,7 @@ public class RoomControllerEditor : Editor
         EditorGUILayout.Space();
 
 
-        GUIStyle infoStyle = new GUIStyle(EditorStyles.label);
-        infoStyle.normal.textColor = Color.cyan;
-        EditorGUILayout.LabelField($"Remember to make sure that enemy has a tag called: {roomController.GetEnemyTag()} !!", infoStyle);
+        EditorGUILayout.HelpBox($"Remember to make sure that enemy has a tag called: {roomController.GetEnemyTag()} !!", MessageType.Info);
 
         if (GUI.changed)
         {

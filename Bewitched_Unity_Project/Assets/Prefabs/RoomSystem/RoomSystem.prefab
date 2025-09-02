@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1998705639477805036
+--- !u!1 &2835334395999428302
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3160938995056409933}
-  - component: {fileID: 4063421731197157366}
+  - component: {fileID: 8771938245410156495}
+  - component: {fileID: 3129547884311220469}
   m_Layer: 0
   m_Name: RoomSystem
   m_TagString: Untagged
@@ -17,45 +17,31 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3160938995056409933
+--- !u!4 &8771938245410156495
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1998705639477805036}
+  m_GameObject: {fileID: 2835334395999428302}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.7, y: 0, z: -19.48}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4063421731197157366
+--- !u!114 &3129547884311220469
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1998705639477805036}
+  m_GameObject: {fileID: 2835334395999428302}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5149f5582bb624bbbaf5abb6b66200d5, type: 3}
+  m_Script: {fileID: 11500000, guid: 26e209a976eb840968cc5be1bbf79db5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomBounds:
-    m_Center: {x: 1.0956154, y: 3.159097, z: 5.1814117}
-    m_Extent: {x: 20.656025, y: 1.840903, z: 19.59553}
-  entryTriggerBounds:
-    m_Center: {x: 13.047466, y: -0.41, z: -16.669125}
-    m_Extent: {x: 4.537466, y: 4, z: 1.6098595}
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  enemyTag: Enemy
-  enemyCheckInterval: 0.5
-  roomBoundsGizmoColor: {r: 1, g: 0, b: 0, a: 1}
-  entryTriggerGizmoColor: {r: 0, g: 1, b: 1, a: 1}
-  doorsObjects: []
-  roomEnemies: []
+  rooms: []
