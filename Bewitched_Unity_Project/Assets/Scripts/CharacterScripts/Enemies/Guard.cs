@@ -85,10 +85,6 @@ public class Guard : Enemy
 
     public override void PrimaryAttack()
     {
-        base.PrimaryAttack();
-
-        Debug.Log("Primary");
-
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
         lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
 
@@ -102,8 +98,6 @@ public class Guard : Enemy
 
     public override void SecondaryAttack()
     {
-        base.SecondaryAttack();
-
         chargingShieldBash = true;
         currentShieldBashDamage = minimumShieldBashDamage;
         currentShieldBashKnockback = minimumShieldBashKnockback;

@@ -20,7 +20,9 @@ public class CameraControllerTests
     /// </summary>
     public class MockCharacter : Character
     {
-        public override void  Die() { }
+        public override void Die() { }
+        public override void PrimaryAttack() { }
+        public override void SecondaryAttack() { }
     }
 
     [SetUp]

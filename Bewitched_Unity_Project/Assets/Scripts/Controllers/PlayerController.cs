@@ -83,6 +83,9 @@ public class PlayerController : MonoBehaviour
     private bool possessHeld = false;
     private bool leaveHeld = false;
 
+    private float yVelocity;
+    private float jumpSpeed;
+
     private void Start()
     {
         instance = this;
@@ -117,6 +120,17 @@ public class PlayerController : MonoBehaviour
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
+        if(characterController.isGrounded && yVelocity <0)
+        {
+            yVelocity = -0.5f;
+        }
+        else if (yVelocity > Physics.gravity.y)
+        {
+            yVelocity += (Physics.gravity * Time.fixedDeltaTime * 2).y;
+        }
+
+        characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
+
         if (allowMovement)
         {
             if (input.sqrMagnitude > 0.01)
@@ -124,6 +138,7 @@ public class PlayerController : MonoBehaviour
                 
                 Vector3 desiredVelocity = direction * speed;
                 desiredVelocity = currentCharacter.transform.TransformDirection(desiredVelocity);
+
                 velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
                 characterController.Move(velocity * Time.deltaTime);
@@ -193,40 +208,41 @@ public class PlayerController : MonoBehaviour
 
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if(currentCharacter == oldHag)
         {
-            possessHeld = true;
-            if (Time.time - timeLastFired >= orbCooldown)
+            if (context.started)
             {
-                timeLastFired = Time.time;
-                currentCharacter.AnimatePossess();
-                StartCoroutine(FireOrbWithDelay());
+                if (Time.time - timeLastFired >= orbCooldown)
+                {
+                    timeLastFired = Time.time;
+                    currentCharacter.AnimatePossess();
+                    StartCoroutine(FireOrbWithDelay());
+                }
+            }
+            else
+            {
+                return;
             }
         }
-        else if (context.canceled)
-        {
-            possessHeld = false;
-        }
         else
-        {   
-            return;
+        {
+            if (context.started)
+            {
+                StartCoroutine(ExplodeEnemy());
+            }
+            else
+            {
+                return;
+            }
         }
     }
 
-    public void LeaveBody(InputAction.CallbackContext context)
+    public void Jump(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if(characterController.isGrounded && context.started)
         {
-            leaveHeld = true;
-            StartCoroutine(ExplodeEnemy());
-        }
-        else if (context.canceled)
-        {
-            leaveHeld = false;
-        }
-        else
-        {
-            return;
+            jumpSpeed = currentCharacter.GetJumpSpeed();
+            yVelocity = jumpSpeed;
         }
     }
 
@@ -287,7 +303,8 @@ public class PlayerController : MonoBehaviour
     }
 
     public void SwitchCharacter(Character newCharacter){
-        
+
+        Debug.Log("new char " + newCharacter);
         characterController = newCharacter.GetComponent<CharacterController>();
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         HealthController newHealth = newCharacter.GetComponent<HealthController>();
@@ -416,7 +433,9 @@ public class PlayerController : MonoBehaviour
             }
 
             // respawn old Hag
+
             oldHag.transform.position = currentCharacter.transform.position;
+            oldHag.transform.rotation = currentCharacter.transform.rotation;
             currentCharacter.SetControlled(false);
             CharacterControlChangeEvent?.Invoke(oldHag);
         }

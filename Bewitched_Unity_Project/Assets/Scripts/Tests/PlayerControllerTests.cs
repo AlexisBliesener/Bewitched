@@ -62,6 +62,8 @@ public class PlayerControllerTests
     public class MockCharacter : Character
     {
         public override void Die() { }
+        public override void PrimaryAttack() { }
+        public override void SecondaryAttack() { }
     }
 
     #endregion
@@ -224,6 +226,5 @@ public class PlayerControllerTests
     {
         Assert.AreEqual(controller.currentCharacter, controller.GetCurrentCharacter());
     }
-
     #endregion
 }

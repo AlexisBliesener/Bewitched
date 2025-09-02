@@ -27,8 +27,6 @@ public class CameraController : MonoBehaviour
 
     [Tooltip("The FMOD studio listener that is attached to the camera")]
     private StudioListener listener;
-    [Tooltip("The side the camera is on releative to the player, 1 = right side, 0 = middle, -1 = left side")]
-    private float camSide = 1;
     [Tooltip("The virtual camera that is following the player")]
     private CinemachineVirtualCamera virtualCamera;
     [Tooltip("The y-axis rotation applied to the player based on mouse movement")]
@@ -99,12 +97,14 @@ public class CameraController : MonoBehaviour
     {
         Vector2 lookInput = context.ReadValue<Vector2>();
 
+        Debug.Log(lookInput);
         if (context.action.activeControl.device.description.deviceClass != "Mouse")
         {
             lookInput.x *= 20;
         }
-            // scale input
-            yaw += lookInput.x * xSensitivity;
+
+        // scale input
+        yaw += lookInput.x * xSensitivity;
 
         // apply rotations
         characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
