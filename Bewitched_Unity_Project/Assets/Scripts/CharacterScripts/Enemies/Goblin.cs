@@ -48,8 +48,6 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        base.PrimaryAttack();
-
         GameObject shank = Instantiate(knifePrefab, transform);
         shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
 
@@ -59,8 +57,6 @@ public class Goblin : Enemy
     
     public override void SecondaryAttack()
     {
-        base.SecondaryAttack();
-
         Dash();
         attackingSecondary = true;
         timeLastSecondary = Time.time;

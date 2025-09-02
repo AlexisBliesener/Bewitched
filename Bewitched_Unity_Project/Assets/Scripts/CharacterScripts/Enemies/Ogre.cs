@@ -103,8 +103,6 @@ public class Ogre : Enemy
 
     public override void PrimaryAttack()
     {
-        base.PrimaryAttack();
-
         isCharging = true;
         currentBatSwingKnockback = minimumBatSwingKnockback;
         currentBatSwingDamage = minimumBatSwingDamage;
@@ -120,8 +118,6 @@ public class Ogre : Enemy
 
     public override void SecondaryAttack()
     {
-        base.SecondaryAttack();
-
         attackingSecondary = true;
         timeLastSecondary = Time.time;
         PlayerController.instance.SetAllowMovement(false);

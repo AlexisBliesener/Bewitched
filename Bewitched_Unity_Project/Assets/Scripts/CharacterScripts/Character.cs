@@ -15,6 +15,8 @@ public abstract class Character : MonoBehaviour
     public string characterName;
     [Tooltip("Speed the Character Can Move")]
     public float movementSpeed = 5;
+    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
+    private float jumpSpeed;
     [Tooltip("Weight of the character")]
     public float weight = 10;
     [Tooltip("Character Hitbox Radius")]
@@ -181,7 +183,7 @@ public abstract class Character : MonoBehaviour
     {
         CreateHitStun();
     }
-    
+
     /// <summary>
     /// OnHealthChanged is called when the character's health changes.
     /// </summary>
@@ -193,6 +195,7 @@ public abstract class Character : MonoBehaviour
     {
         Die();
     }
+
     public virtual void PrimaryAttack()
     {
     }
@@ -202,6 +205,11 @@ public abstract class Character : MonoBehaviour
     }
 
     public abstract void Die();
+
+    public float GetJumpSpeed()
+    {
+        return jumpSpeed;
+    }
 
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;

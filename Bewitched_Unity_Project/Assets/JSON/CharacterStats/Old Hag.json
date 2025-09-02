@@ -1,17 +1,23 @@
 {
     "characterName": "Old Hag",
     "movementSpeed": 10.0,
+    "jumpSpeed": 8.0,
     "weight": 5.0,
     "sizeRadius": 0.5,
     "teamID": 1,
     "animator": {
-        "instanceID": 53178
+        "instanceID": 0
     },
     "primaryFireIcon": {
-        "instanceID": 53010
+        "instanceID": 53502
     },
     "secondaryFireIcon": {
         "instanceID": 0
+    },
+    "shoulderOffset": {
+        "x": 1.0,
+        "y": 2.5,
+        "z": 0.0
     },
     "attackDelay": 1.0,
     "primaryCooldown": 1.0,
@@ -22,9 +28,11 @@
     "secondaryCooldown": 5.0,
     "secondaryAnimationDelay": 0.10000000149011612,
     "primaryAttackRange": 0.0,
-    "maxHealth": 100.0,
+    "health": {
+        "instanceID": 0
+    },
     "hitStunPrefab": {
-        "instanceID": 51926
+        "instanceID": 52236
     },
     "hitStunDuration": 0.5,
     "characters": {
@@ -42,6 +50,6 @@
         "m_Bits": 256
     },
     "knockBackCone": {
-        "instanceID": 52990
+        "instanceID": -151488
     }
 }
