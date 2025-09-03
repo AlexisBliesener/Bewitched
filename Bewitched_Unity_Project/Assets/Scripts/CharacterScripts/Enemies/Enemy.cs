@@ -202,6 +202,11 @@ public abstract class Enemy : Character
         return false;
     }
 
+    /// <summary>
+    /// Function to determine if the direction an enemy is looking is at the player
+    /// </summary>
+    /// <param name="location"> Player transform </param>
+    /// <returns> True if player in sight </returns>
     public bool IsLookingAtPlayer(Transform location)
     {
         Vector3 playerDirection = (location.position - transform.position).normalized;
@@ -209,6 +214,14 @@ public abstract class Enemy : Character
 
         float cosAngle = Mathf.Cos(maxSightAngle * Mathf.Deg2Rad);
 
+        if (debugging)
+        {
+            Vector3 leftBoundaryDir = Quaternion.Euler(0, -maxSightAngle, 0) * transform.forward;
+            Vector3 rightBoundaryDir = Quaternion.Euler(0, maxSightAngle, 0) * transform.forward;
+
+            Debug.DrawRay(transform.position, leftBoundaryDir, Color.red);
+            Debug.DrawRay(transform.position, rightBoundaryDir, Color.red);
+        }
 
         if (dp >= cosAngle)
         {
