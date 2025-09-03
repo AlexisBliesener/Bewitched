@@ -95,8 +95,8 @@ public class SurroundingPoints : MonoBehaviour
     /// <returns> True if unhindered point </returns>
     public bool PointAccessibleByParent(GameObject point)
     {
-        Vector3 direction = (parentPoint.transform.position - point.transform.position).normalized;
-        float distance = (parentPoint.transform.position - point.transform.position).magnitude;
+        Vector3 direction = (point.transform.position - parentPoint.transform.position).normalized;
+        float distance = Vector3.Distance(parentPoint.transform.position, point.transform.position);
 
         if (Physics.Raycast(transform.position, direction, distance, environment)) // If environment between points
         {

@@ -207,8 +207,10 @@ public abstract class Enemy : Character
         Vector3 playerDirection = (location.position - transform.position).normalized;
         float dp = Vector3.Dot(transform.forward, playerDirection);
 
+        float cosAngle = Mathf.Cos(maxSightAngle * Mathf.Deg2Rad);
 
-        if (dp >= Mathf.Cos(Mathf.Deg2Rad * maxSightAngle))
+
+        if (dp >= cosAngle)
         {
             return true;
         }
