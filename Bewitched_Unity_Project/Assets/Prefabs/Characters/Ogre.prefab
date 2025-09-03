@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 4985444316756526280}
   m_Layer: 7
   m_Name: Ogre
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -188,6 +188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Ogre
   movementSpeed: 3
+  jumpSpeed: 0
   weight: 10
   sizeRadius: 1
   teamID: 2
