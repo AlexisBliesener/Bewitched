@@ -29,7 +29,35 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("If the Points are Active")]
     bool pointsActive = false;
 
+    [Tooltip("List of enemies in surrounding range")]
+    List<Enemy> surroundingEnemies = new List<Enemy>();
+
+    [Tooltip("Minimum time range for starting attack")]
+    [SerializeField] float minAttackTime = 0;
+
+    [Tooltip("Maximum time range for starting attack")]
+    [SerializeField] float maxAttackTime = 2;
+
+    [Tooltip("The time set to start attack")]
+    float startAttackTime;
+
+    [Tooltip("The time the last attack occured")]
+    float timeLastAttack;
+
     private void Update()
+    {
+        if (pointsActive)
+        {
+            HandlePointsEachFrame();
+            HandleSurroundAttack();
+        }
+    }
+
+    /// <summary>
+    /// Handles point validity and position
+    /// Run every frame in Update
+    /// </summary>
+    public void HandlePointsEachFrame()
     {
         if (parentPoint)
         {
@@ -67,6 +95,10 @@ public class SurroundingPoints : MonoBehaviour
     /// <param name="radius"> Radius of point placement </param>
     public void Init(int numPoints, float radius)
     {
+        startAttackTime = Random.Range(minAttackTime, maxAttackTime);
+        timeLastAttack = Time.time;
+
+        surroundingEnemies = new List<Enemy>();
         parentPoint = new GameObject("Parent Point");
         for (int i = 0; i < numPoints; i++)
         {
@@ -206,5 +238,60 @@ public class SurroundingPoints : MonoBehaviour
             }
         }
         return closestPoint;
+    }
+
+    /// <summary>
+    /// Adds enemy to surrounding enemy list
+    /// </summary>
+    /// <param name="enemy"> Enemy to add </param>
+    public void AddSurroundingEnemy(Enemy enemy)
+    {
+        if (!surroundingEnemies.Contains(enemy))
+        {
+            surroundingEnemies.Add(enemy);
+        }
+    }
+
+    /// <summary>
+    /// Removes enemy from surrounding enemy list
+    /// </summary>
+    /// <param name="enemy"> Enemy to remove </param>
+    public void RemoveSurroundingEnemy(Enemy enemy)
+    {
+        if (surroundingEnemies.Contains(enemy))
+        {
+            surroundingEnemies.Remove(enemy);
+        }
+    }
+
+    /// <summary>
+    /// Function that gets all enemies of the same type
+    /// Useful for group attacks
+    /// </summary>
+    /// <param name="enemy"> Enemy looking for others of same type </param>
+    /// <returns> List of enemies surrounding player of same type </returns>
+    public List<Enemy> GetEnemiesSameType(Enemy enemy)
+    {
+        List<Enemy> sameEnemies = new List<Enemy>();
+
+        foreach (Enemy other in surroundingEnemies)
+        {
+            if (enemy.GetType() == other.GetType())
+            {
+                sameEnemies.Add(other);
+            }
+        }
+        return sameEnemies;
+    }
+
+    public void HandleSurroundAttack()
+    {
+        if (Time.time - timeLastAttack > startAttackTime)
+        {
+            startAttackTime = Random.Range(minAttackTime, maxAttackTime);
+            timeLastAttack = Time.time;
+
+            // Select random enemy from list and tell them to attack
+        }
     }
 }

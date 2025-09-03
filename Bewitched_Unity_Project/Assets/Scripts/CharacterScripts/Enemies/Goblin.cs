@@ -25,6 +25,8 @@ public class Goblin : Enemy
     [Header("Goblin AI Settings")]
     [Tooltip("Maximum Patrol Distance")]
     [SerializeField] float maxPatrolDistance = 5;
+    [Tooltip("Range the Goblin can communicate with other Goblins")]
+    [SerializeField] float communicationRange = 8;
 
     [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
     private bool inProcess = false;
@@ -308,14 +310,15 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
-        if (LookForPlayer())
-        {
-            timePlayerLastSeen = Time.time;
-        }
-
-        if (Time.time - timePlayerLastSeen > timeBeforeSearch)
+        if (!LookForPlayer() || !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
             TransitionToSearch();
+            return;
+        }
+
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
+        {
+            // Handle Surrounding
         }
 
         surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
@@ -363,5 +366,29 @@ public class Goblin : Enemy
     {
         lastTargetLocation = currentPlayer.transform.position;
         aiState = GoblinAIState.Searching;
+    }
+
+    /// <summary>
+    /// Function that tells Goblins to communicate the player's location with each other
+    /// Called when a chasing Goblin cannot directly see the player
+    /// If another Goblin in range can see the player, they tell the caller where the player is
+    /// </summary>
+    /// <returns> True if another goblin in range can see the player </returns>
+    public bool RequestLocation()
+    {
+        Collider[] charColliders = Physics.OverlapSphere(transform.position, communicationRange, characters);
+
+        foreach (Collider hit in charColliders)
+        {
+            if (hit.TryGetComponent(out Goblin otherGoblin))
+            {
+                if (otherGoblin.LookForPlayer())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
