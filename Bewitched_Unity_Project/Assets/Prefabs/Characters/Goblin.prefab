@@ -192,7 +192,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   sightRange: 15
-  maxSightAngle: 30
+  maxSightAngle: 60
   hearingRange: 2
   patrolRange: 10
   timeBeforeSearch: 5
@@ -214,6 +214,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 30
   maxPatrolDistance: 5
+  communicationRange: 8
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -370,6 +371,8 @@ MonoBehaviour:
     m_Bits: 256
   debugging: 0
   pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
+  minAttackTime: 1
+  maxAttackTime: 3
 --- !u!1 &8672433769665520731
 GameObject:
   m_ObjectHideFlags: 0

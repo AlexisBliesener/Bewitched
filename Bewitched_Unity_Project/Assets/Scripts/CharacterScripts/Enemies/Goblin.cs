@@ -224,7 +224,8 @@ public class Goblin : Enemy
             {
                 distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
             }
-            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && distance <= maxPatrolDistance)
+
+            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && (distance <= maxPatrolDistance || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange))
             {
                 walkPoint = hit.position;
                 walkPointSet = true;
@@ -284,8 +285,9 @@ public class Goblin : Enemy
     /// <summary>
     /// Coroutine that plays when the player is spotted
     /// </summary>
+    /// <param name="fromGoblin"> Whether the goblin was told where the player is </param>
     /// <returns> Waits for animation to be done </returns>
-    private IEnumerator SpotPlayer()
+    private IEnumerator SpotPlayer(bool fromGoblin = false)
     {
         if (debugging)
         {
@@ -297,7 +299,10 @@ public class Goblin : Enemy
         timePlayerLastSeen = Time.time;
 
         // Play animation/noise that the player has been seen
-        yield return new WaitForSeconds(1);
+        if (!fromGoblin)
+        {
+            yield return new WaitForSeconds(1);
+        }
 
         // Alert nearby Goblins of player
 
@@ -310,15 +315,10 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
-        if (!LookForPlayer() || !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
+        if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
             TransitionToSearch();
             return;
-        }
-
-        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
-        {
-            // Handle Surrounding
         }
 
         surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
@@ -330,6 +330,11 @@ public class Goblin : Enemy
             if (debugging)
             {
                 UpdatePath();
+            }
+
+            if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
+            {
+                // Handle Surrounding
             }
         }
     }
@@ -343,18 +348,37 @@ public class Goblin : Enemy
         if (LookForPlayer()) // Constantly look for player
         {
             StartCoroutine(SpotPlayer());
+            return;
+        }
+        else if (RequestLocation())
+        {
+            StartCoroutine(SpotPlayer(fromGoblin: true));
+            return;
         }
 
         if (CanHearTarget(currentPlayer.transform)) // Constantly listen for player
         {
-            TransitionToSearch();
+            TransitionToSearch(); // Resets last player position
         }
 
-        agent.SetDestination(lastTargetLocation);
-
-        if ((lastTargetLocation - transform.position).magnitude <= agent.stoppingDistance)
+        if (surroundPoint) // If has a surround point assigned still
         {
-            StartCoroutine(LookAround());
+            agent.SetDestination(surroundPoint.transform.position);
+        }
+        else
+        {
+            agent.SetDestination(lastTargetLocation);
+        }
+
+        if (debugging)
+        {
+            UpdatePath();
+        }
+
+        if ((agent.destination - transform.position).magnitude <= agent.stoppingDistance)
+        {
+            // Lost target, start patrolling again
+            aiState = GoblinAIState.Patrolling;
         }
     }
 
