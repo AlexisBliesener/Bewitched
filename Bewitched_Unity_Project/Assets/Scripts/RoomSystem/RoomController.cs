@@ -34,7 +34,7 @@ public class RoomController : MonoBehaviour
     [Tooltip("The color of the entry trigger bounds gizmo")]
     [SerializeField] private Color entryTriggerGizmoColor = Color.cyan;
 
-    [Tooltip("Doors that will be locked/unlicked when the room is activ; it should have a IDoor component!")]
+    [Tooltip("Doors that will be locked/unlocked when the room is activ; it should have a IDoor component!")]
     // Unity inspector will not show the custom IDoor object in the inspector so we need to use a list of gameobjects and then cast them to IDoor in the awake function
     [SerializeField] private List<GameObject> doorsObjects = new List<GameObject>();
     [Tooltip("The list of the doors found in the room, this is going to be used in the awake function to get IDoor components")]

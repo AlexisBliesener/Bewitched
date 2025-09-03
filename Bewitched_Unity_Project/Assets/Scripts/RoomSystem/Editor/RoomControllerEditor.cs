@@ -22,6 +22,10 @@ public class RoomControllerEditor : Editor
     [Tooltip("The last tool used in the editor")]
     private Tool lastTool = Tool.None;
 
+    /// <summary>
+    /// This is going to store the room controller refrence and the last tool used in the editor
+    /// so that we can reset it to the last tool used when the showUnityGizmo is true
+    /// </summary>
     private void OnEnable()
     {
         roomController = (RoomController)target;
@@ -126,7 +130,7 @@ public class RoomControllerEditor : Editor
             bounds.center = transform.InverseTransformPoint(newWorldCenter);
         }
 
-        // Size awrrows on each face
+        // Size of the arrows on each face
         Vector3 right = transform.rotation * Vector3.right;
         Vector3 up = transform.rotation * Vector3.up;
         Vector3 forward = transform.rotation * Vector3.forward;
