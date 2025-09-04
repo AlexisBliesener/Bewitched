@@ -27,7 +27,7 @@ public class PossessionOrb : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if(other.TryGetComponent(out Character character) && character!=player){
-            PlayerController.CharacterControlChangeEvent?.Invoke(character);
+            PossessionAbility.CharacterControlChangeEvent?.Invoke(character);
             character.SetControlled(true);
             //Ends the audio event
             orbEvent.setParameterByName("Hit",1f);

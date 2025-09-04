@@ -111,19 +111,19 @@ public class CameraController : MonoBehaviour
 
     private void OnDisable()
     {
-        PlayerController.CharacterControlChangeEvent -= SwitchCharacter;
+        PossessionAbility.CharacterControlChangeEvent -= SwitchCharacter;
     }
 
     private void OnEnable()
     {
-        PlayerController.CharacterControlChangeEvent += SwitchCharacter;
+        PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
     }
 
     private void Awake()
     {
         instance = this;
         virtualCamera = GetComponent<CinemachineVirtualCamera>();
-        PlayerController.CharacterControlChangeEvent += SwitchCharacter;
+        PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
 
         // FMOD set up
         if (!listener) listener = GetComponent<StudioListener>();

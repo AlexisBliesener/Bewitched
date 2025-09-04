@@ -959,7 +959,7 @@ MonoBehaviour:
   Damping: {x: 0.1, y: 0.1, z: 0.3}
   ShoulderOffset: {x: 1, y: 2.5, z: 0}
   VerticalArmLength: 0.4
-  CameraSide: 0.9865203
+  CameraSide: 0.9994982
   CameraDistance: 2
   CameraCollisionFilter:
     serializedVersion: 2
@@ -1943,7 +1943,7 @@ Transform:
   m_GameObject: {fileID: 2464031591786567501}
   serializedVersion: 2
   m_LocalRotation: {x: 0.17364816, y: -0, z: -0, w: 0.9848078}
-  m_LocalPosition: {x: 0.97304153, y: 2.9, z: -2}
+  m_LocalPosition: {x: 0.99899673, y: 2.9, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4127,7 +4127,7 @@ Transform:
   m_GameObject: {fileID: 4697828772820137740}
   serializedVersion: 2
   m_LocalRotation: {x: 0.1736482, y: -0, z: -0, w: 0.9848078}
-  m_LocalPosition: {x: 0.97304153, y: 2.9, z: -2}
+  m_LocalPosition: {x: 0.99899673, y: 2.9, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4518,6 +4518,7 @@ GameObject:
   - component: {fileID: 687053240472197501}
   - component: {fileID: 8590794543151710858}
   - component: {fileID: 3751507528405304438}
+  - component: {fileID: 3850224077055837563}
   m_Layer: 0
   m_Name: PlayerController
   m_TagString: PlayerController
@@ -4615,8 +4616,8 @@ MonoBehaviour:
     m_ActionName: Gameplay/SecondaryFire[/Mouse/rightButton]
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 8590794543151710858}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 3850224077055837563}
+        m_TargetAssemblyTypeName: PossessionAbility, Game
         m_MethodName: Possess
         m_Mode: 0
         m_Arguments:
@@ -4715,15 +4716,8 @@ MonoBehaviour:
     m_Bits: 128
   currentCharacter: {fileID: 3570264008135937977}
   oldHag: {fileID: 3570264008135937977}
-  lifeDrainCoefficient: 2
-  enemyExplosionTime: 10
-  possessionCooldown: 10
-  maxPossessionDistance: 5
-  virtualCam: {fileID: 5678344019922766950}
   hagHealthBar: {fileID: 3042458264494776795}
-  secondaryHealthBar: {fileID: 2327122093835530566}
   playerBuffs: {fileID: 3751507528405304438}
-  possessionCooldownDisplay: {fileID: 3458417776087573268}
   primaryCooldownDisplay: {fileID: 1364169945595580756}
   secondaryCooldownDisplay: {fileID: 6836038231019397644}
   pauseMenu: {fileID: 164187947274434360}
@@ -4746,6 +4740,26 @@ MonoBehaviour:
   speedScalar: 2
   primaryCooldownPercent: 0.5
   secondaryCooldownPercent: 1
+--- !u!114 &3850224077055837563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5240038647730035246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 962c00d601d43da4da1959ad750da17b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  virtualCam: {fileID: 5678344019922766950}
+  possessionCooldown: 10
+  maxPossessionDistance: 5
+  possessionCooldownDisplay: {fileID: 3458417776087573268}
+  enemyExplosionTime: 10
+  lifeDrainCoefficient: 2
+  secondaryHealthBar: {fileID: 2327122093835530566}
+  oldHag: {fileID: 3570264008135937977}
 --- !u!1 &5394813553014098802
 GameObject:
   m_ObjectHideFlags: 0
