@@ -28,8 +28,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject possessionOrbPrefab;
     [Tooltip("The speed the possession orb moves")]
     [SerializeField] float possessionOrbSpeed = 5;
-    [Tooltip("Orb Cooldown")]
-    [SerializeField] float orbCooldown = 10;
+    [Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
+    [SerializeField] float possessionCooldown = 10;
     [Tooltip("The Start Animation Delay on the Possession Orb")]
     [SerializeField] float orbAnimationDelay = 0;
 
@@ -74,7 +74,8 @@ public class PlayerController : MonoBehaviour
 
     private float timePossessing;
 
-    private float timeLastFired = -Mathf.Infinity;
+    [Tooltip("The time possession was left")]
+    private float timePossessionLastLeft = Mathf.NegativeInfinity;
 
     private int numOrbsFired = 0;
 
@@ -212,9 +213,9 @@ public class PlayerController : MonoBehaviour
         {
             if (context.started)
             {
-                if (Time.time - timeLastFired >= orbCooldown)
+                if (Time.time - timePossessionLastLeft >= possessionCooldown)
                 {
-                    timeLastFired = Time.time;
+                    timePossessionLastLeft = Time.time;
                     currentCharacter.AnimatePossess();
                     StartCoroutine(FireOrbWithDelay());
                 }
@@ -228,6 +229,7 @@ public class PlayerController : MonoBehaviour
         {
             if (context.started)
             {
+                timePossessionLastLeft = Time.time;
                 StartCoroutine(ExplodeEnemy());
             }
             else
@@ -259,9 +261,9 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(currentCharacter.BeginSecondary());
         }
 
-        if (Time.time - timeLastFired >= orbCooldown && possessHeld)
+        if (Time.time - timePossessionLastLeft >= possessionCooldown && possessHeld)
         {
-            timeLastFired = Time.time;
+            timePossessionLastLeft = Time.time;
             currentCharacter.AnimatePossess();
             StartCoroutine(FireOrbWithDelay());
         }
@@ -397,7 +399,7 @@ public class PlayerController : MonoBehaviour
             possessionCooldownDisplay.SetAbleToUse(false);
         }
 
-        possessionCooldownDisplay.SetCooldownCover(orbCooldown - (Time.time - timeLastFired));
+        possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
     }
 
     private IEnumerator FireOrbWithDelay()
