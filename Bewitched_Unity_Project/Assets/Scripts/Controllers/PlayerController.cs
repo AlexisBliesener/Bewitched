@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
     //This is the prefab for the possession orb that the hag shoots.
     [Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
     [SerializeField] float possessionCooldown = 10;
+    [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
+    private float maxPossessionDistance;
 
     [Header("UI Settings")]
     [Tooltip("The game virutal camera")]
@@ -406,7 +408,7 @@ public class PlayerController : MonoBehaviour
     {
         Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
         RaycastHit hitInfo;
-        if(Physics.Raycast(possessionRay, out hitInfo))
+        if(Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
         {
             if(hitInfo.collider.gameObject.CompareTag("Enemy"))
             {
