@@ -97,7 +97,6 @@ public class CameraController : MonoBehaviour
     {
         Vector2 lookInput = context.ReadValue<Vector2>();
 
-        Debug.Log(lookInput);
         if (context.action.activeControl.device.description.deviceClass != "Mouse")
         {
             lookInput.x *= 20;

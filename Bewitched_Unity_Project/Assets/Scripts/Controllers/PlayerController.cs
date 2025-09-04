@@ -1,16 +1,22 @@
+using Cinemachine;
+using FMOD.Studio;
+using FMODUnity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FMOD.Studio;
-using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
     public delegate void PlayerControlHandler(Character character);
     public static PlayerControlHandler CharacterControlChangeEvent;
     public static PlayerController instance { get; private set; }
+
+    [Header("Layer Masks")]
+    [SerializeField, Tooltip("A layer mask that contains only the enemy layer")]
+    private LayerMask enemyLayerMask;
 
     [Header("Character Settings")]
 
@@ -24,18 +30,12 @@ public class PlayerController : MonoBehaviour
     public float enemyExplosionTime = 10;
 
     //This is the prefab for the possession orb that the hag shoots.
-    [Tooltip("The possession orb prefab to be shot")]
-    [SerializeField] GameObject possessionOrbPrefab;
-    [Tooltip("The speed the possession orb moves")]
-    [SerializeField] float possessionOrbSpeed = 5;
     [Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
     [SerializeField] float possessionCooldown = 10;
-    [Tooltip("The Start Animation Delay on the Possession Orb")]
-    [SerializeField] float orbAnimationDelay = 0;
 
     [Header("UI Settings")]
-    [Tooltip("The game camera")]
-    public Camera myCamera;
+    [Tooltip("The game virutal camera")]
+    public CinemachineVirtualCamera virtualCam;
 
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
@@ -77,14 +77,14 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
 
-    private int numOrbsFired = 0;
-
     private bool primaryHeld = false;
     private bool secondaryHeld = false;
     private bool possessHeld = false;
     private bool leaveHeld = false;
 
+    [Tooltip("The y velocity the player is moving at")]
     private float yVelocity;
+    [Tooltip("The jump speed of the player")]
     private float jumpSpeed;
 
     private void Start()
@@ -217,7 +217,7 @@ public class PlayerController : MonoBehaviour
                 {
                     timePossessionLastLeft = Time.time;
                     currentCharacter.AnimatePossess();
-                    StartCoroutine(FireOrbWithDelay());
+                    FirePossession();
                 }
             }
             else
@@ -265,7 +265,7 @@ public class PlayerController : MonoBehaviour
         {
             timePossessionLastLeft = Time.time;
             currentCharacter.AnimatePossess();
-            StartCoroutine(FireOrbWithDelay());
+            FirePossession();
         }
 
         if (leaveHeld)
@@ -390,7 +390,7 @@ public class PlayerController : MonoBehaviour
         primaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownPrimary());
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
 
-        if (currentCharacter == oldHag || numOrbsFired < playerBuffs.numExtraPossessionOrbs)
+        if (currentCharacter == oldHag)
         {
             possessionCooldownDisplay.SetAbleToUse(true);
         }
@@ -402,23 +402,25 @@ public class PlayerController : MonoBehaviour
         possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
     }
 
-    private IEnumerator FireOrbWithDelay()
+    private void FirePossession()
     {
-        yield return new WaitForSeconds(orbAnimationDelay);
+        Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
+        RaycastHit hitInfo;
+        if(Physics.Raycast(possessionRay, out hitInfo))
+        {
+            if(hitInfo.collider.gameObject.CompareTag("Enemy"))
+            {
+                Debug.Log(hitInfo.collider.gameObject.name + " Enemy hit");
+                Character characterHit = hitInfo.collider.gameObject.GetComponent<Character>();
+                CharacterControlChangeEvent?.Invoke(characterHit);
+                characterHit.SetControlled(true);
+            }
+            else
+            {
+                Debug.Log("fired but not hit");
+            }
+        }
 
-        if (currentCharacter == oldHag) // Change condition when upgrade created
-        {
-            GameObject orb = Instantiate(possessionOrbPrefab);
-            orb.transform.position = currentCharacter.transform.position;
-            orb.GetComponent<PossessionOrb>().Init(currentCharacter.transform.forward * possessionOrbSpeed, currentCharacter.GetComponent<Character>());
-        }
-        else if (numOrbsFired < playerBuffs.numExtraPossessionOrbs)
-        {
-            GameObject orb = Instantiate(possessionOrbPrefab);
-            orb.transform.position = currentCharacter.transform.position;
-            orb.GetComponent<PossessionOrb>().Init(currentCharacter.transform.forward * possessionOrbSpeed, currentCharacter.GetComponent<Character>());
-            numOrbsFired++;
-        }
     }
     
     private IEnumerator ExplodeEnemy()
