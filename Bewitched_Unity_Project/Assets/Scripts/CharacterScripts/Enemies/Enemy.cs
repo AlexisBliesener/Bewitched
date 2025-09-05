@@ -91,6 +91,11 @@ public abstract class Enemy : Character
             playerControlling = false;
             PlayerController.CharacterControlChangeEvent?.Invoke(hag);
         }
+        else
+        {
+            // Drop the upgrade only if the enemy is dead and the player is not controlling it
+            DropSystem.Instance.TryDropItem(transform.position);
+        }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
