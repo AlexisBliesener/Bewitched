@@ -95,7 +95,8 @@ public abstract class Enemy : Character
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
-        Destroy(gameObject);
+        // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
+        Destroy(gameObject, 0.1f);
     }
 
     public void SetRangeChecks()

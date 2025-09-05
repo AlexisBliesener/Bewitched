@@ -83,6 +83,8 @@ public class PlayerController : MonoBehaviour
                 hagHealthBar.SetActive(true);
             }
         }
+
+        ResumeGame();
     }
 
     private void Awake()
