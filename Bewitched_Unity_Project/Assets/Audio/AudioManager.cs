@@ -8,9 +8,10 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+   //Scriptable object containing a dictionary of FMODEvent References and their names.
     public EventRefsSO refSheet;
+    //Backing singleton version of the refSheet field for static functions
     private static EventRefsSO _refSheet;
-    private static Dictionary<string,EventInstance> activeSnapshots = new();
 
     void Awake()
     {
@@ -18,55 +19,50 @@ public class AudioManager : MonoBehaviour
         else if(!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
         _refSheet = refSheet;
     }
-
-    public static bool TryGetReference(string name, out EventReference eventRef){
-        return _refSheet.eventRefs.TryGetValue(name,out eventRef);
+    
+    /// <summary>
+    /// Tries to get an FMOD event reference of the given name from the ref sheet.
+    /// </summary>
+    /// <param name="name">The name of the event to get</param>
+    /// <param name="eventRef">out variable for the event reference if it was found</param>
+    /// <returns>True if the event was found, false otherwise</returns>
+    public static bool TryGetReference(string name, out EventReference eventRef)
+    {
+        return _refSheet.eventRefs.TryGetValue(name, out eventRef);
     }
-
-    public static bool TryPlayOneShot(string name){
-        if(_refSheet.eventRefs.TryGetValue(name,out EventReference evRef)){
+    /// <summary>
+    /// Tries to instantiate and play an FMOD Event of the given name.
+    /// </summary>
+    /// <param name="name">The name of the event reference to play</param>
+    /// <param name="instance">out variable for the instantiated event</param>
+    /// <param name="release">Whether the event should be released or not</param>
+    /// <returns>True if an event was successfully instantiated, false otherwise</returns>
+    public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true)
+    {
+        if (_refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
+        {
+            instance = RuntimeManager.CreateInstance(evRef);
+            instance.start();
+            if (release) instance.release();
+            return true;
+        }
+        instance = new();
+        return false;
+    }
+    /// <summary>
+    /// Tries to play a one shot event of the given name
+    /// </summary>
+    /// <param name="name">the name of the event to play</param>
+    /// <returns>True if the event was instantiated and played, false otherwise</returns>
+    public static bool TryPlayOneShot(string name)
+    {
+        if (_refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
+        {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             ev.start();
             ev.release();
             return true;
         }
         return false;
-    }
-
-    public static bool PlaySnapshot(string name){
-        if(_refSheet.snapshotRefs.TryGetValue(name,out EventReference snapRef)){
-            EventInstance snapshot = RuntimeManager.CreateInstance(snapRef);
-            snapshot.start();
-            activeSnapshots.Add(name,snapshot);
-            return true;
-        }
-        return false;
-    }
-    public static bool StopSnapshot(string name){
-        if(activeSnapshots.TryGetValue(name,out EventInstance snap)){
-            activeSnapshots.Remove(name);
-            snap.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-            return true;
-        }
-        return false;
-    }
-
-    public static bool LinkSnapshot(EventInstance ev, string snapshotName){
-        if(PlaySnapshot(snapshotName)){
-            GCHandle handle = GCHandle.Alloc(snapshotName);
-            ev.setUserData(GCHandle.ToIntPtr(handle));
-            ev.setCallback(StopLinkedSnapshot,EVENT_CALLBACK_TYPE.DESTROYED);
-            return true;
-        }
-        return false;
-    }
-    [AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
-    static FMOD.RESULT StopLinkedSnapshot(EVENT_CALLBACK_TYPE type, IntPtr evPtr,IntPtr paramPtr){
-        EventInstance ev = new(evPtr);
-        ev.getUserData(out IntPtr userdata);
-        GCHandle handle = GCHandle.FromIntPtr(userdata);
-        StopSnapshot(handle.Target as string);
-        handle.Free();
-        return FMOD.RESULT.OK;
     }
 }

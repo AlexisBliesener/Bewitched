@@ -14,6 +14,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventRefs:
     _serializedList:
+    - Key: WitchWalk
+      Value:
+        Guid:
+          Data1: -374760463
+          Data2: 1215554694
+          Data3: -2133814144
+          Data4: 1086218099
+        Path: event:/SoundEffects/Witch/WitchWalk
+    - Key: Death
+      Value:
+        Guid:
+          Data1: 1409560205
+          Data2: 1245129891
+          Data3: -1128752736
+          Data4: 1040015667
+        Path: event:/SoundEffects/General/Death
+    - Key: Hit
+      Value:
+        Guid:
+          Data1: 888772175
+          Data2: 1219665628
+          Data3: -1236303438
+          Data4: -1237857421
+        Path: event:/SoundEffects/General/Hit
+    - Key: WitchDeath
+      Value:
+        Guid:
+          Data1: 1085125312
+          Data2: 1213639037
+          Data3: -1922664007
+          Data4: 1795517229
+        Path: event:/SoundEffects/Witch/WitchDeath
+    - Key: WitchHit
+      Value:
+        Guid:
+          Data1: 585559388
+          Data2: 1202310747
+          Data3: 924796318
+          Data4: 791991008
+        Path: event:/SoundEffects/Witch/WitchHit
     - Key: PossessionOrb
       Value:
         Guid:
@@ -21,7 +61,7 @@ MonoBehaviour:
           Data2: 1116057267
           Data3: 698623873
           Data4: 354769899
-        Path: event:/Witch/PossessionOrb
+        Path: event:/SoundEffects/Witch/PossessionOrb
     - Key: Blink
       Value:
         Guid:
@@ -29,7 +69,7 @@ MonoBehaviour:
           Data2: 1289026969
           Data3: -1681063523
           Data4: -1535221785
-        Path: event:/Witch/Blink
+        Path: event:/SoundEffects/Witch/Blink
     - Key: WitchPush
       Value:
         Guid:
@@ -37,7 +77,7 @@ MonoBehaviour:
           Data2: 1305211238
           Data3: 1032619392
           Data4: -804335635
-        Path: event:/Witch/WitchPush
+        Path: event:/SoundEffects/Witch/WitchPush
     - Key: LeaveBody
       Value:
         Guid:
@@ -45,14 +85,4 @@ MonoBehaviour:
           Data2: 1167809050
           Data3: 310335119
           Data4: -1114193009
-        Path: event:/Witch/LeaveBody
-  snapshotRefs:
-    _serializedList:
-    - Key: LeaveBody
-      Value:
-        Guid:
-          Data1: 1172729398
-          Data2: 1137318003
-          Data3: 1413620356
-          Data4: -1875783998
-        Path: snapshot:/LeaveBody
+        Path: event:/SoundEffects/Witch/LeaveBody

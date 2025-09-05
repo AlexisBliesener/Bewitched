@@ -8,5 +8,4 @@ using FMODUnity;
 public class EventRefsSO : ScriptableObject
 {
     public SerializedDictionary<string,EventReference> eventRefs;
-    public SerializedDictionary<string,EventReference> snapshotRefs;
 }
