@@ -95,11 +95,13 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
-        TimeLastHit = Time.time;
-        OnDamaged?.Invoke(amt);
-
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke();
+        else
+        {
+            TimeLastHit = Time.time;
+            OnDamaged?.Invoke(amt);
+        }
     }
 
     /// <summary>

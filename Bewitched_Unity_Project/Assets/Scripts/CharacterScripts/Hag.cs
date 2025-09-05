@@ -68,6 +68,21 @@ public class Hag : Character
         inst.release();
     }
 
+    protected override void OnDeath()
+    {
+        //This is temporary until we implement the big "You Died" UI Banner thing.
+        //This is just so Andrew actually hears this sound effect.
+
+        //Stops all non-UI events. WitchDeath event also mutes all other sound effects
+        RuntimeManager.GetBus("bus:/Music/LevelMusic").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        AudioManager.TryPlayOneShot("WitchDeath");
+        //Disable player controller
+        PlayerController.instance.gameObject.SetActive(false);
+        //Wait until the sound effect is over before returning to the main menu
+        Invoke("Die", 13f);
+    }
+
     public override void Die()
     {
         StopAllCoroutines();
