@@ -5,49 +5,79 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using static PlayerController;
 
+
+/// <summary>
+/// Handles the player’s possession ability, allowing the Hag character to
+/// possess enemies, manage cooldowns, update the UI, and switch between
+/// controlled characters.
+/// </summary>
 public class PossessionAbility : MonoBehaviour
 {
     public static PlayerControlHandler CharacterControlChangeEvent;
 
-    [Tooltip("The game virutal camera")]
-    public CinemachineVirtualCamera virtualCam;
-    [Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
-    [SerializeField] float possessionCooldown = 10;
+    [SerializeField, Tooltip("The game virutal camera")]
+    private CinemachineVirtualCamera virtualCam;
+    [SerializeField, Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
+    float possessionCooldown = 10;
     [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
     private float maxPossessionDistance;
-    [Tooltip("Possession Orb Cooldown UI")]
-    public CooldownDisplay possessionCooldownDisplay;
-    [Tooltip("Time to fill up enemy explosion")]
-    public float enemyExplosionTime = 10;
-    [Tooltip("Rate at which life is drained")]
-    public float lifeDrainCoefficient = 2;
-    [Tooltip("The currently controlled character's health bar")]
-    public GameObject secondaryHealthBar;
+    [SerializeField, Tooltip("Possession Orb Cooldown UI")]
+    private CooldownDisplay possessionCooldownDisplay;
+    [SerializeField, Tooltip("Time to fill up enemy explosion")]
+    private float enemyExplosionTime = 10;
+    [SerializeField, Tooltip("Rate at which life is drained")]
+    private float lifeDrainCoefficient = 2;
+    [SerializeField, Tooltip("The currently controlled character's health bar")]
+    private GameObject secondaryHealthBar;
+    [SerializeField, Tooltip("Hag script on the witch gameobject")]
+    private Hag oldHag;
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
-
+    [Tooltip("If the possession button is currently being held")]
     private bool possessHeld = false;
-    private bool leaveHeld = false;
-
+    [Tooltip("The time when possession of the current enemy started")]
     private float timePossessing;
-
-    [SerializeField]
-    private Hag oldHag;
+    [Tooltip("The current character that is possessed")]
     private Character currentCharacter;
 
+    /// <summary>
+    /// Initializes possession state and subscribes to character switching events.
+    /// </summary>
     private void Awake()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         currentCharacter = oldHag;
         CharacterControlChangeEvent += SwitchCharacter;
     }
 
+    /// <summary>
+    /// Unsubscribes from character switching events when disabled.
+    /// </summary>
     void OnDisable()
     {
         CharacterControlChangeEvent -= SwitchCharacter;
     }
 
+    /// <summary>
+    /// Updates possession abilities, UI, and keeps the Hag's position aligned when possessing an enemy.
+    /// </summary>
+    private void Update()
+    {
+        HandleHeldAbilites();
+        UpdateUI();
 
+        if (currentCharacter != oldHag)
+        {
+            oldHag.transform.position = currentCharacter.transform.position;
+            oldHag.transform.rotation = currentCharacter.transform.rotation;
+        }
+    }
+
+    /// <summary>
+    /// Handles input for starting or ending possession.
+    /// </summary>
+    /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
         if (currentCharacter == oldHag)
@@ -80,6 +110,9 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Fires a raycast to attempt possession of an enemy in front of the camera.
+    /// </summary>
     private void FirePossession()
     {
         Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
@@ -88,34 +121,38 @@ public class PossessionAbility : MonoBehaviour
         {
             if (hitInfo.collider.gameObject.CompareTag("Enemy"))
             {
-                Debug.Log(hitInfo.collider.gameObject.name + " Enemy hit");
                 Character characterHit = hitInfo.collider.gameObject.GetComponent<Character>();
                 CharacterControlChangeEvent?.Invoke(characterHit);
                 characterHit.SetControlled(true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles possession ability when the button is held.
+    /// </summary>
+    private void HandleHeldAbilites()
+    {
+        if (Time.time - timePossessionLastLeft >= possessionCooldown && possessHeld)
+        {
+            if (currentCharacter == oldHag)
+            {
+                StartCoroutine(ExplodeEnemy());
+            }
             else
             {
-                Debug.Log("fired but not hit");
+                timePossessionLastLeft = Time.time;
+                currentCharacter.AnimatePossess();
+                FirePossession();
             }
         }
     }
 
-    private void Update()
+    /// <summary>
+    /// Updates the possession cooldown UI display.
+    /// </summary>
+    private void UpdateUI()
     {
-        // HandleHeldAbilites
-        if (Time.time - timePossessionLastLeft >= possessionCooldown && possessHeld)
-        {
-            timePossessionLastLeft = Time.time;
-            currentCharacter.AnimatePossess();
-            FirePossession();
-        }
-
-        if (leaveHeld)
-        {
-            StartCoroutine(ExplodeEnemy());
-        }
-
-        // handle Cooldown UI
         if (currentCharacter == oldHag)
         {
             possessionCooldownDisplay.SetAbleToUse(true);
@@ -128,6 +165,9 @@ public class PossessionAbility : MonoBehaviour
         possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
     }
 
+    /// <summary>
+    /// Coroutine that handles enemy explosion and switches back to the Hag when possession ends.
+    /// </summary>
     private IEnumerator ExplodeEnemy()
     {
         yield return null; // wait one frame
@@ -142,18 +182,17 @@ public class PossessionAbility : MonoBehaviour
             }
 
             // respawn old Hag
-
-            oldHag.transform.position = currentCharacter.transform.position;
-            oldHag.transform.rotation = currentCharacter.transform.rotation;
             currentCharacter.SetControlled(false);
             CharacterControlChangeEvent?.Invoke(oldHag);
         }
     }
 
+    /// <summary>
+    /// Switches control between the Hag and a possessed character, updating health and UI accordingly.
+    /// </summary>
+    /// <param name="newCharacter">The new character to switch control to.</param>
     public void SwitchCharacter(Character newCharacter)
     {
-
-        Debug.Log("new char " + newCharacter);
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         HealthController newHealth = newCharacter.GetComponent<HealthController>();
@@ -171,18 +210,7 @@ public class PossessionAbility : MonoBehaviour
                 secondaryHealthBar.SetActive(false);
             }
             currentCharacter.SetTeamID(2);
-
             PlayerController.instance.SetAllowMovement(true);
-            //Might need to change this once I get to enemy specific death sounds
-
-            // I have commented this out for now as it was causing issues with fmod and that caused a problem with switching characters
-
-
-            // if(AudioManager.TryGetReference("LeaveBody",out EventReference evRef)){
-            //         EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            //         ev.start();
-            //         ev.release();
-            //     }
         }
         else
         {
