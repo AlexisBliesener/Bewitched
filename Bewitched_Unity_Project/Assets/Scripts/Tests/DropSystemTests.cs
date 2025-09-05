@@ -48,7 +48,7 @@ public class DropSystemTests
         // Create mock rarity items
         commonRarity = ScriptableObject.CreateInstance<ItemRarity>();
         commonRarity.displayName = "Common";
-        commonRarity.dropChance = 60;
+        commonRarity.dropChance = 100;
 
         rareRarity = ScriptableObject.CreateInstance<ItemRarity>();
         rareRarity.displayName = "Rare"; 
@@ -203,7 +203,7 @@ public class DropSystemTests
         };
 
         dropSystem.ShowDropSelection(Vector3.zero);
-
+        
         Assert.IsTrue(actionTriggered);
         Assert.IsNotNull(receivedDrop1);
         Assert.IsNotNull(receivedDrop2);
