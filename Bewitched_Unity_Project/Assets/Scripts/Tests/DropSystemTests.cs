@@ -188,6 +188,10 @@ public class DropSystemTests
     [Test]
     public void ShowDropSelection_TriggersOnDropPickedUpAction()
     {
+
+        // Set drop chance to 100%
+        // This make sure that the onDropPickedUp action is triggered always trigger when the chance is met
+        dropSystem.SetDropChance(100);
         bool actionTriggered = false;
         DropItemBase receivedDrop1 = null;
         DropItemBase receivedDrop2 = null;
