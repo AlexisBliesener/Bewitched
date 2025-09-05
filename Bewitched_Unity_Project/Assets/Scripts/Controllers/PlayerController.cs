@@ -108,9 +108,6 @@ public class PlayerController : MonoBehaviour
         hagHealthBar.GetComponent<HealthBar>().SetCharacter(oldHag);
         hagHealthBar.SetActive(true);
 
-        playerZone.area = NavMesh.GetAreaFromName("PlayerZone");
-        playerZone.size = new Vector3(currentCharacter.surroundingRadius * 2, 1, currentCharacter.surroundingRadius * 2);
-
         currentCharacter.ActivateSurroundingPoints();
     }
 
@@ -123,7 +120,6 @@ public class PlayerController : MonoBehaviour
     {
         HandleHeldAbilities();
         HandleCooldownUI();
-        playerZone.center = currentCharacter.transform.position;
         speed = currentCharacter.movementSpeed;
 
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);

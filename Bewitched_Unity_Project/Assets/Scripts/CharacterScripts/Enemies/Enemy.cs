@@ -98,6 +98,16 @@ public abstract class Enemy : Character
 
     protected float timePlayerLastSeen;
 
+    protected NavPath currentPath;
+
+    /// <summary>
+    /// Function for handling movement
+    /// </summary>
+    public void AIMove()
+    {
+
+    }
+
     public void SetAgentValues()
     {
         agent.stoppingDistance = minStopDistance;
@@ -485,56 +495,104 @@ public abstract class Enemy : Character
         previousVelocity = agent.velocity;
     }
 
-    public void StartPath()
+    public void StartPath(bool usingAgent = true)
     {
-        if (destinationMarker == null)
+        if (destinationMarker)
         {
-            destinationMarker = Instantiate(destinationMarkerPrefab);
-            destinationMarker.transform.position = walkPoint;
+            if (usingAgent)
+            {
+                destinationMarker.transform.position = agent.destination;
+            }
+            else
+            {
+                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+            }
         }
 
         pathVisualizer.positionCount = 0;
 
-        pathVisualizer.positionCount = agent.path.corners.Length;
+        if (usingAgent)
+        {
+            pathVisualizer.positionCount = agent.path.corners.Length;
+        }
+        else
+        {
+            pathVisualizer.positionCount = currentPath.GetPathPositions().Count;
+        }
+
         pathVisualizer.SetPosition(0, transform.position);
 
-        if (agent.path.corners.Length < 2)
+        if ((agent.path.corners.Length < 2 && usingAgent) || (currentPath.GetPathPositions().Count < 2 && !usingAgent))
         {
             return;
         }
 
-        for (int i = 1; i < agent.path.corners.Length; i++)
+        if (usingAgent)
         {
-            pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            for (int i = 1; i < agent.path.corners.Length; i++)
+            {
+                pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            }
+        }
+        else
+        {
+            for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
+            {
+                pathVisualizer.SetPosition(i, currentPath.GetPathPositions()[i]);
+            }
         }
     }
 
     /// <summary>
     /// Draws a path the agent follows
     /// </summary>
-    public void UpdatePath()
+    public void UpdatePath(bool usingAgent = true)
     {
         if (destinationMarker)
         {
-            destinationMarker.transform.position = agent.destination;
+            if (usingAgent)
+            {
+                destinationMarker.transform.position = agent.destination;
+            }
+            else
+            {
+                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+            }
         }
 
         pathVisualizer.positionCount = 0;
 
-        pathVisualizer.positionCount = agent.path.corners.Length;
+        if (usingAgent)
+        {
+            pathVisualizer.positionCount = agent.path.corners.Length;
+        }
+        else
+        {
+            pathVisualizer.positionCount = currentPath.GetPathPositions().Count;
+        }
 
         if (pathVisualizer.positionCount == 0) return;
 
         pathVisualizer.SetPosition(0, transform.position);
 
-        if (agent.path.corners.Length < 2)
+        if ((agent.path.corners.Length < 2 && usingAgent) || (currentPath.GetPathPositions().Count < 2 && !usingAgent))
         {
             return;
         }
 
-        for (int i = 1; i < agent.path.corners.Length; i++)
+        if (usingAgent)
         {
-            pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            for (int i = 1; i < agent.path.corners.Length; i++)
+            {
+                pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            }
+        }
+        else
+        {
+            for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
+            {
+                pathVisualizer.SetPosition(i, currentPath.GetPathPositions()[i]);
+            }
         }
     }
 

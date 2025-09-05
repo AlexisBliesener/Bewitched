@@ -145,7 +145,7 @@ public class Goblin : Enemy
     public override void SetBehavior()
     {
         target = playerController.currentCharacter; // Always update this
-        if (!agent.enabled || inProcess) return;
+        if (!playerControlling || inProcess) return;
 
         if (aiState == GoblinAIState.Patrolling) // If patrolling
         {
@@ -183,12 +183,7 @@ public class Goblin : Enemy
             TransitionToSearch();
         }
 
-        if (walkPointSet)
-        {
-            agent.stoppingDistance = minStopDistance;
-        }
-
-        if (agent.remainingDistance <= minStopDistance) // If we are within stopping range
+        if (currentPath.ReachedDestination(this)) // If we are within stopping range
         {
             agent.SetDestination(transform.position); // Stop character
             StartCoroutine(LookAround()); // Look around
@@ -219,30 +214,31 @@ public class Goblin : Enemy
         float randomZ = Random.Range(-patrolRange, patrolRange);
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-        if (NavMesh.SamplePosition(walkPoint, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+        NavPath path = GraphBuilder.instance.AStarSearch(this, walkPoint);
+        if (path == null)
         {
-            NavMeshPath path = new NavMeshPath();
-            float distance = 0;
-            for (int i = 1; i < path.corners.Length; i++) // Finds the distance of the path, not just the transform distance
+            return false;
+        }
+
+        if (!path.PathComplete())
+        {
+            return false;
+        }
+
+        float distance = path.GetDistance();
+
+        if (distance <= maxPatrolDistance || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange)
+        {
+            AIMove();
+            AnimateMove();
+
+            if (debugging)
             {
-                distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                destinationMarker = Instantiate(destinationMarkerPrefab);
+                destinationMarker.transform.position = walkPoint;
             }
 
-            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete && (distance <= maxPatrolDistance || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange))
-            {
-                walkPoint = hit.position;
-                walkPointSet = true;
-                agent.SetDestination(walkPoint);
-                AnimateMove();
-
-                if (debugging)
-                {
-                    destinationMarker = Instantiate(destinationMarkerPrefab);
-                    destinationMarker.transform.position = walkPoint;
-                }
-
-                return true;
-            }
+            return true;
         }
         return false;
     }
