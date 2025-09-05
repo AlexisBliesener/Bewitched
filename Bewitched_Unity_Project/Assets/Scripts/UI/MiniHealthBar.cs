@@ -138,10 +138,6 @@ public class MiniHealthBar : MonoBehaviour
     {
         slider.maxValue = maxHealth;
         slider.value = newHealth;
-
-
-        // Sets bar size proportional to health (2 pixels per hp)
-        gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0.5f * maxHealth, 15);
     }
 
     // <summary>
@@ -149,6 +145,7 @@ public class MiniHealthBar : MonoBehaviour
     // </summary>
     private void HandleDeath()
     {
-        Destroy(gameObject);
+        // the game object is destroyed in the HealthController so we don't need to do it here
+        // I didn't remove the function so we can still use it in the future
     }
 }
