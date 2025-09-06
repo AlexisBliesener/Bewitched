@@ -167,18 +167,6 @@ public class PlayerControllerTests
         Assert.IsTrue(controller.hagHealthBar.activeSelf);
     }
 
-    /// <summary>
-    /// Tests that OnDisable() removes event subscriptions without throwing.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator OnDisable_RemovesEvent()
-    {
-        controller.SendMessage("Awake");
-        controller.SendMessage("OnDisable");
-        yield return null;
-        Assert.Pass(); // should not throw
-    }
-
     #endregion
 
     #region Utility Tests

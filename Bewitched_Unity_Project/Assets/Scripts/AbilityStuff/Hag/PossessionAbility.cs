@@ -1,6 +1,7 @@
 using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static PlayerController;
@@ -14,13 +15,13 @@ using static PlayerController;
 public class PossessionAbility : MonoBehaviour
 {
     public static PlayerControlHandler CharacterControlChangeEvent;
-
+    const string FILE_ENDING = ".json";
     [SerializeField, Tooltip("The game virutal camera")]
-    private CinemachineVirtualCamera virtualCam;
+    protected CinemachineVirtualCamera virtualCam;
     [SerializeField, Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
     float possessionCooldown = 10;
     [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
-    private float maxPossessionDistance;
+    protected float maxPossessionDistance;
     [SerializeField, Tooltip("Possession Orb Cooldown UI")]
     private CooldownDisplay possessionCooldownDisplay;
     [SerializeField, Tooltip("Time to fill up enemy explosion")]
@@ -30,7 +31,7 @@ public class PossessionAbility : MonoBehaviour
     [SerializeField, Tooltip("The currently controlled character's health bar")]
     private GameObject secondaryHealthBar;
     [SerializeField, Tooltip("Hag script on the witch gameobject")]
-    private Hag oldHag;
+    protected Hag oldHag;
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
@@ -39,7 +40,64 @@ public class PossessionAbility : MonoBehaviour
     [Tooltip("The time when possession of the current enemy started")]
     private float timePossessing;
     [Tooltip("The current character that is possessed")]
-    private Character currentCharacter;
+    protected Character currentCharacter;
+
+    #region Saving/Loading
+
+    [ContextMenu("Save to JSON")]
+    public void SaveToJson()
+    {
+        string possessionStatsStr = JsonUtility.ToJson(this, true);
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "PossessionAbility");
+        SeeFilePath();
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        string filePath = Path.Combine(folderPath, "PossessionAbility" + FILE_ENDING);
+        File.WriteAllText(filePath, possessionStatsStr);
+
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+
+
+    }
+
+    [ContextMenu("See File Path")]
+    public void SeeFilePath()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "PossessionAbility");
+        Debug.Log("Path To JSON File:");
+        Debug.Log(folderPath);
+    }
+
+    [ContextMenu("Load From JSON")]
+    public void LoadFromJson()
+    {
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "PossessionAbility");
+        string filePath = Path.Combine(folderPath, "PossessionAbility" + FILE_ENDING);
+
+        string jsonStr = File.ReadAllText(filePath);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+
+    }
+
+    #endregion
 
     /// <summary>
     /// Initializes possession state and subscribes to character switching events.
@@ -152,7 +210,7 @@ public class PossessionAbility : MonoBehaviour
     /// <summary>
     /// Updates the possession cooldown UI display.
     /// </summary>
-    private void UpdateUI()
+    protected virtual void UpdateUI()
     {
         if (currentCharacter == oldHag)
         {
@@ -169,7 +227,7 @@ public class PossessionAbility : MonoBehaviour
     /// <summary>
     /// Coroutine that handles enemy explosion and switches back to the Hag when possession ends.
     /// </summary>
-    private IEnumerator ExplodeEnemy()
+    protected virtual IEnumerator ExplodeEnemy()
     {
         yield return null; // wait one frame
 
