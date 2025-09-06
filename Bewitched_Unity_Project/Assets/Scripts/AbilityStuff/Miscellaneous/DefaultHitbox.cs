@@ -191,6 +191,7 @@ public class DefaultHitbox : MonoBehaviour
                         inst.start();
                         inst.release();
                     }
+                    else Debug.LogError("Could not find a valid hit/death event. Is it assigned in the refSheet?");
 
                     foreach (DefaultHitbox hitbox in children)
                     {
