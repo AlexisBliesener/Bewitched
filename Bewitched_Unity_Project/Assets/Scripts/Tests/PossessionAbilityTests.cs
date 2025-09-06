@@ -58,13 +58,6 @@ public class PossessionAbilityTests
     }
 
     [Test]
-    public void Awake_SetsCursorState()
-    {
-        possessionAbility.Awake();
-        Assert.AreEqual(CursorLockMode.Locked, Cursor.lockState);
-    }
-
-    [Test]
     public void Awake_SetsCurrentCharacterToHag()
     {
         var current = GetPrivate<Character>(possessionAbility, "currentCharacter");

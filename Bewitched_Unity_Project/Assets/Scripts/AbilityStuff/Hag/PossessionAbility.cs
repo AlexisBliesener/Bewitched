@@ -102,7 +102,7 @@ public class PossessionAbility : MonoBehaviour
     /// <summary>
     /// Initializes possession state and subscribes to character switching events.
     /// </summary>
-    public void Awake()
+    private void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
         currentCharacter = oldHag;
