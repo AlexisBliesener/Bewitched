@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -60,6 +62,8 @@ public class DefaultHitbox : MonoBehaviour
 
     [Tooltip("The Current Rotational Velocity")]
     protected Quaternion rotationalVelocity;
+    protected enum eHitType {blunt,bladed,unique};
+    [SerializeField] protected eHitType damageType = eHitType.blunt;
 
     /// <summary>
     /// Add a character to the list of hit characters
@@ -69,6 +73,7 @@ public class DefaultHitbox : MonoBehaviour
     {
         if (!HasBeenHit(character))
         {
+            //Add implementation for unique hits later
             hitChars.Add(character);
             if (parent)
             {
@@ -177,6 +182,15 @@ public class DefaultHitbox : MonoBehaviour
                     character.health.SubHealth(damage);
                     AddStatusEffects(character);
                     AddToHit(character);
+                    //Hit sound effect implementation. Implement unique hit type later
+                    string soundEffectKey = character.health.IsDead? "Death" : "Hit";
+                    if (AudioManager.TryGetReference(soundEffectKey, out EventReference evRef))
+                    {
+                        EventInstance inst = RuntimeManager.CreateInstance(evRef);
+                        inst.setParameterByName("Type", (float)damageType);
+                        inst.start();
+                        inst.release();
+                    }
 
                     foreach (DefaultHitbox hitbox in children)
                     {
