@@ -7175,6 +7175,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a37697e2660c41a40801f7c40c1e2cb9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7426338603391156601}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a37697e2660c41a40801f7c40c1e2cb9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6314526463174988387}
   m_SourcePrefab: {fileID: 100100000, guid: a37697e2660c41a40801f7c40c1e2cb9, type: 3}
 --- !u!1 &7313792949070258746 stripped
 GameObject:
@@ -7202,6 +7205,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6314526463174988387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7313792949070258746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a18d22245c96b438e9b489612bb7dcf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkEvent:
+    Guid:
+      Data1: 81508764
+      Data2: 1136331742
+      Data3: -208342865
+      Data4: -1214292812
+    Path: event:/SoundEffects/General/Walk/BarefootWalk
 --- !u!4 &7941006417608489088 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a37697e2660c41a40801f7c40c1e2cb9, type: 3}

@@ -10,19 +10,19 @@ public class AudioManager : MonoBehaviour
 {
    //Scriptable object containing a dictionary of FMODEvent References and their names.
     public EventRefsSO refSheet;
-    //Backing singleton version of the refSheet field for static functions
-    private static EventRefsSO _refSheet;
+    //Singleton of this class
+    private static AudioManager manager;
 
-    [SerializeField,Tooltip("This scene's music")]
+    [SerializeField, Tooltip("This scene's music")]
     EventReference levelMusicReference;
     EventInstance levelMusic;
 
     void Awake()
     {
-        if (_refSheet) throw new System.Exception("There are multiple audio managers in the scene!");
+        if (manager) throw new System.Exception("There are multiple audio managers in the scene!");
         else if (!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
-        _refSheet = refSheet;
         if (!levelMusicReference.IsNull)
+            manager = this;
         {
             levelMusic = RuntimeManager.CreateInstance(levelMusicReference);
             levelMusic.start();
@@ -38,7 +38,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if the event was found, false otherwise</returns>
     public static bool TryGetReference(string name, out EventReference eventRef)
     {
-        return _refSheet.eventRefs.TryGetValue(name, out eventRef);
+        return manager.refSheet.eventRefs.TryGetValue(name, out eventRef);
     }
     /// <summary>
     /// Tries to instantiate and play an FMOD Event of the given name.
@@ -49,7 +49,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if an event was successfully instantiated, false otherwise</returns>
     public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true)
     {
-        if (_refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
+        if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             instance = RuntimeManager.CreateInstance(evRef);
             instance.start();
@@ -66,7 +66,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if the event was instantiated and played, false otherwise</returns>
     public static bool TryPlayOneShot(string name)
     {
-        if (_refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
+        if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             ev.start();
