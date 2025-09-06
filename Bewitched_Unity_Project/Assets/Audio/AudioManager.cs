@@ -21,13 +21,14 @@ public class AudioManager : MonoBehaviour
     {
         if (manager) throw new System.Exception("There are multiple audio managers in the scene!");
         else if (!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
+        manager = this;
         if (!levelMusicReference.IsNull)
-            manager = this;
         {
             levelMusic = RuntimeManager.CreateInstance(levelMusicReference);
             levelMusic.start();
             levelMusic.release();
         }
+        else Debug.LogError("The level music for this scene is not assigned in Audio Manager");
     }
     
     /// <summary>
