@@ -13,11 +13,21 @@ public class AudioManager : MonoBehaviour
     //Backing singleton version of the refSheet field for static functions
     private static EventRefsSO _refSheet;
 
+    [SerializeField,Tooltip("This scene's music")]
+    EventReference levelMusicReference;
+    EventInstance levelMusic;
+
     void Awake()
     {
-        if(_refSheet) throw new System.Exception("There are multiple audio managers in the scene!");
-        else if(!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
+        if (_refSheet) throw new System.Exception("There are multiple audio managers in the scene!");
+        else if (!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
         _refSheet = refSheet;
+        if (!levelMusicReference.IsNull)
+        {
+            levelMusic = RuntimeManager.CreateInstance(levelMusicReference);
+            levelMusic.start();
+            levelMusic.release();
+        }
     }
     
     /// <summary>

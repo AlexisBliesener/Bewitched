@@ -80,7 +80,7 @@ public class Hag : Character
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
         //Wait until the sound effect is over before returning to the main menu
-        Invoke("Die", 13f);
+        Invoke("Die", 12f);
     }
 
     public override void Die()
