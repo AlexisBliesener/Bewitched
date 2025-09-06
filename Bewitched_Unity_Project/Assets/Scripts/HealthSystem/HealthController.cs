@@ -11,10 +11,10 @@ public class HealthController : MonoBehaviour
     const string FILE_ENDING = ".json";
     [Tooltip("Maximum health for this character.")]
     [SerializeField] private float maxHealth = 100f;
-    [Tooltip("Health decay per second.")]
+    [Tooltip("Health decay percentage per second."), Range(0,100)]
     [SerializeField] private float decayRate = 0f;
     [Tooltip("Enable automatic health decay each frame.")]
-    private bool updateOnModel = true;
+    private bool updateOnModel = false;
     [Tooltip("If true, this character cannot take damage from TakeDamage and DrainLife.")]
     private bool invincible = false;
     [Tooltip("Prefab for mini health bar.")]
@@ -22,7 +22,7 @@ public class HealthController : MonoBehaviour
     /// <summary> Reference to the mini health bar instance. </summary>
     private GameObject minibar;
     /// <summary>Current health value.</summary>
-    public float CurrentHealth { get; private set; }
+    public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
     public bool IsDead => CurrentHealth <= 0f;
 
@@ -51,7 +51,7 @@ public class HealthController : MonoBehaviour
         if (decayRate > 0f)
         {
             float old = CurrentHealth;
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - decayRate * Time.deltaTime);
+            CurrentHealth = Mathf.Max(0f, CurrentHealth - ( maxHealth * decayRate * 0.01f * Time.deltaTime));
             if (CurrentHealth != old)
             {
                 NotifyHealthChanged();

@@ -67,6 +67,7 @@ public class PossessionAbility : MonoBehaviour
         HandleHeldAbilites();
         UpdateUI();
 
+        // Move hag to current characters position
         if (currentCharacter != oldHag)
         {
             oldHag.transform.position = currentCharacter.transform.position;
@@ -193,17 +194,19 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="newCharacter">The new character to switch control to.</param>
     public void SwitchCharacter(Character newCharacter)
     {
+        currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
+
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         HealthController newHealth = newCharacter.GetComponent<HealthController>();
         if (newCharacter == oldHag)
         {
-            // This means we are switching back to the hag
             if (hagHealth != null)
             {
                 hagHealth.SetDecay(0f); // Hag does not decay
                 hagHealth.EnableUpdateModel(true);
             }
+
             if (secondaryHealthBar != null)
             {
                 oldHag.gameObject.SetActive(true);
