@@ -60,6 +60,7 @@ public class PossessionAbilityTests
     [Test]
     public void Awake_SetsCursorState()
     {
+        possessionAbility.Awake();
         Assert.AreEqual(CursorLockMode.Locked, Cursor.lockState);
     }
 
