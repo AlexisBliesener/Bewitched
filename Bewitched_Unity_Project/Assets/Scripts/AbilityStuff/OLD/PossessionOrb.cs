@@ -39,7 +39,7 @@ public class PossessionOrb : MonoBehaviour
         if (isTriggered) return;
         if (other.TryGetComponent(out Character character) && character != player)
         {
-            PlayerController.CharacterControlChangeEvent?.Invoke(character);
+            PossessionAbility.CharacterControlChangeEvent?.Invoke(character);
             character.SetControlled(true);
             isTriggered = true;
             //Ends the audio event

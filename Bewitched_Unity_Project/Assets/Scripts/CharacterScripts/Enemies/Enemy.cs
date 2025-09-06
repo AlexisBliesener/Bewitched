@@ -89,7 +89,7 @@ public abstract class Enemy : Character
         if (playerControlling)
         {
             playerControlling = false;
-            PlayerController.CharacterControlChangeEvent?.Invoke(hag);
+            PossessionAbility.CharacterControlChangeEvent?.Invoke(hag);
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
