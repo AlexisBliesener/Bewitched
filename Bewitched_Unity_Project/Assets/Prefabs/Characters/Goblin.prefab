@@ -152,14 +152,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Goblin
-  movementSpeed: 7
+  movementSpeed: 6
   jumpSpeed: 0
   weight: 2
   sizeRadius: 0.6
   teamID: 2
   animator: {fileID: 6563345434283436252}
-  primaryFireIcon: {fileID: 21300000, guid: b79c25c267f0e6149becb38c5d850ba5, type: 3}
-  secondaryFireIcon: {fileID: 21300000, guid: dcbeb3c47a62e314090481e53d9d389c, type: 3}
+  primaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+  secondaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 0.5
@@ -210,6 +210,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 30
   dashEffects: {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
+  offSetForward: 1
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0
