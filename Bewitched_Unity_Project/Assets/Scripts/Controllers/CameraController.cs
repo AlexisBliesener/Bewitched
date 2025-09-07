@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour
     [Tooltip("The FMOD studio listener that is attached to the camera")]
     private StudioListener listener;
     [Tooltip("The virtual camera that is following the player")]
-    private CinemachineVirtualCamera virtualCamera;
+    [SerializeField]private CinemachineVirtualCamera virtualCamera;
     [Tooltip("The POV component of the virtual camera")]
     private CinemachinePOV cameraPOVComponent;
     [Tooltip("The y-axis rotation applied to the player based on mouse movement")]
@@ -128,7 +128,7 @@ public class CameraController : MonoBehaviour
         instance = this;
         virtualCamera = GetComponent<CinemachineVirtualCamera>();
         cameraPOVComponent = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
-        PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
+        //PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
 
         // FMOD set up
         if (!listener) listener = GetComponent<StudioListener>();
