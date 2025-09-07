@@ -61,6 +61,7 @@ public class StaircaseDoor : MonoBehaviour
 
     private IEnumerator OpenDoorSequence()
     {
+        StatLoader.instance.SavePlayerStats();
         yield return new WaitForSeconds(3);
         SceneManager.LoadScene(nextLevelName);
     }

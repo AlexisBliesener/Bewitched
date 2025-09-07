@@ -29,9 +29,11 @@ public class Hag : Character
         SetBaseStats();
     }
 
-    void Awake()
+    protected override void Awake()
     {
-        if(knockBackCone){
+        base.Awake();
+        if (knockBackCone)
+        {
             knockBackCone.SetActive(true);
             knockBackCone.GetComponent<KnockbackCone>().playerTrans = transform;
             knockBackCone.GetComponent<KnockbackCone>().knockbackAmount = knockbackAmount;
@@ -100,7 +102,7 @@ public class Hag : Character
     public void Blink()
     {
         PlayerController.instance.SetAllowMovement(false); // Prevent movement during blink
-        CameraController.instance.SetTeleporting();        // Stop camera snap
+
 
         RaycastHit hit;
         if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environment))

@@ -1,0 +1,123 @@
+{
+    "characterName": "Guard",
+    "movementSpeed": 3.0,
+    "weight": 7.0,
+    "sizeRadius": 0.6000000238418579,
+    "teamID": 2,
+    "animator": {
+        "instanceID": 0
+    },
+    "primaryFireIcon": {
+        "instanceID": 0
+    },
+    "secondaryFireIcon": {
+        "instanceID": 0
+    },
+    "attackDelay": 1.0,
+    "primaryCooldown": 1.25,
+    "primaryComboExtraCooldown": 0.0,
+    "primaryComboSteps": 0,
+    "primaryComboResetTime": 0.0,
+    "primaryAnimationDelay": 0.0,
+    "secondaryCooldown": 6.0,
+    "secondaryAnimationDelay": 0.0,
+    "primaryAttackRange": 5.0,
+    "maxHealth": 150.0,
+    "hitStunPrefab": {
+        "instanceID": 51926
+    },
+    "hitStunDuration": 0.30000001192092898,
+    "characters": {
+        "serializedVersion": "2",
+        "m_Bits": 128
+    },
+    "attackEffects": [
+        {
+            "instanceID": 188482
+        },
+        {
+            "instanceID": 188502
+        },
+        {
+            "instanceID": 166214
+        }
+    ],
+    "effectJSONs": [],
+    "agent": {
+        "instanceID": 52064
+    },
+    "ground": {
+        "serializedVersion": "2",
+        "m_Bits": 64
+    },
+    "environment": {
+        "serializedVersion": "2",
+        "m_Bits": 256
+    },
+    "sightRange": 10.0,
+    "patrolRange": 5.0,
+    "miniBarPrefab": {
+        "instanceID": 51928
+    },
+    "attackDelayAI": 0.5,
+    "leaveBodyExplosionRadius": 5.0,
+    "leaveBodyExplosionMinimumDamage": 10.0,
+    "leaveBodyExplosionMaximumDamage": 40.0,
+    "leaveBodyExplosionMinimumKnockback": 10.0,
+    "leaveBodyExplosionMaximumKnockback": 30.0,
+    "lanceHandlePrefab": {
+        "instanceID": 98844
+    },
+    "lanceTipPrefab": {
+        "instanceID": 98846
+    },
+    "thrustSpeed": 6.0,
+    "lanceHandleDamage": 20.0,
+    "lanceTipDamage": 5.0,
+    "lanceDuration": 0.5,
+    "lanceTipEffects": {
+        "instanceID": 188482
+    },
+    "lanceHandleEffects": {
+        "instanceID": 188502
+    },
+    "shieldPrefab": {
+        "instanceID": 52072
+    },
+    "minimumShieldBashSpeed": 10.0,
+    "maximumShieldBashSpeed": 20.0,
+    "minimumShieldBashDamage": 25.0,
+    "maximumShieldBashDamage": 55.0,
+    "minimumShieldBashKnockback": 15.0,
+    "maximumShieldBashKnockback": 35.0,
+    "shieldBashEffects": {
+        "instanceID": 166214
+    },
+    "maxShieldBashChargeTime": 2.0,
+    "bashDuration": 0.6499999761581421,
+    "chargingMovementSpeed": 2.0
+}|{
+    "attackName": "LanceTipEffects",
+    "knockbackAmount": 5.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
+}|{
+    "attackName": "LanceHandleEffects",
+    "knockbackAmount": 5.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
+}|{
+    "attackName": "ShieldBashEffects",
+    "knockbackAmount": 5.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 3,
+    "timeStopDuration": 0.15000000596046449
+}

@@ -2,16 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
+[RequireComponent(typeof(HealthController))]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
+    const string FILE_ENDING = ".json";
 
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
     [Tooltip("Speed the Character Can Move")]
     public float movementSpeed = 5;
+    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
+    private float jumpSpeed;
     [Tooltip("Weight of the character")]
     public float weight = 10;
     [Tooltip("Character Hitbox Radius")]
@@ -24,6 +29,8 @@ public abstract class Character : MonoBehaviour
     public Sprite primaryFireIcon;
     [Tooltip("Secondary Fire Image")]
     public Sprite secondaryFireIcon;
+    [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
+    private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
     [Tooltip("Attack Delay")]
     public float attackDelay = 1;
@@ -45,8 +52,8 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
-    [Tooltip("Maximum Health")]
-    public float maxHealth;
+    [Header("Note: Health settings can be changed on the Health Controller component!")]
+    [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
@@ -61,16 +68,7 @@ public abstract class Character : MonoBehaviour
     protected float timeLastSecondary = -Mathf.Infinity;
 
     protected float timeLastAny;
-
-    protected float currentHealth;
-
-    private bool alive = true;
-
-    protected bool invincible = false; // Title card
-
     protected GameObject hitStunActual = null;
-
-    protected float timeLastHit;
 
     protected bool attackingPrimary = false;
     protected bool attackingSecondary = false;
@@ -87,6 +85,117 @@ public abstract class Character : MonoBehaviour
 
     private int currentPrimaryComboStep = 0;
 
+    public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
+    [SerializeField] private List<string> effectJSONs = new List<string>();
+
+    #region Saving/Loading
+
+    [ContextMenu("Save to JSON")]
+    public void SaveToJson()
+    {
+        effectJSONs = new List<string>();
+        string characterStatsStr = JsonUtility.ToJson(this, true);
+
+        foreach (AttackStatusEffects effect in attackEffects)
+        {
+            string statusStr = effect.SaveToJson();
+            characterStatsStr += "|";
+            characterStatsStr += statusStr;
+            effectJSONs.Add(statusStr);
+        }
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        SeeFilePath();
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
+        File.WriteAllText(filePath, characterStatsStr);
+
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+
+
+    }
+
+    [ContextMenu("See File Path")]
+    public void SeeFilePath()
+    {
+        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        Debug.Log("Path To JSON File:");
+        Debug.Log(folderPath);
+    }
+
+    [ContextMenu("Load From JSON")]
+    public void LoadFromJson()
+    {
+
+        string folderPath = Path.Combine(Application.dataPath, "JSON");
+        folderPath = Path.Combine(folderPath, "CharacterStats");
+        string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
+
+        string jsonStr = File.ReadAllText(filePath);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+        for (int i = 1; i < jsons.Length; i++)
+        {
+            attackEffects[i - 1].LoadFromJson(jsons[i]);
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh();
+#endif
+
+    }
+
+    #endregion
+
+    protected virtual void Awake()
+    {
+        if (health == null)
+        {
+            health = GetComponent<HealthController>();
+        }
+        health.OnDamaged += OnDamaged;
+        health.OnHealthChanged += OnHealthChanged;
+        health.OnDeath += OnDeath;
+
+        SetBaseStats();
+    }
+    protected virtual void OnDestroy()
+    {
+        health.OnDamaged -= OnDamaged;
+        health.OnHealthChanged -= OnHealthChanged;
+        health.OnDeath -= OnDeath;
+    }
+    /// <summary>
+    /// OnDamaged is called when the character is damaged.
+    /// </summary>
+    protected virtual void OnDamaged(float amount)
+    {
+        CreateHitStun();
+    }
+
+    /// <summary>
+    /// OnHealthChanged is called when the character's health changes.
+    /// </summary>
+    protected virtual void OnHealthChanged(float current, float max) { }
+    /// <summary>
+    /// OnDeath is called when the character dies.
+    /// </summary>
+    protected virtual void OnDeath()
+    {
+        Die();
+    }
+
     public virtual void PrimaryAttack()
     {
     }
@@ -96,6 +205,11 @@ public abstract class Character : MonoBehaviour
     }
 
     public abstract void Die();
+
+    public float GetJumpSpeed()
+    {
+        return jumpSpeed;
+    }
 
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;
@@ -128,62 +242,14 @@ public abstract class Character : MonoBehaviour
         return true;
     }
 
-    public float GetHealth()
+    /// <summary>
+    /// Returns the shoulder offset vector for the character.
+    /// This is used by the camera to determine its relative positioning when following the character.
+    /// </summary>
+    /// <returns>The shoulder offset as a Vector3.</returns>
+    public Vector3 GetShoulderOffset()
     {
-        return currentHealth;
-    }
-
-    public float GetMaxHealth()
-    {
-        return maxHealth;
-    }
-
-    public void AddHealth(float amt)
-    {
-        currentHealth += amt;
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    public virtual void SubHealth(float dmg)
-    {
-        if (!invincible)
-        {
-            timeLastHit = Time.time;
-            currentHealth -= dmg;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-            else
-            {
-                CreateHitStun();
-            }
-        }
-    }
-
-    public virtual void DrainLife(float amt)
-    {
-        if (!invincible)
-        {
-            currentHealth -= amt;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-        }
-    }
-
-    public void SetHealthToMax()
-    {
-        currentHealth = maxHealth;
-    }
-
-    public bool IsAlive()
-    {
-        return alive;
+        return shoulderOffset;
     }
 
     public virtual void SetControlled(bool v) { }
@@ -196,11 +262,13 @@ public abstract class Character : MonoBehaviour
     public IEnumerator EnableMovement() // Call this after any movement abilities
     {
         yield return new WaitForSeconds(0.1f);
-        PlayerController.instance.SetAllowMovement(true);
+        if (PlayerController.instance != null)
+            PlayerController.instance.SetAllowMovement(true);
     }
 
     public IEnumerator StartTime(float stopTime)
     {
+        Debug.Log("Here");
         yield return new WaitForSecondsRealtime(stopTime);
 
         if (!GameObject.FindGameObjectWithTag("PauseMenu")) // If not paused set timescale normal
@@ -244,7 +312,7 @@ public abstract class Character : MonoBehaviour
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 Destroy(hitStunActual);
                 hitStunActual = null;
@@ -343,7 +411,6 @@ public abstract class Character : MonoBehaviour
         {
             if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
             {
-                Debug.Log(attackingPrimary);
                 animator.SetTrigger("StartRunning");
             }
         }
@@ -401,5 +468,26 @@ public abstract class Character : MonoBehaviour
     public virtual void Explode()
     {
 
+    }
+
+    public virtual Vector3 GetCurrentSpeedVector()
+    {
+        return new Vector3(0, 0, 0);
+    }
+
+    public void EndAttacks()
+    {
+        SetPrimaryAttack(false);
+        SetSecondaryAttack(false);
+    }
+
+    public void SetPrimaryAttack(bool val)
+    {
+        attackingPrimary = val;
+    }
+
+    public void SetSecondaryAttack(bool val)
+    {
+        attackingSecondary = val;
     }
 }

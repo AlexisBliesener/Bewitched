@@ -16,9 +16,10 @@ GameObject:
   - component: {fileID: 8810894426884420593}
   - component: {fileID: 1425984857738050746}
   - component: {fileID: 732372681308907037}
+  - component: {fileID: 4985444316756526280}
   m_Layer: 7
   m_Name: Ogre
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -187,12 +188,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Ogre
   movementSpeed: 3
+  jumpSpeed: 0
   weight: 10
   sizeRadius: 1
   teamID: 2
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 2
   primaryCooldown: 3
   primaryComboExtraCooldown: 0
@@ -202,12 +205,17 @@ MonoBehaviour:
   secondaryCooldown: 5
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 240
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects:
+  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  - {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
+  - {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
+  effectJSONs: []
   agent: {fileID: 8810894426884420593}
   ground:
     serializedVersion: 2
@@ -217,14 +225,14 @@ MonoBehaviour:
     m_Bits: 256
   sightRange: 10
   patrolRange: 5
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 1
   leaveBodyExplosionRadius: 5
   leaveBodyExplosionMinimumDamage: 10
   leaveBodyExplosionMaximumDamage: 40
   leaveBodyExplosionMinimumKnockback: 10
   leaveBodyExplosionMaximumKnockback: 30
-  batHitboxPrefab: {fileID: 3839853102873102876, guid: 996153408a866c743a3495e5e940b1ee, type: 3}
+  batHitboxPrefab: {fileID: 3266930682550461916, guid: f9791627755f53043a950c79ed274ac2, type: 3}
+  batPivot: {fileID: 326237258621897175, guid: f6d6591cea902ca4891bb476ce9ea268, type: 3}
   minimumBatSwingDamage: 20
   maximumBatSwingDamage: 60
   minimumBatSwingAngle: 45
@@ -233,6 +241,7 @@ MonoBehaviour:
   maximumBatSwingKnockback: 120
   batSwingDuration: 0.5
   batSwingChargeTime: 3
+  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
@@ -240,7 +249,24 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpKnockbackRange: 8
+  ogreJumpSlamImpactRange: 8
+  slamBatEffects: {fileID: 0}
+  slamImpactEffects: {fileID: 0}
+--- !u!114 &4985444316756526280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a6aeef76141464e8deb312572272c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 240
+  decayRate: 0
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0

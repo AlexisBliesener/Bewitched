@@ -177,12 +177,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a921598df7b43684c911028f9abe884a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  character: {fileID: 0}
   slider: {fileID: 6088466970607152045}
   lifeTime: 3
   mainCamera: {fileID: 0}
-  heightOffset: 1
+  heightOffset: 2
   canvas: {fileID: 0}
+  maxScaleDistance: 10
+  minScale: 0.5
+  maxScale: 1.5
 --- !u!1 &8467271316874376952
 GameObject:
   m_ObjectHideFlags: 0

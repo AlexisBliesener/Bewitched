@@ -7,6 +7,8 @@ public class Ogre : Enemy
     [Header("Ogre Settings")]
     [Tooltip("Ogre Bat Prefab")]
     [SerializeField] GameObject batHitboxPrefab;
+    [Tooltip("Pivot Prefab")]
+    [SerializeField] GameObject batPivot;
 
     [Tooltip("Minimum Bat Swing Damage")]
     [SerializeField] float minimumBatSwingDamage;
@@ -28,6 +30,9 @@ public class Ogre : Enemy
     [Tooltip("Maximum Bat Swing Charge Time")]
     [SerializeField] float batSwingChargeTime;
 
+    [Tooltip("Bat Swing Status Effects")]
+    [SerializeField] AttackStatusEffects batSwingEffects = new AttackStatusEffects();
+
     [Tooltip("Ogre Slam Bat Hitbox")]
     [SerializeField] GameObject slamHitboxPrefab;
     [Tooltip("Ogre Jump Gravity")]
@@ -43,7 +48,13 @@ public class Ogre : Enemy
     [Tooltip("Ogre Jump Maximum Knockback")]
     [SerializeField] float ogreJumpKnockbackMaximum;
     [Tooltip("Ogre Slam Knockback Range")]
-    [SerializeField] float ogreJumpKnockbackRange;
+    [SerializeField] float ogreJumpSlamImpactRange = 8;
+
+    [Tooltip("Slam Bat Status Effects")]
+    [SerializeField] AttackStatusEffects slamBatEffects;
+
+    [Tooltip("Slam Impact Status Effects")]
+    [SerializeField] AttackStatusEffects slamImpactEffects;
 
     bool isSwinging = false;
     bool isCharging = false;
@@ -69,7 +80,7 @@ public class Ogre : Enemy
     void Start()
     {
         SetPlayerInfo();
-        SetHealthToMax();
+        health.SetHealthToMax();
         SetBaseStats();
     }
 
@@ -92,8 +103,6 @@ public class Ogre : Enemy
 
     public override void PrimaryAttack()
     {
-        base.PrimaryAttack();
-
         isCharging = true;
         currentBatSwingKnockback = minimumBatSwingKnockback;
         currentBatSwingDamage = minimumBatSwingDamage;
@@ -109,8 +118,6 @@ public class Ogre : Enemy
 
     public override void SecondaryAttack()
     {
-        base.SecondaryAttack();
-
         attackingSecondary = true;
         timeLastSecondary = Time.time;
         PlayerController.instance.SetAllowMovement(false);
@@ -131,8 +138,17 @@ public class Ogre : Enemy
         minAngle = Quaternion.Euler(0, currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
         maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
 
-        GameObject pivot = Instantiate(batHitboxPrefab, transform);
-        pivot.GetComponent<SwingPivot>().Init(this, currentBatSwingDamage, currentBatSwingKnockback);
+        GameObject pivot = Instantiate(batPivot, transform);
+        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
+        pivot.SetActive(false);
+
+        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
+        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+
+        pivot.SetActive(true);
+        Debug.Log(batSwingDuration);
+
         StartCoroutine(SwingBat(pivot));
     }
 
@@ -183,14 +199,14 @@ public class Ogre : Enemy
                 jumping = false;
                 // Instantiate bat hitbox
                 slamBatHitbox = Instantiate(slamHitboxPrefab, transform);
-                slamBatHitbox.GetComponent<SlamHitbox>().Init(this, ogreJumpBatDamage, ogreJumpSlamDamage, ogreJumpKnockbackMinimum, ogreJumpKnockbackMaximum, ogreJumpKnockbackRange);
+                slamBatHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: ogreJumpBatDamage, slamDMG: ogreJumpSlamDamage, status: slamBatEffects, attackDuration: 10);
             }
 
             if (transform.position.y <= groundHeight) // Hit ground
             {
                 transform.position = new Vector3(transform.position.x, groundHeight, transform.position.z);
 
-                slamBatHitbox.GetComponent<SlamHitbox>().SlamImpact();
+                slamBatHitbox.GetComponent<DefaultHitbox>().SlamImpact(slamImpactEffects);
 
                 attackingSecondary = false;
                 StartCoroutine(EnableMovement());

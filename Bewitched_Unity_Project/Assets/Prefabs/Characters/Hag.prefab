@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 8828446020428933963}
   - component: {fileID: 3730021192468053594}
   - component: {fileID: -772148356125373448}
+  - component: {fileID: 9170618613401922729}
   m_Layer: 7
   m_Name: Hag
   m_TagString: Player
@@ -289,7 +290,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2001149309590165425}
   - {fileID: 415033817896345474}
   - {fileID: 3914199046805293222}
   m_Father: {fileID: 0}
@@ -410,7 +410,7 @@ MonoBehaviour:
   weight: 5
   sizeRadius: 0.5
   teamID: 1
-  animator: {fileID: 7998953991678283845}
+  animator: {fileID: 0}
   primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
   secondaryFireIcon: {fileID: 0}
   attackDelay: 1
@@ -423,11 +423,15 @@ MonoBehaviour:
   secondaryAnimationDelay: 0.1
   primaryAttackRange: 0
   maxHealth: 100
+  defaultDecay: 0
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects: []
+  effectJSONs: []
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 10
@@ -449,6 +453,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gettingKnockback: 0
+--- !u!114 &9170618613401922729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 663c247c7929945a2b8045313ff3e861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &915140014165140061
 PrefabInstance:
   m_ObjectHideFlags: 0
