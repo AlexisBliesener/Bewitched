@@ -57,6 +57,32 @@ public class Hag : Character
         timeLastSecondary = Time.time;
     }
 
+    protected override void OnDamaged(float amount)
+    {
+        base.OnDamaged(amount);
+        //Play the Witch's hit sound effect when she gets damaged.
+        AudioManager.TryGetReference("WitchHit", out EventReference evRef);
+        EventInstance inst = RuntimeManager.CreateInstance(evRef);
+        inst.setParameterByName("Damage", amount / health.GetMaxHealth());
+        inst.start();
+        inst.release();
+    }
+
+    protected override void OnDeath()
+    {
+        //This is temporary until we implement the big "You Died" UI Banner thing.
+        //This is just so Andrew actually hears this sound effect.
+
+        //Stops all non-UI events. WitchDeath event also mutes all other sound effects
+        RuntimeManager.GetBus("bus:/Music/LevelMusic").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        AudioManager.TryPlayOneShot("WitchDeath");
+        //Disable player controller
+        PlayerController.instance.gameObject.SetActive(false);
+        //Wait until the sound effect is over before returning to the main menu
+        Invoke("Die", 12f);
+    }
+
     public override void Die()
     {
         StopAllCoroutines();
@@ -119,3 +145,4 @@ public class Hag : Character
         AudioManager.TryPlayOneShot("Blink");
     }
 }
+
