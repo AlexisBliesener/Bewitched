@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
-using UnityEditor.EditorTools;
 
 /// <summary>
 /// This class is used to play any audio that needs to be called via Animation Events
