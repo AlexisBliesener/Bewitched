@@ -15,6 +15,8 @@ public class DropSystem : MonoBehaviour
     [Header("Drop Settings")]
     [Tooltip("The chance of dropping an item from enemies")]
     [SerializeField] public int dropChance = 50;
+    [Tooltip("The amount of health restored to the player when salvaging a drop.")]
+    [SerializeField] public float salvageAmount = 10;
     [Tooltip("The list of the drops in the game")]
     public List<DropItemBase> availableDrops = new List<DropItemBase>();
     [Tooltip("The prefab for the drop pickup")]
@@ -132,7 +134,7 @@ public class DropSystem : MonoBehaviour
     /// </summary>
     public void SalvageDrop()
     {
-        // As of now, nothing to do here
-        Debug.Log("Salvaging a drop!!");
+        // Add specified amount of health to the player
+        PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
     }
 }
