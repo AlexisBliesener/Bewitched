@@ -1,16 +1,21 @@
+using Cinemachine;
+using FMOD.Studio;
+using FMODUnity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FMOD.Studio;
-using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
     public delegate void PlayerControlHandler(Character character);
-    public static PlayerControlHandler CharacterControlChangeEvent;
     public static PlayerController instance { get; private set; }
+
+    [Header("Layer Masks")]
+    [SerializeField, Tooltip("A layer mask that contains only the enemy layer")]
+    private LayerMask enemyLayerMask;
 
     [Header("Character Settings")]
 
@@ -18,37 +23,17 @@ public class PlayerController : MonoBehaviour
     public Character currentCharacter;
     [Tooltip("The main character body (possessor)")]
     public Hag oldHag;
-    [Tooltip("Rate at which life is drained")]
-    public float lifeDrainCoefficient = 2;
-    [Tooltip("Time to fill up enemy explosion")]
-    public float enemyExplosionTime = 10;
-
-    //This is the prefab for the possession orb that the hag shoots.
-    [Tooltip("The possession orb prefab to be shot")]
-    [SerializeField] GameObject possessionOrbPrefab;
-    [Tooltip("The speed the possession orb moves")]
-    [SerializeField] float possessionOrbSpeed = 5;
-    [Tooltip("Orb Cooldown")]
-    [SerializeField] float orbCooldown = 10;
-    [Tooltip("The Start Animation Delay on the Possession Orb")]
-    [SerializeField] float orbAnimationDelay = 0;
 
     [Header("UI Settings")]
-    [Tooltip("The game camera")]
-    public Camera myCamera;
 
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
-    [Tooltip("The currently controlled character's health bar")]
-    public GameObject secondaryHealthBar;
 
     [Header("Buff Holder")]
     [Tooltip("Buff Component")]
     public Buffs playerBuffs;
 
     [Header("Ability Cooldown UI")]
-    [Tooltip("Possession Orb Cooldown UI")]
-    public CooldownDisplay possessionCooldownDisplay;
     [Tooltip("Primary Cooldown UI")]
     public CooldownDisplay primaryCooldownDisplay;
     [Tooltip("Secondary Cooldown UI")]
@@ -72,19 +57,18 @@ public class PlayerController : MonoBehaviour
 
     private bool allowMovement = true;
 
-    private float timePossessing;
-
-    private float timeLastFired = -Mathf.Infinity;
-
-    private int numOrbsFired = 0;
-
     private bool primaryHeld = false;
     private bool secondaryHeld = false;
-    private bool possessHeld = false;
-    private bool leaveHeld = false;
 
+    [Tooltip("The y velocity the player is moving at")]
     private float yVelocity;
+    [Tooltip("The jump speed of the player")]
     private float jumpSpeed;
+
+    public void SeteCharacterController(CharacterController controller)
+    {
+        characterController = controller;
+    }
 
     private void Start()
     {
@@ -99,6 +83,8 @@ public class PlayerController : MonoBehaviour
                 hagHealthBar.SetActive(true);
             }
         }
+
+        ResumeGame();
     }
 
     private void Awake()
@@ -106,12 +92,6 @@ public class PlayerController : MonoBehaviour
         currentCharacter = oldHag;
 
         characterController = currentCharacter.GetComponent<CharacterController>();
-        CharacterControlChangeEvent+=SwitchCharacter;
-    }
-
-    void OnDisable()
-    {
-        CharacterControlChangeEvent-=SwitchCharacter;
     }
 
     private void FixedUpdate()
@@ -206,37 +186,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Possess(InputAction.CallbackContext context)
-    {
-        if(currentCharacter == oldHag)
-        {
-            if (context.started)
-            {
-                if (Time.time - timeLastFired >= orbCooldown)
-                {
-                    timeLastFired = Time.time;
-                    currentCharacter.AnimatePossess();
-                    StartCoroutine(FireOrbWithDelay());
-                }
-            }
-            else
-            {
-                return;
-            }
-        }
-        else
-        {
-            if (context.started)
-            {
-                StartCoroutine(ExplodeEnemy());
-            }
-            else
-            {
-                return;
-            }
-        }
-    }
-
     public void Jump(InputAction.CallbackContext context)
     {
         if(characterController.isGrounded && context.started)
@@ -257,18 +206,6 @@ public class PlayerController : MonoBehaviour
         {
             currentCharacter.SetSecondaryAnimStatus(true);
             StartCoroutine(currentCharacter.BeginSecondary());
-        }
-
-        if (Time.time - timeLastFired >= orbCooldown && possessHeld)
-        {
-            timeLastFired = Time.time;
-            currentCharacter.AnimatePossess();
-            StartCoroutine(FireOrbWithDelay());
-        }
-
-        if (leaveHeld)
-        {
-            StartCoroutine(ExplodeEnemy());
         }
     }
 
@@ -302,62 +239,6 @@ public class PlayerController : MonoBehaviour
         pauseMenu.SetActive(false);
     }
 
-    public void SwitchCharacter(Character newCharacter){
-
-        Debug.Log("new char " + newCharacter);
-        characterController = newCharacter.GetComponent<CharacterController>();
-        HealthController hagHealth = oldHag.GetComponent<HealthController>();
-        HealthController newHealth = newCharacter.GetComponent<HealthController>();
-        if (newCharacter == oldHag)
-        {
-            // This means we are switching back to the hag
-            if (hagHealth != null)
-            {
-                hagHealth.SetDecay(0f); // Hag does not decay
-                hagHealth.EnableUpdateModel(true);
-            }
-            if (secondaryHealthBar != null)
-            {
-                oldHag.gameObject.SetActive(true);
-                secondaryHealthBar.SetActive(false);
-            }
-            currentCharacter.SetTeamID(2);
-            SetAllowMovement(true);
-            //Might need to change this once I get to enemy specific death sounds
-
-            // I have commented this out for now as it was causing issues with fmod and that caused a problem with switching characters
-            
-
-            // if(AudioManager.TryGetReference("LeaveBody",out EventReference evRef)){
-            //         EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            //         ev.start();
-            //         ev.release();
-            //     }
-        }
-        else
-        {
-            // Possess an enemy
-            if (hagHealth != null)
-            {
-                hagHealth.SetDecay(0f);
-            }
-            if (newHealth != null)
-            {
-                newHealth.SetDecay(lifeDrainCoefficient);
-                newHealth.EnableUpdateModel(true);
-                if (secondaryHealthBar != null )
-                {
-                    secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
-                    oldHag.gameObject.SetActive(false);
-                    secondaryHealthBar.SetActive(true);
-                }
-            }
-            newCharacter.SetTeamID(1);
-            timePossessing = Time.time;
-        }
-        currentCharacter = newCharacter;
-    }
-
     public Hag GetHag()
     {
         return oldHag;
@@ -387,57 +268,6 @@ public class PlayerController : MonoBehaviour
 
         primaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownPrimary());
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
-
-        if (currentCharacter == oldHag || numOrbsFired < playerBuffs.numExtraPossessionOrbs)
-        {
-            possessionCooldownDisplay.SetAbleToUse(true);
-        }
-        else
-        {
-            possessionCooldownDisplay.SetAbleToUse(false);
-        }
-
-        possessionCooldownDisplay.SetCooldownCover(orbCooldown - (Time.time - timeLastFired));
-    }
-
-    private IEnumerator FireOrbWithDelay()
-    {
-        yield return new WaitForSeconds(orbAnimationDelay);
-
-        if (currentCharacter == oldHag) // Change condition when upgrade created
-        {
-            GameObject orb = Instantiate(possessionOrbPrefab);
-            orb.transform.position = currentCharacter.transform.position;
-            orb.GetComponent<PossessionOrb>().Init(currentCharacter.transform.forward * possessionOrbSpeed, currentCharacter.GetComponent<Character>());
-        }
-        else if (numOrbsFired < playerBuffs.numExtraPossessionOrbs)
-        {
-            GameObject orb = Instantiate(possessionOrbPrefab);
-            orb.transform.position = currentCharacter.transform.position;
-            orb.GetComponent<PossessionOrb>().Init(currentCharacter.transform.forward * possessionOrbSpeed, currentCharacter.GetComponent<Character>());
-            numOrbsFired++;
-        }
     }
     
-    private IEnumerator ExplodeEnemy()
-    {
-        yield return null; // wait one frame
-
-        if (currentCharacter != oldHag)
-        {
-            if (Time.time - timePossessing > enemyExplosionTime)
-            {
-                currentCharacter.Explode();
-                currentCharacter.Die();
-                // Apply shunt damage
-            }
-
-            // respawn old Hag
-
-            oldHag.transform.position = currentCharacter.transform.position;
-            oldHag.transform.rotation = currentCharacter.transform.rotation;
-            currentCharacter.SetControlled(false);
-            CharacterControlChangeEvent?.Invoke(oldHag);
-        }
-    }
 }

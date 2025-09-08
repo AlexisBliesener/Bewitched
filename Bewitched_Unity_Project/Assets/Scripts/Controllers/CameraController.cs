@@ -28,7 +28,9 @@ public class CameraController : MonoBehaviour
     [Tooltip("The FMOD studio listener that is attached to the camera")]
     private StudioListener listener;
     [Tooltip("The virtual camera that is following the player")]
-    private CinemachineVirtualCamera virtualCamera;
+    [SerializeField]private CinemachineVirtualCamera virtualCamera;
+    [Tooltip("The POV component of the virtual camera")]
+    private CinemachinePOV cameraPOVComponent;
     [Tooltip("The y-axis rotation applied to the player based on mouse movement")]
     private float yaw = 0;
     [Tooltip("The side of the player the camera is currently targeting to be on, 1 = right side, 0 = middle, -1 = left side")]
@@ -97,7 +99,8 @@ public class CameraController : MonoBehaviour
     {
         Vector2 lookInput = context.ReadValue<Vector2>();
 
-        Debug.Log(lookInput);
+        cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
+
         if (context.action.activeControl.device.description.deviceClass != "Mouse")
         {
             lookInput.x *= 20;
@@ -112,19 +115,20 @@ public class CameraController : MonoBehaviour
 
     private void OnDisable()
     {
-        PlayerController.CharacterControlChangeEvent -= SwitchCharacter;
+        PossessionAbility.CharacterControlChangeEvent -= SwitchCharacter;
     }
 
     private void OnEnable()
     {
-        PlayerController.CharacterControlChangeEvent += SwitchCharacter;
+        PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
     }
 
     private void Awake()
     {
         instance = this;
         virtualCamera = GetComponent<CinemachineVirtualCamera>();
-        PlayerController.CharacterControlChangeEvent += SwitchCharacter;
+        cameraPOVComponent = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
+        //PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
 
         // FMOD set up
         if (!listener) listener = GetComponent<StudioListener>();
