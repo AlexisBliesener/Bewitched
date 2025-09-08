@@ -2,8 +2,10 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using static PlayerController;
 
 
@@ -26,12 +28,14 @@ public class PossessionAbility : MonoBehaviour
     private CooldownDisplay possessionCooldownDisplay;
     [SerializeField, Tooltip("Time to fill up enemy explosion")]
     private float enemyExplosionTime = 10;
-    [SerializeField, Tooltip("Rate at which life is drained")]
-    private float lifeDrainCoefficient = 2;
+    [SerializeField, Tooltip("Rate at which life is drained"), Range(0,100)]
+    private float lifeDrainPercentage = 2;
     [SerializeField, Tooltip("The currently controlled character's health bar")]
     private GameObject secondaryHealthBar;
     [SerializeField, Tooltip("Hag script on the witch gameobject")]
     protected Hag oldHag;
+    [SerializeField, Tooltip("Crosshair image component")]
+    private Image crossHair;
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
@@ -41,6 +45,13 @@ public class PossessionAbility : MonoBehaviour
     private float timePossessing;
     [Tooltip("The current character that is possessed")]
     protected Character currentCharacter;
+
+    [Tooltip("States to log if the player currently is in range of a possessable enemy and can possess or not")]
+    private enum PossessionStates { canPossess, canNotPossess};
+    [Tooltip("The players current possession state, if they have an available and legal possession to do or not")]
+    private PossessionStates possessionState = PossessionStates.canNotPossess;
+    [Tooltip("The current enemy that would be possessed if the ability is fired")]
+    private Character currentPossessableEnemy = null;
 
     #region Saving/Loading
 
@@ -122,7 +133,9 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        UpdateUI();
+        UpdateCooldowns();
+        UpdateState();
+        UpdateCrossHair();
 
         // Move hag to current characters position
         if (currentCharacter != oldHag)
@@ -169,28 +182,89 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Fires a raycast to attempt possession of an enemy in front of the camera.
+    /// Possesses an enemy if currently avaliable
     /// </summary>
     private void FirePossession()
     {
+        if(possessionState == PossessionStates.canPossess)
+        {
+            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
+            currentPossessableEnemy.SetControlled(true);
+        }
+    }
+
+    /// <summary>
+    /// Updates the color of the cross hair baised on if the player can currently possess
+    /// </summary>
+    private void UpdateCrossHair()
+    {
+        if(crossHair == null)
+        {
+            Debug.LogWarning("Crosshair image is not assigned!");
+            return;
+        }
+
+        if(possessionState == PossessionStates.canNotPossess)
+        {
+            crossHair.color = Color.white;
+        }
+        else
+        {
+            crossHair.color = Color.red;
+        }
+    }
+
+    /// <summary>
+    /// Updates the state of possession ability to tell if the player can currently possess or not
+    /// </summary>
+    private void UpdateState()
+    {
+        // Can only possess if the player is currently eleth
+        if(currentCharacter != oldHag)
+        {
+            possessionState = PossessionStates.canNotPossess;
+            return;
+        }
+
+        // Can only possess if the cooldown is over
+        if(possessionCooldown - (Time.time - timePossessionLastLeft) > 0)
+        {
+            possessionState = PossessionStates.canNotPossess;
+            return;
+        }
+
+        // Detect enemy for possession
         Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
         RaycastHit hitInfo;
         if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
         {
             if (hitInfo.collider.gameObject.CompareTag("Enemy"))
             {
-                Character characterHit = hitInfo.collider.gameObject.GetComponent<Character>();
-                CharacterControlChangeEvent?.Invoke(characterHit);
-                characterHit.SetControlled(true);
+                currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
+                possessionState = PossessionStates.canPossess;
             }
+            else
+            {
+                possessionState = PossessionStates.canNotPossess;
+            }
+        }
+        else
+        {
+            possessionState = PossessionStates.canNotPossess;
         }
     }
 
     /// <summary>
     /// Updates the possession cooldown UI display.
     /// </summary>
-    protected virtual void UpdateUI()
+    private void UpdateCooldowns()
     {
+        if (possessionCooldownDisplay == null)
+        {
+            Debug.LogWarning("Cooldown display is not assigned!");
+            return;
+        }
+
         if (currentCharacter == oldHag)
         {
             possessionCooldownDisplay.SetAbleToUse(true);
@@ -261,7 +335,7 @@ public class PossessionAbility : MonoBehaviour
             }
             if (newHealth != null)
             {
-                newHealth.SetDecay(lifeDrainCoefficient);
+                newHealth.SetDecay(lifeDrainPercentage);
                 newHealth.EnableUpdateModel(true);
                 if (secondaryHealthBar != null)
                 {

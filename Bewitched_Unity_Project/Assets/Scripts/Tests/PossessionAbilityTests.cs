@@ -19,7 +19,7 @@ public class PossessionAbilityTests
 
     public class MockPossssionAbility : PossessionAbility
     {
-        protected override void UpdateUI() { }
+        protected new void UpdateCooldowns() { }
     }
 
     public class MockEnemy : Enemy
