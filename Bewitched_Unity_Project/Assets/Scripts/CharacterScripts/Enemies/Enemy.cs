@@ -12,9 +12,11 @@ public abstract class Enemy : Character
     [Tooltip("Minimum Stopping Distance")]
     public float minStopDistance = 0.5f;
 
-    [Tooltip("Pathfinding Priority")]
-    public int pathfindingPriority;
+    [Tooltip("Highest Priority")]
+    public int highestPriority;
 
+    [Tooltip("Lowest Priority")]
+    public int lowestPriority;
 
     protected PlayerController playerController;
 
@@ -98,8 +100,6 @@ public abstract class Enemy : Character
 
     protected NavPath currentPath;
 
-    protected bool reachedWalkpoint = true;
-
     /// <summary>
     /// Function for handling movement
     /// </summary>
@@ -113,6 +113,7 @@ public abstract class Enemy : Character
         agent.stoppingDistance = minStopDistance;
         agent.speed = movementSpeed;
         agent.acceleration = acceleration;
+        agent.avoidancePriority = Random.Range(highestPriority, lowestPriority);
     }
 
     public void SetDebuggingValues()
@@ -595,9 +596,6 @@ public abstract class Enemy : Character
         }
     }
 
-    /// <summary>
-    /// Destroys the visualized path
-    /// </summary>
     public void DestroyPath()
     {
         if (destinationMarker != null)
@@ -608,54 +606,8 @@ public abstract class Enemy : Character
         pathVisualizer.positionCount = 0;
     }
 
-    /// <summary>
-    /// Removes the enemy's target point
-    /// </summary>
     public void RemoveTargetPoint()
     {
         surroundPoint = null;
-    }
-
-    /// <summary>
-    /// Tells the enemy to move if not being player controlled - called every frame in Update
-    /// </summary>
-    /// <param name="direction"> Normalized direction to move in </param>
-    public void Move(Vector3 direction)
-    {
-        transform.position = new Vector3(transform.position.x + previousVelocity.x, transform.position.y, transform.position.z + previousVelocity.z); // Handle movement from previous frame
-
-        if (Mathf.Abs(previousVelocity.normalized.x - direction.x) < 0.05 && Mathf.Abs(previousVelocity.normalized.z - direction.z) < 0.05) // If we are going the same direction (relatively)
-        {
-            if (previousVelocity.magnitude < movementSpeed)
-            {
-                previousVelocity = direction * (previousVelocity.magnitude + acceleration * Time.deltaTime);
-
-                if (previousVelocity.magnitude > movementSpeed) // If we just made the movement speed higher than max, set to max
-                {
-                    previousVelocity = previousVelocity.normalized * movementSpeed;
-                }
-            }
-            else
-            {
-                previousVelocity = direction * movementSpeed;
-            }
-        }
-        else // If changing direction
-        {
-            if (previousVelocity.x > direction.x) // If we are slowing down on the x axis
-            {
-                previousVelocity.x -= deceleration * Time.deltaTime;
-
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// Virtual function to find a path based on current state
-    /// </summary>
-    public virtual void FindPath()
-    {
-
     }
 }

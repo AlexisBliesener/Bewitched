@@ -166,29 +166,6 @@ public class Goblin : Enemy
     }
 
     /// <summary>
-    /// Handles finding a path in the graph based on the state
-    /// </summary>
-    public override void FindPath()
-    {
-        if (aiState == GoblinAIState.Patrolling)
-        {
-            Debug.Log(Time.time); // Should be called every 0.5 seconds
-            if (reachedWalkpoint)
-            {
-                while (!SetWalkPoint()) { }
-            }
-            else
-            {
-                currentPath = GraphBuilder.instance.AStarSearch(this, walkPoint);
-                if (debugging)
-                {
-                    UpdatePath();
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// Override function handling patrol functionality for the Goblin
     /// This patrol method sets a point before the first frame and the goblin will patrol
     /// randomly within a circle of that point
@@ -209,7 +186,6 @@ public class Goblin : Enemy
         if (currentPath.ReachedDestination(this)) // If we are within stopping range
         {
             agent.SetDestination(transform.position); // Stop character
-            reachedWalkpoint = true;
             StartCoroutine(LookAround()); // Look around
         }
 
@@ -238,7 +214,6 @@ public class Goblin : Enemy
         float randomZ = Random.Range(-patrolRange, patrolRange);
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetRealPosition();
         NavPath path = GraphBuilder.instance.AStarSearch(this, walkPoint);
         if (path == null)
         {
@@ -263,7 +238,6 @@ public class Goblin : Enemy
                 destinationMarker.transform.position = walkPoint;
             }
 
-            reachedWalkpoint = false;
             return true;
         }
         return false;
@@ -292,6 +266,11 @@ public class Goblin : Enemy
                 yield break;
             }
             timer += Time.deltaTime;
+            yield return null;
+        }
+
+        while (!SetWalkPoint()) 
+        {
             yield return null;
         }
 
