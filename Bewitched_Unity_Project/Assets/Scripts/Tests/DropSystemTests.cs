@@ -12,11 +12,11 @@ public class DropSystemTests
     /// <summary>
     /// Mock drop item class for testing activation behavior
     /// </summary>
-    public class MockActivatableDrop : DropItemBase
+    public class MockActivatableDrop : MonoBehaviour, IDrop
     {
         public bool wasActivated = false;
 
-        public override void Activate()
+        public void Activate()
         {
             wasActivated = true;
         }
@@ -24,8 +24,10 @@ public class DropSystemTests
     private GameObject dropSystemObject;
     private DropSystem dropSystem;
     private GameObject mockDropPrefab;
-    private DropItemBase mockDrop1;
-    private DropItemBase mockDrop2;
+    private DropData mockDrop1;
+    private DropData mockDrop2;
+    private GameObject mockDropScript1;
+    private GameObject mockDropScript2;
     private ItemRarity commonRarity;
     private ItemRarity rareRarity;
 
@@ -46,31 +48,36 @@ public class DropSystemTests
         mockDropPrefab = new GameObject("MockDropPrefab");
 
         // Create mock rarity items
-        commonRarity = ScriptableObject.CreateInstance<ItemRarity>();
+        commonRarity = new ItemRarity();
         commonRarity.displayName = "Common";
         commonRarity.dropChance = 100;
-
-        rareRarity = ScriptableObject.CreateInstance<ItemRarity>();
+        dropSystem.availableRarities.Add(commonRarity);
+        rareRarity = new ItemRarity();
         rareRarity.displayName = "Rare"; 
         rareRarity.dropChance = 6;
+        dropSystem.availableRarities.Add(rareRarity);
 
         // Create mock drop items
-        GameObject mockDropObject1 = new GameObject("MockDrop1");
-        mockDrop1 = mockDropObject1.AddComponent<DropItemBase>();
+        mockDropScript1 = new GameObject("MockDrop1");
+        mockDropScript1.AddComponent<MockActivatableDrop>();
+        mockDrop1 = new DropData();
+        mockDrop1.SetDropScript(mockDropScript1);
         mockDrop1.SetDropName("Health Potion");
         mockDrop1.SetDescription("Restores health");
-        mockDrop1.SetRarity(commonRarity);
+        mockDrop1.SetRarityIndex(0);
+        dropSystem.availableDrops.Add(mockDrop1);
 
-        GameObject mockDropObject2 = new GameObject("MockDrop2");
-        mockDrop2 = mockDropObject2.AddComponent<DropItemBase>();
+        mockDropScript2 = new GameObject("MockDrop2");
+        mockDropScript2.AddComponent<MockActivatableDrop>();
+        mockDrop2 = new DropData();
+        mockDrop2.SetDropScript(mockDropScript1);
         mockDrop2.SetDropName("Health Potion 2");
-        mockDrop2.SetDescription("Restore health 2x");
-        mockDrop2.SetRarity(rareRarity);
+        mockDrop2.SetDescription("Restores health 2x");
+        mockDrop2.SetRarityIndex(0);
+        dropSystem.availableDrops.Add(mockDrop2);
 
         // Set up drop system with test data
         dropSystem.dropPickupPrefab = mockDropPrefab;
-        dropSystem.availableDrops.Add(mockDrop1);
-        dropSystem.availableDrops.Add(mockDrop2);
     }
 
     [TearDown]
@@ -82,13 +89,17 @@ public class DropSystemTests
         if (mockDropPrefab != null)
             Object.DestroyImmediate(mockDropPrefab);
         if (mockDrop1 != null)
-            Object.DestroyImmediate(mockDrop1.gameObject);
+            mockDrop1 = null;
         if (mockDrop2 != null)
-            Object.DestroyImmediate(mockDrop2.gameObject);
+            mockDrop2 = null;
         if (commonRarity != null)
-            Object.DestroyImmediate(commonRarity);
+            commonRarity = null;
         if (rareRarity != null)
-            Object.DestroyImmediate(rareRarity);
+            rareRarity = null;
+        if (mockDropScript1 != null)
+            Object.DestroyImmediate(mockDropScript1);
+        if (mockDropScript2 != null)
+            Object.DestroyImmediate(mockDropScript2);
     }
 
     /// <summary>
@@ -193,10 +204,10 @@ public class DropSystemTests
         // This make sure that the onDropPickedUp action is triggered always trigger when the chance is met
         dropSystem.SetDropChance(100);
         bool actionTriggered = false;
-        DropItemBase receivedDrop1 = null;
-        DropItemBase receivedDrop2 = null;
+        DropData receivedDrop1 = null;
+        DropData receivedDrop2 = null;
 
-        dropSystem.OnDropPickedUp += (drop1, drop2) => {
+        dropSystem.OnDropRandomDrop += (drop1, drop2) => {
             actionTriggered = true;
             receivedDrop1 = drop1;
             receivedDrop2 = drop2;
@@ -218,7 +229,7 @@ public class DropSystemTests
         dropSystem.availableDrops.Clear();
         bool actionTriggered = false;
 
-        dropSystem.OnDropPickedUp += (drop1, drop2) => actionTriggered = true;
+        dropSystem.OnDropRandomDrop += (drop1, drop2) => actionTriggered = true;
 
         dropSystem.ShowDropSelection(Vector3.zero);
 
@@ -232,12 +243,14 @@ public class DropSystemTests
     public void SelectDropsOption_ActivatesSingleDrop()
     {
         // Create mock drop that tracks activation
+        DropData newDropData = new DropData();
         GameObject newGameObject = new GameObject();
-        MockActivatableDrop mockActivatableDrop = newGameObject.AddComponent<MockActivatableDrop>();
+        newGameObject.AddComponent<MockActivatableDrop>();
+        newDropData.SetDropScript(newGameObject);
         
-        dropSystem.SelectDropsOption(mockActivatableDrop);
+        dropSystem.SelectDropsOption(newDropData);
 
-        Assert.IsTrue(mockActivatableDrop.wasActivated);
+        Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>
@@ -247,31 +260,22 @@ public class DropSystemTests
     public void SelectDropsOption_ActivatesBothDrops()
     {
         // Create mock drops that track activation
-        GameObject gameObject1 = new GameObject();
-        MockActivatableDrop mockActivatableDrop1 = gameObject1.AddComponent<MockActivatableDrop>();
-
-        GameObject gameObject2 = new GameObject();
-        MockActivatableDrop mockActivatableDrop2 = gameObject2.AddComponent<MockActivatableDrop>();
-
-        dropSystem.SelectDropsOption(mockActivatableDrop1, mockActivatableDrop2);
-
-        Assert.IsTrue(mockActivatableDrop1.wasActivated);
-        Assert.IsTrue(mockActivatableDrop2.wasActivated);
-
-    }
-
-    /// <summary>
-    /// Test that SelectDropsOption handle null second drop correctly
-    /// </summary>
-    [Test]
-    public void SelectDropsOption_HandlesNullSecondDrop()
-    {
-        GameObject newGameObject = new GameObject();
-        MockActivatableDrop mockActivatableDrop = newGameObject.AddComponent<MockActivatableDrop>();
+        DropData newDropData1 = new DropData();
+        GameObject newGameObject1 = new GameObject();
+        newGameObject1.AddComponent<MockActivatableDrop>();
+        newDropData1.SetDropScript(newGameObject1);
         
-        // This should not throw exception
-        Assert.DoesNotThrow(() => dropSystem.SelectDropsOption(mockActivatableDrop, null));
-        Assert.IsTrue(mockActivatableDrop.wasActivated);
+        dropSystem.SelectDropsOption(newDropData1);
+
+        DropData newDropData2 = new DropData();
+        GameObject newGameObject2 = new GameObject();
+        newGameObject2.AddComponent<MockActivatableDrop>();
+        newDropData2.SetDropScript(newGameObject2);
+        
+        dropSystem.SelectDropsOption(newDropData2);
+
+        Assert.IsTrue(newGameObject1.GetComponent<MockActivatableDrop>().wasActivated);
+        Assert.IsTrue(newGameObject2.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>

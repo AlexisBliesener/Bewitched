@@ -42,9 +42,12 @@ public class DropPickup : MonoBehaviour
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.TryGetComponent(out Character character))
         {
-            Pickup();
+            if (character == PlayerController.instance.currentCharacter)
+            {
+                Pickup();
+            }
         }
     }
     /// <summary>
