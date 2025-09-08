@@ -5,6 +5,7 @@ using UnityEngine;
 using System.IO;
 
 [RequireComponent(typeof(HealthController))]
+[RequireComponent(typeof(CharacterAnimator))]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
@@ -23,8 +24,6 @@ public abstract class Character : MonoBehaviour
     public float sizeRadius;
     [Tooltip("Team of the character")]
     public int teamID;
-    [Tooltip("Character Animator")]
-    public Animator animator;
     [Tooltip("Primary Fire Image")]
     public Sprite primaryFireIcon;
     [Tooltip("Secondary Fire Image")]
@@ -42,12 +41,9 @@ public abstract class Character : MonoBehaviour
     public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
     public float primaryComboResetTime;
-    [Tooltip("Primary Ability Animation Delay")]
-    public float primaryAnimationDelay = 0.5f;
     [Tooltip("Cooldown After Secondary Ability")]
     public float secondaryCooldown = 5;
-    [Tooltip("Secondary Ability Animation Delay")]
-    public float secondaryAnimationDelay;
+
 
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
@@ -77,13 +73,13 @@ public abstract class Character : MonoBehaviour
     protected float basePrimaryCooldown;
     protected float baseSecondaryCooldown;
 
-    protected bool inPrimaryStartAnim = false;
-    protected bool inSecondaryStartAnim = false;
-
     protected bool releasePrimaryImm = false;
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    [Tooltip("The script that controls chaning animation states")]
+    private CharacterAnimator characterAnimator;
 
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
     [SerializeField] private List<string> effectJSONs = new List<string>();
@@ -160,6 +156,7 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
+        characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
             health = GetComponent<HealthController>();
@@ -196,6 +193,14 @@ public abstract class Character : MonoBehaviour
         Die();
     }
 
+    /// <summary>
+    /// Called when the character dies to switch animation state to death
+    /// </summary>
+    public void AnimateDeath()
+    {
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.death);
+    }
+
     public virtual void PrimaryAttack()
     {
     }
@@ -227,8 +232,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || inPrimaryStartAnim) return false;
-        if (InStartAnim()) return false;
+        if (attackingPrimary || attackingSecondary || characterAnimator.NotInPrimary()) return false;
 
         return true;
     }
@@ -237,7 +241,6 @@ public abstract class Character : MonoBehaviour
     {
         if (!CheckSecondaryCooldown()) return false;
         if (attackingPrimary || attackingSecondary) return false;
-        if (InStartAnim()) return false;
 
         return true;
     }
@@ -268,38 +271,11 @@ public abstract class Character : MonoBehaviour
 
     public IEnumerator StartTime(float stopTime)
     {
-        Debug.Log("Here");
         yield return new WaitForSecondsRealtime(stopTime);
 
         if (!GameObject.FindGameObjectWithTag("PauseMenu")) // If not paused set timescale normal
         {
             Time.timeScale = 1;
-        }
-    }
-
-    public virtual void ReleaseSecondary()
-    {
-        if (releaseSecondaryImm)
-        {
-            releaseSecondaryImm = false;
-        }
-
-        if (InStartAnim())
-        {
-            releaseSecondaryImm = true;
-        }
-    }
-
-    public virtual void ReleasePrimary()
-    {
-        if (releasePrimaryImm)
-        {
-            releasePrimaryImm = false;
-        }
-
-        if (InStartAnim())
-        {
-            releasePrimaryImm = true;
         }
     }
 
@@ -325,19 +301,9 @@ public abstract class Character : MonoBehaviour
         attackingPrimary = val;
     }
 
-    public void SetPrimaryAnimStatus(bool val)
-    {
-        inPrimaryStartAnim = val;
-    }
-
     public void SetSecondaryStatus(bool val)
     {
         attackingSecondary = val;
-    }
-
-    public void SetSecondaryAnimStatus(bool val)
-    {
-        inSecondaryStartAnim = val;
     }
 
     public void SetBaseStats()
@@ -373,96 +339,27 @@ public abstract class Character : MonoBehaviour
 
             currentPrimaryComboStep += 1;
 
-            SetPrimaryAnimStatus(true);
-            AnimatePrimary();
-            yield return new WaitForSeconds(primaryAnimationDelay);
+            characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
+            yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.primaryAttack));
+
             PrimaryAttack();
-            inPrimaryStartAnim = false;
         }
     }
 
     public virtual IEnumerator BeginSecondary()
     {
-        yield return new WaitForSeconds(secondaryAnimationDelay);
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.secondaryAttack);
+        yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.secondaryAttack));
         if (gameObject)
         {
             SecondaryAttack();
-            inSecondaryStartAnim = false;
-        }
-    }
 
-    public bool InStartAnim()
-    {
-        return (inPrimaryStartAnim || inSecondaryStartAnim);
-    }
-
-    public bool CheckInAnimations()
-    {
-        if (animator.IsInTransition(0)) return true;
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Possess")) return true;
-        if (attackingPrimary || inPrimaryStartAnim) return true;
-        // Check in secondary animation
-        return false;
-    }
-
-    public void AnimateMove()
-    {
-        if (animator)
-        {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
-            {
-                animator.SetTrigger("StartRunning");
-            }
-        }
-    }
-
-    public void AnimateIdle()
-    {
-        if (animator)
-        {
-            if (!CheckInAnimations()&&!animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
-            {
-                animator.SetTrigger("StartIdle");
-            }
-        }
-    }
-
-    public void AnimatePossess()
-    {
-        if (animator)
-        {
-            if (!CheckInAnimations())
-            {
-                animator.SetTrigger("StartPossess");
-            }
         }
     }
 
     public void AnimatePrimary()
     {
-        if (animator)
-        {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Possess"))
-            {
-                Debug.Log(characterName + " started primary animation " + inPrimaryStartAnim);
-                if (primaryComboSteps == 0)
-                {
-                    animator.SetTrigger("StartPrimary");
-                }
-                else
-                {
-                    for (int i = 1; i <= primaryComboSteps; i++)
-                    {
-                        if (i == currentPrimaryComboStep)
-                        {
-                            string triggerString = "StartPrimary" + i;
-                            animator.SetTrigger(triggerString);
-                            Debug.Log(triggerString);
-                        }
-                    }
-                }
-            }
-        }
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
     }
 
     public virtual void Explode()

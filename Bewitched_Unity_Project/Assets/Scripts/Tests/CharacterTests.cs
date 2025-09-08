@@ -1,6 +1,7 @@
+using NUnit.Framework;
 using System.Collections;
 using System.IO;
-using NUnit.Framework;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -254,23 +255,6 @@ public class CharacterTests
         Assert.IsTrue(testCharacter.secondaryCalled);
     }
 
-    /// <summary>Releasing primary attack should set the immunity flag.</summary>
-    [Test]
-    public void ReleasePrimary_SetsImmFlag()
-    {
-        testCharacter.SetPrimaryAnimStatus(true);
-        testCharacter.ReleasePrimary();
-        Assert.IsTrue(testCharacter.ReleasePrimaryImmFlag);
-    }
-
-    /// <summary>Releasing secondary attack should set the immunity flag.</summary>
-    [Test]
-    public void ReleaseSecondary_SetsImmFlag()
-    {
-        testCharacter.SetSecondaryAnimStatus(true);
-        testCharacter.ReleaseSecondary();
-        Assert.IsTrue(testCharacter.ReleaseSecondaryImmFlag);
-    }
 
     #endregion
     #region Status setters 
@@ -294,13 +278,6 @@ public class CharacterTests
     #endregion
     #region Animations
 
-    /// <summary>Character should report being in start animation if flags are set.</summary>
-    [Test]
-    public void InStartAnim_TrueIfFlagsSet()
-    {
-        testCharacter.SetPrimaryAnimStatus(true);
-        Assert.IsTrue(testCharacter.InStartAnim());
-    }
 
     #endregion
     #region JSON

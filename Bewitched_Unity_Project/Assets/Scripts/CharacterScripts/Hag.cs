@@ -1,10 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using FMODUnity;
 using FMOD.Studio;
-using UnityEngine.ProBuilder;
 using UnityEngine.SceneManagement;
 
 public class Hag : Character
@@ -24,8 +21,12 @@ public class Hag : Character
     [SerializeField] LayerMask environment;
     [SerializeField] GameObject knockBackCone;
 
+    [Tooltip("The animator controller for eleth character")]
+    private ElethAnimator elethAnimator;
+
     private void Start()
     {
+        elethAnimator = GetComponent<ElethAnimator>();
         SetBaseStats();
     }
 
@@ -68,8 +69,14 @@ public class Hag : Character
         inst.release();
     }
 
+    /// <summary>
+    /// Called when Eleth dies
+    /// Fires death animation and music
+    /// Stops movement
+    /// </summary>
     protected override void OnDeath()
     {
+        AnimateDeath();
         //This is temporary until we implement the big "You Died" UI Banner thing.
         //This is just so Andrew actually hears this sound effect.
 
@@ -123,6 +130,15 @@ public class Hag : Character
         }
         knockBackCone.SetActive(false);
 
+    }
+
+    /// <summary>
+    /// Called when the possession ability is used
+    /// Sets Eleth to possession animation state
+    /// </summary>
+    public void AnimatePossess()
+    {
+        elethAnimator.SwitchState(ElethAnimator.AnimationStates.possession);
     }
 
     public void Blink()
