@@ -1,17 +1,23 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Vertex
 {
-    [Tooltip("Node 1")]
-    private Node node1;
+    [Tooltip("Node 1 X")]
+    [SerializeField] private int node1X;
+    [Tooltip("Node 1 Z")]
+    [SerializeField] private int node1Z;
 
-    [Tooltip("Node 2")]
-    private Node node2;
+    [Tooltip("Node 2 X")]
+    [SerializeField] private int node2X;
+    [Tooltip("Node 2 Z")]
+    [SerializeField] private int node2Z;
 
     [Tooltip("Distance of path")]
-    float distance;
+    [SerializeField] float distance;
 
     /// <summary>
     /// Basic constructor
@@ -20,15 +26,19 @@ public class Vertex
     /// <param name="n2">Second node</param>
     public Vertex(Node n1, Node n2, bool diagonal)
     {
-        node1 = n1;
-        node2 = n2;
+        Tuple<int, int> n1Vals = n1.GetNodeValues();
+        node1X = n1Vals.Item1;
+        node1Z = n1Vals.Item2;
+        Tuple<int,int> n2Vals = n2.GetNodeValues();
+        node2X = n2Vals.Item1;
+        node2Z = n2Vals.Item2;
         if (diagonal)
         {
-            distance = Mathf.Sqrt(2);
+            distance = n1.GetNodeDistance() * Mathf.Sqrt(2);
         }
         else
         {
-            distance = 1;
+            distance = n1.GetNodeDistance();
         }
     }
 
@@ -36,10 +46,17 @@ public class Vertex
     /// When given one node, returns the other in the vertex
     /// </summary>
     /// <param name="node"> Node coming from </param>
-    /// <returns>The other node</returns>
-    public Node GetNode(Node node)
+    /// <returns>The other node's values </returns>
+    public Tuple<int, int> GetNode(Node node)
     {
-        return node == node1 ? node2 : node1;
+        if (node.GetNodeValues().Item1 == node1X && node.GetNodeValues().Item2 == node1Z)
+        {
+            return new Tuple<int,int>(node2X, node2Z);
+        }
+        else
+        {
+            return new Tuple<int, int>(node1X, node1Z);
+        }
     }
 
     /// <summary>
