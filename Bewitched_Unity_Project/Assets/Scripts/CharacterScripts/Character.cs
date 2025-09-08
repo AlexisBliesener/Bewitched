@@ -71,6 +71,9 @@ public abstract class Character : MonoBehaviour
 
     public LayerMask characters;
 
+    [Tooltip("The Obstacle GameObject that aids in enemy pathfinding")]
+    public GameObject obstacle;
+
     protected float timeLastPrimary = -Mathf.Infinity;
     protected float timeLastSecondary = -Mathf.Infinity;
 
@@ -500,5 +503,25 @@ public abstract class Character : MonoBehaviour
     public GameObject FindClosestSurroundingPoint(Enemy enemy)
     {
         return surroundingPoints.AssignPoint(enemy);
+    }
+
+    /// <summary>
+    /// Turns items on the character on/off for enemies to navigate to/around
+    /// </summary>
+    /// <param name="val"> If to activate or deactivate </param>
+    public void ToggleAIControls(bool val)
+    {
+        obstacle.SetActive(val);
+
+        if (val)
+        {
+            ActivateSurroundingPoints();
+            obstacle.GetComponent<NavMeshObstacle>().radius = surroundingRadius - 0.5f; // To allow room for path
+            obstacle.GetComponent<CapsuleCollider>().radius = surroundingRadius - 0.5f;
+        }
+        else
+        {
+            DeactivateSurroundingPoints();
+        }
     }
 }
