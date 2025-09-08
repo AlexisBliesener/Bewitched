@@ -1,12 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using FMODUnity;
 using FMOD.Studio;
-using UnityEngine.ProBuilder;
 using UnityEngine.SceneManagement;
-using Codice.Client.Common.GameUI;
 
 public class Hag : Character
 {
