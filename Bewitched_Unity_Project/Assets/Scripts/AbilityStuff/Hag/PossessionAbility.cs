@@ -122,7 +122,6 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        HandleHeldAbilites();
         UpdateUI();
 
         // Move hag to current characters position
@@ -146,7 +145,7 @@ public class PossessionAbility : MonoBehaviour
                 if (Time.time - timePossessionLastLeft >= possessionCooldown)
                 {
                     timePossessionLastLeft = Time.time;
-                    currentCharacter.AnimatePossess();
+                    oldHag.AnimatePossess();
                     FirePossession();
                 }
             }
@@ -183,26 +182,6 @@ public class PossessionAbility : MonoBehaviour
                 Character characterHit = hitInfo.collider.gameObject.GetComponent<Character>();
                 CharacterControlChangeEvent?.Invoke(characterHit);
                 characterHit.SetControlled(true);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Handles possession ability when the button is held.
-    /// </summary>
-    private void HandleHeldAbilites()
-    {
-        if (Time.time - timePossessionLastLeft >= possessionCooldown && possessHeld)
-        {
-            if (currentCharacter == oldHag)
-            {
-                StartCoroutine(ExplodeEnemy());
-            }
-            else
-            {
-                timePossessionLastLeft = Time.time;
-                currentCharacter.AnimatePossess();
-                FirePossession();
             }
         }
     }

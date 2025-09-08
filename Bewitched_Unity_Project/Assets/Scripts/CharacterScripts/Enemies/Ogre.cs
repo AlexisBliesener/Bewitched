@@ -112,8 +112,8 @@ public class Ogre : Enemy
         PlayerController.instance.SetAllowMovement(false);
         attackingPrimary = true;
 
-        if (!playerControlling || releasePrimaryImm) ReleasePrimary();
-        releasePrimaryImm = false;
+        //if (!playerControlling || releasePrimaryImm) ReleasePrimary();
+        //releasePrimaryImm = false;
     }
 
     public override void SecondaryAttack()
@@ -127,30 +127,30 @@ public class Ogre : Enemy
         jumpVelocity = ogreJumpSpeed;
     }
 
-    public override void ReleasePrimary()
-    {
-        base.ReleasePrimary();
-        if (!isCharging) return;
+    //public override void ReleasePrimary()
+    //{
+    //    base.ReleasePrimary();
+    //    if (!isCharging) return;
 
-        isCharging = false;
-        timeLastPrimary = Time.time;
+    //    isCharging = false;
+    //    timeLastPrimary = Time.time;
 
-        minAngle = Quaternion.Euler(0, currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
-        maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
+    //    minAngle = Quaternion.Euler(0, currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
+    //    maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
 
-        GameObject pivot = Instantiate(batPivot, transform);
-        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
-        pivot.SetActive(false);
+    //    GameObject pivot = Instantiate(batPivot, transform);
+    //    pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
+    //    pivot.SetActive(false);
 
-        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
-        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+    //    GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
+    //    batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+    //    pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
 
-        pivot.SetActive(true);
-        Debug.Log(batSwingDuration);
+    //    pivot.SetActive(true);
+    //    Debug.Log(batSwingDuration);
 
-        StartCoroutine(SwingBat(pivot));
-    }
+    //    StartCoroutine(SwingBat(pivot));
+    //}
 
     public void ChargeBatSwing()
     {
@@ -182,7 +182,6 @@ public class Ogre : Enemy
 
         StartCoroutine(EnableMovement());
         SetPrimaryStatus(false);
-        SetPrimaryAnimStatus(false);
         isSwinging = false;
     }
 
