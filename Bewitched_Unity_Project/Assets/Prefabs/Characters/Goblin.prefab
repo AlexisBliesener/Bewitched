@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 5347660582151986861}
   - component: {fileID: -6918275186734421657}
   - component: {fileID: 7573160092936169644}
+  - component: {fileID: 353843413732292894}
   m_Layer: 7
   m_Name: Goblin
   m_TagString: Enemy
@@ -157,7 +158,6 @@ MonoBehaviour:
   weight: 2
   sizeRadius: 0.6
   teamID: 2
-  animator: {fileID: 6563345434283436252}
   primaryFireIcon: {fileID: 21300000, guid: b79c25c267f0e6149becb38c5d850ba5, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: dcbeb3c47a62e314090481e53d9d389c, type: 3}
   shoulderOffset: {x: 1, y: 2.5, z: 0}
@@ -166,9 +166,7 @@ MonoBehaviour:
   primaryComboExtraCooldown: 1
   primaryComboSteps: 3
   primaryComboResetTime: 1.5
-  primaryAnimationDelay: 0.4
   secondaryCooldown: 5
-  secondaryAnimationDelay: 0
   primaryAttackRange: 1
   health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
@@ -210,6 +208,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 30
   dashEffects: {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
+  offSetForward: 1
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -260,6 +259,20 @@ MonoBehaviour:
   maxHealth: 75
   decayRate: 0
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
+--- !u!114 &353843413732292894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2305004250363809269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  primaryAnimationDelay: 0.5
+  secondaryAnimationDelay: 0
 --- !u!1001 &2856675562672059631
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -628,7 +641,7 @@ Animator:
   m_GameObject: {fileID: 3127075494233000382}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 43da96d3a92485a488b4b4687a144b92, type: 2}
+  m_Controller: {fileID: 9100000, guid: bfdf7ef5cab14ee4bb52f7db2782c721, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
