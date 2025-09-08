@@ -865,9 +865,10 @@ MonoBehaviour:
   maxPossessionDistance: 10
   possessionCooldownDisplay: {fileID: 0}
   enemyExplosionTime: 10
-  lifeDrainCoefficient: 2
+  lifeDrainPercentage: 2
   secondaryHealthBar: {fileID: 0}
   oldHag: {fileID: 3570264008135937977}
+  crossHair: {fileID: 0}
 --- !u!1 &6049376072004412199
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,7 +1029,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1847222282280203633, guid: f376733acf9b548fda0194ac2ac771c0, type: 3}
       insertIndex: 2
       addedObject: {fileID: 6630169679632043357}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6457948663650330657, guid: f376733acf9b548fda0194ac2ac771c0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 968656031982131985}
   m_SourcePrefab: {fileID: 100100000, guid: f376733acf9b548fda0194ac2ac771c0, type: 3}
 --- !u!4 &2012322130574558354 stripped
 Transform:
@@ -1051,6 +1055,20 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6457948663650330657, guid: f376733acf9b548fda0194ac2ac771c0, type: 3}
   m_PrefabInstance: {fileID: 166512996165792227}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &968656031982131985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6615977690570987970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f028956485fecda47940bbee1f5a24cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  primaryAnimationDelay: 0.5
+  secondaryAnimationDelay: 0
 --- !u!1001 &6595980491910146742
 PrefabInstance:
   m_ObjectHideFlags: 0
