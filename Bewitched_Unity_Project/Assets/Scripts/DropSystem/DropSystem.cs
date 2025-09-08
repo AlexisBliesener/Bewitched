@@ -134,7 +134,7 @@ public class DropSystem : MonoBehaviour
     /// </summary>
     public void SalvageDrop()
     {
-        if (PlayerController.instance == null || PlayerController.instance.GetHag() == null)
+        if (PlayerController.instance == null || PlayerController.instance.GetHag() == null) return;
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
     }
