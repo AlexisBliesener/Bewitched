@@ -167,7 +167,7 @@ public class GraphBuilder : MonoBehaviour
         instance = this;
         Debug.Log(nodeDictionary.Count);
 
-        StartCoroutine(HandleSearching());
+        //StartCoroutine(HandleSearching()); What was causing long start time
     }
 
     // Update is called once per frame
@@ -513,6 +513,12 @@ public class GraphBuilder : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Runs across frames - collects enemy and queues them by priority
+    /// A* search is then run for each character
+    /// After 0.5 seconds, run again
+    /// </summary>
+    /// <returns></returns>
     public IEnumerator HandleSearching()
     {
         enemyQueue = new PriorityQueue<Enemy>();
