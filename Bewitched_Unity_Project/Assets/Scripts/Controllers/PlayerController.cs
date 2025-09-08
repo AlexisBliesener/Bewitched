@@ -57,9 +57,6 @@ public class PlayerController : MonoBehaviour
 
     private bool allowMovement = true;
 
-    private bool primaryHeld = false;
-    private bool secondaryHeld = false;
-
     [Tooltip("The y velocity the player is moving at")]
     private float yVelocity;
     [Tooltip("The jump speed of the player")]
@@ -96,7 +93,6 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        HandleHeldAbilities();
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
@@ -122,18 +118,11 @@ public class PlayerController : MonoBehaviour
                 velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
                 characterController.Move(velocity * Time.deltaTime);
-                currentCharacter.AnimateMove();
             }
             else
             {
                 velocity = new Vector3(0, 0, 0);
-                currentCharacter.AnimateIdle();
             }
-        }
-
-        if (currentCharacter != oldHag)
-        {
-            oldHag.AnimateIdle();
         }
     }
 
@@ -147,16 +136,10 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            primaryHeld = true;
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
             }
-        }
-        else if (context.canceled) // On release
-        {
-            currentCharacter.ReleasePrimary();
-            primaryHeld = false;
         }
         else
         {
@@ -168,17 +151,10 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            secondaryHeld = true;
             if (currentCharacter.CheckSecondaryUsable())
             {
-                currentCharacter.SetSecondaryAnimStatus(true);
                 StartCoroutine(currentCharacter.BeginSecondary());
             }
-        }
-        else if (context.canceled) // On release
-        {
-            currentCharacter.ReleaseSecondary(); // does nothing for some, starts attack for others
-            secondaryHeld = false;
         }
         else
         {
@@ -192,20 +168,6 @@ public class PlayerController : MonoBehaviour
         {
             jumpSpeed = currentCharacter.GetJumpSpeed();
             yVelocity = jumpSpeed;
-        }
-    }
-
-    public void HandleHeldAbilities()
-    {
-        if (currentCharacter.CheckPrimaryUsable() && primaryHeld)
-        {
-            StartCoroutine(currentCharacter.BeginPrimary());
-        }
-
-        if (currentCharacter.CheckSecondaryUsable() && secondaryHeld)
-        {
-            currentCharacter.SetSecondaryAnimStatus(true);
-            StartCoroutine(currentCharacter.BeginSecondary());
         }
     }
 

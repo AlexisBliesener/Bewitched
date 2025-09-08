@@ -209,13 +209,11 @@ public abstract class Enemy : Character
         {
             agent.stoppingDistance = target.sizeRadius;
             agent.SetDestination(transform.position);
-            AnimateIdle();
         }
         else
         {
             agent.stoppingDistance = target.sizeRadius;
             agent.SetDestination(target.transform.position);
-            AnimateMove();
         }
     }
 
@@ -230,7 +228,6 @@ public abstract class Enemy : Character
         if (walkPointSet)
         {
             agent.SetDestination(walkPoint);
-            AnimateMove();
         }
 
         Vector3 distance = transform.position - walkPoint;

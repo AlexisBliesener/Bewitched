@@ -108,8 +108,8 @@ public class Guard : Enemy
         timeStartedBash = Time.time;
         attackingSecondary = true;
 
-        if (releaseSecondaryImm) ReleaseSecondary();
-        releaseSecondaryImm = false;
+        //if (releaseSecondaryImm) ReleaseSecondary();
+        //releaseSecondaryImm = false;
     }
 
     public void ChargeShieldBash()
@@ -127,21 +127,21 @@ public class Guard : Enemy
         }
     }
 
-    public override void ReleaseSecondary()
-    {
-        base.ReleaseSecondary();
-        if (!chargingShieldBash) return;
+    //public override void ReleaseSecondary()
+    //{
+    //    base.ReleaseSecondary();
+    //    if (!chargingShieldBash) return;
 
-        chargingShieldBash = false;
-        timeLastSecondary = Time.time;
-        playerController.SetAllowMovement(false);
+    //    chargingShieldBash = false;
+    //    timeLastSecondary = Time.time;
+    //    playerController.SetAllowMovement(false);
 
-        health.SetInvincible(true);
+    //    health.SetInvincible(true);
 
-        GameObject hitbox = Instantiate(shieldPrefab, transform);
-        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
-        StartCoroutine(HandleBashMovement(hitbox));
-    }
+    //    GameObject hitbox = Instantiate(shieldPrefab, transform);
+    //    hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
+    //    StartCoroutine(HandleBashMovement(hitbox));
+    //}
 
     private IEnumerator HandleBashMovement(GameObject hitbox)
     {
