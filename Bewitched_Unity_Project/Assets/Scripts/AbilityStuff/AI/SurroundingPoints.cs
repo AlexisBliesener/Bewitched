@@ -29,6 +29,9 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("If the Points are Active")]
     bool pointsActive = false;
 
+    [Tooltip("Radius of points")]
+    float pointRadius;
+
     [Tooltip("List of enemies in surrounding range")]
     List<Enemy> surroundingEnemies = new List<Enemy>();
 
@@ -97,6 +100,8 @@ public class SurroundingPoints : MonoBehaviour
     {
         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
         timeLastAttack = Time.time;
+
+        pointRadius = radius;
 
         surroundingEnemies = new List<Enemy>();
         parentPoint = new GameObject("Parent Point");
@@ -182,6 +187,16 @@ public class SurroundingPoints : MonoBehaviour
                 {
                     distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
                 }
+
+                foreach (Vector3 corner in path.corners) // Manually determine if path crosses through player circle
+                {
+                    if (Vector3.Distance(corner, transform.position) < pointRadius - 0.5f)
+                    {
+                        distance += Mathf.Infinity;
+                    }
+                }
+
+                Debug.Log(distance);
 
                 if (distance < closestDist) // If the point is closer
                 {

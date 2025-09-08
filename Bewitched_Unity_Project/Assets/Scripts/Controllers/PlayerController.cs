@@ -6,6 +6,7 @@ using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 public class PlayerController : MonoBehaviour
 {
@@ -84,6 +85,12 @@ public class PlayerController : MonoBehaviour
     private bool possessHeld = false;
     private bool leaveHeld = false;
 
+    [Tooltip("Player Modifier Volume")]
+    [SerializeField] NavMeshModifierVolume playerZone;
+
+    [Tooltip("Navmesh Surface")]
+    [SerializeField] NavMeshSurface surface;
+
     private void Start()
     {
         instance = this;
@@ -92,7 +99,6 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         currentCharacter = oldHag;
-        currentCharacter.ToggleAIControls(true);
 
         characterController = currentCharacter.GetComponent<CharacterController>();
         CharacterControlChangeEvent+=SwitchCharacter;
@@ -101,11 +107,8 @@ public class PlayerController : MonoBehaviour
 
         hagHealthBar.GetComponent<HealthBar>().SetCharacter(oldHag);
         hagHealthBar.SetActive(true);
-<<<<<<< HEAD
 
         currentCharacter.ActivateSurroundingPoints();
-=======
->>>>>>> parent of 725111e (Pathfinding Changes (May be reverted))
     }
 
     void OnDisable()
@@ -313,7 +316,7 @@ public class PlayerController : MonoBehaviour
     public void SwitchCharacter(Character newCharacter){
         
         characterController = newCharacter.GetComponent<CharacterController>();
-        currentCharacter.ToggleAIControls(false);
+        currentCharacter.DeactivateSurroundingPoints();
 
         if (newCharacter == oldHag)
         {
@@ -335,7 +338,8 @@ public class PlayerController : MonoBehaviour
             timePossessing = Time.time;
         }
         currentCharacter = newCharacter;
-        currentCharacter.ToggleAIControls(true);
+        currentCharacter.ActivateSurroundingPoints();
+        playerZone.size = new Vector3(currentCharacter.surroundingRadius, 1, currentCharacter.surroundingRadius);
     }
 
     public Hag GetHag()
