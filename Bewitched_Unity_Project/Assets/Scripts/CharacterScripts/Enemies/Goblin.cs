@@ -57,9 +57,6 @@ public class Goblin : Enemy
         SetAgentValues();
         SetDebuggingValues();
         SetPatrolOrigin();
-
-        agent.SetAreaCost(3, Mathf.Infinity);
-
         StartCoroutine(LookAround());
     }
 
