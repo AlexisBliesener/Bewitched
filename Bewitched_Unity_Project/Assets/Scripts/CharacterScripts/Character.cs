@@ -491,3 +491,4 @@ public abstract class Character : MonoBehaviour
         attackingSecondary = val;
     }
 }
+

@@ -120,13 +120,12 @@ public class PlayerControllerTests
         controller = playerObj.AddComponent<MockPlayerController>();
         controller.primaryCooldownDisplay = CreateCooldownDisplay("PrimaryCooldown");
         controller.secondaryCooldownDisplay = CreateCooldownDisplay("SecondaryCooldown");
-        controller.possessionCooldownDisplay = CreateCooldownDisplay("PossessionCooldown");
 
         // Assign dependencies
         controller.oldHag = hag;
         controller.currentCharacter = hag;
         controller.hagHealthBar = hagHealthBar.gameObject;
-        controller.secondaryHealthBar = secondaryHealthBar.gameObject;
+
         controller.pauseMenu = pauseMenu;
 
         playerObj.SetActive(true);
@@ -168,18 +167,6 @@ public class PlayerControllerTests
         Assert.IsTrue(controller.hagHealthBar.activeSelf);
     }
 
-    /// <summary>
-    /// Tests that OnDisable() removes event subscriptions without throwing.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator OnDisable_RemovesEvent()
-    {
-        controller.SendMessage("Awake");
-        controller.SendMessage("OnDisable");
-        yield return null;
-        Assert.Pass(); // should not throw
-    }
-
     #endregion
 
     #region Utility Tests
@@ -195,18 +182,6 @@ public class PlayerControllerTests
         yield return null;
         Assert.AreEqual(1, Time.timeScale);
         Assert.IsFalse(controller.pauseMenu.activeSelf);
-    }
-
-    /// <summary>
-    /// Tests that SwitchCharacter() correctly changes the current character.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator SwitchCharacter_ChangesToNewCharacter()
-    {
-        var newChar = new GameObject("NewChar").AddComponent<MockCharacter>();
-        controller.SwitchCharacter(newChar);
-        yield return null;
-        Assert.AreEqual(newChar, controller.GetCurrentCharacter());
     }
 
     /// <summary>

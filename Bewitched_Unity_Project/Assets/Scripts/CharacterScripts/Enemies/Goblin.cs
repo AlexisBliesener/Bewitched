@@ -24,6 +24,8 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
     [Tooltip("Dash Effects")]
     [SerializeField] AttackStatusEffects dashEffects;
+    [Tooltip("Offset of the hitbox forward")]
+    [SerializeField] private float offSetForward = 1f;
 
     private bool isDashing = false;
 
@@ -48,7 +50,10 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        GameObject shank = Instantiate(knifePrefab, transform);
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+
+        // Instantiate in front of the character with a small offset
+        GameObject shank = Instantiate(knifePrefab, offsetPosition, transform.rotation);
         shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
 
         timeLastPrimary = Time.time;

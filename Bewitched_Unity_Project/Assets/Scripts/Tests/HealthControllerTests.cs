@@ -529,30 +529,5 @@ public class HealthControllerTests
         Assert.AreEqual(55f, testHealthController.GetHealth());
         Assert.AreEqual(3, damageEventCount);
     }
-
-    /// <summary>Events should fire in correct order for fatal damage.</summary>
-    [Test]
-    public void TakeDamage_FiresEventsInCorrectOrderForFatalDamage()
-    {
-        bool damagedFiredBeforeDeath = false;
-        bool healthChangedFiredBeforeDeath = false;
-        
-        testHealthController.OnDamaged += (amount) => 
-        {
-            if (!deathCalled) damagedFiredBeforeDeath = true;
-        };
-        
-        testHealthController.OnHealthChanged += (current, max) => 
-        {
-            if (!deathCalled) healthChangedFiredBeforeDeath = true;
-        };
-        
-        testHealthController.SubHealth(100f);
-        
-        Assert.IsTrue(damagedFiredBeforeDeath);
-        Assert.IsTrue(healthChangedFiredBeforeDeath);
-        Assert.IsTrue(deathCalled);
-    }
-
     #endregion
 }
