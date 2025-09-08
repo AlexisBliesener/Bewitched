@@ -45,8 +45,8 @@ public class NavPath
     {
         totalCost = 0;
         distance = 0;
-        origin = GraphBuilder.instance.GetNodeFromPosition(enemy.transform.position);
-        destination = GraphBuilder.instance.GetNodeFromPosition(enemy.transform.position);
+        origin = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
+        destination = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
         parentNodes = new Dictionary<Node, Vertex>();
         pathComplete = true;
     }
@@ -99,7 +99,7 @@ public class NavPath
 
             Vertex jumpVertex = parentNodes[currentNode];
 
-            Node next = jumpVertex.GetNode(currentNode);
+            Node next = GraphBuilder.instance.GetNodeFromTuple(jumpVertex.GetNode(currentNode));
 
             distance += jumpVertex.GetDistance();
 

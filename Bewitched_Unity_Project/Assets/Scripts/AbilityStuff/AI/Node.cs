@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,25 +8,26 @@ using UnityEngine;
 /// These nodes have a position (transform multiplied by 10 so indexing isn't a pain with floats)
 /// They also have a cost that determines if they are going to be walked on or unavailable
 /// </summary>
+[Serializable]
 public class Node
 {
     [Tooltip("X position multiplied by 10")]
-    private int xPos;
+    [SerializeField] private int xPos;
 
     [Tooltip("Relative y position to graph (for jumping)")]
-    private int yPos;
+    [SerializeField] private int yPos;
 
     [Tooltip("Z position multiplied by 10")]
-    private int zPos;
+    [SerializeField] private int zPos;
 
     [Tooltip("Cost of a node")]
-    private int nodeCost;
+    [SerializeField] private int nodeCost;
 
     [Tooltip("List of vertices")]
-    private List<Vertex> vertices = new List<Vertex>();
+    [SerializeField] private List<Vertex> vertices = new List<Vertex>();
 
     [Tooltip("Node separation")]
-    private int nodeSeparation;
+    [SerializeField] private int nodeSeparation;
 
     public void SetValues(int x, int z, int nodeDistance)
     {
@@ -42,6 +44,7 @@ public class Node
     /// </summary>
     /// <param name="x"> X position multiplied by ten into an int </param>
     /// <param name="z"> Z position multiplied by ten into an int </param>
+    /// <param name="nodeDistance"> Distance apart the nodes are </param>
     /// <param name="floor"> Floor layer </param>
     /// <param name="environment">Environment layer </param>
     /// <returns> A new node or null </returns>
@@ -68,6 +71,7 @@ public class Node
     public bool IsOpen(LayerMask floor, LayerMask walls)
     {
         Vector3 position = GetRealPosition();
+        position.y += 10;
 
         RaycastHit hit;
         RaycastHit hit2;
@@ -118,5 +122,23 @@ public class Node
     public Vector3 GetRealPosition()
     {
         return new Vector3(xPos / 10f, yPos, zPos / 10f);
+    }
+
+    /// <summary>
+    /// Gets node separation
+    /// </summary>
+    /// <returns> Node distance </returns>
+    public int GetNodeDistance()
+    {
+        return nodeSeparation;
+    }
+
+    /// <summary>
+    /// Gets the node x/z values
+    /// </summary>
+    /// <returns> Tuple containing x and z </returns>
+    public Tuple<int, int> GetNodeValues()
+    {
+        return new Tuple<int, int>(xPos, zPos);
     }
 }

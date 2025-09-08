@@ -18,33 +18,38 @@ using UnityEditor;
 /// </summary>
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
+[Serializable]
 public class GraphBuilder : MonoBehaviour
 {
-    public class PriorityQueue
+    /// <summary>
+    /// Priority queue class for A* search itself and ordering
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class PriorityQueue<T>
     {
         [Tooltip("Priority queue dictionary")]
-        private SortedDictionary<int, List<Node>> priorityQueue;
+        private SortedDictionary<int, List<T>> priorityQueue;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public PriorityQueue()
         {
-            priorityQueue = new SortedDictionary<int, List<Node>>();
+            priorityQueue = new SortedDictionary<int, List<T>>();
         }
 
         /// <summary>
-        /// Add a node to the queue
+        /// Add an item to the queue
         /// </summary>
-        /// <param name="node"> Node in the queue </param>
-        /// <param name="cost"> Priority of node </param>
-        public void Enqueue(Node node, int cost)
+        /// <param name="item"> Item in the queue </param>
+        /// <param name="cost"> Priority of item </param>
+        public void Enqueue(T item, int cost)
         {
             if (!priorityQueue.ContainsKey(cost))
             {
-                priorityQueue[cost] = new List<Node>();
+                priorityQueue[cost] = new List<T>();
             }
-            priorityQueue[cost].Add(node);
+            priorityQueue[cost].Add(item);
         }
 
         /// <summary>
@@ -58,15 +63,15 @@ public class GraphBuilder : MonoBehaviour
         }
 
         /// <summary>
-        /// Dequeue a node from the queue
+        /// Dequeue an item from the queue
         /// </summary>
-        /// <returns> Dequeued node </returns>
-        public Node Dequeue()
+        /// <returns> Dequeued item </returns>
+        public T Dequeue()
         {
-            if (IsEmpty()) return null;
+            if (IsEmpty()) return default(T);
 
             int lowest = priorityQueue.Keys.First();
-            Node node = priorityQueue[lowest][0];
+            T item = priorityQueue[lowest][0];
             priorityQueue[lowest].RemoveAt(0);
 
             if (priorityQueue[lowest].Count == 0)
@@ -74,20 +79,20 @@ public class GraphBuilder : MonoBehaviour
                 priorityQueue.Remove(lowest);
             }
 
-            return node;
+            return item;
         }
 
         /// <summary>
-        /// Checks if a node exists
+        /// Checks if an item exists
         /// </summary>
-        /// <param name="node"> Node looking for </param>
+        /// <param name="item"> Item looking for </param>
         /// <param name="f"> F value of node </param>
         /// <returns> True if node exists </returns>
-        public bool Contains(Node node, int f)
+        public bool Contains(T item, int f)
         {
             if (priorityQueue.ContainsKey(f))
             {
-                if (priorityQueue[f].Contains(node))
+                if (priorityQueue[f].Contains(item))
                 {
                     return true;
                 }
@@ -96,29 +101,32 @@ public class GraphBuilder : MonoBehaviour
         }
 
         /// <summary>
-        /// Replaces a node in the priority queue based on a new priority
+        /// Replaces a item in the priority queue based on a new priority
         /// </summary>
-        /// <param name="node"> Node to replace </param>
+        /// <param name="item"> Item to replace </param>
         /// <param name="oldVal"> Old value </param>
         /// <param name="newVal"> New value </param>
-        public void Replace(Node node, int oldVal, int newVal)
+        public void Replace(T item, int oldVal, int newVal)
         {
-            priorityQueue[oldVal].Remove(node);
+            priorityQueue[oldVal].Remove(item);
             if (priorityQueue[oldVal].Count == 0)
             {
                 priorityQueue.Remove(oldVal);
             }
 
-            Enqueue(node, newVal);
+            Enqueue(item, newVal);
         }
     }
 
     [Header("Graph Build Settings")]
+    [Tooltip("Graph name")]
+    [SerializeField] string graphName;
+
     [Tooltip("Square side length to build graph")]
     [SerializeField] float buildLength;
 
-    [Tooltip("Distance between points")]
-    [SerializeField] int pointDistance = 1;
+    [Tooltip("Distance between points (setting below 5 is very costly)")]
+    [SerializeField] int pointDistance = 5;
 
     [Tooltip("Mesh Filter")]
     [SerializeField] MeshFilter meshFilter;
@@ -136,10 +144,16 @@ public class GraphBuilder : MonoBehaviour
     [SerializeField] LayerMask wallLayer;
 
     [Tooltip("Dual dictionary holding coordinate values")]
-    Dictionary<int, Dictionary<int, Node>> nodeDictionary = new Dictionary<int, Dictionary<int, Node>>();
+    [SerializeField] SerializableDictionary<int, SerializableDictionary<int, Node>> nodeDictionary = new SerializableDictionary<int, SerializableDictionary<int, Node>>();
 
     [Tooltip("Singleton")]
-    public static GraphBuilder instance;
+    public static GraphBuilder instance { get; private set; }
+
+    [Tooltip("Dictionary of positions to vertex indexes")]
+    SerializableDictionary<Tuple<int, int>, int> vertexPositions = new SerializableDictionary<Tuple<int, int>, int>();
+
+    [Tooltip("Priority queue of all enemies in scene by their pathfinding priority")]
+    PriorityQueue<Enemy> enemyQueue;
 
     // Start is called before the first frame update
     void Start()
@@ -151,11 +165,9 @@ public class GraphBuilder : MonoBehaviour
         }
 
         instance = this;
+        Debug.Log(nodeDictionary.Count);
 
-        if (nodeDictionary.Count == 0)
-        {
-            CreateGraph();
-        }
+        StartCoroutine(HandleSearching());
     }
 
     // Update is called once per frame
@@ -171,7 +183,26 @@ public class GraphBuilder : MonoBehaviour
     public void DestroyGraph()
     {
         nodeDictionary.Clear();
-        graphMesh = new Mesh();
+        if (graphMesh != null)
+        {
+            graphMesh.Clear();
+        }
+        else
+        {
+            graphMesh = new Mesh();
+        }
+
+        vertexPositions = new SerializableDictionary<Tuple<int, int>, int>();
+        string path = "Assets/Prefabs/Meshes/" + graphName + ".asset";
+
+#if UNITY_EDITOR
+        Mesh existingMesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+        if (existingMesh != null)
+        {
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.SaveAssets();
+        }
+#endif
     }
 
     /// <summary>
@@ -185,12 +216,12 @@ public class GraphBuilder : MonoBehaviour
 
         DestroyGraph();
 
-        Vector3[] vertices = new Vector3[(int)(buildLength * buildLength * 100)];
+        List<Vector3> vertices = new List<Vector3>();
 
         int validNodes = 0;
-        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x++)
+        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x+=pointDistance)
         {
-            Dictionary<int, Node> zPositions = new Dictionary<int, Node>();
+            SerializableDictionary<int, Node> zPositions = new SerializableDictionary<int, Node>();
             nodeDictionary[x] = zPositions;
 
             for (int z = (int)(-buildLength * 5); z < (int)(buildLength * 5); z+=pointDistance)
@@ -200,7 +231,8 @@ public class GraphBuilder : MonoBehaviour
                 {
                     zPositions[z] = newNode;
                     FillVertices(x, z);
-                    vertices[validNodes] = newNode.GetRealPosition();
+                    vertices.Add(newNode.GetRealPosition());
+                    vertexPositions[new Tuple<int, int>(x, z)] = validNodes;
                     validNodes++;
                 }
             }
@@ -210,8 +242,19 @@ public class GraphBuilder : MonoBehaviour
                 nodeDictionary.Remove(x);
             }
         }
-        graphMesh.vertices = vertices;
-        Debug.Log(validNodes);
+        graphMesh.vertices = vertices.ToArray();
+        BuildMeshTriangles();
+        Debug.Log(nodeDictionary.Count);
+
+        meshFilter.sharedMesh = graphMesh;
+
+#if UNITY_EDITOR // saves the mesh locally
+
+        string path = "Assets/Prefabs/Meshes/" + graphName + ".asset";
+        AssetDatabase.CreateAsset(graphMesh, path);
+        AssetDatabase.SaveAssets();
+
+#endif
 
         meshFilter.mesh = graphMesh;
     }
@@ -262,9 +305,56 @@ public class GraphBuilder : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Builds the triangles for the mesh
+    /// </summary>
     public void BuildMeshTriangles()
     {
+        List<int> triangles = new List<int>();
 
+        foreach (int x in nodeDictionary.Keys)
+        {
+            foreach (int z in nodeDictionary[x].Keys)
+            {
+                if (nodeDictionary.ContainsKey(x + pointDistance) && nodeDictionary[x+pointDistance].ContainsKey(z) && nodeDictionary[x].ContainsKey(z+pointDistance) && nodeDictionary[x+pointDistance].ContainsKey(z+pointDistance)) // If quad exists
+                {
+                    int TLIndex = GetVertexIndex(new Tuple<int, int>(x, z));
+                    int BLIndex = GetVertexIndex(new Tuple<int, int>(x + pointDistance, z));
+                    int TRIndex = GetVertexIndex(new Tuple<int, int>(x, z + pointDistance));
+                    int BRIndex = GetVertexIndex(new Tuple<int, int>(x + pointDistance, z + pointDistance));
+
+                    if (TLIndex != -1 && BLIndex != -1 && TRIndex != -1 && BRIndex != -1)
+                    {
+                        triangles.Add(TLIndex);
+                        triangles.Add(BLIndex);
+                        triangles.Add(TRIndex);
+
+                        triangles.Add(TRIndex);
+                        triangles.Add(BLIndex);
+                        triangles.Add(BRIndex);
+                    }
+                }
+            }
+        }
+
+        graphMesh.triangles = triangles.ToArray();
+
+        graphMesh.RecalculateNormals();
+        graphMesh.RecalculateBounds();
+    }
+
+    /// <summary>
+    /// Gets the vertex index from a position tuple
+    /// </summary>
+    /// <param name="posVals"> Tuple of position values </param>
+    /// <returns> Index if it exists, -1 otherwise </returns>
+    int GetVertexIndex(Tuple<int, int> posVals)
+    {
+        if (vertexPositions.ContainsKey(posVals))
+        {
+            return vertexPositions[posVals];
+        }
+        return -1;
     }
 
     /// <summary>
@@ -274,17 +364,17 @@ public class GraphBuilder : MonoBehaviour
     /// <returns> Closest node if it exists </returns>
     public Node FindClosestNode(Vector3 position)
     {
-        int x = (int)(position.x * 10 / pointDistance);
-        int z = (int)(position.z * 10 / pointDistance);
+        int xInt = (int)(position.x * 10);
+        List<int> xList = new List<int>(nodeDictionary.Keys);
+        int xPos = BinaryCoordinateSearch(xInt, xList);
 
-        if (nodeDictionary.ContainsKey(x))
-        {
-            if (nodeDictionary[x].ContainsKey(z))
-            {
-                return nodeDictionary[x][z];
-            }
-        }
-        return null;
+        int zInt = (int)(position.z * 10);
+        List<int> zList = new List<int>(nodeDictionary[xPos].Keys);
+        int zPos = BinaryCoordinateSearch(zInt, zList);
+
+        if (xPos == -1 || zPos == -1) return null;
+
+        return nodeDictionary[xPos][zPos];
     }
 
     public NavPath AStarSearch(Enemy enemy, Vector3 destination)
@@ -305,7 +395,7 @@ public class GraphBuilder : MonoBehaviour
             return path;
         }
 
-        PriorityQueue nodesToSearch = new PriorityQueue();
+        PriorityQueue<Node> nodesToSearch = new PriorityQueue<Node>();
         nodesToSearch.Enqueue(origin, 0);
 
         // First tuple val is actual distance so far, second is estimated is distance to go
@@ -321,46 +411,125 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (Vertex sVertex in successors)
             {
-                Node successor = sVertex.GetNode(currentNode);
-
-                if (Vector3.Distance(successor.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
+                Tuple<int, int> dictPos = sVertex.GetNode(currentNode);
+                Node successor = GetNodeFromTuple(dictPos);
+                if (successor != null)
                 {
-                    path.SetPathVertex(successor, sVertex);
-                    path.SetDestination(successor);
-                    path.CalculatePath();
-                    return path;
-                }
 
-                int cost = nodesSearched[currentNode].Item1 + (int)(sVertex.GetDistance()) + successor.GetCost();
-                int h = (int)(Vector3.Distance(successor.GetRealPosition(), destination) * 10 / pointDistance);
-                int f = cost + h;
-
-                if (nodesSearched.ContainsKey(successor)) // If we have seen this node before
-                {
-                    if (f < nodesSearched[successor].Item2) // If less than previous value
+                    if (Vector3.Distance(successor.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
                     {
-                        if (nodesToSearch.Contains(successor, nodesSearched[successor].Item2)) // If the node is in the queue right now
-                        {
-                            nodesToSearch.Replace(successor, nodesSearched[successor].Item2, f);
-                        }
+                        path.SetPathVertex(successor, sVertex);
+                        path.SetDestination(successor);
+                        path.CalculatePath();
+                        Debug.Log(successor.GetRealPosition());
+                        return path;
+                    }
 
+                    int cost = nodesSearched[currentNode].Item1 + (int)(sVertex.GetDistance()) + successor.GetCost();
+                    int h = (int)(Vector3.Distance(successor.GetRealPosition(), destination) * 10 / pointDistance);
+                    int f = cost + h;
+
+                    if (nodesSearched.ContainsKey(successor)) // If we have seen this node before
+                    {
+                        if (f < nodesSearched[successor].Item2) // If less than previous value
+                        {
+                            if (nodesToSearch.Contains(successor, nodesSearched[successor].Item2)) // If the node is in the queue right now
+                            {
+                                nodesToSearch.Replace(successor, nodesSearched[successor].Item2, f);
+                            }
+
+                            // Set cost so far for node and priority estimate
+                            nodesSearched[successor] = new Tuple<int, int>(cost, f);
+                            // Set path parent
+                            path.SetPathVertex(successor, sVertex);
+                        }
+                    }
+                    else // If we have not seen this node before, add it to dictionary and queue
+                    {
+                        nodesToSearch.Enqueue(successor, f);
                         // Set cost so far for node and priority estimate
                         nodesSearched[successor] = new Tuple<int, int>(cost, f);
                         // Set path parent
                         path.SetPathVertex(successor, sVertex);
                     }
                 }
-                else // If we have not seen this node before, add it to dictionary and queue
-                {
-                    nodesToSearch.Enqueue(successor, f);
-                    // Set cost so far for node and priority estimate
-                    nodesSearched[successor] = new Tuple<int, int>(cost, f);
-                    // Set path parent
-                    path.SetPathVertex(successor, sVertex);
-                }
             }
         }
 
         return path;
+    }
+
+    /// <summary>
+    /// Binary search for closest number in list
+    /// </summary>
+    /// <param name="targetNum"> Target value </param>
+    /// <param name="values"> List of numbers </param>
+    /// <returns> Integer closest to target </returns>
+    public int BinaryCoordinateSearch(int targetNum, List<int> values)
+    {
+        int lower = values[0];
+        int higher = values[values.Count - 1];
+
+        foreach(int i in values)
+        {
+            if (i == targetNum)
+            {
+                return targetNum;
+            }
+            else if (i < targetNum)
+            {
+                lower = i;
+            }
+            else
+            {
+                higher = i;
+            }
+        }
+
+        if (higher - targetNum > targetNum - lower)
+        {
+            return lower;
+        }
+        else
+        {
+            return higher;
+        }
+    }
+
+    /// <summary>
+    /// Returns the node at a given tuple x/z value
+    /// </summary>
+    /// <param name="posVals"> Given values </param>
+    /// <returns> The node present there </returns>
+    public Node GetNodeFromTuple(Tuple<int, int> posVals)
+    {
+        if (nodeDictionary.ContainsKey(posVals.Item1))
+        {
+            if (nodeDictionary[posVals.Item1].ContainsKey(posVals.Item2))
+            {
+                return nodeDictionary[posVals.Item1][posVals.Item2];
+            }
+        }
+        return null;
+    }
+
+    public IEnumerator HandleSearching()
+    {
+        enemyQueue = new PriorityQueue<Enemy>();
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+
+        foreach (Enemy enemy in enemies)
+        {
+            enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+        }
+
+        while (!enemyQueue.IsEmpty())
+        {
+            Enemy enemy = enemyQueue.Dequeue();
+            enemy.FindPath();
+        }
+
+        yield return new WaitForSeconds(0.5f);
+        StartCoroutine(HandleSearching());
     }
 }
