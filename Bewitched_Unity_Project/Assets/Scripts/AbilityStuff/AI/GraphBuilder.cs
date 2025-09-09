@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Linq;
 using System;
 using UnityEditor;
+using Codice.Client.Common;
+using System.Threading.Tasks;
 
 /// <summary>
 /// This is a gambit
@@ -167,7 +169,7 @@ public class GraphBuilder : MonoBehaviour
         instance = this;
         Debug.Log(nodeDictionary.Count);
 
-        //StartCoroutine(HandleSearching()); What was causing long start time
+        StartCoroutine(HandleSearching()); //What was causing long start time
     }
 
     // Update is called once per frame
@@ -377,8 +379,92 @@ public class GraphBuilder : MonoBehaviour
         return nodeDictionary[xPos][zPos];
     }
 
+    //public NavPath AStarSearch(Enemy enemy, Vector3 destination)
+    //{
+    //    Node origin = FindClosestNode(enemy.transform.position);
+
+    //    if (origin == null)
+    //    {
+    //        return null;
+    //    }
+
+    //    NavPath path = new NavPath();
+    //    path.SetOrigin(origin);
+
+    //    if (Vector3.Distance(enemy.transform.position, destination) <= enemy.minStopDistance) // Ensure we are not at location already
+    //    {
+    //        path.SetDestination(origin);
+    //        return path;
+    //    }
+
+    //    PriorityQueue<Node> nodesToSearch = new PriorityQueue<Node>();
+    //    nodesToSearch.Enqueue(origin, 0);
+
+    //    // First tuple val is actual distance so far, second is estimated is distance to go
+    //    Dictionary<Node, Tuple<int, int>> nodesSearched = new Dictionary<Node, Tuple<int, int>>();
+
+    //    nodesSearched[origin] = new Tuple<int, int>(0, 0);
+
+    //    while (!nodesToSearch.IsEmpty())
+    //    {
+    //        Node currentNode = nodesToSearch.Dequeue();
+
+    //        List<Vertex> successors = currentNode.GetVertices();
+
+    //        foreach (Vertex sVertex in successors)
+    //        {
+    //            Tuple<int, int> dictPos = sVertex.GetNode(currentNode);
+    //            Node successor = GetNodeFromTuple(dictPos);
+    //            if (successor != null)
+    //            {
+
+    //                if (Vector3.Distance(successor.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
+    //                {
+    //                    path.SetPathVertex(successor, sVertex);
+    //                    path.SetDestination(successor);
+    //                    path.CalculatePath();
+    //                    Debug.Log(successor.GetRealPosition());
+    //                    return path;
+    //                }
+
+    //                int cost = nodesSearched[currentNode].Item1 + (int)(sVertex.GetDistance()) + successor.GetCost();
+    //                int h = (int)(Vector3.Distance(successor.GetRealPosition(), destination) * 10 / pointDistance);
+    //                int f = cost + h;
+
+    //                if (nodesSearched.ContainsKey(successor)) // If we have seen this node before
+    //                {
+    //                    if (f < nodesSearched[successor].Item2) // If less than previous value
+    //                    {
+    //                        if (nodesToSearch.Contains(successor, nodesSearched[successor].Item2)) // If the node is in the queue right now
+    //                        {
+    //                            nodesToSearch.Replace(successor, nodesSearched[successor].Item2, f);
+    //                        }
+
+    //                        // Set cost so far for node and priority estimate
+    //                        nodesSearched[successor] = new Tuple<int, int>(cost, f);
+    //                        // Set path parent
+    //                        path.SetPathVertex(successor, sVertex);
+    //                    }
+    //                }
+    //                else // If we have not seen this node before, add it to dictionary and queue
+    //                {
+    //                    nodesToSearch.Enqueue(successor, f);
+    //                    // Set cost so far for node and priority estimate
+    //                    nodesSearched[successor] = new Tuple<int, int>(cost, f);
+    //                    // Set path parent
+    //                    path.SetPathVertex(successor, sVertex);
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    return path;
+    //}
+
     public NavPath AStarSearch(Enemy enemy, Vector3 destination)
     {
+        Debug.Log("called");
+        PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         Node origin = FindClosestNode(enemy.transform.position);
 
         if (origin == null)
@@ -388,75 +474,54 @@ public class GraphBuilder : MonoBehaviour
 
         NavPath path = new NavPath();
         path.SetOrigin(origin);
+        openSet.Enqueue(origin, 0);
+        List<Node> closedSet = new List<Node>();
+        Dictionary<Vector3, float> gscore = new Dictionary<Vector3, float>();
 
-        if (Vector3.Distance(enemy.transform.position, destination) <= enemy.minStopDistance) // Ensure we are not at location already
+        gscore[origin.GetRealPosition()] = 0;
+
+        Dictionary<Vector3, float> fscore = new Dictionary<Vector3, float>();
+        fscore[origin.GetRealPosition()] = Vector3.Distance(origin.GetRealPosition(), destination);
+
+        while (!openSet.IsEmpty())
         {
-            path.SetDestination(origin);
-            return path;
-        }
+            Node current = openSet.Dequeue();
+            closedSet.Add(current);
 
-        PriorityQueue<Node> nodesToSearch = new PriorityQueue<Node>();
-        nodesToSearch.Enqueue(origin, 0);
-
-        // First tuple val is actual distance so far, second is estimated is distance to go
-        Dictionary<Node, Tuple<int, int>> nodesSearched = new Dictionary<Node, Tuple<int, int>>();
-
-        nodesSearched[origin] = new Tuple<int, int>(0, 0);
-
-        while (!nodesToSearch.IsEmpty())
-        {
-            Node currentNode = nodesToSearch.Dequeue();
-
-            List<Vertex> successors = currentNode.GetVertices();
-
-            foreach (Vertex sVertex in successors)
+            if (Vector3.Distance(current.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
             {
-                Tuple<int, int> dictPos = sVertex.GetNode(currentNode);
-                Node successor = GetNodeFromTuple(dictPos);
-                if (successor != null)
+                path.SetDestination(current);
+                path.CalculatePath();
+                return path;
+            }
+
+            foreach (Vertex vertex in current.GetVertices())
+            {
+                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2];
+
+                if (closedSet.Contains(neighbor))
+                    continue;
+
+                float tentativeGScore = gscore[current.GetRealPosition()] +
+                        Vector3.Distance(current.GetRealPosition(), neighbor.GetRealPosition());
+
+                float neighborGScore;
+                if (!gscore.TryGetValue(neighbor.GetRealPosition(), out neighborGScore))
+                    neighborGScore = float.PositiveInfinity;
+
+                if (tentativeGScore < neighborGScore)
                 {
+                    path.SetPathVertex(neighbor, vertex);
+                    gscore[neighbor.GetRealPosition()] = tentativeGScore;
+                    fscore[neighbor.GetRealPosition()] = gscore[neighbor.GetRealPosition()] + Vector3.Distance(neighbor.GetRealPosition(), destination);
 
-                    if (Vector3.Distance(successor.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
-                    {
-                        path.SetPathVertex(successor, sVertex);
-                        path.SetDestination(successor);
-                        path.CalculatePath();
-                        Debug.Log(successor.GetRealPosition());
-                        return path;
-                    }
-
-                    int cost = nodesSearched[currentNode].Item1 + (int)(sVertex.GetDistance()) + successor.GetCost();
-                    int h = (int)(Vector3.Distance(successor.GetRealPosition(), destination) * 10 / pointDistance);
-                    int f = cost + h;
-
-                    if (nodesSearched.ContainsKey(successor)) // If we have seen this node before
-                    {
-                        if (f < nodesSearched[successor].Item2) // If less than previous value
-                        {
-                            if (nodesToSearch.Contains(successor, nodesSearched[successor].Item2)) // If the node is in the queue right now
-                            {
-                                nodesToSearch.Replace(successor, nodesSearched[successor].Item2, f);
-                            }
-
-                            // Set cost so far for node and priority estimate
-                            nodesSearched[successor] = new Tuple<int, int>(cost, f);
-                            // Set path parent
-                            path.SetPathVertex(successor, sVertex);
-                        }
-                    }
-                    else // If we have not seen this node before, add it to dictionary and queue
-                    {
-                        nodesToSearch.Enqueue(successor, f);
-                        // Set cost so far for node and priority estimate
-                        nodesSearched[successor] = new Tuple<int, int>(cost, f);
-                        // Set path parent
-                        path.SetPathVertex(successor, sVertex);
-                    }
+                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetRealPosition()]);
                 }
             }
         }
 
-        return path;
+        return null;
+
     }
 
     /// <summary>
