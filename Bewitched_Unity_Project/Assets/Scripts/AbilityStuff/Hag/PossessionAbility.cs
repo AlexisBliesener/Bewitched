@@ -290,6 +290,7 @@ public class PossessionAbility : MonoBehaviour
                 currentCharacter.Die();
                 // Apply shunt damage
             }
+            timePossessionLastLeft = Time.time;
 
             // respawn old Hag
             currentCharacter.SetControlled(false);
@@ -345,6 +346,7 @@ public class PossessionAbility : MonoBehaviour
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;
         }
+        timePossessionLastLeft = Time.time;
         currentCharacter = newCharacter;
         PlayerController.instance.currentCharacter = newCharacter;
     }

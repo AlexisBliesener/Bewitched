@@ -24,7 +24,7 @@ public class DefaultHitbox : MonoBehaviour
     [Tooltip("Rotational Speed")]
     protected float rotationalSpeed;
 
-    [Tooltip("The Duration the Hitbox Stays Alive")]
+    [SerializeField, Tooltip("The Duration the Hitbox Stays Alive")]
     protected float duration;
 
     [Tooltip("The Characters this Hitbox has hit")]
@@ -37,7 +37,7 @@ public class DefaultHitbox : MonoBehaviour
     protected float slamDamage;
 
     [Tooltip("The Time the Hitbox has been Alive")]
-    protected float timeAlive;
+    protected float timeAlive = 0;
 
     [Tooltip("The Parent of this Hitbox")]
     protected DefaultHitbox parent = null; 

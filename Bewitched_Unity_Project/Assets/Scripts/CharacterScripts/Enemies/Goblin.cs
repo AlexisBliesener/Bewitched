@@ -25,7 +25,7 @@ public class Goblin : Enemy
     [Tooltip("Dash Effects")]
     [SerializeField] AttackStatusEffects dashEffects;
     [Tooltip("Offset of the hitbox forward")]
-    [SerializeField] private float offSetForward = 1f;
+    [SerializeField] private float offSetForward = 0.5f;
 
     private bool isDashing = false;
 
@@ -50,6 +50,7 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
+        Debug.Log("make knife");
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
 
         // Instantiate in front of the character with a small offset
