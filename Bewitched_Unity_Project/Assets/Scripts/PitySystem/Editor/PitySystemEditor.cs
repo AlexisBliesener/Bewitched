@@ -1,7 +1,7 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-using System.Linq;
 
 [CustomEditor(typeof(PitySystem))]
 public class PitySystemEditor : Editor
@@ -47,3 +47,4 @@ public class PitySystemEditor : Editor
 
     }
 }
+#endif
