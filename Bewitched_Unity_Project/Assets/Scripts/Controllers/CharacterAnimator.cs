@@ -68,13 +68,13 @@ public class CharacterAnimator : MonoBehaviour
         if (currentAnimationState == AnimationStates.death) return;
         if (currentAnimationState == newState) return;
 
-        currentAnimationState = newState;
-
         if(animator == null)
         {
             Debug.LogWarning("There is no animator assigned to this character");
             return;
         }
+
+        currentAnimationState = newState;
 
         switch (currentAnimationState)
         {

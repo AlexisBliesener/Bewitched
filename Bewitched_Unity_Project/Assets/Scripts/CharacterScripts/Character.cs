@@ -232,7 +232,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || characterAnimator.NotInPrimary()) return false;
+        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary()) return false;
 
         return true;
     }
