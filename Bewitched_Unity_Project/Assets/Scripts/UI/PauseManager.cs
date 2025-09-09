@@ -24,6 +24,7 @@ public class PauseManager : MonoBehaviour
 
     private void OnDisable()
     {
+        Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
