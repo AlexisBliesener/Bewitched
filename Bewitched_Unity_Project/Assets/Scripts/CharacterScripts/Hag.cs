@@ -46,16 +46,16 @@ public class Hag : Character
     public override void PrimaryAttack()
     {
 
-        StartCoroutine(KnockBackCone());
+        //StartCoroutine(KnockBackCone());
 
-        timeLastPrimary = Time.time;
+        //timeLastPrimary = Time.time;
     }
 
     public override void SecondaryAttack()
     {
-        Blink();
+        //Blink();
 
-        timeLastSecondary = Time.time;
+        //timeLastSecondary = Time.time;
     }
 
     protected override void OnDamaged(float amount)
