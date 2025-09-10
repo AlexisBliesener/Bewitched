@@ -47,6 +47,9 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("The time the last attack occured")]
     float timeLastAttack;
 
+    [Tooltip("List of nodes that are costly")]
+    List<Node> costlyNodes = new List<Node>();
+
     private void Update()
     {
         if (pointsActive)
@@ -62,6 +65,7 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandlePointsEachFrame()
     {
+        CreateLocalCostlyArea();
         if (parentPoint)
         {
             parentPoint.transform.position = transform.position;
@@ -299,6 +303,9 @@ public class SurroundingPoints : MonoBehaviour
         return sameEnemies;
     }
 
+    /// <summary>
+    /// Tells an enemy in the surrounding list to attack
+    /// </summary>
     public void HandleSurroundAttack()
     {
         if (Time.time - timeLastAttack > startAttackTime)
@@ -307,6 +314,31 @@ public class SurroundingPoints : MonoBehaviour
             timeLastAttack = Time.time;
 
             // Select random enemy from list and tell them to attack
+        }
+    }
+
+    /// <summary>
+    /// Creates a costly area around the player that enemies will avoid entering
+    /// </summary>
+    public void CreateLocalCostlyArea()
+    {
+        ResetCostlyArea();
+
+        costlyNodes = GraphBuilder.instance.GetNodesInRadius(transform.position, pointRadius-.25f);
+        foreach (Node node in costlyNodes)
+        {
+            node.AddCost(8000);
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly area values
+    /// </summary>
+    public void ResetCostlyArea()
+    {
+        foreach (Node node in costlyNodes)
+        {
+            node.AddCost(-8000);
         }
     }
 }

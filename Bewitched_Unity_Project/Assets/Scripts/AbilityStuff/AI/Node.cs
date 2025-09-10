@@ -141,4 +141,13 @@ public class Node
     {
         return new Tuple<int, int>(xPos, zPos);
     }
+
+    /// <summary>
+    /// Add a cost to a node
+    /// </summary>
+    /// <param name="cost"> Cost to add </param>
+    public void AddCost(int cost)
+    {
+        nodeCost += cost;
+    }
 }

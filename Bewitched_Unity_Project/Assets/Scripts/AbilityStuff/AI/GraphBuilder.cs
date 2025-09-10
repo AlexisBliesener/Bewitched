@@ -793,4 +793,40 @@ public class GraphBuilder : MonoBehaviour
         yield return null;
         enemy.FindPath();
     }
+
+    /// <summary>
+    /// Gets all nodes within a certain radius of a position
+    /// </summary>
+    /// <param name="position"> Center of circle </param>
+    /// <param name="radius"> Radius of circle </param>
+    /// <returns> All nodes in the circle </returns>
+    public List<Node> GetNodesInRadius(Vector3 position, float radius)
+    {
+        List<Node> includedNodes = new List<Node>();
+
+        int xPos = (int)(position.x * 10);
+        int zPos = (int)(position.z * 10);
+
+        int convRadius = (int)(radius * 10);
+
+        for (int x = xPos - convRadius; x <= xPos + convRadius; x++)
+        {
+            if (nodeDictionary.ContainsKey(x))
+            {
+                for (int z = zPos - convRadius; z <= zPos + convRadius; z++)
+                {
+                    if (nodeDictionary[x].ContainsKey(z))
+                    {
+                        Vector3 dist = nodeDictionary[x][z].GetRealPosition() - position;
+
+                        if (dist.sqrMagnitude < radius)
+                        {
+                            includedNodes.Add(nodeDictionary[x][z]);
+                        }
+                    }
+                }
+            }
+        }
+        return includedNodes;
+    }
 }
