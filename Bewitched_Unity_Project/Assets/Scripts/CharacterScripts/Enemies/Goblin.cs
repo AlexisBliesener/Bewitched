@@ -191,6 +191,14 @@ public class Goblin : Enemy
                 }
             }
         }
+        else if (aiState == GoblinAIState.Chasing)
+        {
+            surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
+            if (surroundPoint) // If there is a valid point
+            {
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+        }
     }
 
     /// <summary>
@@ -361,22 +369,15 @@ public class Goblin : Enemy
             TransitionToSearch();
             return;
         }
-
-        surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
-
-        if (surroundPoint) // If there is a valid point
-        {
-            agent.SetDestination(surroundPoint.transform.position);
             
-            if (debugging)
-            {
-                UpdatePath(false);
-            }
+        if (debugging)
+        {
+            UpdatePath(false);
+        }
 
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
-            {
-                // Handle Surrounding
-            }
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
+        {
+            // Handle Surrounding
         }
     }
 
