@@ -121,7 +121,7 @@ public class Node
     /// <returns></returns>
     public Vector3 GetRealPosition()
     {
-        return new Vector3(xPos / 10f, yPos, zPos / 10f);
+        return new Vector3(xPos / 10f, yPos / 10f, zPos / 10f);
     }
 
     /// <summary>

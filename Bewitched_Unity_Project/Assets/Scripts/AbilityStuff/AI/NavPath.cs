@@ -149,9 +149,13 @@ public class NavPath
     /// <returns> Distance </returns>
     public float GetDistance()
     {
-        return distance;
+        return distance / 10;
     }
 
+    /// <summary>
+    /// Gets the status of the path
+    /// </summary>
+    /// <returns> True if complete </returns>
     public bool PathComplete()
     {
         return pathComplete;

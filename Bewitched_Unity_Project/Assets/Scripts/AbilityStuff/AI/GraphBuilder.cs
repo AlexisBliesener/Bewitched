@@ -130,6 +130,9 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Distance between points (setting below 5 is very costly)")]
     [SerializeField] int pointDistance = 5;
 
+    [Tooltip("How many nodes can be searched before the next frame is played")]
+    [SerializeField] int nodesSearchedPerFrame = 60;
+
     [Tooltip("Mesh Filter")]
     [SerializeField] MeshFilter meshFilter;
 
@@ -156,6 +159,27 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("Priority queue of all enemies in scene by their pathfinding priority")]
     PriorityQueue<Enemy> enemyQueue;
+
+    [Tooltip("If an enemy is searching currently")]
+    bool searching = false;
+
+    [Tooltip("If we are testing")]
+    [SerializeField] bool testing = false;
+
+    [Tooltip("Destination marker object")]
+    [SerializeField] GameObject testDestinationObj;
+
+    [Tooltip("Testing Enemy")]
+    [SerializeField] Enemy testingEnemy;
+
+    [Tooltip("Searched node prefab")]
+    [SerializeField] GameObject testSearchedNode;
+
+    [Tooltip("Created objects for cleanup")]
+    List<GameObject> createdObjects;
+
+    [Tooltip("Found destination material")]
+    [SerializeField] Material greenMat;
 
     // Start is called before the first frame update
     void Start()
@@ -366,13 +390,20 @@ public class GraphBuilder : MonoBehaviour
     /// <returns> Closest node if it exists </returns>
     public Node FindClosestNode(Vector3 position)
     {
+        if (nodeDictionary == null || nodeDictionary.Count == 0)
+            return null;
+
         int xInt = (int)(position.x * 10);
         List<int> xList = new List<int>(nodeDictionary.Keys);
         int xPos = BinaryCoordinateSearch(xInt, xList);
+        if (!nodeDictionary.ContainsKey(xPos))
+            return null;
 
         int zInt = (int)(position.z * 10);
         List<int> zList = new List<int>(nodeDictionary[xPos].Keys);
         int zPos = BinaryCoordinateSearch(zInt, zList);
+        if (!nodeDictionary[xPos].ContainsKey(zPos))
+            return null;
 
         if (xPos == -1 || zPos == -1) return null;
 
@@ -461,16 +492,29 @@ public class GraphBuilder : MonoBehaviour
     //    return path;
     //}
 
-    public NavPath AStarSearch(Enemy enemy, Vector3 destination)
+    /// <summary>
+    /// Search function for finding the fastest route to a destination
+    /// Made it an enumerator so we can split the search across frames for quicker handling
+    /// </summary>
+    /// <param name="enemy"> Enemy looking for path </param>
+    /// <param name="destination"> Destination location </param>
+    /// <returns></returns>
+    public IEnumerator AStarSearch(Enemy enemy, Vector3 destination)
     {
-        Debug.Log("called");
+        searching = true;
+
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         Node origin = FindClosestNode(enemy.transform.position);
+        Node targetNode = FindClosestNode(destination);
 
-        if (origin == null)
+        if (origin == null || targetNode == null)
         {
-            return null;
+            searching = false;
+            enemy.SetUsingSearch(false);
+            yield break;
         }
+
+        int nodesSearched = 0;
 
         NavPath path = new NavPath();
         path.SetOrigin(origin);
@@ -488,11 +532,24 @@ public class GraphBuilder : MonoBehaviour
             Node current = openSet.Dequeue();
             closedSet.Add(current);
 
-            if (Vector3.Distance(current.GetRealPosition(), destination) <= enemy.minStopDistance) // If in range, add node to path and end
+            nodesSearched++;
+
+            if (targetNode == current) // If in range, add node to path and end
             {
                 path.SetDestination(current);
                 path.CalculatePath();
-                return path;
+                enemy.SetPath(path);
+                searching = false;
+                enemy.SetUsingSearch(false);
+
+                if (!enemy.ValidatePoint())
+                {
+                    StartCoroutine(RetryPath(enemy));
+                    yield break;
+                }
+
+                Debug.Log("Path found in " + nodesSearched.ToString() + " nodes.");
+                yield break;
             }
 
             foreach (Vertex vertex in current.GetVertices())
@@ -518,9 +575,16 @@ public class GraphBuilder : MonoBehaviour
                     openSet.Enqueue(neighbor, (int)fscore[neighbor.GetRealPosition()]);
                 }
             }
+
+            if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
+            {
+                yield return null; // Go to next frame
+            }
         }
 
-        return null;
+        searching = false;
+        enemy.SetUsingSearch(false);
+        yield break;
 
     }
 
@@ -586,21 +650,147 @@ public class GraphBuilder : MonoBehaviour
     /// <returns></returns>
     public IEnumerator HandleSearching()
     {
-        enemyQueue = new PriorityQueue<Enemy>();
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        if (testing) yield break;
 
-        foreach (Enemy enemy in enemies)
+        while (true)
         {
-            enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+
+            enemyQueue = new PriorityQueue<Enemy>();
+            Enemy[] enemies = FindObjectsOfType<Enemy>();
+
+            foreach (Enemy enemy in enemies)
+            {
+                enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+            }
+
+            while (!enemyQueue.IsEmpty())
+            {
+                if (!searching)
+                {
+                    Enemy enemy = enemyQueue.Dequeue();
+                    enemy.FindPath();
+                }
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    /// <summary>
+    /// Function to run from editor to test A* search one step at a time
+    /// </summary>
+    [ContextMenu("Test AStar Search")]
+    public void TestAStarSearch()
+    {
+        createdObjects = new List<GameObject>();
+        StartCoroutine(SequentialAStar(testingEnemy, testDestinationObj.transform.position));
+    }
+
+    /// <summary>
+    /// A* search except waits half a second between node jumps and instantiates objects
+    /// </summary>
+    /// <param name="enemy"> Enemy looking for path </param>
+    /// <param name="destination"> Destination point </param>
+    /// <returns> Time </returns>
+    public IEnumerator SequentialAStar(Enemy enemy, Vector3 destination)
+    {
+        int numSearched = 0;
+        Debug.Log("called");
+        PriorityQueue<Node> openSet = new PriorityQueue<Node>();
+        Node origin = FindClosestNode(enemy.transform.position);
+
+        Node targetNode = FindClosestNode(destination);
+
+        if (origin == null || targetNode == null)
+        {
+            CleanupTestWaste();
+            yield break;
         }
 
-        while (!enemyQueue.IsEmpty())
+        NavPath path = new NavPath();
+        path.SetOrigin(origin);
+        openSet.Enqueue(origin, 0);
+        List<Node> closedSet = new List<Node>();
+        Dictionary<Vector3, float> gscore = new Dictionary<Vector3, float>();
+
+        gscore[origin.GetRealPosition()] = 0;
+
+        Dictionary<Vector3, float> fscore = new Dictionary<Vector3, float>();
+        fscore[origin.GetRealPosition()] = Vector3.Distance(origin.GetRealPosition(), destination);
+
+        while (!openSet.IsEmpty())
         {
-            Enemy enemy = enemyQueue.Dequeue();
-            enemy.FindPath();
+            Node current = openSet.Dequeue();
+            closedSet.Add(current);
+            numSearched++;
+
+            GameObject testNode = Instantiate(testSearchedNode);
+            testNode.transform.position = current.GetRealPosition();
+            createdObjects.Add(testNode);
+
+            if (targetNode == current) // If in range, add node to path and end
+            {
+                path.SetDestination(current);
+                path.CalculatePath();
+                enemy.SetPath(path);
+                testNode.GetComponent<MeshRenderer>().material = greenMat;
+                Debug.Log("Path found in: " + numSearched.ToString() + " nodes");
+                enemy.StartPath(false);
+                yield return new WaitForSeconds(5);
+                enemy.DestroyPath();
+                CleanupTestWaste();
+                yield break;
+            }
+
+            foreach (Vertex vertex in current.GetVertices())
+            {
+                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2];
+
+                if (closedSet.Contains(neighbor))
+                    continue;
+
+                float tentativeGScore = gscore[current.GetRealPosition()] +
+                        Vector3.Distance(current.GetRealPosition(), neighbor.GetRealPosition());
+
+                float neighborGScore;
+                if (!gscore.TryGetValue(neighbor.GetRealPosition(), out neighborGScore))
+                    neighborGScore = float.PositiveInfinity;
+
+                if (tentativeGScore < neighborGScore)
+                {
+                    path.SetPathVertex(neighbor, vertex);
+                    gscore[neighbor.GetRealPosition()] = tentativeGScore;
+                    fscore[neighbor.GetRealPosition()] = gscore[neighbor.GetRealPosition()] + Vector3.Distance(neighbor.GetRealPosition(), destination);
+
+                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetRealPosition()]);
+                }
+            }
         }
 
-        yield return new WaitForSeconds(0.5f);
-        StartCoroutine(HandleSearching());
+        CleanupTestWaste();
+        yield break;
+    }
+
+    /// <summary>
+    /// Cleans up waste from the tests
+    /// </summary>
+    public void CleanupTestWaste()
+    {
+        foreach (GameObject obj in createdObjects)
+        {
+            Destroy(obj);
+        }
+    }
+
+    /// <summary>
+    /// Runs the pathfinder again
+    /// </summary>
+    /// <param name="enemy"> Enemy finding a path </param>
+    /// <returns></returns>
+    private IEnumerator RetryPath(Enemy enemy)
+    {
+        yield return null;
+        enemy.FindPath();
     }
 }

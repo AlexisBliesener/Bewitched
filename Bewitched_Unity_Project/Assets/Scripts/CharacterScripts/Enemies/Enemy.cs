@@ -92,7 +92,7 @@ public abstract class Enemy : Character
 
     protected bool inAttackDelay = false;
 
-    protected Vector3 previousVelocity = new Vector3(0, 0, 0);
+    protected Vector3 prevVelocity = new Vector3(0, 0, 0);
 
     protected float timePlayerLastSeen;
 
@@ -100,12 +100,49 @@ public abstract class Enemy : Character
 
     protected bool reachedWalkpoint = true;
 
+    [Tooltip("Bool determining if this enemy is using the A* search")]
+    protected bool usingAStar = false;
+
+    [Tooltip("Node index we are currently on in our path")]
+    protected int currentNodeIndex = 0;
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
+        if (currentPath == null) return;
+        if (currentNodeIndex >= currentPath.GetPathPositions().Count)
+        {
+            reachedWalkpoint = true;
+            agent.autoBraking = true;
+            return;
+        }
+        else
+        {
+            agent.autoBraking = false;
+        }
 
+        agent.SetDestination(currentPath.GetPathPositions()[currentNodeIndex]);
+        prevVelocity = agent.velocity;
+        HandleAcceleration();
+
+        if (agent.remainingDistance < minStopDistance)
+        {
+            currentNodeIndex++;
+        }
+    }
+
+    public void HandleAcceleration()
+    {
+        if (agent.velocity.magnitude > prevVelocity.magnitude) // Accelerating
+        {
+            agent.acceleration = acceleration;
+        }
+        else
+        {
+            agent.acceleration = deceleration;
+        }
     }
 
     public void SetAgentValues()
@@ -291,8 +328,6 @@ public abstract class Enemy : Character
         {
             Patrol();
         }
-
-        HandleDeceleration();
     }
 
     public virtual void Chase()
@@ -477,25 +512,10 @@ public abstract class Enemy : Character
         }
     }
 
-    /// <summary>
-    /// Handles decelerating the character based on the values in Character.cs
-    /// </summary>
-    public void HandleDeceleration()
-    {
-        if (agent.velocity.magnitude < previousVelocity.magnitude)
-        {
-            agent.acceleration = deceleration;
-        }
-        else
-        {
-            agent.acceleration = acceleration;
-        }
-
-        previousVelocity = agent.velocity;
-    }
-
     public void StartPath(bool usingAgent = true)
     {
+        if (usingAgent == false && currentPath == null) return;
+
         if (destinationMarker)
         {
             if (usingAgent)
@@ -505,6 +525,16 @@ public abstract class Enemy : Character
             else
             {
                 destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+            }
+        }
+        else
+        {
+            if (!usingAgent)
+            {
+                destinationMarker = Instantiate(destinationMarkerPrefab);
+                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
 
@@ -537,7 +567,7 @@ public abstract class Enemy : Character
         {
             for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
             {
-                pathVisualizer.SetPosition(i, currentPath.GetPathPositions()[i]);
+                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetPathPositions()[i].x, transform.position.y, currentPath.GetPathPositions()[i].z));
             }
         }
     }
@@ -556,6 +586,7 @@ public abstract class Enemy : Character
             else
             {
                 destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
 
@@ -590,7 +621,7 @@ public abstract class Enemy : Character
         {
             for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
             {
-                pathVisualizer.SetPosition(i, currentPath.GetPathPositions()[i]);
+                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetPathPositions()[i].x, transform.position.y, currentPath.GetPathPositions()[i].z));
             }
         }
     }
@@ -617,45 +648,34 @@ public abstract class Enemy : Character
     }
 
     /// <summary>
-    /// Tells the enemy to move if not being player controlled - called every frame in Update
-    /// </summary>
-    /// <param name="direction"> Normalized direction to move in </param>
-    public void Move(Vector3 direction)
-    {
-        transform.position = new Vector3(transform.position.x + previousVelocity.x, transform.position.y, transform.position.z + previousVelocity.z); // Handle movement from previous frame
-
-        if (Mathf.Abs(previousVelocity.normalized.x - direction.x) < 0.05 && Mathf.Abs(previousVelocity.normalized.z - direction.z) < 0.05) // If we are going the same direction (relatively)
-        {
-            if (previousVelocity.magnitude < movementSpeed)
-            {
-                previousVelocity = direction * (previousVelocity.magnitude + acceleration * Time.deltaTime);
-
-                if (previousVelocity.magnitude > movementSpeed) // If we just made the movement speed higher than max, set to max
-                {
-                    previousVelocity = previousVelocity.normalized * movementSpeed;
-                }
-            }
-            else
-            {
-                previousVelocity = direction * movementSpeed;
-            }
-        }
-        else // If changing direction
-        {
-            if (previousVelocity.x > direction.x) // If we are slowing down on the x axis
-            {
-                previousVelocity.x -= deceleration * Time.deltaTime;
-
-            }
-        }
-
-    }
-
-    /// <summary>
     /// Virtual function to find a path based on current state
     /// </summary>
     public virtual void FindPath()
     {
 
+    }
+
+    /// <summary>
+    /// Sets the path for the AI
+    /// </summary>
+    /// <param name="path"> Path to set </param>
+    public void SetPath(NavPath path)
+    {
+        currentPath = path;
+        currentNodeIndex = 0;
+    }
+
+    /// <summary>
+    /// Set if the enemy is using A* or not
+    /// </summary>
+    /// <param name="val"> Value to set true/false </param>
+    public void SetUsingSearch(bool val)
+    {
+        usingAStar = val;
+    }
+
+    public virtual bool ValidatePoint()
+    {
+        return true;
     }
 }
