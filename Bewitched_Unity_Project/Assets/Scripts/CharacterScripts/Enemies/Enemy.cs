@@ -92,7 +92,7 @@ public abstract class Enemy : Character
 
     protected bool inAttackDelay = false;
 
-    protected Vector3 prevVelocity = new Vector3(0, 0, 0);
+    protected Vector3 velocity = new Vector3(0, 0, 0);
 
     protected float timePlayerLastSeen;
 
@@ -103,45 +103,105 @@ public abstract class Enemy : Character
     [Tooltip("Bool determining if this enemy is using the A* search")]
     protected bool usingAStar = false;
 
-    [Tooltip("Node index we are currently on in our path")]
-    protected int currentNodeIndex = 0;
+    [Tooltip("Corner node index we are currently on in our path")]
+    protected int currentCornerIndex = 0;
+
+    public bool tempDebugging = false;
 
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
-        if (currentPath == null) return;
-        if (currentNodeIndex >= currentPath.GetPathPositions().Count)
+        if (currentPath == null) // No path, decelerate to 0
         {
-            reachedWalkpoint = true;
-            agent.autoBraking = true;
+            Vector3 direction = Vector3.zero;
+            velocity = Vector3.Lerp(velocity, direction, Time.deltaTime * deceleration);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }
+
+        if (Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position) <= minStopDistance)
+        {
+            currentCornerIndex++;
+        }
+
+        if (currentCornerIndex >= currentPath.GetCornerNodes().Count) // Reached last node, decelerate to 0
+        {
+            Vector3 direction = Vector3.zero;
+            velocity = Vector3.Lerp(velocity, direction, Time.deltaTime * deceleration);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            return;
+        }
+
+        Vector3 desiredVelocity;
+        float dist = Vector3.Distance(currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject), transform.position);
+
+        if (dist < 3) // If traveling less than 3 units, set desired speed lower
+        {
+            float desiredSpeed = Mathf.Lerp(0.5f, movementSpeed, dist);
+            desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * desiredSpeed;
+        }
         else
         {
-            agent.autoBraking = false;
+            // Desired velocity is pointing towards the next position and moving at top speed
+            desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
         }
 
-        agent.SetDestination(currentPath.GetPathPositions()[currentNodeIndex]);
-        prevVelocity = agent.velocity;
-        HandleAcceleration();
+        float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
+        velocity.x += xChange;
 
-        if (agent.remainingDistance < minStopDistance)
+        if (Mathf.Abs(velocity.x) >= movementSpeed) velocity.x = movementSpeed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+        float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.deltaTime;
+        velocity.z += zChange;
+
+        if (tempDebugging)
         {
-            currentNodeIndex++;
+            Debug.Log("X: " + xChange + " Z:" + zChange);
         }
+
+        if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
+
+        if (Vector3.SqrMagnitude(velocity) > movementSpeed)
+        {
+            velocity = velocity.normalized * movementSpeed;
+        }
+
+        if (Mathf.Abs(velocity.x) <= 0.01f) velocity.x = 0;
+        if (Mathf.Abs(velocity.z) <= 0.01f) velocity.z = 0;
+
+        GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+        transform.forward = Vector3.Lerp(transform.forward, desiredVelocity.normalized, 100 * Time.deltaTime); // Handle turning
     }
 
-    public void HandleAcceleration()
+    /// <summary>
+    /// Determines what acceleration/deceleration value should be used for x and z values
+    /// </summary>
+    /// <param name="currentVelocity"> Current velocity in direction </param>
+    /// <param name="desired"> Desired velocity (at top speed in direction) </param>
+    /// <returns> Acceleration or deceleraton value </returns>
+    public float GetAccelerationValue(float currentVelocity, float desired)
     {
-        if (agent.velocity.magnitude > prevVelocity.magnitude) // Accelerating
+        float currentSign = Mathf.Sign(currentVelocity);
+        float desiredSign = Mathf.Sign(desired);
+
+        if (Mathf.Abs(currentVelocity) <= 0.01f) return acceleration * desiredSign;
+
+        if (currentSign == desiredSign) // If moving in same direction
         {
-            agent.acceleration = acceleration;
+            if (Mathf.Abs(currentVelocity) > Mathf.Abs(desired)) // If going faster than desired in direction
+            {
+                return deceleration * -currentSign; // Reverse direction so adding substracts from magnitude
+            }
+            else // Otherwise accelerate
+            {
+                return acceleration * Mathf.Sign(desired);
+            }
         }
-        else
+        else // If needing to move in a different direction, move in desired direction
         {
-            agent.acceleration = deceleration;
+            return deceleration * desired;
         }
     }
 
@@ -524,7 +584,7 @@ public abstract class Enemy : Character
             }
             else
             {
-                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
                 destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
@@ -533,7 +593,7 @@ public abstract class Enemy : Character
             if (!usingAgent)
             {
                 destinationMarker = Instantiate(destinationMarkerPrefab);
-                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
                 destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
@@ -548,6 +608,8 @@ public abstract class Enemy : Character
         {
             pathVisualizer.positionCount = currentPath.GetPathPositions().Count;
         }
+
+        if (pathVisualizer.positionCount < 1) return;
 
         pathVisualizer.SetPosition(0, transform.position);
 
@@ -585,7 +647,7 @@ public abstract class Enemy : Character
             }
             else
             {
-                destinationMarker.transform.position = currentPath.GetDestinationPosition();
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
                 destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
@@ -662,7 +724,7 @@ public abstract class Enemy : Character
     public void SetPath(NavPath path)
     {
         currentPath = path;
-        currentNodeIndex = 0;
+        currentCornerIndex = 0;
     }
 
     /// <summary>

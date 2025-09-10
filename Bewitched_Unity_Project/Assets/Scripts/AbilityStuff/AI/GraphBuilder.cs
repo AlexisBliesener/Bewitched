@@ -191,7 +191,6 @@ public class GraphBuilder : MonoBehaviour
         }
 
         instance = this;
-        Debug.Log(nodeDictionary.Count);
 
         StartCoroutine(HandleSearching()); //What was causing long start time
     }
@@ -257,7 +256,7 @@ public class GraphBuilder : MonoBehaviour
                 {
                     zPositions[z] = newNode;
                     FillVertices(x, z);
-                    vertices.Add(newNode.GetRealPosition());
+                    vertices.Add(newNode.GetPosition());
                     vertexPositions[new Tuple<int, int>(x, z)] = validNodes;
                     validNodes++;
                 }
@@ -522,10 +521,10 @@ public class GraphBuilder : MonoBehaviour
         List<Node> closedSet = new List<Node>();
         Dictionary<Vector3, float> gscore = new Dictionary<Vector3, float>();
 
-        gscore[origin.GetRealPosition()] = 0;
+        gscore[origin.GetPosition()] = 0;
 
         Dictionary<Vector3, float> fscore = new Dictionary<Vector3, float>();
-        fscore[origin.GetRealPosition()] = Vector3.Distance(origin.GetRealPosition(), destination);
+        fscore[origin.GetPosition()] = Vector3.Distance(origin.GetPosition(), destination);
 
         while (!openSet.IsEmpty())
         {
@@ -548,7 +547,6 @@ public class GraphBuilder : MonoBehaviour
                     yield break;
                 }
 
-                Debug.Log("Path found in " + nodesSearched.ToString() + " nodes.");
                 yield break;
             }
 
@@ -559,20 +557,20 @@ public class GraphBuilder : MonoBehaviour
                 if (closedSet.Contains(neighbor))
                     continue;
 
-                float tentativeGScore = gscore[current.GetRealPosition()] +
-                        Vector3.Distance(current.GetRealPosition(), neighbor.GetRealPosition());
+                float tentativeGScore = gscore[current.GetPosition()] +
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition());
 
                 float neighborGScore;
-                if (!gscore.TryGetValue(neighbor.GetRealPosition(), out neighborGScore))
+                if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
                 if (tentativeGScore < neighborGScore)
                 {
                     path.SetPathVertex(neighbor, vertex);
-                    gscore[neighbor.GetRealPosition()] = tentativeGScore;
-                    fscore[neighbor.GetRealPosition()] = gscore[neighbor.GetRealPosition()] + Vector3.Distance(neighbor.GetRealPosition(), destination);
+                    gscore[neighbor.GetPosition()] = tentativeGScore;
+                    fscore[neighbor.GetPosition()] = gscore[neighbor.GetPosition()] + Vector3.Distance(neighbor.GetPosition(), destination);
 
-                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetRealPosition()]);
+                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetPosition()]);
                 }
             }
 
@@ -714,10 +712,10 @@ public class GraphBuilder : MonoBehaviour
         List<Node> closedSet = new List<Node>();
         Dictionary<Vector3, float> gscore = new Dictionary<Vector3, float>();
 
-        gscore[origin.GetRealPosition()] = 0;
+        gscore[origin.GetPosition()] = 0;
 
         Dictionary<Vector3, float> fscore = new Dictionary<Vector3, float>();
-        fscore[origin.GetRealPosition()] = Vector3.Distance(origin.GetRealPosition(), destination);
+        fscore[origin.GetPosition()] = Vector3.Distance(origin.GetPosition(), destination);
 
         while (!openSet.IsEmpty())
         {
@@ -726,7 +724,7 @@ public class GraphBuilder : MonoBehaviour
             numSearched++;
 
             GameObject testNode = Instantiate(testSearchedNode);
-            testNode.transform.position = current.GetRealPosition();
+            testNode.transform.position = current.GetPosition();
             createdObjects.Add(testNode);
 
             if (targetNode == current) // If in range, add node to path and end
@@ -750,20 +748,20 @@ public class GraphBuilder : MonoBehaviour
                 if (closedSet.Contains(neighbor))
                     continue;
 
-                float tentativeGScore = gscore[current.GetRealPosition()] +
-                        Vector3.Distance(current.GetRealPosition(), neighbor.GetRealPosition());
+                float tentativeGScore = gscore[current.GetPosition()] +
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition());
 
                 float neighborGScore;
-                if (!gscore.TryGetValue(neighbor.GetRealPosition(), out neighborGScore))
+                if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
                 if (tentativeGScore < neighborGScore)
                 {
                     path.SetPathVertex(neighbor, vertex);
-                    gscore[neighbor.GetRealPosition()] = tentativeGScore;
-                    fscore[neighbor.GetRealPosition()] = gscore[neighbor.GetRealPosition()] + Vector3.Distance(neighbor.GetRealPosition(), destination);
+                    gscore[neighbor.GetPosition()] = tentativeGScore;
+                    fscore[neighbor.GetPosition()] = gscore[neighbor.GetPosition()] + Vector3.Distance(neighbor.GetPosition(), destination);
 
-                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetRealPosition()]);
+                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetPosition()]);
                 }
             }
         }
@@ -800,12 +798,12 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="position"> Center of circle </param>
     /// <param name="radius"> Radius of circle </param>
     /// <returns> All nodes in the circle </returns>
-    public List<Node> GetNodesInRadius(Vector3 position, float radius)
+    public List<Node> GetNodesInRadius(GameObject user, float radius)
     {
         List<Node> includedNodes = new List<Node>();
 
-        int xPos = (int)(position.x * 10);
-        int zPos = (int)(position.z * 10);
+        int xPos = (int)(user.transform.position.x * 10);
+        int zPos = (int)(user.transform.position.z * 10);
 
         int convRadius = (int)(radius * 10);
 
@@ -817,7 +815,7 @@ public class GraphBuilder : MonoBehaviour
                 {
                     if (nodeDictionary[x].ContainsKey(z))
                     {
-                        Vector3 dist = nodeDictionary[x][z].GetRealPosition() - position;
+                        Vector3 dist = nodeDictionary[x][z].GetPosition(user) - user.transform.position;
 
                         if (dist.sqrMagnitude < radius)
                         {

@@ -70,8 +70,8 @@ public class Node
     /// <returns></returns>
     public bool IsOpen(LayerMask floor, LayerMask walls)
     {
-        Vector3 position = GetRealPosition();
-        position.y += 10;
+        Vector3 position = GetPosition();
+        position.y += 5;
 
         RaycastHit hit;
         RaycastHit hit2;
@@ -118,10 +118,14 @@ public class Node
     /// <summary>
     /// Gets the node's real position
     /// </summary>
-    /// <returns></returns>
-    public Vector3 GetRealPosition()
+    /// <returns> The position of the node (y not real though) </returns>
+    public Vector3 GetPosition(GameObject obj = null)
     {
-        return new Vector3(xPos / 10f, yPos / 10f, zPos / 10f);
+        if (obj == null)
+        {
+            return new Vector3(xPos / 10f, yPos, zPos / 10f);
+        }
+        return new Vector3(xPos / 10f, obj.transform.position.y, zPos / 10f);
     }
 
     /// <summary>

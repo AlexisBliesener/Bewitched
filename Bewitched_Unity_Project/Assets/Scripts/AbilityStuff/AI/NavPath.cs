@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,8 +23,11 @@ public class NavPath
     [Tooltip("Dictionary of nodes to parent nodes in path")]
     Dictionary<Node, Vertex> parentNodes;
 
-    [Tooltip("List of positions representing the path")]
-    List<Vector3> positions = new List<Vector3>();
+    [Tooltip("List of nodes representing the path")]
+    List<Node> positions = new List<Node>();
+
+    [Tooltip("List of corners for easier calculation")]
+    List<Node> corners = new List<Node>();
 
     [Tooltip("Path Status")]
     bool pathComplete;
@@ -84,7 +88,10 @@ public class NavPath
     /// </summary>
     public void CalculatePath()
     {
-        positions = new List<Vector3>();
+        positions = new List<Node>();
+        corners = new List<Node>();
+
+        Tuple<int, int> prevDirection = new Tuple<int,int>(0, 0);
 
         if (destination == origin)
         {
@@ -95,7 +102,7 @@ public class NavPath
 
         while (currentNode != origin)
         {
-            positions.Insert(0, currentNode.GetRealPosition());
+            positions.Insert(0, currentNode);
 
             Vertex jumpVertex = parentNodes[currentNode];
 
@@ -105,10 +112,23 @@ public class NavPath
 
             totalCost += jumpVertex.GetDistance() + next.GetCost();
 
+            if (GetDirection(next.GetNodeValues(), currentNode.GetNodeValues()) != prevDirection)
+            {
+                corners.Add(currentNode);
+            }
+            prevDirection = GetDirection(next.GetNodeValues(), currentNode.GetNodeValues());
+
             currentNode = next;
         }
         pathComplete = true;
         return;
+    }
+
+    private Tuple<int,int> GetDirection(Tuple<int,int> first, Tuple<int,int> second)
+    {
+        int x = second.Item1 - first.Item1;
+        int z = second.Item2 - second.Item2;
+        return new Tuple<int, int>(x, z);
     }
 
     /// <summary>
@@ -117,16 +137,32 @@ public class NavPath
     /// <returns> List of positions </returns>
     public List<Vector3> GetPathPositions()
     {
-        return positions;
+        List<Vector3> pathPositions = new List<Vector3>();
+
+        foreach (Node node in positions)
+        {
+            pathPositions.Add(node.GetPosition());
+        }
+
+        return pathPositions;
+    }
+
+    /// <summary>
+    /// Gets the corners
+    /// </summary>
+    /// <returns> The corners of the path </returns>
+    public List<Node> GetCornerNodes()
+    {
+        return corners;
     }
 
     /// <summary>
     /// Gets the position of the destination node
     /// </summary>
     /// <returns> Destination position </returns>
-    public Vector3 GetDestinationPosition()
+    public Vector3 GetDestinationPosition(GameObject obj)
     {
-        return destination.GetRealPosition();
+        return destination.GetPosition(obj);
     }
 
     /// <summary>
@@ -136,7 +172,7 @@ public class NavPath
     /// <returns> True if they reached their destination </returns>
     public bool ReachedDestination(Enemy enemy)
     {
-        if (Vector3.Distance(enemy.transform.position, destination.GetRealPosition()) <= enemy.minStopDistance)
+        if (Vector3.Distance(enemy.transform.position, destination.GetPosition(enemy.gameObject)) <= enemy.minStopDistance)
         {
             return true;
         }

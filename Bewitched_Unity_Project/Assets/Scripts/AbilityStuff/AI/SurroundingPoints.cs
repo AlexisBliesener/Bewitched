@@ -50,12 +50,19 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("List of nodes that are costly")]
     List<Node> costlyNodes = new List<Node>();
 
+    [Tooltip("Position the last costly area was made")]
+    Vector3 lastCostlyPosition = Vector3.zero;
+
+    [Tooltip("Distance for node reset")]
+    [SerializeField] float resetCostlyAreaDistance = 1;
+
     private void Update()
     {
         if (pointsActive)
         {
             HandlePointsEachFrame();
             HandleSurroundAttack();
+            CreateLocalCostlyArea();
         }
     }
 
@@ -65,7 +72,6 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandlePointsEachFrame()
     {
-        CreateLocalCostlyArea();
         if (parentPoint)
         {
             parentPoint.transform.position = transform.position;
@@ -200,8 +206,6 @@ public class SurroundingPoints : MonoBehaviour
                     }
                 }
 
-                Debug.Log(distance);
-
                 if (distance < closestDist) // If the point is closer
                 {
                     if (points[point]) // If not null
@@ -322,12 +326,16 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void CreateLocalCostlyArea()
     {
-        ResetCostlyArea();
-
-        costlyNodes = GraphBuilder.instance.GetNodesInRadius(transform.position, pointRadius-.25f);
-        foreach (Node node in costlyNodes)
+        if (Vector3.Distance(transform.position, lastCostlyPosition) > resetCostlyAreaDistance)
         {
-            node.AddCost(8000);
+            ResetCostlyArea();
+
+            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius - .25f);
+            foreach (Node node in costlyNodes)
+            {
+                node.AddCost(8000);
+            }
+            lastCostlyPosition = transform.position;
         }
     }
 

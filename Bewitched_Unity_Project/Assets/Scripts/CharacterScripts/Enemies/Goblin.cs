@@ -47,6 +47,9 @@ public class Goblin : Enemy
     [Tooltip("The Goblin's Patrol Point Origin")]
     private Vector3 patrolOrigin;
 
+    [Tooltip("Needs new destination")]
+    private bool needsDestination = true;
+
     private bool isDashing = false;
 
     private void Start()
@@ -173,7 +176,7 @@ public class Goblin : Enemy
 
         if (aiState == GoblinAIState.Patrolling)
         {
-            if (reachedWalkpoint && !usingAStar)
+            if (!usingAStar && needsDestination)
             {
                 usingAStar = true;
                 SetPatrollingPoint();
@@ -183,7 +186,7 @@ public class Goblin : Enemy
                 if (!reachedWalkpoint && debugging)
                 {
                     usingAStar = true;
-                    StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPath.GetDestinationPosition())); // Rebuild path
+                    StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPath.GetDestinationPosition(gameObject))); // Rebuild path
                     if (debugging)
                     {
                         UpdatePath(false);
@@ -221,16 +224,19 @@ public class Goblin : Enemy
 
         AIMove();
 
-        if (currentPath.ReachedDestination(this)) // If we are within stopping range
+        if (currentPath != null)
         {
-            agent.SetDestination(transform.position); // Stop character
-            reachedWalkpoint = true;
-            StartCoroutine(LookAround()); // Look around
-        }
+            if (currentPath.ReachedDestination(this)) // If we are within stopping range
+            {
+                agent.SetDestination(transform.position); // Stop character
+                reachedWalkpoint = true;
+                StartCoroutine(LookAround()); // Look around
+            }
 
-        if (debugging)
-        {
-            UpdatePath(false);
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
         }
     }
 
@@ -252,7 +258,7 @@ public class Goblin : Enemy
         float randomZ = Random.Range(-patrolRange, patrolRange);
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetRealPosition();
+        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
 
@@ -275,21 +281,18 @@ public class Goblin : Enemy
             }
 
             float distance = currentPath.GetDistance();
-            Debug.Log(distance);
-            Debug.Log(maxPatrolDistance);
 
             if (distance <= maxPatrolDistance || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange)
             {
                 AnimateMove();
 
-                Debug.Log(currentPath.GetDestinationPosition());
-                Debug.Log(transform.position);
 
                 if (debugging)
                 {
                     StartPath(false);
                 }
 
+                needsDestination = false;
                 reachedWalkpoint = false;
                 return true;
             }
@@ -324,6 +327,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
+        needsDestination = true;
         inProcess = false;
         if (debugging)
         {
