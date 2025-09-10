@@ -10,6 +10,7 @@ using UnityEngine;
 /// OnDropRandomDrop is triggered when a drop is picked up by the player and the system will select a random drop from the available drops.
 /// It returns two parameters: the first is the random drop from the available drops, and the second is the second random drop.
 /// </summary>
+[RequireComponent(typeof(PitySystem))]
 public class DropSystem : MonoBehaviour
 {
     // Singleton instance
@@ -26,16 +27,24 @@ public class DropSystem : MonoBehaviour
     [Tooltip("The prefab for the drop pickup")]
     [SerializeField]
     public GameObject dropPickupPrefab;
+    [Tooltip("Do you want to use the pity system?")]
+    [SerializeField] private bool usePitySystem = true;
     [Tooltip("The action that is triggered when a drop is picked up")]
     public Action<DropData, DropData> OnDropRandomDrop;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
+    [Tooltip("A reference to the pity system")]
+    private PitySystem pitySystem;
     /// <summary> Get the number of items dropped this run </summary>
     public int GetDroppedItemThisRun() => droppedItemThisRun;
     /// <summary> Get the chance of dropping an item from enemies </summary>
     public int GetDropChance() => dropChance;
     // <summary> Set the chance of dropping an item from enemies </summary>
     public void SetDropChance(int val) => dropChance = val;
+    // <summary> Get whether to use the pity system </summary>
+    public bool GetUsePitySystem() => usePitySystem;
+    // <summary> Set whether to use the pity system </summary>
+    public void SetUsePitySystem(bool val) => usePitySystem = val;
 
     /// <summary>
     /// It sets the instance of the DropSystem class. And allow only one instance of the class.
@@ -51,6 +60,18 @@ public class DropSystem : MonoBehaviour
         Instance = this;
     }
     /// <summary>
+    /// Initialize the pity system if it is enabled
+    /// </summary>
+    private void Start()
+    {
+        if (usePitySystem)
+        {
+            pitySystem = GetComponent<PitySystem>();
+            // Add all rarities to the pity system
+            pitySystem.Initialize(availableRarities.Distinct().ToList());
+        }
+    }
+    /// <summary>
     /// It tries to drop an item from enemies.
     /// If the chance is not met, it will not drop an item.
     /// This is called when an enemy is defeated.
@@ -59,7 +80,15 @@ public class DropSystem : MonoBehaviour
     {
         if (availableDrops.Count == 0) return;
         // Check the chance of dropping an drop
-        if (UnityEngine.Random.Range(1, 101) > dropChance) return;
+        if (UnityEngine.Random.Range(1, 101) > dropChance)
+        { 
+            if (usePitySystem)
+            {
+                // no offered rarities - increase all pity 
+                pitySystem.OnUpgradesOffered(new ItemRarity());
+            }
+            return;
+        }
         SpawnDropPickup(position);
 
     }
@@ -106,7 +135,17 @@ public class DropSystem : MonoBehaviour
             return null;
 
         int randomRange = UnityEngine.Random.Range(1, 101);
-        List<DropData> possibleDrops = availableDrops.Where(drop => availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
+        List<DropData> possibleDrops;
+        if (usePitySystem)
+        {
+            possibleDrops = availableDrops.Where(drop => 
+                pitySystem.GetModifiedDropChance(availableRarities[drop.GetRarityIndex()]) >= randomRange).ToList();
+        }
+        else
+        {
+            possibleDrops = availableDrops.Where(drop => 
+                availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
+        }
         if (possibleDrops.Count == 0)
         {
             // if for some reason we don't have any drops with the chance we want,return null as we don't have a drop 
@@ -135,6 +174,10 @@ public class DropSystem : MonoBehaviour
             return;
         }
         // for now we will simple just activate the drop
+        if (usePitySystem)
+        {
+            pitySystem.OnUpgradesOffered(availableRarities[drop.GetRarityIndex()]);
+        }
         IDrop dropScript = drop.GetDropScript().GetComponent<IDrop>();
         dropScript.Activate();
     }

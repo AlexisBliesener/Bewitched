@@ -78,6 +78,9 @@ public class DropSystemTests
 
         // Set up drop system with test data
         dropSystem.dropPickupPrefab = mockDropPrefab;
+
+        // Disable pity system since we don't test it here 
+        dropSystem.SetUsePitySystem(false);
     }
 
     [TearDown]
