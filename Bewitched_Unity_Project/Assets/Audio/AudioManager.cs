@@ -52,12 +52,14 @@ public class AudioManager : MonoBehaviour
     /// <param name="name">The name of the event reference to play</param>
     /// <param name="instance">out variable for the instantiated event</param>
     /// <param name="release">Whether the event should be released or not</param>
+    /// <param name="spatializedSource">The source of this sound for spatialized sound effects</param>
     /// <returns>True if an event was successfully instantiated, false otherwise</returns>
-    public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true)
+    public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true, GameObject spatializedSource=null)
     {
         if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             instance = RuntimeManager.CreateInstance(evRef);
+            if (spatializedSource) RuntimeManager.AttachInstanceToGameObject(instance, spatializedSource);
             instance.start();
             if (release) instance.release();
             return true;
@@ -69,12 +71,14 @@ public class AudioManager : MonoBehaviour
     /// Tries to play a one shot event of the given name
     /// </summary>
     /// <param name="name">the name of the event to play</param>
+    /// <param name="spatializedSource">The source of this sound for spatialized sound effects</param>
     /// <returns>True if the event was instantiated and played, false otherwise</returns>
-    public static bool TryPlayOneShot(string name)
+    public static bool TryPlayOneShot(string name, GameObject spatializedSource=null)
     {
         if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            if (spatializedSource) RuntimeManager.AttachInstanceToGameObject(ev, spatializedSource);
             ev.start();
             ev.release();
             return true;
