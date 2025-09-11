@@ -12,6 +12,9 @@ public abstract class Enemy : Character
     [Tooltip("Minimum Stopping Distance")]
     public float minStopDistance = 0.5f;
 
+    [Tooltip("Minimum Slow Distance")]
+    public float minSlowDistance = 3;
+
     [Tooltip("Pathfinding Priority")]
     public int pathfindingPriority;
 
@@ -108,11 +111,30 @@ public abstract class Enemy : Character
 
     public bool tempDebugging = false;
 
+    protected enum PathState
+    {
+        Unset,
+        Searching,
+        Set
+    }
+
+    [Tooltip("Current path state")]
+    protected PathState pathState = PathState.Unset;
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
+        if (velocity.magnitude >= 0.01f)
+        {
+            AnimateMove();
+        }
+        else
+        {
+            AnimateIdle();
+        }
+
         if (currentPath == null) // No path, decelerate to 0
         {
             Vector3 direction = Vector3.zero;
@@ -121,32 +143,37 @@ public abstract class Enemy : Character
             return;
         }
 
-        if (Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position) <= minStopDistance)
+        float currentSpeed = velocity.magnitude;
+        float stoppingDistance = (currentSpeed * currentSpeed) / (2f * deceleration);
+
+        if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            currentCornerIndex++;
+            velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime * deceleration);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            Vector3 lookDir = Vector3.RotateTowards(transform.forward, (currentPath.GetDestinationPosition(gameObject) - transform.position).normalized, Time.deltaTime * 5, 0);
+            transform.rotation = Quaternion.LookRotation(lookDir);
+            return;
         }
 
-        if (currentCornerIndex >= currentPath.GetCornerNodes().Count) // Reached last node, decelerate to 0
+        if (currentCornerIndex < currentPath.GetCornerNodes().Count - 1)
         {
-            Vector3 direction = Vector3.zero;
-            velocity = Vector3.Lerp(velocity, direction, Time.deltaTime * deceleration);
-            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-            return;
+            if (Vector3.Distance(currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject), transform.position) <= minStopDistance)
+            {
+                currentCornerIndex++;
+            }
+        }
+        else
+        {
+            currentCornerIndex = Mathf.Min(currentCornerIndex, currentPath.GetCornerNodes().Count - 1);
         }
 
         Vector3 desiredVelocity;
         float dist = Vector3.Distance(currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject), transform.position);
 
-        if (dist < 3) // If traveling less than 3 units, set desired speed lower
-        {
-            float desiredSpeed = Mathf.Lerp(0.5f, movementSpeed, dist);
-            desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * desiredSpeed;
-        }
-        else
-        {
-            // Desired velocity is pointing towards the next position and moving at top speed
-            desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
-        }
+        float maxSpeedAllowed = Mathf.Sqrt(2f * deceleration * dist);
+        float desiredSpeed = Mathf.Min(maxSpeedAllowed, movementSpeed); // Finds the most appropriate speed based on the distance to target
+
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * desiredSpeed;
 
         float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
         velocity.x += xChange;
@@ -156,23 +183,28 @@ public abstract class Enemy : Character
         float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.deltaTime;
         velocity.z += zChange;
 
+        if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
+
         if (tempDebugging)
         {
             Debug.Log("X: " + xChange + " Z:" + zChange);
         }
 
-        if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
 
-        if (Vector3.SqrMagnitude(velocity) > movementSpeed)
+        if (velocity.magnitude > movementSpeed)
         {
             velocity = velocity.normalized * movementSpeed;
         }
 
-        if (Mathf.Abs(velocity.x) <= 0.01f) velocity.x = 0;
-        if (Mathf.Abs(velocity.z) <= 0.01f) velocity.z = 0;
+        if (velocity.magnitude < 0.01f)
+        {
+            velocity = Vector3.zero;
+        }
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-        transform.forward = Vector3.Lerp(transform.forward, desiredVelocity.normalized, 100 * Time.deltaTime); // Handle turning
+
+        Vector3 lookDirection = Vector3.RotateTowards(transform.forward, desiredVelocity.normalized, Time.deltaTime * 5, 0);
+        transform.rotation = Quaternion.LookRotation(lookDirection);
     }
 
     /// <summary>
@@ -725,6 +757,7 @@ public abstract class Enemy : Character
     {
         currentPath = path;
         currentCornerIndex = 0;
+        velocity = Vector3.zero;
     }
 
     /// <summary>
@@ -739,5 +772,25 @@ public abstract class Enemy : Character
     public virtual bool ValidatePoint()
     {
         return true;
+    }
+
+    /// <summary>
+    /// Checks if the path state is set
+    /// </summary>
+    /// <returns> True if set, false otherwise </returns>
+    public bool HasSetPath()
+    {
+        if (pathState == PathState.Set) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the path state is searching
+    /// </summary>
+    /// <returns> True if searching, false otherwise </returns>
+    public bool IsFindingPath()
+    {
+        if (pathState == PathState.Searching) return true;
+        return false;
     }
 }

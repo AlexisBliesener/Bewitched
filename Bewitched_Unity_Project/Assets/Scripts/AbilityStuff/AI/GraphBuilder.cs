@@ -667,6 +667,14 @@ public class GraphBuilder : MonoBehaviour
                 {
                     Enemy enemy = enemyQueue.Dequeue();
                     enemy.FindPath();
+                    while (!enemy.HasSetPath())
+                    {
+                        if (!enemy.IsFindingPath())
+                        {
+                            enemy.FindPath();
+                        }
+                        yield return null;
+                    }
                 }
                 yield return null;
             }

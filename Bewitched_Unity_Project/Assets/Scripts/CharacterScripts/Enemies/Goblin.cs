@@ -23,6 +23,8 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
 
     [Header("Goblin AI Settings")]
+    [Tooltip("Minimum Patrol Distance")]
+    [SerializeField] float minPatrolDistance = 3;
     [Tooltip("Maximum Patrol Distance")]
     [SerializeField] float maxPatrolDistance = 5;
     [Tooltip("Range the Goblin can communicate with other Goblins")]
@@ -172,33 +174,21 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
-        StopCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
-
         if (aiState == GoblinAIState.Patrolling)
         {
-            if (!usingAStar && needsDestination)
+            if (pathState == PathState.Unset)
             {
-                usingAStar = true;
+                pathState = PathState.Searching;
                 SetPatrollingPoint();
             }
-            else
-            {
-                if (!reachedWalkpoint && debugging)
-                {
-                    usingAStar = true;
-                    StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPath.GetDestinationPosition(gameObject))); // Rebuild path
-                    if (debugging)
-                    {
-                        UpdatePath(false);
-                    }
-                }
-            }
+            
         }
         else if (aiState == GoblinAIState.Chasing)
         {
             surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
             if (surroundPoint) // If there is a valid point
             {
+                pathState = PathState.Searching;
                 StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
             }
         }
@@ -228,8 +218,9 @@ public class Goblin : Enemy
         {
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
+                Debug.Log("Reached: " + Time.time);
                 agent.SetDestination(transform.position); // Stop character
-                reachedWalkpoint = true;
+                pathState = PathState.Unset;
                 StartCoroutine(LookAround()); // Look around
             }
 
@@ -237,6 +228,11 @@ public class Goblin : Enemy
             {
                 UpdatePath(false);
             }
+        }
+        else // If no current path, mark as available
+        {
+            reachedWalkpoint = false;
+            needsDestination = true;
         }
     }
 
@@ -272,21 +268,20 @@ public class Goblin : Enemy
         {
             if (currentPath == null)
             {
+                pathState = PathState.Unset;
                 return false;
             }
 
             if (!currentPath.PathComplete())
             {
+                pathState = PathState.Unset;
                 return false;
             }
 
             float distance = currentPath.GetDistance();
 
-            if (distance <= maxPatrolDistance || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange)
+            if ((distance >= minPatrolDistance && distance <= maxPatrolDistance) || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange)
             {
-                AnimateMove();
-
-
                 if (debugging)
                 {
                     StartPath(false);
@@ -294,10 +289,13 @@ public class Goblin : Enemy
 
                 needsDestination = false;
                 reachedWalkpoint = false;
+                pathState = PathState.Set;
                 return true;
             }
+            pathState = PathState.Unset;
             return false;
         }
+        pathState = PathState.Set;
         return true;
     }
 
@@ -316,7 +314,7 @@ public class Goblin : Enemy
         AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
-        while (timer < .5f) // Wait .5 seconds for now, will change this to be a bool checking the end of looking animation
+        while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
         {
             if (LookForPlayer())
             {
@@ -327,7 +325,6 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        needsDestination = true;
         inProcess = false;
         if (debugging)
         {

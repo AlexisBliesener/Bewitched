@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// A class representing a path through the graph
@@ -95,6 +97,7 @@ public class NavPath
 
         if (destination == origin)
         {
+            corners.Add(destination);
             return;
         }
 
@@ -124,10 +127,16 @@ public class NavPath
         return;
     }
 
+    /// <summary>
+    /// Gets the direction traversed between two nodes
+    /// </summary>
+    /// <param name="first"> First node in path </param>
+    /// <param name="second"> Second node in path </param>
+    /// <returns> Tuple representing the direction travelled </returns>
     private Tuple<int,int> GetDirection(Tuple<int,int> first, Tuple<int,int> second)
     {
         int x = second.Item1 - first.Item1;
-        int z = second.Item2 - second.Item2;
+        int z = second.Item2 - first.Item2;
         return new Tuple<int, int>(x, z);
     }
 
