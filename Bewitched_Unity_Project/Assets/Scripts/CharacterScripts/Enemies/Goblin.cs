@@ -192,6 +192,18 @@ public class Goblin : Enemy
                 StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
             }
         }
+        else if (aiState == GoblinAIState.Searching)
+        {
+            pathState = PathState.Searching;
+            if (surroundPoint) // If still set
+            {
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+            else
+            {
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, lastTargetLocation));
+            }
+        }
     }
 
     /// <summary>
@@ -214,7 +226,7 @@ public class Goblin : Enemy
 
         AIMove();
 
-        if (currentPath != null)
+        if (pathState == PathState.Set)
         {
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
@@ -264,20 +276,20 @@ public class Goblin : Enemy
     /// <returns> True if reachable </returns>
     public override bool ValidatePoint()
     {
+        if (currentPath == null)
+        {
+            pathState = PathState.Unset;
+            return false;
+        }
+
+        if (!currentPath.PathComplete())
+        {
+            pathState = PathState.Unset;
+            return false;
+        }
+
         if (aiState == GoblinAIState.Patrolling) // If a valid patrol point
         {
-            if (currentPath == null)
-            {
-                pathState = PathState.Unset;
-                return false;
-            }
-
-            if (!currentPath.PathComplete())
-            {
-                pathState = PathState.Unset;
-                return false;
-            }
-
             float distance = currentPath.GetDistance();
 
             if ((distance >= minPatrolDistance && distance <= maxPatrolDistance) || Vector3.Distance(transform.position, patrolOrigin) >= patrolRange)
@@ -367,16 +379,23 @@ public class Goblin : Enemy
     {
         if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
+            Debug.Log("Lost Player");
             TransitionToSearch();
             return;
         }
-            
-        if (debugging)
+
+        Debug.Log(currentPath);
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            UpdatePath(false);
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
         }
 
-        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 0.5) // If within half a meter of surrounding radius
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
             // Handle Surrounding
         }
@@ -404,18 +423,13 @@ public class Goblin : Enemy
             TransitionToSearch(); // Resets last player position
         }
 
-        if (surroundPoint) // If has a surround point assigned still
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            agent.SetDestination(surroundPoint.transform.position);
-        }
-        else
-        {
-            agent.SetDestination(lastTargetLocation);
-        }
-
-        if (debugging)
-        {
-            UpdatePath(false);
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
         }
 
         if ((agent.destination - transform.position).magnitude <= agent.stoppingDistance)

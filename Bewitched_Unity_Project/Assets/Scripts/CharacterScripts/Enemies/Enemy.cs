@@ -168,12 +168,9 @@ public abstract class Enemy : Character
         }
 
         Vector3 desiredVelocity;
-        float dist = Vector3.Distance(currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject), transform.position);
 
-        float maxSpeedAllowed = Mathf.Sqrt(2f * deceleration * dist);
-        float desiredSpeed = Mathf.Min(maxSpeedAllowed, movementSpeed); // Finds the most appropriate speed based on the distance to target
 
-        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * desiredSpeed;
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
 
         float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
         velocity.x += xChange;
@@ -203,8 +200,8 @@ public abstract class Enemy : Character
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
 
-        Vector3 lookDirection = Vector3.RotateTowards(transform.forward, desiredVelocity.normalized, Time.deltaTime * 5, 0);
-        transform.rotation = Quaternion.LookRotation(lookDirection);
+        Quaternion lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+        transform.rotation = lookRotation;
     }
 
     /// <summary>
@@ -638,17 +635,12 @@ public abstract class Enemy : Character
         }
         else
         {
-            pathVisualizer.positionCount = currentPath.GetPathPositions().Count;
+            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count;
         }
 
         if (pathVisualizer.positionCount < 1) return;
 
         pathVisualizer.SetPosition(0, transform.position);
-
-        if ((agent.path.corners.Length < 2 && usingAgent) || (currentPath.GetPathPositions().Count < 2 && !usingAgent))
-        {
-            return;
-        }
 
         if (usingAgent)
         {
@@ -659,9 +651,9 @@ public abstract class Enemy : Character
         }
         else
         {
-            for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
+            for (int i = 1; i < currentPath.GetCornerNodes().Count; i++)
             {
-                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetPathPositions()[i].x, transform.position.y, currentPath.GetPathPositions()[i].z));
+                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
             }
         }
     }
@@ -683,6 +675,12 @@ public abstract class Enemy : Character
                 destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
             }
         }
+        else
+        {
+            destinationMarker = Instantiate(destinationMarkerPrefab);
+            destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+            destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+        }
 
         pathVisualizer.positionCount = 0;
 
@@ -692,17 +690,12 @@ public abstract class Enemy : Character
         }
         else
         {
-            pathVisualizer.positionCount = currentPath.GetPathPositions().Count;
+            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count - currentCornerIndex;
         }
 
         if (pathVisualizer.positionCount == 0) return;
 
         pathVisualizer.SetPosition(0, transform.position);
-
-        if ((agent.path.corners.Length < 2 && usingAgent) || (currentPath.GetPathPositions().Count < 2 && !usingAgent))
-        {
-            return;
-        }
 
         if (usingAgent)
         {
@@ -713,9 +706,12 @@ public abstract class Enemy : Character
         }
         else
         {
-            for (int i = 1; i < currentPath.GetPathPositions().Count; i++)
+            for (int i = currentCornerIndex-1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
             {
-                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetPathPositions()[i].x, transform.position.y, currentPath.GetPathPositions()[i].z));
+                if (i >= 0)
+                {
+                    pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
+                }
             }
         }
     }

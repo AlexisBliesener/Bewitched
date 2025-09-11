@@ -509,7 +509,6 @@ public class GraphBuilder : MonoBehaviour
         if (origin == null || targetNode == null)
         {
             searching = false;
-            enemy.SetUsingSearch(false);
             yield break;
         }
 

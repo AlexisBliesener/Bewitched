@@ -115,15 +115,19 @@ public class NavPath
 
             totalCost += jumpVertex.GetDistance() + next.GetCost();
 
-            if (GetDirection(next.GetNodeValues(), currentNode.GetNodeValues()) != prevDirection)
+            Tuple<int, int> jumpDirection = GetDirection(currentNode.GetNodeValues(), next.GetNodeValues());
+
+            if (jumpDirection.Item1 != prevDirection.Item1 || jumpDirection.Item2 != prevDirection.Item2)
             {
                 corners.Add(currentNode);
             }
-            prevDirection = GetDirection(next.GetNodeValues(), currentNode.GetNodeValues());
+            prevDirection = jumpDirection;
 
             currentNode = next;
         }
         pathComplete = true;
+        corners.Reverse(); // Since we made our corners backwards, reverse the list
+
         return;
     }
 

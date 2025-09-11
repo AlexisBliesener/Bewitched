@@ -180,9 +180,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   agent: {fileID: 5347660582151986861}
-  minStopDistance: 0.5
-  highestPriority: 80
-  lowestPriority: 99
+  minStopDistance: 1
+  minSlowDistance: 3
+  pathfindingPriority: 3
   ground:
     serializedVersion: 2
     m_Bits: 64
@@ -204,6 +204,7 @@ MonoBehaviour:
   debugging: 1
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 1348470291095463243}
+  tempDebugging: 0
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
   thrustSpeed: 10
   knifeDamage: 20
@@ -211,6 +212,7 @@ MonoBehaviour:
   dashSpeed: 30
   dashDuration: 0.25
   dashDamage: 30
+  minPatrolDistance: 3
   maxPatrolDistance: 5
   communicationRange: 8
 --- !u!195 &5347660582151986861
@@ -371,6 +373,7 @@ MonoBehaviour:
   pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
   minAttackTime: 1
   maxAttackTime: 3
+  resetCostlyAreaDistance: 1
 --- !u!1001 &2856675562672059631
 PrefabInstance:
   m_ObjectHideFlags: 0
