@@ -304,6 +304,7 @@ public class PossessionAbility : MonoBehaviour
         {
             if (Time.time - timePossessing > enemyExplosionTime)
             {
+                
                 currentCharacter.Explode();
                 currentCharacter.Die();
                 // Apply shunt damage
@@ -342,6 +343,7 @@ public class PossessionAbility : MonoBehaviour
             }
             currentCharacter.SetTeamID(2);
             PlayerController.instance.SetAllowMovement(true);
+            AudioManager.TryPlayOneShot("LeaveBody");
         }
         else
         {
