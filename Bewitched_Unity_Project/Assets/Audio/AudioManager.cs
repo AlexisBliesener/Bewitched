@@ -11,7 +11,7 @@ public class AudioManager : MonoBehaviour
    //Scriptable object containing a dictionary of FMODEvent References and their names.
     public EventRefsSO refSheet;
     //Singleton of this class
-    private static AudioManager manager;
+    public static AudioManager manager;
 
     [SerializeField, Tooltip("This scene's music")]
     EventReference levelMusicReference;

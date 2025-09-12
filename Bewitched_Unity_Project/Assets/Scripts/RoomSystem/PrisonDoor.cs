@@ -51,7 +51,14 @@ public class PrisonDoor : MonoBehaviour, IDoor
     private IEnumerator MoveDoor(Vector3 step, int steps, string sound, bool disableColliderHalfway = false)
     {
         // Play sound
-        AudioManager.TryPlayOneShot(sound, gameObject);
+        if(AudioManager.manager != null)
+        {
+            AudioManager.TryPlayOneShot(sound, gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("Audio manager does not exisit!");
+        }
 
         for (int i = 0; i < steps; i++)
         {
