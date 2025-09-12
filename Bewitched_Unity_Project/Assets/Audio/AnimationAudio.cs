@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
@@ -21,7 +20,7 @@ public class AnimationAudio : MonoBehaviour
     */
     Dictionary<string, EventInstance> animEvents;
     [Tooltip("Previews the fmod events currently playing on this script")]
-    List<string> eventsPlaying;
+    [SerializeField,NaughtyAttributes.ReadOnly]List<string> eventsPlaying;
 
     void Awake()
     {
@@ -63,6 +62,7 @@ public class AnimationAudio : MonoBehaviour
         {
             animEvents[clipName].start();
             animEvents[clipName].release();
+            eventsPlaying.Add(GetPath(animEvents[clipName]));
         }
         else Debug.LogError($"Event from {clipName} already playing!");
     }
@@ -79,20 +79,20 @@ public class AnimationAudio : MonoBehaviour
             if (animEvents.ContainsKey(clipName))
             {
                 animEvents[clipName].stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-                if (animEvents[clipName].isValid()) animEvents[clipName].release();
             }
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             ev.start();
             ev.release();
             animEvents[clipName] = ev;
             RegisterDestroyCallback(animEvents[clipName], clipName);
+            eventsPlaying.Add(GetPath(ev));
         }
         else Debug.LogError($"Failed to prepare an event of this clipName: {anim.stringParameter} for {clipName}");
     }
     /// <summary>
-    /// Sets a parameter 
+    /// Sets a parameter on the fmod event associated with this animation event
     /// </summary>
-    /// <param name="anim"></param>
+    /// <param name="anim">The animation event who called this. STRING: Parameter name. FLOAT: Parameter value.</param>
     public void SetEventParam(AnimationEvent anim)
     {
         string clipName = anim.animatorClipInfo.clip.name;
@@ -107,11 +107,18 @@ public class AnimationAudio : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Starts an fmod event of the given name that doesn't need to be tracked.
+    /// </summary>
+    /// <param name="clipName">The name of the event to play.</param>
     public void StartOneShot(string clipName)
     {
         AudioManager.TryPlayOneShot(clipName);
     }
-
+    /// <summary>
+    /// Stops a playing 
+    /// </summary>
+    /// <param name="anim"></param>
     public void StopEvent(AnimationEvent anim)
     {
         string clipName = anim.animatorClipInfo.clip.name;
@@ -119,24 +126,66 @@ public class AnimationAudio : MonoBehaviour
         else Debug.LogError($"No event from {clipName} currently playing!");
     }
 
+    /// <summary>
+    /// Gets the path of the given event instance
+    /// </summary>
+    /// <param name="ev">The event instance</param>
+    /// <returns>The path of the event</returns>
+    public string GetPath(EventInstance ev)
+    {
+        if (!ev.isValid())
+        {
+            Debug.Log("Given event instance is invalid!");
+            return null;
+        }
+        ev.getDescription(out EventDescription desc);
+        desc.getPath(out string path);
+        return path;
+    }
+
+    /// <summary>
+    /// Registers destroy callback on the passed event instance and stores the animation clip name that started this event as user data.
+    /// </summary>
+    /// <param name="ev">The event instance to register the callback for</param>
+    /// <param name="clipName">The animation clip name that started the event</param>
     void RegisterDestroyCallback(EventInstance ev, string clipName)
     {
+        if (!ev.isValid())
+        {
+            Debug.LogWarning("Event instance is not valid!");
+            return;
+        }
         GCHandle handle = GCHandle.Alloc(clipName);
         ev.setUserData(GCHandle.ToIntPtr(handle));
         ev.setCallback(AnimationEventDestroyCallback, EVENT_CALLBACK_TYPE.DESTROYED);
     }
 
+    /// <summary>
+    /// Callback that removes the event from the animEvents dictionary when it gets destroyed.
+    /// </summary>
+    /// <param name="type">The callback type (will always be DESTROYED)</param>
+    /// <param name="instancePtr">The pointer to the destroyed event instance</param>
+    /// <param name="paramPtr">For parameter-related callbacks, not relavant to this callback</param>
+    /// <returns></returns>
     [AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
     FMOD.RESULT AnimationEventDestroyCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr paramPtr)
     {
         EventInstance ev = new(instancePtr);
         ev.getUserData(out IntPtr userData);
+        //This should never happen in this script
+        if (userData == null)
+        {
+            Debug.LogWarning($"Attempting to clean up {ev} on destroy, but event has no user data!");
+            return FMOD.RESULT.ERR_INVALID_HANDLE;
+        }
         GCHandle handle = GCHandle.FromIntPtr(userData);
         string clipName = handle.Target.ToString();
-        if (animEvents.ContainsKey(clipName))
+        if (animEvents.ContainsKey(clipName)&&animEvents[clipName].Equals(ev))
         {
             animEvents.Remove(clipName);
         }
+        string path = GetPath(ev);
+        if (eventsPlaying.Contains(path)) eventsPlaying.Remove(path);
         handle.Free();
         return FMOD.RESULT.OK;
     }
