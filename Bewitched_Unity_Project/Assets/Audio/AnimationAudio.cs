@@ -21,9 +21,11 @@ public class AnimationAudio : MonoBehaviour
     Dictionary<string, EventInstance> animEvents;
     [Tooltip("Previews the fmod events currently playing on this script")]
     [SerializeField,NaughtyAttributes.ReadOnly]List<string> eventsPlaying;
+    EVENT_CALLBACK destroyCallback;
 
     void Awake()
     {
+        destroyCallback = new EVENT_CALLBACK(AnimationEventDestroyCallback);
         animEvents = new();
         eventsPlaying = new();
     }
@@ -81,11 +83,11 @@ public class AnimationAudio : MonoBehaviour
                 animEvents[clipName].stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
             }
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            eventsPlaying.Add(GetPath(ev));
             ev.start();
             ev.release();
             animEvents[clipName] = ev;
             RegisterDestroyCallback(animEvents[clipName], clipName);
-            eventsPlaying.Add(GetPath(ev));
         }
         else Debug.LogError($"Failed to prepare an event of this clipName: {anim.stringParameter} for {clipName}");
     }
@@ -150,6 +152,7 @@ public class AnimationAudio : MonoBehaviour
     /// <param name="clipName">The animation clip name that started the event</param>
     void RegisterDestroyCallback(EventInstance ev, string clipName)
     {
+        
         if (!ev.isValid())
         {
             Debug.LogWarning("Event instance is not valid!");
@@ -157,7 +160,7 @@ public class AnimationAudio : MonoBehaviour
         }
         GCHandle handle = GCHandle.Alloc(clipName);
         ev.setUserData(GCHandle.ToIntPtr(handle));
-        ev.setCallback(AnimationEventDestroyCallback, EVENT_CALLBACK_TYPE.DESTROYED);
+        ev.setCallback(destroyCallback, EVENT_CALLBACK_TYPE.DESTROYED);
     }
 
     /// <summary>
@@ -172,14 +175,8 @@ public class AnimationAudio : MonoBehaviour
     {
         EventInstance ev = new(instancePtr);
         ev.getUserData(out IntPtr userData);
-        //This should never happen in this script
-        if (userData == null)
-        {
-            Debug.LogWarning($"Attempting to clean up {ev} on destroy, but event has no user data!");
-            return FMOD.RESULT.ERR_INVALID_HANDLE;
-        }
         GCHandle handle = GCHandle.FromIntPtr(userData);
-        string clipName = handle.Target.ToString();
+        string clipName = handle.Target as string;
         if (animEvents.ContainsKey(clipName)&&animEvents[clipName].Equals(ev))
         {
             animEvents.Remove(clipName);
