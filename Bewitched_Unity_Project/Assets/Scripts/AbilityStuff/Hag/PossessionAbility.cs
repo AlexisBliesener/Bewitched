@@ -1,4 +1,5 @@
 using Cinemachine;
+using FMOD.Studio;
 using System.Collections;
 using System.IO;
 using UnityEngine;
@@ -8,7 +9,7 @@ using static PlayerController;
 
 
 /// <summary>
-/// Handles the player’s possession ability, allowing the Hag character to
+/// Handles the playerï¿½s possession ability, allowing the Hag character to
 /// possess enemies, manage cooldowns, update the UI, and switch between
 /// controlled characters.
 /// </summary>
@@ -50,6 +51,8 @@ public class PossessionAbility : MonoBehaviour
     private PossessionStates possessionState = PossessionStates.canNotPossess;
     [Tooltip("The current enemy that would be possessed if the ability is fired")]
     private Character currentPossessableEnemy = null;
+    //The possession sound effect that is currently playing if any
+    private EventInstance possessionSoundEffect;
 
     #region Saving/Loading
 
@@ -157,7 +160,7 @@ public class PossessionAbility : MonoBehaviour
                 {
                     timePossessionLastLeft = Time.time;
                     oldHag.AnimatePossess();
-                    FirePossession();
+                    StartCoroutine(FirePossession());
                 }
             }
             else
@@ -180,29 +183,44 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Possesses an enemy if currently avaliable
+    /// Possesses an enemy if currently avaliable at the time of firing
     /// </summary>
-    private void FirePossession()
+    private IEnumerator FirePossession()
     {
-        if(possessionState == PossessionStates.canPossess)
+        Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
+        if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
+        {
+            Debug.LogError("Failed to play possession sound effect. Is it assigned in the ref sheet?");
+        }
+        yield return new WaitForSeconds(0.5f);
+        if (target)
         {
             CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+            if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
+            else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+        }
+        else
+        {
+            //Possession miss currently not implemented
+            if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 2);
+            else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
     }
+    
 
     /// <summary>
     /// Updates the color of the cross hair baised on if the player can currently possess
     /// </summary>
     private void UpdateCrossHair()
     {
-        if(crossHair == null)
+        if (crossHair == null)
         {
             Debug.LogWarning("Crosshair image is not assigned!");
             return;
         }
 
-        if(possessionState == PossessionStates.canNotPossess)
+        if (possessionState == PossessionStates.canNotPossess)
         {
             crossHair.color = Color.white;
         }
