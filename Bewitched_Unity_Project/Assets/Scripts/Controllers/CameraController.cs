@@ -111,6 +111,7 @@ public class CameraController : MonoBehaviour
 
         // apply rotations
         characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+        cameraPOVComponent.m_HorizontalAxis.Value = yaw;
     }
 
     private void OnDisable()
@@ -131,34 +132,34 @@ public class CameraController : MonoBehaviour
         //PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
 
         // FMOD set up
-        if (!listener) listener = GetComponent<StudioListener>();
-        if (!listener.attenuationObject) listener.attenuationObject = characterToFollow.gameObject;
+     //   if (!listener) listener = GetComponent<StudioListener>();
+       // if (!listener.attenuationObject) listener.attenuationObject = characterToFollow.gameObject;
     }
 
-    private void Update()
-    {
-        SwitchCameraSide();
-    }
+    //private void Update()
+    //{
+    //    SwitchCameraSide();
+    //}
 
     /// <summary>
     /// Determines if the camera should switch sides based on environment collisions.
     /// Smoothly interpolates the Cinemachine camera side between left and right.
     /// </summary>
-    private void SwitchCameraSide()
-    {
-        Ray ray = new Ray(characterToFollow.transform.position, transform.right);
-        bool hitRight = Physics.Raycast(ray, 4f, environmentMask);
+    //private void SwitchCameraSide()
+    //{
+    //    Ray ray = new Ray(characterToFollow.transform.position, transform.right);
+    //    bool hitRight = Physics.Raycast(ray, 4f, environmentMask);
 
-        // Decide target side
-        if (hitRight)
-            targetCamSide = -1f;   // force to left side
-        else
-            targetCamSide = 1f;  // force to right side (or default)
+    //    // Decide target side
+    //    if (hitRight)
+    //        targetCamSide = -1f;   // force to left side
+    //    else
+    //        targetCamSide = 1f;  // force to right side (or default)
 
-        // Smoothly move toward target side
-        var tpf = virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>();
-        tpf.CameraSide = Mathf.Lerp(tpf.CameraSide, targetCamSide, Time.deltaTime * switchSpeed);
-    }
+    //    // Smoothly move toward target side
+    //    var tpf = virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>();
+    //    tpf.CameraSide = Mathf.Lerp(tpf.CameraSide, targetCamSide, Time.deltaTime * switchSpeed);
+    //}
 
     /// <summary>
     /// Switches the camera to follow a new character.
