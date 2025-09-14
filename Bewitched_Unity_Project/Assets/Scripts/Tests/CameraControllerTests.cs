@@ -8,7 +8,7 @@ using System.Collections;
 public class CameraControllerTests
 {
     [Tooltip("The CameraController instance under test.")]
-    private CameraController controller;
+    private AimCam controller;
     [Tooltip("A mock character used for testing.")]
     private Character fakeCharacter;
     [Tooltip("The GameObject hosting the CameraController.")]
@@ -32,35 +32,35 @@ public class CameraControllerTests
 
         host = new GameObject("CameraControllerHost");
         host.gameObject.SetActive(false);
-        controller = host.AddComponent<CameraController>();
+        controller = host.AddComponent<AimCam>();
 
         // Fake Character
         var charObj = new GameObject("FakeCharacter");
         fakeCharacter = charObj.AddComponent<MockCharacter>();
 
         // Inject character into private field
-        typeof(CameraController)
+        typeof(AimCam)
             .GetField("characterToFollow", BindingFlags.NonPublic | BindingFlags.Instance)
             .SetValue(controller, fakeCharacter);
 
         // Create a  CinemachineVirtualCamera
         var vcam = host.AddComponent<Cinemachine.CinemachineVirtualCamera>();
         vcam.AddCinemachineComponent<Cinemachine3rdPersonFollow>(); // ensures not null
-        typeof(CameraController)
+        typeof(AimCam)
             .GetField("virtualCamera", BindingFlags.NonPublic | BindingFlags.Instance)
             .SetValue(controller, vcam);
 
         // Create a main camera
         var mainCamGO = new GameObject("MainCam");
         var mainCam = mainCamGO.AddComponent<Camera>();
-        typeof(CameraController)
+        typeof(AimCam)
             .GetField("mainCam", BindingFlags.NonPublic | BindingFlags.Instance)
             .SetValue(controller, mainCam);
 
         // Create a StudioListener on its own GO
         var listenerGO = new GameObject("Listener");
         var listener = listenerGO.AddComponent<FMODUnity.StudioListener>();
-        typeof(CameraController)
+        typeof(AimCam)
             .GetField("listener", BindingFlags.NonPublic | BindingFlags.Instance)
             .SetValue(controller, listener);
 
@@ -85,14 +85,14 @@ public class CameraControllerTests
         // Arrange
         var newChar = new GameObject("NewChar").AddComponent<MockCharacter>();
 
-        var method = typeof(CameraController)
+        var method = typeof(AimCam)
             .GetMethod("SwitchCharacter", BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Act
         method.Invoke(controller, new object[] { newChar });
 
         // Assert
-        var charToFollow = typeof(CameraController)
+        var charToFollow = typeof(AimCam)
             .GetField("characterToFollow", BindingFlags.NonPublic | BindingFlags.Instance)
             .GetValue(controller);
 
@@ -110,7 +110,7 @@ public class CameraControllerTests
     public IEnumerator SwitchCameraSide_DefaultsToRight()
     {
         // Make certain no collisions will be detected on the mask used by the raycast.
-        typeof(CameraController)
+        typeof(AimCam)
             .GetField("environmentMask", BindingFlags.NonPublic | BindingFlags.Instance)
             .SetValue(controller, (LayerMask)0); // layerMask = 0 hits nothing
 
@@ -120,7 +120,7 @@ public class CameraControllerTests
         // Let at least one Update() tick happen (SwitchCameraSide is called in Update).
         yield return null;
 
-        var targetCamSide = (float)typeof(CameraController)
+        var targetCamSide = (float)typeof(AimCam)
             .GetField("targetCamSide", BindingFlags.NonPublic | BindingFlags.Instance)
             .GetValue(controller);
 

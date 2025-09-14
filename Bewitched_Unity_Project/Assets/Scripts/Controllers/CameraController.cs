@@ -1,94 +1,53 @@
 using Cinemachine;
 using FMODUnity;
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using static Codice.Client.Commands.WkTree.WorkspaceTreeNode;
 
 public class CameraController : MonoBehaviour
 {
-    const string FILE_ENDING = ".json";
-
-    [Tooltip("Singleton of the CameraController")]
-    public static CameraController instance { get; private set; }
-
-    [SerializeField, Tooltip("Character that the camera is following")]
-    private Character characterToFollow;
-    [SerializeField, Tooltip("Sensitiviy multiplier of the camera x-axis movement")]
-    private float xSensitivity = 0.5f;
-    [SerializeField, Tooltip("Sensitivity multiplier of the camera y-axis movement")]
-    private float ySensitivity = 0.5f;
-    [SerializeField, Tooltip("Layermask the only holds objects that are in the environment")]
-    private LayerMask environmentMask;
-    [SerializeField, Tooltip("Speed multiplier applied to camera side to side switch movement")] 
-    private float switchSpeed = 0.5f;
-    [SerializeField, Tooltip("the main camera with the cinemachine brain")]
-    private Camera mainCam;
-
+    public CinemachineFreeLook freeLookCam;
+    public CinemachineVirtualCamera virtualCam;
     [Tooltip("The FMOD studio listener that is attached to the camera")]
     private StudioListener listener;
-    [Tooltip("The virtual camera that is following the player")]
-    [SerializeField]private CinemachineVirtualCamera virtualCamera;
-    [Tooltip("The POV component of the virtual camera")]
-    private CinemachinePOV cameraPOVComponent;
-    [Tooltip("The y-axis rotation applied to the player based on mouse movement")]
-    private float yaw = 0;
-    [Tooltip("The side of the player the camera is currently targeting to be on, 1 = right side, 0 = middle, -1 = left side")]
-    private float targetCamSide = 1f;
 
-    #region Saving/Loading
+    public static bool aiming = false;
 
-    [ContextMenu("Save to JSON")]
-    public void SaveToJson()
+    [SerializeField, Tooltip("Crosshair image component")]
+    private Image crossHair;
+
+    private AimCam aimCam;
+    public Character currentCharacter;
+
+    private void Awake()
     {
-        string cameraStatsStr = JsonUtility.ToJson(this, true);
+        aiming = false;
+        aimCam = virtualCam.GetComponent<AimCam>();
+        freeLookCam.Priority = 2;
+        virtualCam.Priority = 1;
+        aimCam.SetYaw(freeLookCam.m_XAxis.Value);
 
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        SeeFilePath();
-        if (!Directory.Exists(folderPath))
+        // FMOD set up
+        if (!listener) listener = GetComponent<StudioListener>();
+        if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
+    }
+
+    private void UpdateCam()
+    {
+        if (aiming)
         {
-            Directory.CreateDirectory(folderPath);
+            freeLookCam.Priority = 1;
+            virtualCam.Priority = 2;
         }
-
-        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
-        File.WriteAllText(filePath, cameraStatsStr);
-
-
-#if UNITY_EDITOR
-        UnityEditor.AssetDatabase.Refresh();
-#endif
+        else
+        {
+            freeLookCam.Priority = 2;
+            virtualCam.Priority = 1;
+        }
     }
-
-    [ContextMenu("See File Path")]
-    public void SeeFilePath()
-    {
-        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        Debug.Log("Path To JSON File:");
-        Debug.Log(folderPath);
-    }
-
-    [ContextMenu("Load From JSON")]
-    public void LoadFromJson()
-    {
-
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
-
-        string jsonStr = File.ReadAllText(filePath);
-
-        string[] jsons = jsonStr.Split("|");
-
-        JsonUtility.FromJsonOverwrite(jsons[0], this);
-
-#if UNITY_EDITOR
-        UnityEditor.AssetDatabase.Refresh();
-#endif
-    }
-
-    #endregion
 
     /// <summary>
     /// Handles camera rotation based on player input.
@@ -97,21 +56,32 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        Vector2 lookInput = context.ReadValue<Vector2>();
+        aimCam.Look(context);
+    }
 
-        cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
-
-        if (context.action.activeControl.device.description.deviceClass != "Mouse")
+    public void Aim(InputAction.CallbackContext context)
+    {
+        if (context.started)
         {
-            lookInput.x *= 20;
+            aimCam.SetYaw(freeLookCam.m_XAxis.Value);
+            crossHair.gameObject.SetActive(true);
+            aiming = true;
         }
+        else if (context.canceled)
+        {
+            crossHair.gameObject.SetActive(false);
+            aiming = false;
+        }
+        UpdateCam();
+    }
 
-        // scale input
-        yaw += lookInput.x * xSensitivity;
-
-        // apply rotations
-        characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-        cameraPOVComponent.m_HorizontalAxis.Value = yaw;
+    private void Update()
+    {
+        if (aiming)
+        {
+            freeLookCam.transform.rotation = currentCharacter.gameObject.transform.rotation;
+            freeLookCam.transform.position = currentCharacter.gameObject.transform.position;
+        }
     }
 
     private void OnDisable()
@@ -124,43 +94,6 @@ public class CameraController : MonoBehaviour
         PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
     }
 
-    private void Awake()
-    {
-        instance = this;
-        virtualCamera = GetComponent<CinemachineVirtualCamera>();
-        cameraPOVComponent = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
-        //PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
-
-        // FMOD set up
-     //   if (!listener) listener = GetComponent<StudioListener>();
-       // if (!listener.attenuationObject) listener.attenuationObject = characterToFollow.gameObject;
-    }
-
-    //private void Update()
-    //{
-    //    SwitchCameraSide();
-    //}
-
-    /// <summary>
-    /// Determines if the camera should switch sides based on environment collisions.
-    /// Smoothly interpolates the Cinemachine camera side between left and right.
-    /// </summary>
-    //private void SwitchCameraSide()
-    //{
-    //    Ray ray = new Ray(characterToFollow.transform.position, transform.right);
-    //    bool hitRight = Physics.Raycast(ray, 4f, environmentMask);
-
-    //    // Decide target side
-    //    if (hitRight)
-    //        targetCamSide = -1f;   // force to left side
-    //    else
-    //        targetCamSide = 1f;  // force to right side (or default)
-
-    //    // Smoothly move toward target side
-    //    var tpf = virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>();
-    //    tpf.CameraSide = Mathf.Lerp(tpf.CameraSide, targetCamSide, Time.deltaTime * switchSpeed);
-    //}
-
     /// <summary>
     /// Switches the camera to follow a new character.
     /// Updates FMOD listener, Cinemachine follow/look targets, and shoulder offset.
@@ -168,14 +101,23 @@ public class CameraController : MonoBehaviour
     /// <param name="character">The new character to follow.</param>
     private void SwitchCharacter(Character character)
     {
-        characterToFollow = character;
-        listener.attenuationObject = character.gameObject;
+        // listener.attenuationObject = character.gameObject;
+
+        virtualCam.Priority = 0;
+        freeLookCam.Priority = 0;
+
+        currentCharacter = character;
+        if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
 
         // Virtual camera follows new character
-        virtualCamera.gameObject.transform.SetParent(character.transform);
-        mainCam.gameObject.transform.SetParent(character.transform);
-        virtualCamera.Follow = characterToFollow.gameObject.transform;
-        virtualCamera.LookAt = characterToFollow.gameObject.transform;
-        virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>().ShoulderOffset = characterToFollow.GetShoulderOffset();
+        virtualCam = character.GetVirtualCam();
+
+        // free follow cam
+        freeLookCam = character.GetFreeLookCam();
+
+        aimCam = virtualCam.GetComponent<AimCam>();
+
+        UpdateCam();
     }
+
 }

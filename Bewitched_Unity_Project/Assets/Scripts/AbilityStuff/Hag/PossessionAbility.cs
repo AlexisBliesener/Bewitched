@@ -35,8 +35,6 @@ public class PossessionAbility : MonoBehaviour
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
-    [Tooltip("If the possession button is currently being held")]
-    private bool possessHeld = false;
     [Tooltip("The time when possession of the current enemy started")]
     private float timePossessing;
     [Tooltip("The current character that is possessed")]
@@ -48,12 +46,6 @@ public class PossessionAbility : MonoBehaviour
     private PossessionStates possessionState = PossessionStates.canNotPossess;
     [Tooltip("The current enemy that would be possessed if the ability is fired")]
     private Character currentPossessableEnemy = null;
-
-    public CinemachineFreeLook freeLookCam;
-    public CinemachineVirtualCamera virtualCam;
-    public CameraController cameraController;
-
-    public static bool aiming = false;
 
     #region Saving/Loading
 
@@ -135,7 +127,6 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        UpdateCam();
         UpdateCooldowns();
         UpdateState();
         UpdateCrossHair();
@@ -145,23 +136,6 @@ public class PossessionAbility : MonoBehaviour
         {
             oldHag.transform.position = currentCharacter.transform.position;
             oldHag.transform.rotation = currentCharacter.transform.rotation;
-        }
-    }
-
-    private void UpdateCam()
-    {
-        if(aiming)
-        {
-            freeLookCam.Priority = 1;
-            virtualCam.Priority = 2;
-            cameraController.enabled = true;    
-            
-        }
-        else
-        {
-            freeLookCam.Priority = 2;
-            virtualCam.Priority = 1;
-            cameraController.enabled = false;
         }
     }
 
@@ -198,20 +172,6 @@ public class PossessionAbility : MonoBehaviour
             {
                 return;
             }
-        }
-    }
-
-    public void Aim(InputAction.CallbackContext context)
-    {
-        if (context.started)
-        {
-            crossHair.gameObject.SetActive(true);
-            aiming = true;
-        }
-        else if(context.canceled)
-        {
-            crossHair.gameObject.SetActive(false);
-            aiming = false;
         }
     }
 
@@ -268,7 +228,7 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Detect enemy for possession
-        if(aiming)
+        if(CameraController.aiming)
         {
             Ray possessionRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
             RaycastHit hitInfo;

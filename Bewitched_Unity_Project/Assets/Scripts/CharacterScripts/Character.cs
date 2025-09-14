@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using Cinemachine;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -77,6 +78,9 @@ public abstract class Character : MonoBehaviour
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    private CinemachineFreeLook freeLookCam;
+    private CinemachineVirtualCamera virtualCam;
 
     [Tooltip("The script that controls chaning animation states")]
     private CharacterAnimator characterAnimator;
@@ -156,6 +160,9 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
+        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
+        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
+
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
@@ -173,6 +180,17 @@ public abstract class Character : MonoBehaviour
         health.OnHealthChanged -= OnHealthChanged;
         health.OnDeath -= OnDeath;
     }
+
+    public CinemachineFreeLook GetFreeLookCam()
+    {
+        return freeLookCam;
+    }
+
+    public CinemachineVirtualCamera GetVirtualCam()
+    {
+        return virtualCam;
+    }
+
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>

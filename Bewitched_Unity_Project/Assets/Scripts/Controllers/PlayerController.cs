@@ -1,5 +1,4 @@
 using Cinemachine;
-using Cinemachine;
 using FMOD.Studio;
 using FMODUnity;
 using System;
@@ -46,9 +45,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
-
-    [SerializeField]
-    private CinemachineFreeLook virtualCam;
 
     private CharacterController characterController;
 
@@ -116,7 +112,7 @@ public class PlayerController : MonoBehaviour
         {
             if (input.sqrMagnitude > 0.01)
             {
-                if(PossessionAbility.aiming)
+                if (CameraController.aiming)
                 {
                     Vector3 desiredVelocity = direction * speed;
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
