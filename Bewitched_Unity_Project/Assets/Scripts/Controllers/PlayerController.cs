@@ -117,6 +117,7 @@ public class PlayerController : MonoBehaviour
                     Vector3 desiredVelocity = direction * speed;
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
+                    desiredVelocity = desiredVelocity.normalized * speed;
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
@@ -128,6 +129,7 @@ public class PlayerController : MonoBehaviour
                     Vector3 desiredVelocity = direction * speed;
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
+                    desiredVelocity = desiredVelocity.normalized * speed;
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
