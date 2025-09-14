@@ -63,13 +63,12 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
 
-        agent.SetAreaCost(3, Mathf.Infinity);
-
         StartCoroutine(LookAround());
 
         // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
         agent.updatePosition = false;
         agent.updateRotation = false;
+        agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
     private void Update()
@@ -235,7 +234,6 @@ public class Goblin : Enemy
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
                 Debug.Log("Reached: " + Time.time);
-                agent.SetDestination(transform.position); // Stop character
                 pathState = PathState.Unset;
                 StartCoroutine(LookAround()); // Look around
             }

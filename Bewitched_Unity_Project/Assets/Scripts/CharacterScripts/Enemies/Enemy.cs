@@ -199,6 +199,7 @@ public abstract class Enemy : Character
         }
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+        GetComponent<CharacterController>().Move(Vector3.down);
 
         Quaternion lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
         transform.rotation = lookRotation;
@@ -752,8 +753,42 @@ public abstract class Enemy : Character
     public void SetPath(NavPath path)
     {
         currentPath = path;
-        currentCornerIndex = 0;
+        SetNextCorner();
         velocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// When setting a new path, it sets the character to the corner after the closest one
+    /// This stops jittery back and forth when chasing
+    /// </summary>
+    public void SetNextCorner()
+    {
+        if (currentPath == null || currentPath.GetCornerNodes().Count == 0)
+        {
+            currentCornerIndex = 0;
+            return;
+        }
+
+        float shortestDist = Mathf.Infinity;
+        int closestIndex = 0;
+        int currentIndex = 0;
+
+        foreach (Node node in currentPath.GetCornerNodes())
+        {
+            if (shortestDist > (node.GetPosition(gameObject) - transform.position).magnitude)
+            {
+                shortestDist = (node.GetPosition(gameObject) - transform.position).magnitude;
+                closestIndex = currentIndex;
+            }
+            currentIndex++;
+        }
+
+        if (closestIndex >= currentPath.GetCornerNodes().Count - 1)
+        {
+            currentCornerIndex = closestIndex;
+            return;
+        }
+        currentCornerIndex = closestIndex + 1; // If not the last node, go to the one past this
     }
 
     /// <summary>
