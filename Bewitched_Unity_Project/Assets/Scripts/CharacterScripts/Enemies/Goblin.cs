@@ -66,6 +66,10 @@ public class Goblin : Enemy
         agent.SetAreaCost(3, Mathf.Infinity);
 
         StartCoroutine(LookAround());
+
+        // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
+        agent.updatePosition = false;
+        agent.updateRotation = false;
     }
 
     private void Update()
