@@ -2,34 +2,128 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Controls character animations, including state management and delays for abilities.
+/// Base animator controller for characters.
+/// Handles animation state transitions and enforces timing rules.
 /// </summary>
 public class CharacterAnimator : MonoBehaviour
 {
-    [Tooltip("Animator component responsible for handling character animations.")]
+    [Header("Animation Timings")]
+    [SerializeField, Tooltip("Time delay before completing the primary ability animation.")]
+    private float primaryAnimationDelay = 0.5f;
+    [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
+    private float secondaryAnimationDelay = 0.5f;
+    [SerializeField, Tooltip("Primary attack animation length.")]
+    private float primaryAttackLength = 1f;
+    [SerializeField, Tooltip("Secondary attack animation length.")]
+    private float secondaryAttackLength = 1f;
+
+    [Header("References")]
+    [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
     protected Animator animator;
-
-    [Tooltip("Time delay before completing the primary ability animation.")]
-    public float primaryAnimationDelay = 0.5f;
-
-    [Tooltip("Time delay before completing the secondary ability animation.")]
-    public float secondaryAnimationDelay;
-
-    [Tooltip("The character controller attached to this gameobject")]
+    [SerializeField, Tooltip("Character controller attached to this gameobject.")]
     private CharacterController characterController;
 
     [Tooltip("Defines the possible animation states for the character.")]
-    public enum AnimationStates { idle, primaryAttack, secondaryAttack, run, death, possession };
-
-    [Tooltip("The current animation state of the character.")]
+    public enum AnimationStates { idle, run, primaryAttack, secondaryAttack, death, possession }
+    [Tooltip("The current animation state of the character")]
     protected AnimationStates currentAnimationState = AnimationStates.idle;
+    [Tooltip("Whether the animation state can change right now")]
+    protected bool canChange = true;
+    [Tooltip("Holds the current animator state info")]
+    protected AnimatorStateInfo stateInfo;
+
+    protected virtual void Start()
+    {
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        characterController = GetComponent<CharacterController>();
+    }
+
+    protected virtual void Update()
+    {
+        if (animator == null)
+        {
+            Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
+            return;
+        }
+
+        // Track current animator state
+        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        UpdateCurrentStateFromAnimator();
+
+        // Idle/run switching
+        if (canChange && characterController != null)
+        {
+            if (characterController.velocity == Vector3.zero)
+                SwitchState(AnimationStates.idle);
+            else
+                SwitchState(AnimationStates.run);
+        }
+    }
 
     /// <summary>
-    /// Returns the current animation state of the character.
+    /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>
-    public AnimationStates GetCurrentState()
+    public virtual void SwitchState(AnimationStates newState)
     {
-        return currentAnimationState;
+        if (!canChange || currentAnimationState == AnimationStates.death || currentAnimationState == newState)
+            return;
+
+        if (animator == null) return;
+
+        ResetAllTriggers();
+
+        switch (newState)
+        {
+            case AnimationStates.idle:
+                animator.SetTrigger("Idle");
+                canChange = true;
+                break;
+            case AnimationStates.run:
+                animator.SetTrigger("Run");
+                canChange = true;
+                break;
+            case AnimationStates.primaryAttack:
+                animator.SetTrigger("PrimaryAttack");
+                canChange = false;
+                StartCoroutine(WaitForEndAnimation(primaryAttackLength));
+                break;
+            case AnimationStates.secondaryAttack:
+                animator.SetTrigger("SecondaryAttack");
+                canChange = false;
+                StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
+                break;
+            case AnimationStates.death:
+                animator.SetTrigger("Death");
+                canChange = false;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates currentAnimationState based on the animator’s active state.
+    /// </summary>
+    private void UpdateCurrentStateFromAnimator()
+    {
+        if (stateInfo.IsName("Run")) currentAnimationState = AnimationStates.run;
+        else if (stateInfo.IsName("Idle")) currentAnimationState = AnimationStates.idle;
+        else if (stateInfo.IsName("PrimaryAttack")) currentAnimationState = AnimationStates.primaryAttack;
+        else if (stateInfo.IsName("SecondaryAttack")) currentAnimationState = AnimationStates.secondaryAttack;
+        else if (stateInfo.IsName("Death")) currentAnimationState = AnimationStates.death;
+    }
+
+    /// <summary>
+    /// Resets all animation triggers to avoid conflicting transitions.
+    /// </summary>
+    protected virtual void ResetAllTriggers()
+    {
+        animator.ResetTrigger("Idle");
+        animator.ResetTrigger("Run");
+        animator.ResetTrigger("PrimaryAttack");
+        animator.ResetTrigger("SecondaryAttack");
+        animator.ResetTrigger("Death");
+        animator.ResetTrigger("Possession"); // handled by subclasses if needed
     }
 
     /// <summary>
@@ -40,80 +134,37 @@ public class CharacterAnimator : MonoBehaviour
         return currentAnimationState != AnimationStates.primaryAttack;
     }
 
-    protected void Start()
+    /// <summary>
+    /// Returns the animation state the character is currently in
+    /// </summary>
+    /// <returns>Current animation state </returns>
+    public AnimationStates GetCurrentState()
     {
-        animator = GetComponentInChildren<Animator>();
-        characterController = GetComponent<CharacterController>();
-
-    }
-
-    protected void Update()
-    {
-        if (characterController != null && characterController.velocity == Vector3.zero)
-        {
-            SwitchState(AnimationStates.idle);
-        }
-        else if(characterController != null)
-        {
-            SwitchState(AnimationStates.run);
-        }
+        return currentAnimationState;
     }
 
     /// <summary>
-    /// Switches the character's animation state and updates the Animator accordingly.
+    /// Waits for a delay corresponding to the current animation state.
     /// </summary>
-    /// <param name="newState">The new animation state to transition to.</param>
-    public virtual void SwitchState(AnimationStates newState)
-    {
-        if (currentAnimationState == AnimationStates.death) return;
-        if (currentAnimationState == newState) return;
-
-        if(animator == null)
-        {
-            Debug.LogWarning("There is no animator assigned to this character");
-            return;
-        }
-
-        currentAnimationState = newState;
-
-        switch (currentAnimationState)
-        {
-            case AnimationStates.run:
-                animator.SetTrigger("Run");
-                break;
-            case AnimationStates.idle:
-                animator.SetTrigger("Idle");
-                break;
-            case AnimationStates.primaryAttack:
-                animator.SetTrigger("PrimaryAttack");
-                break;
-            case AnimationStates.secondaryAttack:
-                animator.SetTrigger("SecondaryAttack");
-                break;
-            case AnimationStates.death:
-                animator.SetTrigger("Death");
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Waits for a delay corresponding to the given animation before continuing execution.
-    /// </summary>
-    /// <param name="animation">The animation state to wait for.</param>
     public IEnumerator WaitForDelay(AnimationStates animation)
     {
-        switch (currentAnimationState)
+        switch (animation)
         {
-            case AnimationStates.run:
-                break;
             case AnimationStates.primaryAttack:
                 yield return new WaitForSeconds(primaryAnimationDelay);
                 break;
             case AnimationStates.secondaryAttack:
                 yield return new WaitForSeconds(secondaryAnimationDelay);
                 break;
-            case AnimationStates.death:
-                break;
         }
+    }
+
+    /// <summary>
+    /// Waits for the end of an animation before allowing new state changes.
+    /// </summary>
+    protected IEnumerator WaitForEndAnimation(float sec)
+    {
+        yield return new WaitForSeconds(sec);
+        canChange = true;
     }
 }
