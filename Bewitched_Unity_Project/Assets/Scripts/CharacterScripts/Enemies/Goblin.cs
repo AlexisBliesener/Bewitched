@@ -13,6 +13,8 @@ public class Goblin : Enemy
     [SerializeField] float thrustSpeed = 10;
     [Tooltip("Knife Damage")]
     [SerializeField] float knifeDamage = 20;
+    [Tooltip("Knife duration")]
+    [SerializeField] float knifeDuration = 1;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -89,34 +91,30 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        Debug.Log("make knife");
-        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
 
-        // Instantiate in front of the character with a small offset
-        GameObject shank = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
-
-        timeLastPrimary = Time.time;
-        attackingPrimary = true;
+        StartCoroutine(HandleStab());
     }
 
     /// <summary>
-    /// Function that handles the AI aspects of stabbing
-    /// Starts the attack, waits for it to be over, then sets the state back to chasing
+    /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
-    /// <returns> Time gaps </returns>
-    private IEnumerator HandlePrimary()
+    /// <returns> Time breaks </returns>
+    public IEnumerator HandleStab()
     {
-      //  yield return new WaitForSeconds(primaryAnimationDelay);
+        if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
 
-        PrimaryAttack();
+        timeLastPrimary = Time.time;
+        attackingPrimary = true;
 
-        while (attackingPrimary)
-        {
-            yield return null;
-        }
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects, attackDuration: knifeDuration);
 
-        aiState = GoblinAIState.Chasing;
+        while (knifeHitbox != null) yield return null; // Wait until the hitbox is destroyed
+
+        if (!playerControlling) aiState = GoblinAIState.Chasing;
+        else PlayerController.instance.SetAllowMovement(true);
     }
 
     public override void SecondaryAttack()
@@ -579,7 +577,7 @@ public class Goblin : Enemy
         {
             Debug.Log("Stabbing");
             aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandlePrimary());
+            StartCoroutine(HandleStab());
         }
         else // Spinning
         {
@@ -625,7 +623,7 @@ public class Goblin : Enemy
         if (attackChoice < 4) // Stabbing
         {
             aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandlePrimary());
+            StartCoroutine(HandleStab());
         }
         else // Spinning
         {
