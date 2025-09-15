@@ -344,6 +344,7 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="newCharacter">The new character to switch control to.</param>
     public void SwitchCharacter(Character newCharacter)
     {
+        currentCharacter.DeactivateSurroundingPoints();
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
@@ -389,6 +390,7 @@ public class PossessionAbility : MonoBehaviour
         }
         timePossessionLastLeft = Time.time;
         currentCharacter = newCharacter;
+        currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
     }
 }

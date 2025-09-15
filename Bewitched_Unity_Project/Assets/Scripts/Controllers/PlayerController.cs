@@ -8,6 +8,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
+using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 public class PlayerController : MonoBehaviour
 {
@@ -69,6 +71,12 @@ public class PlayerController : MonoBehaviour
         characterController = controller;
     }
 
+    [Tooltip("Player Modifier Volume")]
+    [SerializeField] NavMeshModifierVolume playerZone;
+
+    [Tooltip("Navmesh Surface")]
+    [SerializeField] NavMeshSurface surface;
+
     private void Start()
     {
         instance = this;
@@ -82,6 +90,7 @@ public class PlayerController : MonoBehaviour
                 hagHealthBar.SetActive(true);
             }
         }
+        oldHag.ActivateSurroundingPoints();
 
         ResumeGame();
     }
@@ -118,6 +127,14 @@ public class PlayerController : MonoBehaviour
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
                     desiredVelocity = desiredVelocity.normalized * speed;
+                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
+                    {
+                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.acceleration);
+                    }
+                    else
+                    {
+                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.deceleration);
+                    }
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
@@ -131,6 +148,14 @@ public class PlayerController : MonoBehaviour
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
                     desiredVelocity = desiredVelocity.normalized * speed;
+                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
+                    {
+                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.acceleration);
+                    }
+                    else
+                    {
+                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.deceleration);
+                    }
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 

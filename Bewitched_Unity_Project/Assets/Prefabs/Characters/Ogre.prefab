@@ -16,10 +16,11 @@ GameObject:
   - component: {fileID: 8810894426884420593}
   - component: {fileID: 1425984857738050746}
   - component: {fileID: 732372681308907037}
-  - component: {fileID: 4985444316756526280}
+  - component: {fileID: 6417695604396302911}
+  - component: {fileID: -550221043697874190}
   m_Layer: 7
   m_Name: Ogre
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -153,7 +154,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0
+  m_StoppingDistance: 2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -188,14 +189,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Ogre
   movementSpeed: 3
-  jumpSpeed: 0
+  acceleration: 5
+  deceleration: 5
   weight: 10
   sizeRadius: 1
+  numSurroundingPoints: 8
+  surroundingRadius: 2
   teamID: 2
   animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
-  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 2
   primaryCooldown: 3
   primaryComboExtraCooldown: 0
@@ -205,18 +208,17 @@ MonoBehaviour:
   secondaryCooldown: 5
   secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  health: {fileID: 0}
+  maxHealth: 240
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
-  attackEffects:
-  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
-  - {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
-  - {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
-  effectJSONs: []
+  obstacle: {fileID: 0}
   agent: {fileID: 8810894426884420593}
+  minStopDistance: 0.5
+  highestPriority: 1
+  lowestPriority: 20
   ground:
     serializedVersion: 2
     m_Bits: 64
@@ -224,15 +226,20 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   sightRange: 10
+  maxSightAngle: 70
+  hearingRange: 2
   patrolRange: 5
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 1
   leaveBodyExplosionRadius: 5
   leaveBodyExplosionMinimumDamage: 10
   leaveBodyExplosionMaximumDamage: 40
   leaveBodyExplosionMinimumKnockback: 10
   leaveBodyExplosionMaximumKnockback: 30
-  batHitboxPrefab: {fileID: 3266930682550461916, guid: f9791627755f53043a950c79ed274ac2, type: 3}
-  batPivot: {fileID: 326237258621897175, guid: f6d6591cea902ca4891bb476ce9ea268, type: 3}
+  debugging: 0
+  destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
+  pathVisualizer: {fileID: 0}
+  batHitboxPrefab: {fileID: 3839853102873102876, guid: 996153408a866c743a3495e5e940b1ee, type: 3}
   minimumBatSwingDamage: 20
   maximumBatSwingDamage: 60
   minimumBatSwingAngle: 45
@@ -241,7 +248,6 @@ MonoBehaviour:
   maximumBatSwingKnockback: 120
   batSwingDuration: 0.5
   batSwingChargeTime: 3
-  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
@@ -249,10 +255,112 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpSlamImpactRange: 8
-  slamBatEffects: {fileID: 0}
-  slamImpactEffects: {fileID: 0}
---- !u!114 &4985444316756526280
+  ogreJumpKnockbackRange: 8
+--- !u!120 &6417695604396302911
+LineRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 1}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 1
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_ColorSpace: -1
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 0
+    textureMode: 0
+    textureScale: {x: 1, y: 1}
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_MaskInteraction: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0
+  m_ApplyActiveColorSpace: 1
+--- !u!114 &-550221043697874190
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -261,12 +369,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2214453077761272128}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82a6aeef76141464e8deb312572272c4, type: 3}
+  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 240
-  decayRate: 0
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!1001 &3505159671510209558
 PrefabInstance:
   m_ObjectHideFlags: 0
