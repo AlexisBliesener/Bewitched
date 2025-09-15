@@ -102,7 +102,9 @@ public class DropSystem : MonoBehaviour
             return;
 
         Vector3 spawnPos = position + Vector3.up * 0.5f;
-        Instantiate(dropPickupPrefab, spawnPos, Quaternion.identity);
+        GameObject drop = Instantiate(dropPickupPrefab, spawnPos, Quaternion.identity);
+        //Upgrade drop sound effect implementation
+        AudioManager.TryPlayOneShot("UpgradeDrop", drop);
 
         droppedItemThisRun++;
     }
