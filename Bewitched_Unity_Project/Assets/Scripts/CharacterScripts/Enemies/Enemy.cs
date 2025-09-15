@@ -18,6 +18,8 @@ public abstract class Enemy : Character
     [Tooltip("Pathfinding Priority")]
     public int pathfindingPriority;
 
+    [Tooltip("Last seen time buffer")]
+    public float seenBuffer = 0.5f;
 
     protected PlayerController playerController;
 
@@ -339,41 +341,12 @@ public abstract class Enemy : Character
     }
 
     /// <summary>
-    /// Function to determine if the direction an enemy is looking is at the player
-    /// </summary>
-    /// <param name="location"> Player transform </param>
-    /// <returns> True if player in sight </returns>
-    public bool IsLookingAtPlayer(Transform location)
-    {
-        Vector3 playerDirection = (location.position - transform.position).normalized;
-        float dp = Vector3.Dot(transform.forward, playerDirection);
-
-        float cosAngle = Mathf.Cos(maxSightAngle * Mathf.Deg2Rad);
-
-        if (debugging)
-        {
-            Vector3 leftBoundaryDir = Quaternion.Euler(0, -maxSightAngle, 0) * transform.forward;
-            Vector3 rightBoundaryDir = Quaternion.Euler(0, maxSightAngle, 0) * transform.forward;
-
-            Debug.DrawRay(transform.position, leftBoundaryDir, Color.red);
-            Debug.DrawRay(transform.position, rightBoundaryDir, Color.red);
-        }
-
-        if (dp >= cosAngle)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Searches for the player, handling variables if it can see them
     /// </summary>
     /// <returns> True if player is visible to enemy </returns>
     public bool LookForPlayer()
     {
-        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform) && IsLookingAtPlayer(currentPlayer.transform))
+        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
         {
             seenTarget = true;
             lastTargetLocation = target.transform.position;
@@ -754,7 +727,6 @@ public abstract class Enemy : Character
     {
         currentPath = path;
         SetNextCorner();
-        velocity = Vector3.zero;
     }
 
     /// <summary>

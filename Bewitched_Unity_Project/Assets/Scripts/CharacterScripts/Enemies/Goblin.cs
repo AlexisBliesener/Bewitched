@@ -188,10 +188,12 @@ public class Goblin : Enemy
         }
         else if (aiState == GoblinAIState.Chasing)
         {
+            Debug.Log("C");
             surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
             if (surroundPoint) // If there is a valid point
             {
                 pathState = PathState.Searching;
+                Debug.Log("Finding new chase path");
                 StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
             }
         }
@@ -353,6 +355,7 @@ public class Goblin : Enemy
     /// <returns> Waits for animation to be done </returns>
     private IEnumerator SpotPlayer(bool fromGoblin = false)
     {
+        aiState = GoblinAIState.Chasing;
         if (debugging)
         {
             DestroyPath();
@@ -365,13 +368,12 @@ public class Goblin : Enemy
         // Play animation/noise that the player has been seen
         if (!fromGoblin)
         {
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.25f);
         }
 
         // Alert nearby Goblins of player
 
         inProcess = false;
-        aiState = GoblinAIState.Chasing;
     }
 
     /// <summary>
@@ -386,7 +388,6 @@ public class Goblin : Enemy
             return;
         }
 
-        Debug.Log(currentPath);
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {

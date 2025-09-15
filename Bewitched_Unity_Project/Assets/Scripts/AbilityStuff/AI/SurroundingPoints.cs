@@ -85,8 +85,7 @@ public class SurroundingPoints : MonoBehaviour
             Enemy enemy = points[point];
             if (enemy)
             {
-                NavMeshPath path = new NavMeshPath();
-                if (!(enemy.agent.CalculatePath(point.transform.position, path) || path.status != NavMeshPathStatus.PathComplete || PointAccessibleByParent(point)))
+                if (!PointAccessibleByParent(point))
                 {
                     points[point].RemoveTargetPoint();
                     resetters.Add(point);
@@ -187,24 +186,12 @@ public class SurroundingPoints : MonoBehaviour
 
         foreach (GameObject point in finiteCopy)
         {
-            if (!enemy.agent.enabled || !pointsActive) { return null; } // Return out if enemy is possessed
+            if (!pointsActive) { return null; } 
 
-            NavMeshPath path = new NavMeshPath(); // Check if position is accessible by enemy
-            if (enemy.agent.CalculatePath(point.transform.position, path) && path.status == NavMeshPathStatus.PathComplete && PointAccessibleByParent(point))
+            // Check if position is accessible by parent
+            if (PointAccessibleByParent(point))
             {
-                float distance = 0;
-                for (int i = 1; i < path.corners.Length; i++) // Finds the distance of the path, not just the transform distance
-                {
-                    distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                }
-
-                foreach (Vector3 corner in path.corners) // Manually determine if path crosses through player circle
-                {
-                    if (Vector3.Distance(corner, transform.position) < pointRadius - 0.5f)
-                    {
-                        distance += Mathf.Infinity;
-                    }
-                }
+                float distance = (point.transform.position - enemy.transform.position).magnitude;
 
                 if (distance < closestDist) // If the point is closer
                 {
