@@ -1,129 +1,138 @@
-using Cinemachine;
+using System.Collections;
 using NUnit.Framework;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.TestTools;
-using System.Collections;
+using Cinemachine;
+using FMODUnity;
+using UnityEngine.UI;
 
+/// <summary>
+/// Unit tests for CameraController. 
+/// Tests initialization, camera priority setup, and FMOD listener linking.
+/// </summary>
 public class CameraControllerTests
 {
-    [Tooltip("The CameraController instance under test.")]
-    private AimCam controller;
-    [Tooltip("A mock character used for testing.")]
-    private Character fakeCharacter;
-    [Tooltip("The GameObject hosting the CameraController.")]
-    private GameObject host;
-
     /// <summary>
-    /// A simple mock replacement for the Character class used in tests.
-    /// Provides only what CameraController depends on.
+    /// Mock character class for testing purposes.
+    /// Provides Cinemachine cameras and AimCam without requiring full game logic.
     /// </summary>
     public class MockCharacter : Character
     {
+        [Tooltip("FreeLook camera used for third-person view.")]
+        private CinemachineFreeLook freeLook;
+
+        [Tooltip("Virtual camera used for aiming.")]
+        private CinemachineVirtualCamera virtualCam;
+
+        [Tooltip("AimCam component for aiming behavior.")]
+        private AimCam aimCam;
+
+        /// <summary>
+        /// Initializes the mock character's cameras and AimCam.
+        /// </summary>
+        public void Init()
+        {
+            var freeObj = new GameObject("FreeLookCam");
+            freeObj.transform.SetParent(this.transform);
+            freeLook = freeObj.AddComponent<CinemachineFreeLook>();
+
+            var virtualObj = new GameObject("VirtualCam");
+            virtualObj.transform.SetParent(this.transform);
+            virtualCam = virtualObj.AddComponent<CinemachineVirtualCamera>();
+
+            aimCam = virtualObj.AddComponent<AimCam>();
+        }
+
+        /// <summary>
+        /// Overrides Character.Die() but does nothing for tests.
+        /// </summary>
         public override void Die() { }
-        public override void PrimaryAttack() { }
-        public override void SecondaryAttack() { }
+
+        /// <summary>Returns the FreeLook camera.</summary>
+        public new CinemachineFreeLook GetFreeLookCam() => freeLook;
+
+        /// <summary>Returns the virtual camera.</summary>
+        public new CinemachineVirtualCamera GetVirtualCam() => virtualCam;
+
+        /// <summary>Returns the AimCam component.</summary>
+        public AimCam GetAimCam() => aimCam;
     }
 
+    [Tooltip("GameObject holding the CameraController.")]
+    private GameObject camObj;
+    [Tooltip("CameraController being tested.")]
+    private CameraController controller;
+    [Tooltip("FreeLook camera from the mock character.")]
+    private CinemachineFreeLook freeLook;
+    [Tooltip("Virtual camera from the mock character.")]
+    private CinemachineVirtualCamera virtualCam;
+    [Tooltip("Mock character used for testing.")]
+    private MockCharacter mockCharacter;
+    [Tooltip("FMOD Studio listener attached to the camera.")]
+    private StudioListener listener;
+    [Tooltip("Crosshair image used for aiming.")]
+    private Image crossHair;
+
+    /// <summary>
+    /// Sets up the CameraController, mock character, cameras, listener, and crosshair before each test.
+    /// </summary>
     [SetUp]
-    public void SetUp()
+    public void Setup()
     {
-        LogAssert.ignoreFailingMessages = true; // prevents log errors from failing tests (so FMOD doesnt fail the test)
+        camObj = new GameObject("CameraControllerTest");
+        camObj.SetActive(false);
+        controller = camObj.AddComponent<CameraController>();
 
-        host = new GameObject("CameraControllerHost");
-        host.gameObject.SetActive(false);
-        controller = host.AddComponent<AimCam>();
+        // Mock character setup
+        var charObj = new GameObject("Character");
+        mockCharacter = charObj.AddComponent<MockCharacter>();
+        mockCharacter.Init();
 
-        // Fake Character
-        var charObj = new GameObject("FakeCharacter");
-        fakeCharacter = charObj.AddComponent<MockCharacter>();
+        freeLook = mockCharacter.GetFreeLookCam();
+        virtualCam = mockCharacter.GetVirtualCam();
 
-        // Inject character into private field
-        typeof(AimCam)
-            .GetField("characterToFollow", BindingFlags.NonPublic | BindingFlags.Instance)
-            .SetValue(controller, fakeCharacter);
+        listener = camObj.AddComponent<StudioListener>();
+        crossHair = new GameObject("Crosshair").AddComponent<Image>();
 
-        // Create a  CinemachineVirtualCamera
-        var vcam = host.AddComponent<Cinemachine.CinemachineVirtualCamera>();
-        vcam.AddCinemachineComponent<Cinemachine3rdPersonFollow>(); // ensures not null
-        typeof(AimCam)
-            .GetField("virtualCamera", BindingFlags.NonPublic | BindingFlags.Instance)
-            .SetValue(controller, vcam);
-
-        // Create a main camera
-        var mainCamGO = new GameObject("MainCam");
-        var mainCam = mainCamGO.AddComponent<Camera>();
-        typeof(AimCam)
-            .GetField("mainCam", BindingFlags.NonPublic | BindingFlags.Instance)
-            .SetValue(controller, mainCam);
-
-        // Create a StudioListener on its own GO
-        var listenerGO = new GameObject("Listener");
-        var listener = listenerGO.AddComponent<FMODUnity.StudioListener>();
-        typeof(AimCam)
-            .GetField("listener", BindingFlags.NonPublic | BindingFlags.Instance)
+        // Inject private fields into CameraController
+        typeof(CameraController).GetField("freeLookCam", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(controller, freeLook);
+        typeof(CameraController).GetField("virtualCam", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(controller, virtualCam);
+        typeof(CameraController).GetField("currentCharacter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(controller, mockCharacter);
+        typeof(CameraController).GetField("crossHair", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(controller, crossHair);
+        typeof(CameraController).GetField("listener", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
             .SetValue(controller, listener);
 
-        host.gameObject.SetActive(true);
-    }
+        camObj.SetActive(true);
 
-    [TearDown]
-    public void TearDown()
-    {
-        Object.DestroyImmediate(host);
-        Object.DestroyImmediate(fakeCharacter.gameObject);
+        // Manually run Awake
+        var awake = typeof(CameraController).GetMethod("Awake", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        awake.Invoke(controller, null);
     }
 
     /// <summary>
-    /// Tests that the CameraController correctly updates its reference to a new character
-    /// when SwitchCharacter is invoked. Verifies that the private characterToFollow field
-    /// is updated to the new character.
+    /// Cleans up GameObjects after each test.
+    /// </summary>
+    [TearDown]
+    public void Teardown()
+    {
+        Object.DestroyImmediate(camObj);
+        Object.DestroyImmediate(mockCharacter.gameObject);
+        Object.DestroyImmediate(crossHair.gameObject);
+    }
+
+    /// <summary>
+    /// Tests that Awake correctly initializes aiming state, camera priorities, and FMOD listener.
     /// </summary>
     [Test]
-    public void SwitchCharacter_UpdatesCharacterReference()
+    public void Awake_InitializesCorrectly()
     {
-        // Arrange
-        var newChar = new GameObject("NewChar").AddComponent<MockCharacter>();
-
-        var method = typeof(AimCam)
-            .GetMethod("SwitchCharacter", BindingFlags.NonPublic | BindingFlags.Instance);
-
-        // Act
-        method.Invoke(controller, new object[] { newChar });
-
-        // Assert
-        var charToFollow = typeof(AimCam)
-            .GetField("characterToFollow", BindingFlags.NonPublic | BindingFlags.Instance)
-            .GetValue(controller);
-
-        Assert.AreSame(newChar, charToFollow);
-
-        Object.DestroyImmediate(newChar.gameObject);
-    }
-
-    /// <summary>
-    /// Tests that the CameraController defaults the camera side to the right
-    /// when SwitchCameraSide is invoked and there are no collisions detected.
-    /// Verifies that the private targetCamSide field is set to 1.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator SwitchCameraSide_DefaultsToRight()
-    {
-        // Make certain no collisions will be detected on the mask used by the raycast.
-        typeof(AimCam)
-            .GetField("environmentMask", BindingFlags.NonPublic | BindingFlags.Instance)
-            .SetValue(controller, (LayerMask)0); // layerMask = 0 hits nothing
-
-        // Let Awake/Start run.
-        yield return null;
-
-        // Let at least one Update() tick happen (SwitchCameraSide is called in Update).
-        yield return null;
-
-        var targetCamSide = (float)typeof(AimCam)
-            .GetField("targetCamSide", BindingFlags.NonPublic | BindingFlags.Instance)
-            .GetValue(controller);
-
-        Assert.AreEqual(1f, targetCamSide, 0.05f);
+        Assert.IsFalse(CameraController.GetIsAiming(), "Aiming should be false on Awake.");
+        Assert.AreEqual(2, freeLook.Priority, "FreeLook priority should be initialized to 2.");
+        Assert.AreEqual(1, virtualCam.Priority, "VirtualCam priority should be initialized to 1.");
+        Assert.NotNull(listener.attenuationObject, "FMOD listener should be linked to character.");
     }
 }

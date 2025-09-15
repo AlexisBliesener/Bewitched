@@ -156,7 +156,14 @@ public class CameraController : MonoBehaviour
         virtualCam = character.GetVirtualCam();
         freeLookCam = character.GetFreeLookCam();
 
-        aimCam = virtualCam.GetComponent<AimCam>();
+        try
+        {
+            aimCam = virtualCam.GetComponent<AimCam>();
+        }
+        catch
+        {
+            Debug.LogWarning("No aim cam component found!");
+        }
 
         freeLookCam.Priority = 2;
         virtualCam.Priority = 1;
