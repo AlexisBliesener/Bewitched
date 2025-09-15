@@ -228,6 +228,7 @@ public class GraphBuilder : MonoBehaviour
             AssetDatabase.SaveAssets();
         }
 #endif
+        graphMesh = new Mesh();
     }
 
     /// <summary>
