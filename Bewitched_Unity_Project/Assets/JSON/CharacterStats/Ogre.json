@@ -1,0 +1,125 @@
+{
+    "characterName": "Ogre",
+    "movementSpeed": 3.0,
+    "weight": 10.0,
+    "sizeRadius": 1.0,
+    "teamID": 2,
+    "animator": {
+        "instanceID": 0
+    },
+    "primaryFireIcon": {
+        "instanceID": 0
+    },
+    "secondaryFireIcon": {
+        "instanceID": 0
+    },
+    "attackDelay": 2.0,
+    "primaryCooldown": 3.0,
+    "primaryComboExtraCooldown": 0.0,
+    "primaryComboSteps": 0,
+    "primaryComboResetTime": 0.0,
+    "primaryAnimationDelay": 0.0,
+    "secondaryCooldown": 5.0,
+    "secondaryAnimationDelay": 0.0,
+    "primaryAttackRange": 5.0,
+    "maxHealth": 240.0,
+    "hitStunPrefab": {
+        "instanceID": 51926
+    },
+    "hitStunDuration": 0.5,
+    "characters": {
+        "serializedVersion": "2",
+        "m_Bits": 128
+    },
+    "attackEffects": [
+        {
+            "instanceID": 143900
+        },
+        {
+            "instanceID": 2668708
+        },
+        {
+            "instanceID": 99298
+        }
+    ],
+    "effectJSONs": [],
+    "agent": {
+        "instanceID": 51920
+    },
+    "ground": {
+        "serializedVersion": "2",
+        "m_Bits": 64
+    },
+    "environment": {
+        "serializedVersion": "2",
+        "m_Bits": 256
+    },
+    "sightRange": 10.0,
+    "patrolRange": 5.0,
+    "miniBarPrefab": {
+        "instanceID": 51928
+    },
+    "attackDelayAI": 1.0,
+    "leaveBodyExplosionRadius": 5.0,
+    "leaveBodyExplosionMinimumDamage": 10.0,
+    "leaveBodyExplosionMaximumDamage": 40.0,
+    "leaveBodyExplosionMinimumKnockback": 10.0,
+    "leaveBodyExplosionMaximumKnockback": 30.0,
+    "batHitboxPrefab": {
+        "instanceID": 51992
+    },
+    "batPivot": {
+        "instanceID": 98764
+    },
+    "minimumBatSwingDamage": 20.0,
+    "maximumBatSwingDamage": 60.0,
+    "minimumBatSwingAngle": 45.0,
+    "maximumBatSwingAngle": 120.0,
+    "minimumBatSwingKnockback": 60.0,
+    "maximumBatSwingKnockback": 120.0,
+    "batSwingDuration": 0.5,
+    "batSwingChargeTime": 3.0,
+    "batSwingEffects": {
+        "instanceID": 143900
+    },
+    "slamHitboxPrefab": {
+        "instanceID": 51932
+    },
+    "ogreJumpGravity": 40.0,
+    "ogreJumpSpeed": 25.0,
+    "ogreJumpBatDamage": 50.0,
+    "ogreJumpSlamDamage": 20.0,
+    "ogreJumpKnockbackMinimum": 20.0,
+    "ogreJumpKnockbackMaximum": 70.0,
+    "ogreJumpSlamImpactRange": 4.0,
+    "slamBatEffects": {
+        "instanceID": 2668708
+    },
+    "slamImpactEffects": {
+        "instanceID": 99298
+    }
+}|{
+    "attackName": "OgreBatSwing",
+    "knockbackAmount": 5.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 2,
+    "timeStopDuration": 0.15000000596046449
+}|{
+    "attackName": "OgreSlamBatEffects",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 0.0,
+    "knockbackMaximum": 0.0,
+    "knockbackRange": 0.0,
+    "knockbackType": 0,
+    "timeStopDuration": 0.0
+}|{
+    "attackName": "OgreSlamImpact",
+    "knockbackAmount": 0.0,
+    "knockbackMinimum": 20.0,
+    "knockbackMaximum": 70.0,
+    "knockbackRange": 30.0,
+    "knockbackType": 1,
+    "timeStopDuration": 0.15000000596046449
+}

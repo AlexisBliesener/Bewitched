@@ -19,6 +19,13 @@ public class PauseManager : MonoBehaviour
     private void OnEnable()
     {
         OpenScreen(mainPauseScreen);
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void OnDisable()
+    {
+        Time.timeScale = 1.0f;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void CloseAllScreens()

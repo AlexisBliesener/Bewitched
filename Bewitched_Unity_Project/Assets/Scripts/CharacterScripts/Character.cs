@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using Cinemachine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(HealthController))]
+[RequireComponent(typeof(CharacterAnimator))]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
@@ -17,6 +20,8 @@ public abstract class Character : MonoBehaviour
     [Header("Movement Settings")]
     [Tooltip("Speed the Character Can Move While Chasing")]
     public float movementSpeed = 5;
+    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
+    private float jumpSpeed;
     [Tooltip("Acceleration of the Character")]
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
@@ -32,12 +37,12 @@ public abstract class Character : MonoBehaviour
     public float surroundingRadius = 2;
     [Tooltip("Team of the character")]
     public int teamID;
-    [Tooltip("Character Animator")]
-    public Animator animator;
     [Tooltip("Primary Fire Image")]
     public Sprite primaryFireIcon;
     [Tooltip("Secondary Fire Image")]
     public Sprite secondaryFireIcon;
+    [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
+    private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
     [Tooltip("Attack Delay")]
     public float attackDelay = 1;
@@ -49,18 +54,15 @@ public abstract class Character : MonoBehaviour
     public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
     public float primaryComboResetTime;
-    [Tooltip("Primary Ability Animation Delay")]
-    public float primaryAnimationDelay = 0.5f;
     [Tooltip("Cooldown After Secondary Ability")]
     public float secondaryCooldown = 5;
-    [Tooltip("Secondary Ability Animation Delay")]
-    public float secondaryAnimationDelay;
+
 
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
-    [Tooltip("Maximum Health")]
-    public float maxHealth;
+    [Header("Note: Health settings can be changed on the Health Controller component!")]
+    [SerializeField] public HealthController health;
 
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
@@ -75,16 +77,7 @@ public abstract class Character : MonoBehaviour
     protected float timeLastSecondary = -Mathf.Infinity;
 
     protected float timeLastAny;
-
-    protected float currentHealth;
-
-    private bool alive = true;
-
-    protected bool invincible = false; // Title card
-
     protected GameObject hitStunActual = null;
-
-    protected float timeLastHit;
 
     protected bool attackingPrimary = false;
     protected bool attackingSecondary = false;
@@ -93,13 +86,21 @@ public abstract class Character : MonoBehaviour
     protected float basePrimaryCooldown;
     protected float baseSecondaryCooldown;
 
-    protected bool inPrimaryStartAnim = false;
-    protected bool inSecondaryStartAnim = false;
-
     protected bool releasePrimaryImm = false;
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
+    private CinemachineFreeLook freeLookCam;
+    [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
+    private CinemachineVirtualCamera virtualCam;
+
+    [Tooltip("The script that controls chaning animation states")]
+    private CharacterAnimator characterAnimator;
+
+    public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
+    [SerializeField] private List<string> effectJSONs = new List<string>();
 
     private SurroundingPoints surroundingPoints;
 
@@ -108,7 +109,16 @@ public abstract class Character : MonoBehaviour
     [ContextMenu("Save to JSON")]
     public void SaveToJson()
     {
+        effectJSONs = new List<string>();
         string characterStatsStr = JsonUtility.ToJson(this, true);
+
+        foreach (AttackStatusEffects effect in attackEffects)
+        {
+            string statusStr = effect.SaveToJson();
+            characterStatsStr += "|";
+            characterStatsStr += statusStr;
+            effectJSONs.Add(statusStr);
+        }
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
@@ -141,12 +151,20 @@ public abstract class Character : MonoBehaviour
     [ContextMenu("Load From JSON")]
     public void LoadFromJson()
     {
+
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "CharacterStats");
         string filePath = Path.Combine(folderPath, characterName + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
-        JsonUtility.FromJsonOverwrite(jsonStr, this);
+
+        string[] jsons = jsonStr.Split("|");
+
+        JsonUtility.FromJsonOverwrite(jsons[0], this);
+        for (int i = 1; i < jsons.Length; i++)
+        {
+            attackEffects[i - 1].LoadFromJson(jsons[i]);
+        }
 
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
@@ -155,6 +173,75 @@ public abstract class Character : MonoBehaviour
     }
 
     #endregion
+
+    protected virtual void Awake()
+    {
+        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
+        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
+
+        characterAnimator = GetComponent<CharacterAnimator>();
+        if (health == null)
+        {
+            health = GetComponent<HealthController>();
+        }
+        health.OnDamaged += OnDamaged;
+        health.OnHealthChanged += OnHealthChanged;
+        health.OnDeath += OnDeath;
+
+        SetBaseStats();
+    }
+    protected virtual void OnDestroy()
+    {
+        health.OnDamaged -= OnDamaged;
+        health.OnHealthChanged -= OnHealthChanged;
+        health.OnDeath -= OnDeath;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine FreeLook camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
+    public CinemachineFreeLook GetFreeLookCam()
+    {
+        return freeLookCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
+    public CinemachineVirtualCamera GetVirtualCam()
+    {
+        return virtualCam;
+    }
+
+    /// <summary>
+    /// OnDamaged is called when the character is damaged.
+    /// </summary>
+    protected virtual void OnDamaged(float amount)
+    {
+        CreateHitStun();
+    }
+
+    /// <summary>
+    /// OnHealthChanged is called when the character's health changes.
+    /// </summary>
+    protected virtual void OnHealthChanged(float current, float max) { }
+    /// <summary>
+    /// OnDeath is called when the character dies.
+    /// </summary>
+    protected virtual void OnDeath()
+    {
+        Die();
+    }
+
+    /// <summary>
+    /// Called when the character dies to switch animation state to death
+    /// </summary>
+    public void AnimateDeath()
+    {
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.death);
+    }
 
     public virtual void PrimaryAttack()
     {
@@ -165,6 +252,11 @@ public abstract class Character : MonoBehaviour
     }
 
     public abstract void Die();
+
+    public float GetJumpSpeed()
+    {
+        return jumpSpeed;
+    }
 
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;
@@ -182,8 +274,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || inPrimaryStartAnim) return false;
-        if (InStartAnim()) return false;
+        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary()) return false;
 
         return true;
     }
@@ -192,67 +283,18 @@ public abstract class Character : MonoBehaviour
     {
         if (!CheckSecondaryCooldown()) return false;
         if (attackingPrimary || attackingSecondary) return false;
-        if (InStartAnim()) return false;
 
         return true;
     }
 
-    public float GetHealth()
+    /// <summary>
+    /// Returns the shoulder offset vector for the character.
+    /// This is used by the camera to determine its relative positioning when following the character.
+    /// </summary>
+    /// <returns>The shoulder offset as a Vector3.</returns>
+    public Vector3 GetShoulderOffset()
     {
-        return currentHealth;
-    }
-
-    public float GetMaxHealth()
-    {
-        return maxHealth;
-    }
-
-    public void AddHealth(float amt)
-    {
-        currentHealth += amt;
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    public virtual void SubHealth(float dmg)
-    {
-        if (!invincible)
-        {
-            timeLastHit = Time.time;
-            currentHealth -= dmg;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-            else
-            {
-                CreateHitStun();
-            }
-        }
-    }
-
-    public virtual void DrainLife(float amt)
-    {
-        if (!invincible)
-        {
-            currentHealth -= amt;
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-        }
-    }
-
-    public void SetHealthToMax()
-    {
-        currentHealth = maxHealth;
-    }
-
-    public bool IsAlive()
-    {
-        return alive;
+        return shoulderOffset;
     }
 
     public virtual void SetControlled(bool v) { }
@@ -265,7 +307,8 @@ public abstract class Character : MonoBehaviour
     public IEnumerator EnableMovement() // Call this after any movement abilities
     {
         yield return new WaitForSeconds(0.1f);
-        PlayerController.instance.SetAllowMovement(true);
+        if (PlayerController.instance != null)
+            PlayerController.instance.SetAllowMovement(true);
     }
 
     public IEnumerator StartTime(float stopTime)
@@ -278,32 +321,6 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public virtual void ReleaseSecondary()
-    {
-        if (releaseSecondaryImm)
-        {
-            releaseSecondaryImm = false;
-        }
-
-        if (InStartAnim())
-        {
-            releaseSecondaryImm = true;
-        }
-    }
-
-    public virtual void ReleasePrimary()
-    {
-        if (releasePrimaryImm)
-        {
-            releasePrimaryImm = false;
-        }
-
-        if (InStartAnim())
-        {
-            releasePrimaryImm = true;
-        }
-    }
-
     public virtual void CreateHitStun()
     {
 
@@ -313,7 +330,7 @@ public abstract class Character : MonoBehaviour
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 Destroy(hitStunActual);
                 hitStunActual = null;
@@ -326,19 +343,9 @@ public abstract class Character : MonoBehaviour
         attackingPrimary = val;
     }
 
-    public void SetPrimaryAnimStatus(bool val)
-    {
-        inPrimaryStartAnim = val;
-    }
-
     public void SetSecondaryStatus(bool val)
     {
         attackingSecondary = val;
-    }
-
-    public void SetSecondaryAnimStatus(bool val)
-    {
-        inSecondaryStartAnim = val;
     }
 
     public void SetBaseStats()
@@ -374,38 +381,37 @@ public abstract class Character : MonoBehaviour
 
             currentPrimaryComboStep += 1;
 
-            SetPrimaryAnimStatus(true);
-            AnimatePrimary();
-            yield return new WaitForSeconds(primaryAnimationDelay);
+            characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
+            yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.primaryAttack));
+
             PrimaryAttack();
-            inPrimaryStartAnim = false;
         }
     }
 
     public virtual IEnumerator BeginSecondary()
     {
-        yield return new WaitForSeconds(secondaryAnimationDelay);
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.secondaryAttack);
+        yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.secondaryAttack));
         if (gameObject)
         {
             SecondaryAttack();
-            inSecondaryStartAnim = false;
+
         }
     }
 
-    public bool InStartAnim()
+    public void AnimatePrimary()
     {
-        return (inPrimaryStartAnim || inSecondaryStartAnim);
+        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
     }
 
-    public bool CheckInAnimations()
+    public virtual void Explode()
     {
-        if (animator.IsInTransition(0)) return true;
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Possess")) return true;
-        if (attackingPrimary || inPrimaryStartAnim) return true;
-        // Check in secondary animation
-        return false;
+
     }
 
+    public virtual Vector3 GetCurrentSpeedVector()
+    {
+        return new Vector3(0, 0, 0);
     public void AnimateMove()
     {
         if (animator)
@@ -417,54 +423,22 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public void AnimateIdle()
+    public void EndAttacks()
     {
-        if (animator)
-        {
-            if (!CheckInAnimations()&&!animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
-            {
-                animator.SetTrigger("StartIdle");
-            }
-        }
+        SetPrimaryAttack(false);
+        SetSecondaryAttack(false);
     }
 
-    public void AnimatePossess()
+    public void SetPrimaryAttack(bool val)
     {
-        if (animator)
-        {
-            if (!CheckInAnimations())
-            {
-                animator.SetTrigger("StartPossess");
-            }
-        }
+        attackingPrimary = val;
     }
 
-    public void AnimatePrimary()
+    public void SetSecondaryAttack(bool val)
     {
-        if (animator)
-        {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Possess"))
-            {
-                Debug.Log(characterName + " started primary animation " + inPrimaryStartAnim);
-                if (primaryComboSteps == 0)
-                {
-                    animator.SetTrigger("StartPrimary");
-                }
-                else
-                {
-                    for (int i = 1; i <= primaryComboSteps; i++)
-                    {
-                        if (i == currentPrimaryComboStep)
-                        {
-                            string triggerString = "StartPrimary" + i;
-                            animator.SetTrigger(triggerString);
-                            Debug.Log(triggerString);
-                        }
-                    }
-                }
-            }
-        }
+        attackingSecondary = val;
     }
+}
 
     public virtual void Explode()
     {

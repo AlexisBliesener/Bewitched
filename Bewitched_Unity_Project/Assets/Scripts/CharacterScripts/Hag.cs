@@ -1,10 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using FMODUnity;
 using FMOD.Studio;
-using UnityEngine.ProBuilder;
 using UnityEngine.SceneManagement;
 
 public class Hag : Character
@@ -24,14 +21,20 @@ public class Hag : Character
     [SerializeField] LayerMask environment;
     [SerializeField] GameObject knockBackCone;
 
+    [Tooltip("The animator controller for eleth character")]
+    private ElethAnimator elethAnimator;
+
     private void Start()
     {
+        elethAnimator = GetComponent<ElethAnimator>();
         SetBaseStats();
     }
 
-    void Awake()
+    protected override void Awake()
     {
-        if(knockBackCone){
+        base.Awake();
+        if (knockBackCone)
+        {
             knockBackCone.SetActive(true);
             knockBackCone.GetComponent<KnockbackCone>().playerTrans = transform;
             knockBackCone.GetComponent<KnockbackCone>().knockbackAmount = knockbackAmount;
@@ -40,19 +43,61 @@ public class Hag : Character
         else throw new System.Exception("Hag Knockback Cone Not Assigned!");
     }
 
+    public override IEnumerator BeginPrimary()
+    {
+       yield return null;
+    }
+
+    public override IEnumerator BeginSecondary()
+    {
+        yield return null;
+    }
+
     public override void PrimaryAttack()
     {
 
-        StartCoroutine(KnockBackCone());
+        //StartCoroutine(KnockBackCone());
 
-        timeLastPrimary = Time.time;
+        //timeLastPrimary = Time.time;
     }
 
     public override void SecondaryAttack()
     {
-        Blink();
+        //Blink();
 
-        timeLastSecondary = Time.time;
+        //timeLastSecondary = Time.time;
+    }
+
+    protected override void OnDamaged(float amount)
+    {
+        base.OnDamaged(amount);
+        //Play the Witch's hit sound effect when she gets damaged.
+        AudioManager.TryGetReference("WitchHit", out EventReference evRef);
+        EventInstance inst = RuntimeManager.CreateInstance(evRef);
+        inst.setParameterByName("Damage", amount / health.GetMaxHealth());
+        inst.start();
+        inst.release();
+    }
+
+    /// <summary>
+    /// Called when Eleth dies
+    /// Fires death animation and music
+    /// Stops movement
+    /// </summary>
+    protected override void OnDeath()
+    {
+        AnimateDeath();
+        //This is temporary until we implement the big "You Died" UI Banner thing.
+        //This is just so Andrew actually hears this sound effect.
+
+        //Stops all non-UI events. WitchDeath event also mutes all other sound effects
+        RuntimeManager.GetBus("bus:/Music/LevelMusic").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        AudioManager.TryPlayOneShot("WitchDeath");
+        //Disable player controller
+        PlayerController.instance.gameObject.SetActive(false);
+        //Wait until the sound effect is over before returning to the main menu
+        Invoke("Die", 12f);
     }
 
     public override void Die()
@@ -97,10 +142,19 @@ public class Hag : Character
 
     }
 
+    /// <summary>
+    /// Called when the possession ability is used
+    /// Sets Eleth to possession animation state
+    /// </summary>
+    public void AnimatePossess()
+    {
+        elethAnimator.SwitchState(ElethAnimator.AnimationStates.possession);
+    }
+
     public void Blink()
     {
         PlayerController.instance.SetAllowMovement(false); // Prevent movement during blink
-        CameraController.instance.SetTeleporting();        // Stop camera snap
+
 
         RaycastHit hit;
         if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environment))
@@ -117,3 +171,4 @@ public class Hag : Character
         AudioManager.TryPlayOneShot("Blink");
     }
 }
+

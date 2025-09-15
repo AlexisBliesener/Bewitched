@@ -13,6 +13,8 @@ public class Goblin : Enemy
     [SerializeField] float thrustSpeed = 10;
     [Tooltip("Knife Damage")]
     [SerializeField] float knifeDamage = 20;
+    [Tooltip("Knife Effects")]
+    [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
     [SerializeField] GameObject dashHitbox;
     [Tooltip("Dash Speed")]
@@ -21,6 +23,10 @@ public class Goblin : Enemy
     [SerializeField] float dashDuration = 0.5f;
     [Tooltip("Dash Damage")]
     [SerializeField] float dashDamage = 30;
+    [Tooltip("Dash Effects")]
+    [SerializeField] AttackStatusEffects dashEffects;
+    [Tooltip("Offset of the hitbox forward")]
+    [SerializeField] private float offSetForward = 0.5f;
 
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance")]
@@ -57,7 +63,7 @@ public class Goblin : Enemy
     private void Start()
     {
         SetPlayerInfo();
-        SetHealthToMax();
+        health.SetHealthToMax();
         SetBaseStats();
         SetAgentValues();
         SetDebuggingValues();
@@ -83,10 +89,12 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        base.PrimaryAttack();
+        Debug.Log("make knife");
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
 
-        GameObject shank = Instantiate(knifePrefab, transform);
-        shank.GetComponent<KnifeHitBox>().Init(this, knifeDamage, thrustSpeed);
+        // Instantiate in front of the character with a small offset
+        GameObject shank = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -113,8 +121,6 @@ public class Goblin : Enemy
 
     public override void SecondaryAttack()
     {
-        base.SecondaryAttack();
-
         Dash();
         attackingSecondary = true;
         timeLastSecondary = Time.time;
@@ -123,11 +129,11 @@ public class Goblin : Enemy
     public void Dash()
     {
         isDashing = true;
-        invincible = true;
+        health.SetInvincible(true);
         PlayerController.instance.SetAllowMovement(false);
 
         GameObject hitbox = Instantiate(dashHitbox, transform);
-        hitbox.GetComponent<DashHitBox>().Init(this, dashDamage);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: dashDamage, attackDuration: dashDuration, status: dashEffects);
 
         StartCoroutine(HandleDashMovement(hitbox));
     }
@@ -138,11 +144,11 @@ public class Goblin : Enemy
 
         while (timeSinceStarted < dashDuration)
         {
-            if (hitbox.GetComponent<DashHitBox>().HitWall())
+            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
             {
                 StartCoroutine(EnableMovement());
                 isDashing = false;
-                invincible = false;
+                health.SetInvincible(false);
                 attackingSecondary = false;
                 aiState = GoblinAIState.Chasing;
 
@@ -162,7 +168,7 @@ public class Goblin : Enemy
 
         StartCoroutine(EnableMovement());
         isDashing = false;
-        invincible = false;
+        health.SetInvincible(false);
         attackingSecondary = false;
         aiState = GoblinAIState.Chasing;
     }

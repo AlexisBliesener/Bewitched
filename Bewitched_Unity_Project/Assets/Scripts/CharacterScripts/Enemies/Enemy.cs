@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : Character
 {
     [Header("Enemy AI Settings")]
@@ -284,31 +285,31 @@ public abstract class Enemy : Character
         if (val)
         {
             agent.enabled = false;
-            if (minibar)
-            {
-                Destroy(minibar);
-                minibar = null;
-            }
+            health.ShowMiniHealthBar(false);
         }
         else
         {
             agent.enabled = true;
         }
     }
-
     public override void Die()
     {
         if (playerControlling)
         {
             playerControlling = false;
-            PlayerController.CharacterControlChangeEvent?.Invoke(hag);
+            PossessionAbility.CharacterControlChangeEvent?.Invoke(hag);
+        }
+        else
+        {
+            // Drop the upgrade only if the enemy is dead and the player is not controlling it
+            DropSystem.Instance.TryDropItem(transform.position);
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
-        Destroy(minibar);
-        minibar = null;
+        health.ShowMiniHealthBar(false);
         StopAllCoroutines();
-        Destroy(gameObject);
+        // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
+        Destroy(gameObject, 0.1f);
     }
 
     public void SetRangeChecks()
@@ -414,13 +415,11 @@ public abstract class Enemy : Character
         {
             agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(transform.position);
-            AnimateIdle();
         }
         else
         {
             agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(target.transform.position);
-            AnimateMove();
         }
     }
 
@@ -436,7 +435,6 @@ public abstract class Enemy : Character
         {
             agent.stoppingDistance = minStopDistance;
             agent.SetDestination(walkPoint);
-            AnimateMove();
         }
 
         Vector3 distance = transform.position - walkPoint;
@@ -504,7 +502,7 @@ public abstract class Enemy : Character
     {
         if (hitStunActual != null)
         {
-            if (Time.time - timeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration)
             {
                 if (playerControlling) StartCoroutine(EnableMovement());
                 else agent.enabled = true;
@@ -583,7 +581,8 @@ public abstract class Enemy : Character
                     float dmg = Mathf.Lerp(leaveBodyExplosionMinimumDamage, leaveBodyExplosionMaximumDamage, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
                     float knockback = Mathf.Lerp(leaveBodyExplosionMinimumKnockback, leaveBodyExplosionMaximumKnockback, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
 
-                    hitChar.SubHealth(dmg);
+                    hitChar.health.SubHealth(dmg);
+                    if (!playerControlling) {health.ShowMiniHealthBar(true, hitChar);}
                     hitChar.GetComponent<KnockbackControl>().AddImpact(direction, knockback);
                 }
             }
@@ -821,4 +820,8 @@ public abstract class Enemy : Character
     {
         return false;
     }
+    /// <summary>
+    ///  Returns whether the player is currently controlling this enemy.
+    /// </summary>
+    public bool IsPlayerControlling() => playerControlling;
 }

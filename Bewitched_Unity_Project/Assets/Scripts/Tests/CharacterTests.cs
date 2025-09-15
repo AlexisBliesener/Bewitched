@@ -1,6 +1,7 @@
+using NUnit.Framework;
 using System.Collections;
 using System.IO;
-using NUnit.Framework;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -35,16 +36,7 @@ public class CharacterTests
         [Tooltip("Exposes the releaseSecondaryImm flag.")]
         public bool ReleaseSecondaryImmFlag => releaseSecondaryImm;
         [Tooltip("Gets the character's current health.")]
-        public float CurrentHealth => currentHealth;
-
-        /// <summary>
-        /// Sets the character's current health to a specified value.
-        /// </summary>
-        /// <param name="health">The new health value to assign.</param>
-        public void SetCurrentHealth(float health)
-        {
-            currentHealth = health;
-        }
+        public float CurrentHealth => health.GetHealth();
 
         /// <summary>
         /// Overrides Character.Die() for testing; marks that Die() was called.
@@ -88,6 +80,46 @@ public class CharacterTests
         }
 
         /// <summary>
+        /// Set the health controller instance for this character.
+        /// </summary>
+        public void SetHealthController(HealthController hc)
+        {
+            health = hc;
+            SubscribeHealth(hc);
+        }
+        /// <summary>
+        /// Subscribe to events from a given HealthController instance.
+        /// </summary>
+        public void SubscribeHealth(HealthController hc)
+        {
+            health.OnDamaged += OnDamaged;
+            health.OnDeath += OnDeath;
+        }
+        /// <summary>
+        /// Unsubscribe to events from a given HealthController instance.
+        /// </summary>
+        public void UnsubscribeHealth(HealthController hc)
+        {
+            health.OnDamaged -= OnDamaged;
+            health.OnDeath -= OnDeath;
+        }
+
+        /// <summary>
+        /// Overrides Character.OnDamaged() for testing; marks that CreateHitStun() was called.
+        /// </summary>
+        protected override void OnDamaged(float amount)
+        {
+            CreateHitStun();
+        }
+        /// <summary>
+        /// Overrides Character.OnDeath() for testing; marks that Die() was called.
+        /// </summary>
+        protected override void OnDeath()
+        {
+            Die();
+        }
+
+        /// <summary>
         /// Creates a dummy hitstun GameObject to simulate hitstun logic.
         /// </summary>
         public override void CreateHitStun() { hitStunActual = new GameObject("HitStun"); }
@@ -109,16 +141,21 @@ public class CharacterTests
         testCharacterGameObject = new GameObject("Character");
         testCharacter = testCharacterGameObject.AddComponent<TestCharacter>();
 
+        // Add and initialize HealthController for the character
+        testCharacter.SetHealthController(testCharacterGameObject.AddComponent<HealthController>()); 
+
         // Setup default values
         testCharacter.characterName = "TestChar";
-        testCharacter.maxHealth = 100;
-        testCharacter.SetCurrentHealth(100);
+        testCharacter.health.SetMaxHealth(100f);
+        testCharacter.health.SetCurrentHealth(100f);
         testCharacter.movementSpeed = 10;
         testCharacter.primaryCooldown = 1f;
         testCharacter.secondaryCooldown = 2f;
         testCharacter.primaryComboSteps = 2;
         testCharacter.primaryComboExtraCooldown = 1f;
         testCharacter.primaryComboResetTime = 0.5f;
+
+
     }
 
     /// <summary>
@@ -127,6 +164,7 @@ public class CharacterTests
     [TearDown]
     public void TearDown()
     {
+        testCharacter.UnsubscribeHealth(testCharacter.health);
         Object.Destroy(testCharacterGameObject);
     }
 
@@ -136,22 +174,22 @@ public class CharacterTests
     [Test]
     public void GetHealth_ReturnsCurrentHealth()
     {
-        Assert.AreEqual(100, testCharacter.GetHealth());
+        Assert.AreEqual(100, testCharacter.health.GetHealth());
     }
 
     /// <summary>Adding health should never exceed the maximum health.</summary>
     [Test]
     public void AddHealth_CapsAtMax()
     {
-        testCharacter.AddHealth(50);
-        Assert.AreEqual(100, testCharacter.GetHealth());
+        testCharacter.health.AddHealth(50f);
+        Assert.AreEqual(100f, testCharacter.health.GetHealth());
     }
 
     /// <summary>Subtracting more than current health should trigger Die.</summary>
     [Test]
     public void SubHealth_ReducesAndDies()
     {
-        testCharacter.SubHealth(200);
+        testCharacter.health.SubHealth(200);
         Assert.IsTrue(testCharacter.dieCalled);
     }
 
@@ -159,7 +197,7 @@ public class CharacterTests
     [Test]
     public void SubHealth_CreatesHitStun()
     {
-        testCharacter.SubHealth(10);
+        testCharacter.health.SubHealth(10);
         Assert.IsNotNull(testCharacter.HitStun);
     }
 
@@ -167,7 +205,7 @@ public class CharacterTests
     [Test]
     public void DrainLife_KillsWithoutHitStun()
     {
-        testCharacter.DrainLife(200);
+        testCharacter.health.DrainLife(200);
         Assert.IsTrue(testCharacter.dieCalled);
         Assert.IsNull(testCharacter.HitStun);
     }
@@ -176,16 +214,16 @@ public class CharacterTests
     [Test]
     public void SetHealthToMax_ResetsHealth()
     {
-        testCharacter.SubHealth(20);
-        testCharacter.SetHealthToMax();
-        Assert.AreEqual(100, testCharacter.GetHealth());
+        testCharacter.health.SubHealth(20);
+        testCharacter.health.SetHealthToMax();
+        Assert.AreEqual(100, testCharacter.health.GetHealth());
     }
 
     /// <summary>Max health getter should return the configured maximum.</summary>
     [Test]
     public void GetMaxHealth_ReturnsMax()
     {
-        Assert.AreEqual(100, testCharacter.GetMaxHealth());
+        Assert.AreEqual(100, testCharacter.health.GetMaxHealth());
     }
 
     #endregion
@@ -193,9 +231,9 @@ public class CharacterTests
 
     /// <summary>Character should start alive by default.</summary>
     [Test]
-    public void IsAlive_TrueInitially()
+    public void IsDead_FalseInitially()
     {
-        Assert.IsTrue(testCharacter.IsAlive());
+        Assert.IsFalse(testCharacter.health.IsDead);
     }
 
     /// <summary>Setting team ID should update the property.</summary>
@@ -217,23 +255,6 @@ public class CharacterTests
         Assert.IsTrue(testCharacter.secondaryCalled);
     }
 
-    /// <summary>Releasing primary attack should set the immunity flag.</summary>
-    [Test]
-    public void ReleasePrimary_SetsImmFlag()
-    {
-        testCharacter.SetPrimaryAnimStatus(true);
-        testCharacter.ReleasePrimary();
-        Assert.IsTrue(testCharacter.ReleasePrimaryImmFlag);
-    }
-
-    /// <summary>Releasing secondary attack should set the immunity flag.</summary>
-    [Test]
-    public void ReleaseSecondary_SetsImmFlag()
-    {
-        testCharacter.SetSecondaryAnimStatus(true);
-        testCharacter.ReleaseSecondary();
-        Assert.IsTrue(testCharacter.ReleaseSecondaryImmFlag);
-    }
 
     #endregion
     #region Status setters 
@@ -257,13 +278,6 @@ public class CharacterTests
     #endregion
     #region Animations
 
-    /// <summary>Character should report being in start animation if flags are set.</summary>
-    [Test]
-    public void InStartAnim_TrueIfFlagsSet()
-    {
-        testCharacter.SetPrimaryAnimStatus(true);
-        Assert.IsTrue(testCharacter.InStartAnim());
-    }
 
     #endregion
     #region JSON
