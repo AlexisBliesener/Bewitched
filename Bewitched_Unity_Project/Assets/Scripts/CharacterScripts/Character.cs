@@ -79,7 +79,9 @@ public abstract class Character : MonoBehaviour
 
     private int currentPrimaryComboStep = 0;
 
+    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
     private CinemachineFreeLook freeLookCam;
+    [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
     private CinemachineVirtualCamera virtualCam;
 
     [Tooltip("The script that controls chaning animation states")]
@@ -181,11 +183,19 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+    /// <summary>
+    /// Returns the Cinemachine FreeLook camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
     public CinemachineFreeLook GetFreeLookCam()
     {
         return freeLookCam;
     }
 
+    /// <summary>
+    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
     public CinemachineVirtualCamera GetVirtualCam()
     {
         return virtualCam;

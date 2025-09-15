@@ -228,7 +228,7 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Detect enemy for possession
-        if(CameraController.aiming)
+        if(CameraController.GetIsAiming())
         {
             Ray possessionRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
             RaycastHit hitInfo;

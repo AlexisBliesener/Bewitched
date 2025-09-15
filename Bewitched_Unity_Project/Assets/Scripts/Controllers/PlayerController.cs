@@ -46,6 +46,7 @@ public class PlayerController : MonoBehaviour
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
 
+    [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
     public Vector2 input;
@@ -112,7 +113,7 @@ public class PlayerController : MonoBehaviour
         {
             if (input.sqrMagnitude > 0.01)
             {
-                if (CameraController.aiming)
+                if (CameraController.GetIsAiming())
                 {
                     Vector3 desiredVelocity = direction * speed;
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
