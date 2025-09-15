@@ -22,6 +22,9 @@ public class CameraController : MonoBehaviour
     private AimCam aimCam;
     public Character currentCharacter;
 
+    private bool transitioning = false;
+    private float transitionTime = 2;
+
     private void Awake()
     {
         aiming = false;
@@ -37,6 +40,8 @@ public class CameraController : MonoBehaviour
 
     private void UpdateCam()
     {
+        if (transitioning) return;
+
         if (aiming)
         {
             freeLookCam.Priority = 1;
@@ -101,6 +106,8 @@ public class CameraController : MonoBehaviour
     /// <param name="character">The new character to follow.</param>
     private void SwitchCharacter(Character character)
     {
+        transitioning = true;
+        StartCoroutine(WaitTransitionTime());
         // listener.attenuationObject = character.gameObject;
 
         virtualCam.Priority = 0;
@@ -117,7 +124,16 @@ public class CameraController : MonoBehaviour
 
         aimCam = virtualCam.GetComponent<AimCam>();
 
+        freeLookCam.Priority = 2;
+        virtualCam.Priority = 1;
+
         UpdateCam();
+    }
+
+    private IEnumerator WaitTransitionTime()
+    {
+        yield return new WaitForSeconds(transitionTime);
+        transitioning = false;
     }
 
 }
