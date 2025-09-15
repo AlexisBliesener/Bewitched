@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
 
@@ -45,6 +46,7 @@ public class PlayerController : MonoBehaviour
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
 
+    [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
     public Vector2 input;
@@ -111,13 +113,39 @@ public class PlayerController : MonoBehaviour
         {
             if (input.sqrMagnitude > 0.01)
             {
-                
-                Vector3 desiredVelocity = direction * speed;
-                desiredVelocity = currentCharacter.transform.TransformDirection(desiredVelocity);
+                if (CameraController.GetIsAiming())
+                {
+                    Vector3 desiredVelocity = direction * speed;
+                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
+                    desiredVelocity.y = 0f; // Prevent tilting
+                    desiredVelocity = desiredVelocity.normalized * speed;
 
-                velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
+                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
-                characterController.Move(velocity * Time.deltaTime);
+                    characterController.Move(velocity * Time.deltaTime);
+
+                }
+                else
+                {
+                    Vector3 desiredVelocity = direction * speed;
+                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
+                    desiredVelocity.y = 0f; // Prevent tilting
+                    desiredVelocity = desiredVelocity.normalized * speed;
+
+                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
+
+                    characterController.Move(velocity * Time.deltaTime);
+
+                    if (velocity.sqrMagnitude > 0.01f)
+                    {
+                        Quaternion targetRotation = Quaternion.LookRotation(velocity);
+                        currentCharacter.transform.rotation = Quaternion.Slerp(
+                            currentCharacter.transform.rotation,
+                            targetRotation,
+                            10f * Time.deltaTime
+                        );
+                    }
+                }
             }
             else
             {

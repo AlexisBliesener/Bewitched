@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using Cinemachine;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -77,6 +78,11 @@ public abstract class Character : MonoBehaviour
     protected bool releaseSecondaryImm = false;
 
     private int currentPrimaryComboStep = 0;
+
+    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
+    private CinemachineFreeLook freeLookCam;
+    [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
+    private CinemachineVirtualCamera virtualCam;
 
     [Tooltip("The script that controls chaning animation states")]
     private CharacterAnimator characterAnimator;
@@ -156,6 +162,9 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
+        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
+        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
+
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
@@ -173,6 +182,25 @@ public abstract class Character : MonoBehaviour
         health.OnHealthChanged -= OnHealthChanged;
         health.OnDeath -= OnDeath;
     }
+
+    /// <summary>
+    /// Returns the Cinemachine FreeLook camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
+    public CinemachineFreeLook GetFreeLookCam()
+    {
+        return freeLookCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
+    public CinemachineVirtualCamera GetVirtualCam()
+    {
+        return virtualCam;
+    }
+
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>

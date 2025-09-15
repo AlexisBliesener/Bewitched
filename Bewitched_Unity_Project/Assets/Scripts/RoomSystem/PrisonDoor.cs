@@ -1,0 +1,72 @@
+using System.Collections;
+using UnityEngine;
+
+/// <summary>
+/// Controls a prison door with simple lock/unlock animations and sounds.
+/// </summary>
+public class PrisonDoor : MonoBehaviour, IDoor
+{
+    [SerializeField, Tooltip("The object that holds the visible door model.")]
+    private GameObject doorModel;
+
+    [Tooltip("The collider used to block passage when the door is locked.")]
+    private BoxCollider boxCollider;
+    [Tooltip("The distance moved per animation step.")]
+    private Vector3 moveStep = new Vector3(0, -0.09f, 0);
+    [Tooltip("The number of steps the door moves when fully locking/unlocking.")]
+    private const int TOTAL_STEPS = 50;
+    [Tooltip("Time (in seconds) between each movement step.")]
+    private const float STEP_DELAY = 0.01f;
+
+    private void Start()
+    {
+        // Automatically find the BoxCollider if not set
+        if (boxCollider == null)
+            boxCollider = GetComponentInChildren<BoxCollider>();
+    }
+
+    /// <summary>
+    /// Locks the door (enables collider, plays animation, and sound).
+    /// </summary>
+    public void Lock()
+    {
+        boxCollider.enabled = true;
+        StartCoroutine(MoveDoor(moveStep, TOTAL_STEPS, "PrisonDoorClose"));
+    }
+
+    /// <summary>
+    /// Unlocks the door (disables collider halfway, plays animation, and sound).
+    /// </summary>
+    public void Unlock()
+    {
+        StartCoroutine(MoveDoor(-moveStep, TOTAL_STEPS, "PrisonDoorOpen", disableColliderHalfway: true));
+    }
+
+    /// <summary>
+    /// Coroutine that moves the door step by step.
+    /// </summary>
+    private IEnumerator MoveDoor(Vector3 step, int steps, string sound, bool disableColliderHalfway = false)
+    {
+        // Play sound
+        if(AudioManager.manager != null)
+        {
+            AudioManager.TryPlayOneShot(sound, gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("Audio manager does not exisit!");
+        }
+
+        for (int i = 0; i < steps; i++)
+        {
+            doorModel.transform.position += step;
+
+            // Disable collider halfway through if unlocking
+            if (disableColliderHalfway && i == steps / 2)
+                boxCollider.enabled = false;
+
+            yield return new WaitForSeconds(STEP_DELAY);
+        }
+    }
+}
+

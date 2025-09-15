@@ -1,4 +1,5 @@
 using Cinemachine;
+using FMOD.Studio;
 using System.Collections;
 using System.IO;
 using UnityEngine;
@@ -8,7 +9,7 @@ using static PlayerController;
 
 
 /// <summary>
-/// Handles the player’s possession ability, allowing the Hag character to
+/// Handles the playerï¿½s possession ability, allowing the Hag character to
 /// possess enemies, manage cooldowns, update the UI, and switch between
 /// controlled characters.
 /// </summary>
@@ -16,8 +17,6 @@ public class PossessionAbility : MonoBehaviour
 {
     public static PlayerControlHandler CharacterControlChangeEvent;
     const string FILE_ENDING = ".json";
-    [SerializeField, Tooltip("The game virutal camera")]
-    protected CinemachineVirtualCamera virtualCam;
     [SerializeField, Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
     float possessionCooldown = 10;
     [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
@@ -37,8 +36,6 @@ public class PossessionAbility : MonoBehaviour
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
-    [Tooltip("If the possession button is currently being held")]
-    private bool possessHeld = false;
     [Tooltip("The time when possession of the current enemy started")]
     private float timePossessing;
     [Tooltip("The current character that is possessed")]
@@ -50,6 +47,8 @@ public class PossessionAbility : MonoBehaviour
     private PossessionStates possessionState = PossessionStates.canNotPossess;
     [Tooltip("The current enemy that would be possessed if the ability is fired")]
     private Character currentPossessableEnemy = null;
+    //The possession sound effect that is currently playing if any
+    private EventInstance possessionSoundEffect;
 
     #region Saving/Loading
 
@@ -157,7 +156,7 @@ public class PossessionAbility : MonoBehaviour
                 {
                     timePossessionLastLeft = Time.time;
                     oldHag.AnimatePossess();
-                    FirePossession();
+                    StartCoroutine(FirePossession());
                 }
             }
             else
@@ -180,29 +179,44 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Possesses an enemy if currently avaliable
+    /// Possesses an enemy if currently avaliable at the time of firing
     /// </summary>
-    private void FirePossession()
+    private IEnumerator FirePossession()
     {
-        if(possessionState == PossessionStates.canPossess)
+        Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
+        if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
+        {
+            Debug.LogError("Failed to play possession sound effect. Is it assigned in the ref sheet?");
+        }
+        yield return new WaitForSeconds(0.5f);
+        if (target)
         {
             CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+            if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
+            else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+        }
+        else
+        {
+            //Possession miss currently not implemented
+            if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 2);
+            else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
     }
+    
 
     /// <summary>
     /// Updates the color of the cross hair baised on if the player can currently possess
     /// </summary>
     private void UpdateCrossHair()
     {
-        if(crossHair == null)
+        if (crossHair == null)
         {
             Debug.LogWarning("Crosshair image is not assigned!");
             return;
         }
 
-        if(possessionState == PossessionStates.canNotPossess)
+        if (possessionState == PossessionStates.canNotPossess)
         {
             crossHair.color = Color.white;
         }
@@ -232,14 +246,21 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Detect enemy for possession
-        Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
-        RaycastHit hitInfo;
-        if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
+        if(CameraController.GetIsAiming())
         {
-            if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+            Ray possessionRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
             {
-                currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
-                possessionState = PossessionStates.canPossess;
+                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+                {
+                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
+                    possessionState = PossessionStates.canPossess;
+                }
+                else
+                {
+                    possessionState = PossessionStates.canNotPossess;
+                }
             }
             else
             {
@@ -248,8 +269,26 @@ public class PossessionAbility : MonoBehaviour
         }
         else
         {
-            possessionState = PossessionStates.canNotPossess;
+            Ray possessionRay = new Ray(currentCharacter.transform.position - Vector3.up, currentCharacter.transform.forward);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
+            {
+                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+                {
+                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
+                    possessionState = PossessionStates.canPossess;
+                }
+                else
+                {
+                    possessionState = PossessionStates.canNotPossess;
+                }
+            }
+            else
+            {
+                possessionState = PossessionStates.canNotPossess;
+            }
         }
+
     }
 
     /// <summary>
@@ -286,6 +325,7 @@ public class PossessionAbility : MonoBehaviour
         {
             if (Time.time - timePossessing > enemyExplosionTime)
             {
+                
                 currentCharacter.Explode();
                 currentCharacter.Die();
                 // Apply shunt damage
@@ -324,6 +364,7 @@ public class PossessionAbility : MonoBehaviour
             }
             currentCharacter.SetTeamID(2);
             PlayerController.instance.SetAllowMovement(true);
+            AudioManager.TryPlayOneShot("LeaveBody");
         }
         else
         {
