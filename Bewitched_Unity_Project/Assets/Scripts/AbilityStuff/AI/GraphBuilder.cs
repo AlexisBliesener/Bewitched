@@ -4,8 +4,6 @@ using UnityEngine;
 using System.Linq;
 using System;
 using UnityEditor;
-using Codice.Client.Common;
-using System.Threading.Tasks;
 
 /// <summary>
 /// This is a gambit
