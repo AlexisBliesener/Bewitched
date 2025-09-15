@@ -169,6 +169,7 @@ public class SurroundingPoints : MonoBehaviour
             Destroy(point);
         }
         points = new Dictionary<GameObject, Enemy>();
+        surroundingEnemies = new List<Enemy>();
         pointsActive = false;
     }
 
@@ -299,12 +300,20 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
-        if (Time.time - timeLastAttack > startAttackTime)
+        List<Enemy> tempEnemies = surroundingEnemies;
+
+        if (Time.time - timeLastAttack > startAttackTime && tempEnemies.Count > 0)
         {
+            int randIndex = Random.Range(0, tempEnemies.Count);
+
+            while (tempEnemies.Count > 0 && !surroundingEnemies[randIndex].AttackFromSurrounding(this))
+            {
+                tempEnemies.RemoveAt(randIndex);
+                randIndex = Random.Range(0, tempEnemies.Count);
+            }
+
             startAttackTime = Random.Range(minAttackTime, maxAttackTime);
             timeLastAttack = Time.time;
-
-            // Select random enemy from list and tell them to attack
         }
     }
 
@@ -317,7 +326,7 @@ public class SurroundingPoints : MonoBehaviour
         {
             ResetCostlyArea();
 
-            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius - .25f);
+            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius + 1.5f);
             foreach (Node node in costlyNodes)
             {
                 node.AddCost(8000);

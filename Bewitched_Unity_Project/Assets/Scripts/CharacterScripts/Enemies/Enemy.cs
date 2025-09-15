@@ -796,4 +796,14 @@ public abstract class Enemy : Character
         if (pathState == PathState.Searching) return true;
         return false;
     }
+
+    /// <summary>
+    /// A function called by the surrounding points to make an enemy attack
+    /// </summary>
+    /// <param name="points"> Points the request came from </param>
+    /// <returns> True if attack is done, false otherwise </returns>
+    public virtual bool AttackFromSurrounding(SurroundingPoints points)
+    {
+        return false;
+    }
 }

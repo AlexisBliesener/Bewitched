@@ -92,6 +92,25 @@ public class Goblin : Enemy
         attackingPrimary = true;
     }
 
+    /// <summary>
+    /// Function that handles the AI aspects of stabbing
+    /// Starts the attack, waits for it to be over, then sets the state back to chasing
+    /// </summary>
+    /// <returns> Time gaps </returns>
+    private IEnumerator HandlePrimary()
+    {
+        yield return new WaitForSeconds(primaryAnimationDelay);
+
+        PrimaryAttack();
+
+        while (attackingPrimary)
+        {
+            yield return null;
+        }
+
+        aiState = GoblinAIState.Chasing;
+    }
+
     public override void SecondaryAttack()
     {
         base.SecondaryAttack();
@@ -144,6 +163,7 @@ public class Goblin : Enemy
         isDashing = false;
         invincible = false;
         attackingSecondary = false;
+        aiState = GoblinAIState.Chasing;
     }
 
     /// <summary>
@@ -164,7 +184,7 @@ public class Goblin : Enemy
         }
         else if (aiState == GoblinAIState.Surrounding)
         {
-            Chase();
+            Surround();
         }
         else if (aiState == GoblinAIState.Searching)
         {
@@ -187,6 +207,15 @@ public class Goblin : Enemy
             
         }
         else if (aiState == GoblinAIState.Chasing)
+        {
+            surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
+            if (surroundPoint) // If there is a valid point
+            {
+                pathState = PathState.Searching;
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+        }
+        else if (aiState == GoblinAIState.Surrounding) // Handles the same as chasing, just in closer range
         {
             surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
             if (surroundPoint) // If there is a valid point
@@ -233,7 +262,6 @@ public class Goblin : Enemy
         {
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
-                Debug.Log("Reached: " + Time.time);
                 pathState = PathState.Unset;
                 StartCoroutine(LookAround()); // Look around
             }
@@ -381,7 +409,6 @@ public class Goblin : Enemy
     {
         if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
-            Debug.Log("Lost Player");
             TransitionToSearch();
             return;
         }
@@ -398,7 +425,46 @@ public class Goblin : Enemy
 
         if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
-            // Handle Surrounding
+            aiState = GoblinAIState.Surrounding;
+            if (currentPlayer.TryGetComponent(out SurroundingPoints points))
+            {
+                points.AddSurroundingEnemy(this);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Function handling tasks when surrounding
+    /// </summary>
+    public void Surround()
+    {
+        if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
+        {
+            Debug.Log("Lost Player");
+            TransitionToSearch();
+            return;
+        }
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
+        }
+
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) > surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
+        {
+            aiState = GoblinAIState.Chasing;
+            if (currentPlayer.TryGetComponent(out SurroundingPoints points))
+            {
+                points.RemoveSurroundingEnemy(this);
+            }
+        }
+        else if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= primaryAttackRange)
+        {
+            ReactAttack();
         }
     }
 
@@ -472,5 +538,92 @@ public class Goblin : Enemy
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// When surrounding, the goblin may receive a command to attack
+    /// When this happens, there is a 50% chance that it will stab and a 50% chance it will spin
+    /// </summary>
+    /// <param name="points"> The surrounding points calling this function </param>
+    /// <returns> True if attack is started, false otherwise </returns>
+    public override bool AttackFromSurrounding(SurroundingPoints points)
+    {
+        int attackChoice;
+
+        if (CheckPrimaryUsable() && CheckSecondaryUsable())
+        {
+            attackChoice = Random.Range(0, 2);
+        }
+        else if (CheckPrimaryUsable())
+        {
+            attackChoice = 0;
+        }
+        else if (CheckSecondaryUsable())
+        {
+            attackChoice = 1;
+        }
+        else
+        {
+            return false;
+        }
+
+        points.RemoveSurroundingEnemy(this);
+
+        if (attackChoice == 0) // Stabbing
+        {
+            aiState = GoblinAIState.AttackStab;
+            StartCoroutine(HandlePrimary());
+        }
+        else // Spinning
+        {
+            aiState = GoblinAIState.AttackSpin;
+            SecondaryAttack();
+
+            foreach (Goblin goblin in points.GetEnemiesSameType(this)) // Gets all available goblins to also spin
+            {
+                if (goblin.CheckSecondaryUsable())
+                {
+                    goblin.SecondaryAttack();
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attack decider called when reacting to the player getting too close
+    /// </summary>
+    public void ReactAttack()
+    {
+        int attackChoice;
+
+        if (CheckPrimaryUsable() && CheckSecondaryUsable())
+        {
+            attackChoice = Random.Range(0, 5);
+        }
+        else if (CheckPrimaryUsable())
+        {
+            attackChoice = 0;
+        }
+        else if (CheckSecondaryUsable())
+        {
+            attackChoice = 4;
+        }
+        else
+        {
+            return;
+        }
+
+        if (attackChoice < 4) // Stabbing
+        {
+            aiState = GoblinAIState.AttackStab;
+            StartCoroutine(HandlePrimary());
+        }
+        else // Spinning
+        {
+            aiState = GoblinAIState.AttackSpin;
+            SecondaryAttack();
+        }
     }
 }
