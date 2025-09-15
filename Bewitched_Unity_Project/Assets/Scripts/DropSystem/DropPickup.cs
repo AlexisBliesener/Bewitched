@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 
 
@@ -16,6 +18,7 @@ public class DropPickup : MonoBehaviour
     public float spinSpeed = 90f;
     [Tooltip("The range for picking up the drop")]
     public float pickupRange = 2f;
+    private EventInstance dropSound;
     /// <summary>
     /// Get the box collider component and activate it
     /// Set the isTrigger to true
@@ -26,6 +29,12 @@ public class DropPickup : MonoBehaviour
         box.isTrigger = true;
         box.size = new Vector3(pickupRange, pickupRange, pickupRange);
         box.center = new Vector3(0, pickupRange / 2, 0);
+        //Sound Effect
+        AudioManager.TryGetReference("UpgradeDrop", out EventReference evRef);
+        dropSound = RuntimeManager.CreateInstance(evRef);
+        dropSound.set3DAttributes(RuntimeUtils.To3DAttributes(gameObject));
+        dropSound.start();
+        dropSound.release();
     }
     /// <summary>
     /// Rotate the drop
@@ -59,7 +68,8 @@ public class DropPickup : MonoBehaviour
     {
         // Trigger the drop selection event
         DropSystem.Instance.ShowDropSelection(transform.position);
-
+        //Sound Effect
+        dropSound.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         Destroy(gameObject);
     }
 

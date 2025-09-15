@@ -146,7 +146,7 @@ public class RoomController : MonoBehaviour
         if (currentState != RoomState.Inactive) return;
 
         // Check if this is the player
-        if (other.CompareTag("Player"))
+        if (other.gameObject == PlayerController.instance.currentCharacter.gameObject)
         {
             EnterRoom();
         }
