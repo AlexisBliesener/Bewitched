@@ -107,7 +107,6 @@ public class PlayerController : MonoBehaviour
             yVelocity += (Physics.gravity * Time.fixedDeltaTime * 2).y;
         }
 
-        characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
 
         if (allowMovement)
         {
@@ -122,7 +121,8 @@ public class PlayerController : MonoBehaviour
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
-                    characterController.Move(velocity * Time.deltaTime);
+                    Vector3 finalMovement = velocity * Time.deltaTime + new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime;
+                    characterController.Move(finalMovement);
 
                 }
                 else
@@ -134,7 +134,8 @@ public class PlayerController : MonoBehaviour
 
                     velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
 
-                    characterController.Move(velocity * Time.deltaTime);
+                    Vector3 finalMovement = velocity * Time.deltaTime + new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime;
+                    characterController.Move(finalMovement);
 
                     if (velocity.sqrMagnitude > 0.01f)
                     {
@@ -150,6 +151,7 @@ public class PlayerController : MonoBehaviour
             else
             {
                 velocity = new Vector3(0, 0, 0);
+                characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
         }
     }
