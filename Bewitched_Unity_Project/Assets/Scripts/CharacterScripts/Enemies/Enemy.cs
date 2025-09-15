@@ -105,6 +105,8 @@ public abstract class Enemy : Character
 
     protected bool reachedWalkpoint = true;
 
+    protected bool lookAtPlayer = false;
+
     [Tooltip("Bool determining if this enemy is using the A* search")]
     protected bool usingAStar = false;
 
@@ -154,6 +156,11 @@ public abstract class Enemy : Character
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             Vector3 lookDir = Vector3.RotateTowards(transform.forward, (currentPath.GetDestinationPosition(gameObject) - transform.position).normalized, Time.deltaTime * 5, 0);
             transform.rotation = Quaternion.LookRotation(lookDir);
+            if (lookAtPlayer)
+            {
+                Quaternion look = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+                transform.rotation = look;
+            }
             return;
         }
 
@@ -203,7 +210,16 @@ public abstract class Enemy : Character
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
         GetComponent<CharacterController>().Move(Vector3.down);
 
-        Quaternion lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+        Quaternion lookRotation;
+        if (lookAtPlayer)
+        {
+            Debug.Log("Looking at player");
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+        }
+        else
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+        }
         transform.rotation = lookRotation;
     }
 

@@ -314,6 +314,7 @@ public class SurroundingPoints : MonoBehaviour
 
             startAttackTime = Random.Range(minAttackTime, maxAttackTime);
             timeLastAttack = Time.time;
+            Debug.Log("Start Attack Time: " + startAttackTime);
         }
     }
 

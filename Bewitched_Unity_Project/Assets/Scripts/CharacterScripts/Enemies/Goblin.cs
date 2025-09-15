@@ -144,6 +144,7 @@ public class Goblin : Enemy
                 isDashing = false;
                 invincible = false;
                 attackingSecondary = false;
+                aiState = GoblinAIState.Chasing;
 
                 transform.position = transform.position - transform.forward.normalized * dashSpeed * Time.deltaTime;
 
@@ -407,6 +408,7 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
+        lookAtPlayer = false;
         if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
             TransitionToSearch();
@@ -423,7 +425,7 @@ public class Goblin : Enemy
             }
         }
 
-        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= currentPlayer.surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
             aiState = GoblinAIState.Surrounding;
             if (currentPlayer.TryGetComponent(out SurroundingPoints points))
@@ -438,12 +440,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Surround()
     {
-        if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
-        {
-            Debug.Log("Lost Player");
-            TransitionToSearch();
-            return;
-        }
+        lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
@@ -571,6 +568,7 @@ public class Goblin : Enemy
 
         if (attackChoice == 0) // Stabbing
         {
+            Debug.Log("Stabbing");
             aiState = GoblinAIState.AttackStab;
             StartCoroutine(HandlePrimary());
         }
