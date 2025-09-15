@@ -103,7 +103,6 @@ public class DropSystem : MonoBehaviour
 
         Vector3 spawnPos = position + Vector3.up * 0.5f;
         Instantiate(dropPickupPrefab, spawnPos, Quaternion.identity);
-
         droppedItemThisRun++;
     }
     /// <summary>
