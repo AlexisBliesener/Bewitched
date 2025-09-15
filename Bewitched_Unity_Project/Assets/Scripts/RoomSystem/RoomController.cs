@@ -43,6 +43,14 @@ public class RoomController : MonoBehaviour
     [SerializeField] private List<GameObject> roomEnemies = new List<GameObject>();
     [Tooltip("The current state of the room")]
     private RoomState currentState = RoomState.Inactive;
+    [Tooltip("The state of the door (lock/unlock)")]
+    private DoorState doorState = DoorState.Unlocked;
+    // Enum for door state, this is used to prevent multiple lock/unlock calls
+    private enum DoorState
+    {
+        Unlocked,
+        Locked
+    }
     [Tooltip("Time of the last enemy status check")]
     private float lastEnemyCheckTime = 0f;
 
@@ -185,7 +193,7 @@ public class RoomController : MonoBehaviour
 
         foreach (Collider collider in colliders)
         {
-            if (collider.CompareTag(enemyTag))
+            if (collider.CompareTag(enemyTag) && !roomEnemies.Contains(collider.gameObject))
             {
                 roomEnemies.Add(collider.gameObject);
             }
@@ -245,10 +253,12 @@ public class RoomController : MonoBehaviour
     /// </summary>
     private void LockDoors()
     {
+        if (doorState == DoorState.Locked) return;
         foreach (IDoor door in doors)
         {
             door?.Lock();
         }
+        doorState = DoorState.Locked;
     }
 
     /// <summary>
@@ -256,11 +266,12 @@ public class RoomController : MonoBehaviour
     /// </summary>
     private void UnlockDoors()
     {
-
+        if (doorState == DoorState.Unlocked) return;
         foreach (IDoor door in doors)
         {
             door?.Unlock();
         }
+        doorState = DoorState.Unlocked;
     }
 
     /// <summary>
@@ -278,6 +289,21 @@ public class RoomController : MonoBehaviour
         if (!hasActiveEnemies && currentState == RoomState.Active)
         {
             ClearRoom();
+            return;
+        }
+        if (roomEnemies.Count == 1)
+        {
+            // We will not clear the room yet if there is only one enemy remaining 
+            // because when the last enemy is possessed the doors will be unlocked
+            // and if the player leaves the last enemy, the dooes will be locked again
+            if (roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
+            {
+                UnlockDoors();
+            }
+            else
+            {
+                LockDoors();
+            }
         }
     }
 
