@@ -649,23 +649,29 @@ public class GraphBuilder : MonoBehaviour
     public IEnumerator HandleSearching()
     {
         if (testing) yield break;
+        int iter = 1;
 
         while (true)
         {
-
             enemyQueue = new PriorityQueue<Enemy>();
             Enemy[] enemies = FindObjectsOfType<Enemy>();
 
             foreach (Enemy enemy in enemies)
             {
-                enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+                if (enemy.gameObject.activeSelf)
+                {
+                    enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+                }
             }
+
+            Debug.Log("Search iteration: " + iter + ". Enemies: " + enemies.Length);
 
             while (!enemyQueue.IsEmpty())
             {
                 if (!searching)
                 {
                     Enemy enemy = enemyQueue.Dequeue();
+                    Debug.Log(enemy);
                     enemy.FindPath();
                     while (!enemy.HasSetPath())
                     {
@@ -678,7 +684,7 @@ public class GraphBuilder : MonoBehaviour
                 }
                 yield return null;
             }
-
+            iter++;
             yield return null;
         }
     }

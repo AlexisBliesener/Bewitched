@@ -69,7 +69,7 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
 
-        StartCoroutine(LookAround());
+        aiState = GoblinAIState.Patrolling;
 
         // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
         agent.updatePosition = false;
@@ -204,6 +204,7 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
+        Debug.Log(aiState);
         if (aiState == GoblinAIState.Patrolling)
         {
             if (pathState == PathState.Unset)
@@ -304,6 +305,8 @@ public class Goblin : Enemy
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
+        Debug.Log(walkPoint);
+
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
 

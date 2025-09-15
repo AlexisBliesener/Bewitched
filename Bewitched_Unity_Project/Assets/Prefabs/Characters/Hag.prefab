@@ -387,6 +387,8 @@ GameObject:
   - component: {fileID: 3730021192468053594}
   - component: {fileID: -772148356125373448}
   - component: {fileID: 6914294341399529832}
+  - component: {fileID: 6746886717747144383}
+  - component: {fileID: 3478541869600220231}
   m_Layer: 7
   m_Name: Hag
   m_TagString: Player
@@ -525,6 +527,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Old Hag
   movementSpeed: 15
+  jumpSpeed: 0
   acceleration: 5
   deceleration: 5
   weight: 5
@@ -532,24 +535,24 @@ MonoBehaviour:
   numSurroundingPoints: 8
   surroundingRadius: 3.5
   teamID: 1
-  animator: {fileID: 0}
   primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1
   primaryComboExtraCooldown: 0
   primaryComboSteps: 0
   primaryComboResetTime: 0
-  primaryAnimationDelay: 0.1
   secondaryCooldown: 5
-  secondaryAnimationDelay: 0.1
   primaryAttackRange: 0
-  maxHealth: 100
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
+  attackEffects: []
+  effectJSONs: []
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 10
@@ -586,8 +589,41 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  debugging: 0
+  debugging: 1
   pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
   minAttackTime: 1
   maxAttackTime: 3
   resetCostlyAreaDistance: 1
+--- !u!114 &6746886717747144383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 663c247c7929945a2b8045313ff3e861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  decayRate: 0
+  miniBarPrefab: {fileID: 0}
+--- !u!114 &3478541869600220231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  primaryAnimationDelay: 0.5
+  secondaryAnimationDelay: 0.5
+  primaryAttackLength: 1
+  secondaryAttackLength: 1
+  animator: {fileID: 0}
+  characterController: {fileID: 0}

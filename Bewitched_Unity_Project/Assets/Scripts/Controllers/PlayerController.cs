@@ -90,6 +90,7 @@ public class PlayerController : MonoBehaviour
                 hagHealthBar.SetActive(true);
             }
         }
+        oldHag.ActivateSurroundingPoints();
 
         ResumeGame();
     }

@@ -107,6 +107,7 @@ public class SurroundingPoints : MonoBehaviour
     /// <param name="radius"> Radius of point placement </param>
     public void Init(int numPoints, float radius)
     {
+        Debug.Log("Points Initialized");
         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
         timeLastAttack = Time.time;
 
