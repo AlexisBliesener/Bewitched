@@ -453,7 +453,14 @@ public abstract class Character : MonoBehaviour
             gameObject.TryGetComponent<SurroundingPoints>(out surroundingPoints);
         }
 
-        surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
+        if (surroundingPoints != null)
+        {
+            surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
+        }
+        else
+        {
+            Debug.LogWarning("surround points not present");
+        }
     }
 
     /// <summary>
@@ -461,7 +468,14 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void DeactivateSurroundingPoints()
     {
-        surroundingPoints.DestroyPoints();
+        if(surroundingPoints != null)
+        {
+            surroundingPoints.DestroyPoints();
+        }
+        else
+        {
+            Debug.LogWarning("surround points not present");
+        }
     }
 
     /// <summary>
