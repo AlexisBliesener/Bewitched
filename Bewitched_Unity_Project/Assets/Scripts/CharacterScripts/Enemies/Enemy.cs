@@ -133,11 +133,11 @@ public abstract class Enemy : Character
     {
         if (velocity.magnitude >= 0.01f)
         {
-            AnimateMove();
+            //AnimateMove();
         }
         else
         {
-            AnimateIdle();
+          //  AnimateIdle();
         }
 
         if (currentPath == null) // No path, decelerate to 0
@@ -459,7 +459,7 @@ public abstract class Enemy : Character
                 walkPoint = hit.position;
                 walkPointSet = true;
                 agent.SetDestination(walkPoint);
-                AnimateMove();
+               // AnimateMove();
 
                 if (debugging)
                 {
@@ -473,21 +473,21 @@ public abstract class Enemy : Character
         return false;
     }
 
-    public override void SubHealth(float dmg)
-    {
-        base.SubHealth(dmg);
+    //public override void SubHealth(float dmg)
+    //{
+    //    base.SubHealth(dmg);
 
-        if (minibar == null && !playerControlling)
-        {
-            minibar = Instantiate(miniBarPrefab);
-            minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
-        }
-    }
+    //    if (minibar == null && !playerControlling)
+    //    {
+    //        minibar = Instantiate(miniBarPrefab);
+    //        minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
+    //    }
+    //}
 
-    public float GetTimeLastHit()
-    {
-        return timeLastHit;
-    }
+    //public float GetTimeLastHit()
+    //{
+    //    return timeLastHit;
+    //}
 
     public override void CreateHitStun()
     {

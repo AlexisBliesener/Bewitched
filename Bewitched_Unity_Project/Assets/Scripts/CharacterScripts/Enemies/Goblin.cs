@@ -107,7 +107,7 @@ public class Goblin : Enemy
     /// <returns> Time gaps </returns>
     private IEnumerator HandlePrimary()
     {
-        yield return new WaitForSeconds(primaryAnimationDelay);
+      //  yield return new WaitForSeconds(primaryAnimationDelay);
 
         PrimaryAttack();
 
@@ -360,7 +360,7 @@ public class Goblin : Enemy
         }
 
         inProcess = true;
-        AnimateIdle(); // Play animation (temporarily idle)
+       // AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
         while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation

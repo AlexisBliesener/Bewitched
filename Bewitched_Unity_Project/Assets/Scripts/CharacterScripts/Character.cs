@@ -412,16 +412,18 @@ public abstract class Character : MonoBehaviour
     public virtual Vector3 GetCurrentSpeedVector()
     {
         return new Vector3(0, 0, 0);
-    public void AnimateMove()
-    {
-        if (animator)
-        {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
-            {
-                animator.SetTrigger("StartRunning");
-            }
-        }
     }
+
+    //public void AnimateMove()
+    //{
+    //    if (characterAnimator)
+    //    {
+    //        if (!characterAnimator..GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
+    //        {
+    //            animator.SetTrigger("StartRunning");
+    //        }
+    //    }
+    //}
 
     public void EndAttacks()
     {
@@ -438,12 +440,8 @@ public abstract class Character : MonoBehaviour
     {
         attackingSecondary = val;
     }
-}
 
-    public virtual void Explode()
-    {
 
-    }
 
     /// <summary>
     /// Create surrounding points for AI navigation
