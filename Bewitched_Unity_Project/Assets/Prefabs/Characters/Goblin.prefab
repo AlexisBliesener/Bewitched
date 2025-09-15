@@ -183,6 +183,7 @@ MonoBehaviour:
   minStopDistance: 1
   minSlowDistance: 3
   pathfindingPriority: 3
+  seenBuffer: 0.5
   ground:
     serializedVersion: 2
     m_Bits: 64
@@ -214,7 +215,7 @@ MonoBehaviour:
   dashDamage: 30
   minPatrolDistance: 3
   maxPatrolDistance: 5
-  communicationRange: 8
+  communicationRange: 30
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0

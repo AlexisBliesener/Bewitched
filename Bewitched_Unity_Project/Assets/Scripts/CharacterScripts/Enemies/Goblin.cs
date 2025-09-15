@@ -188,12 +188,10 @@ public class Goblin : Enemy
         }
         else if (aiState == GoblinAIState.Chasing)
         {
-            Debug.Log("C");
             surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
             if (surroundPoint) // If there is a valid point
             {
                 pathState = PathState.Searching;
-                Debug.Log("Finding new chase path");
                 StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
             }
         }
