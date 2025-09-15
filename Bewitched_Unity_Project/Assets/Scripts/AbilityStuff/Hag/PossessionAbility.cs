@@ -17,8 +17,6 @@ public class PossessionAbility : MonoBehaviour
 {
     public static PlayerControlHandler CharacterControlChangeEvent;
     const string FILE_ENDING = ".json";
-    [SerializeField, Tooltip("The game virutal camera")]
-    protected CinemachineVirtualCamera virtualCam;
     [SerializeField, Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
     float possessionCooldown = 10;
     [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
@@ -38,8 +36,6 @@ public class PossessionAbility : MonoBehaviour
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
-    [Tooltip("If the possession button is currently being held")]
-    private bool possessHeld = false;
     [Tooltip("The time when possession of the current enemy started")]
     private float timePossessing;
     [Tooltip("The current character that is possessed")]
@@ -250,14 +246,21 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Detect enemy for possession
-        Ray possessionRay = new Ray(virtualCam.transform.position, virtualCam.transform.forward);
-        RaycastHit hitInfo;
-        if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
+        if(CameraController.GetIsAiming())
         {
-            if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+            Ray possessionRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
             {
-                currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
-                possessionState = PossessionStates.canPossess;
+                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+                {
+                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
+                    possessionState = PossessionStates.canPossess;
+                }
+                else
+                {
+                    possessionState = PossessionStates.canNotPossess;
+                }
             }
             else
             {
@@ -266,8 +269,26 @@ public class PossessionAbility : MonoBehaviour
         }
         else
         {
-            possessionState = PossessionStates.canNotPossess;
+            Ray possessionRay = new Ray(currentCharacter.transform.position - Vector3.up, currentCharacter.transform.forward);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
+            {
+                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+                {
+                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
+                    possessionState = PossessionStates.canPossess;
+                }
+                else
+                {
+                    possessionState = PossessionStates.canNotPossess;
+                }
+            }
+            else
+            {
+                possessionState = PossessionStates.canNotPossess;
+            }
         }
+
     }
 
     /// <summary>
