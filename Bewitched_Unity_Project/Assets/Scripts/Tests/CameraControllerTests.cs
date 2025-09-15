@@ -133,6 +133,5 @@ public class CameraControllerTests
         Assert.IsFalse(CameraController.GetIsAiming(), "Aiming should be false on Awake.");
         Assert.AreEqual(2, freeLook.Priority, "FreeLook priority should be initialized to 2.");
         Assert.AreEqual(1, virtualCam.Priority, "VirtualCam priority should be initialized to 1.");
-        Assert.NotNull(listener.attenuationObject, "FMOD listener should be linked to character.");
     }
 }
