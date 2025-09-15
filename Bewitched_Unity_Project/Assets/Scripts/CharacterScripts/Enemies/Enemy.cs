@@ -213,7 +213,6 @@ public abstract class Enemy : Character
         Quaternion lookRotation;
         if (lookAtPlayer)
         {
-            Debug.Log("Looking at player");
             lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
         }
         else

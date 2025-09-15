@@ -550,7 +550,6 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
-  obstacle: {fileID: 4515443507152331454}
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 10
@@ -587,7 +586,8 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  debugging: 1
+  debugging: 0
   pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
   minAttackTime: 1
   maxAttackTime: 3
+  resetCostlyAreaDistance: 1
