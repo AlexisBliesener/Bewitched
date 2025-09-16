@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using Unity.VisualScripting.YamlDotNet.Serialization;
 using UnityEngine;
 /// <summary>
 /// DropSystem is a singleton class that manage the drops in the game.
@@ -126,7 +127,15 @@ public class DropSystem : MonoBehaviour
         Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
         Debug.Log($"At this point, the ui should react to this event and then call the function DropSystem.Instance.SelectDropsOption(option); to activate the drops or salvage the drops by calling DropSystem.Instance.SalvageDrop();");
 
-        upgradeSelectionUI.SetActive(true);
+        if(upgradeSelectionUI != null)
+        {
+            upgradeSelectionUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("The upgrade selection UI is null!");
+        }
+
 
     }
     /// <summary>

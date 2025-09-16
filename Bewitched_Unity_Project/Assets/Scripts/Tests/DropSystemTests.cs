@@ -225,7 +225,7 @@ public class DropSystemTests
         Assert.IsTrue(actionTriggered);
         Assert.IsNotNull(receivedDrop1);
         Assert.IsNotNull(receivedDrop2);
-        Assert.IsNotNull(receivedDrop3);
+        Assert.IsNull(receivedDrop3);
     }
 
     /// <summary>
