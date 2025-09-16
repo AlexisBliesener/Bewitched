@@ -15,6 +15,8 @@ public class Goblin : Enemy
     [SerializeField] float knifeDamage = 20;
     [Tooltip("Knife duration")]
     [SerializeField] float knifeDuration = 1;
+    [Tooltip("Knife Lunge Speed")]
+    [SerializeField] float knifeStabSpeed = 10;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -111,7 +113,24 @@ public class Goblin : Enemy
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects, attackDuration: knifeDuration);
 
-        while (knifeHitbox != null) yield return null; // Wait until the hitbox is destroyed
+        Vector3 targetVelocity = transform.forward * knifeStabSpeed;
+        targetVelocity.y = 0; // Ensure no flying goblins
+        Vector3 stabVelocity = velocity;
+
+        float timeStarted = Time.time;
+
+        while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
+        {
+            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
+            GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
+            yield return null; 
+        }
+        while (Time.time - timeStarted < knifeDuration) // Decelerate the next 1/4
+        {
+            stabVelocity = Vector3.Lerp(stabVelocity, Vector3.zero, Time.deltaTime / knifeDuration);
+            GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
+            yield return null;
+        }
 
         if (!playerControlling) aiState = GoblinAIState.Chasing;
         else PlayerController.instance.SetAllowMovement(true);
