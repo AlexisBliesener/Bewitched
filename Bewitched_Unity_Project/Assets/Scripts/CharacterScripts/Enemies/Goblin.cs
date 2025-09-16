@@ -13,6 +13,10 @@ public class Goblin : Enemy
     [SerializeField] float thrustSpeed = 10;
     [Tooltip("Knife Damage")]
     [SerializeField] float knifeDamage = 20;
+    [Tooltip("Knife duration")]
+    [SerializeField] float knifeDuration = 1;
+    [Tooltip("Knife Lunge Speed")]
+    [SerializeField] float knifeStabSpeed = 10;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -27,6 +31,21 @@ public class Goblin : Enemy
     [SerializeField] AttackStatusEffects dashEffects;
     [Tooltip("Offset of the hitbox forward")]
     [SerializeField] private float offSetForward = 0.5f;
+
+    [Tooltip("Spin Hitbox")]
+    [SerializeField] GameObject spinHitbox;
+    [Tooltip("Spin Damage")]
+    [SerializeField] float spinDamage = 30;
+    [Tooltip("Spin Duration")]
+    [SerializeField] float spinDuration = 5;
+    [Tooltip("Spin Speed")]
+    [SerializeField] float spinSpeed = 15;
+    [Tooltip("Spin Rotational Speed")]
+    [SerializeField] float spinRotationalSpeed = 120;
+    [Tooltip("Standard Acceleration Period")]
+    [SerializeField] float standardAccelerationPeriod = 0.5f;
+    [Tooltip("Low Health Acceleration Period")]
+    [SerializeField] float lowHealthAccelerationPeriod = 0.25f;
 
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance")]
@@ -89,34 +108,54 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        Debug.Log("make knife");
-        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
 
-        // Instantiate in front of the character with a small offset
-        GameObject shank = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        shank.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects);
-
-        timeLastPrimary = Time.time;
-        attackingPrimary = true;
+        StartCoroutine(HandleStab());
     }
 
     /// <summary>
-    /// Function that handles the AI aspects of stabbing
-    /// Starts the attack, waits for it to be over, then sets the state back to chasing
+    /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
-    /// <returns> Time gaps </returns>
-    private IEnumerator HandlePrimary()
+    /// <returns> Time breaks </returns>
+    public IEnumerator HandleStab()
     {
-      //  yield return new WaitForSeconds(primaryAnimationDelay);
+        if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
 
-        PrimaryAttack();
+        timeLastPrimary = Time.time;
+        attackingPrimary = true;
 
-        while (attackingPrimary)
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects, attackDuration: knifeDuration);
+
+        Vector3 targetVelocity = transform.forward * knifeStabSpeed;
+        targetVelocity.y = 0; // Ensure no flying goblins
+        Vector3 stabVelocity = velocity;
+
+        Debug.Log(stabVelocity.magnitude);
+
+        float timeStarted = Time.time;
+
+        while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
         {
+            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
+            GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
+            yield return null; 
+        }
+
+        while (stabVelocity.magnitude > 0) // Decelerate to zero within remaining duration time
+        {
+            stabVelocity = Vector3.Lerp(stabVelocity, Vector3.zero, Time.deltaTime / (knifeDuration / 4));
+            if (stabVelocity.magnitude < 0.05f)
+            {
+                stabVelocity = Vector3.zero;
+            }
+            GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
             yield return null;
         }
 
-        aiState = GoblinAIState.Chasing;
+        if (!playerControlling) aiState = GoblinAIState.Chasing;
+        else PlayerController.instance.SetAllowMovement(true);
     }
 
     public override void SecondaryAttack()
@@ -124,6 +163,43 @@ public class Goblin : Enemy
         Dash();
         attackingSecondary = true;
         timeLastSecondary = Time.time;
+    }
+
+    public IEnumerator HandleSpin()
+    {
+        float timeStarted = Time.time;
+        float rotationalSpeed = 0;
+        Vector3 targetVelocity = transform.forward * spinSpeed;
+
+        float accelerationTime;
+        // Handle low health AI behavior here in the future, (apply random rotational offset depending on health)
+        if (!IsLowHealth()) accelerationTime = standardAccelerationPeriod;
+        else accelerationTime = lowHealthAccelerationPeriod;
+
+        Vector3 spinVelocity = velocity;
+
+        while (Time.time - timeStarted > spinDuration)
+        {
+            if (Time.time - timeStarted < accelerationTime)
+            {
+                spinVelocity = Vector3.Lerp(spinVelocity, targetVelocity, Time.deltaTime / accelerationTime);
+
+                rotationalSpeed = Mathf.Lerp(rotationalSpeed, spinRotationalSpeed, Time.deltaTime / accelerationTime);
+            }
+
+            GetComponent<CharacterController>().Move(spinVelocity);
+            transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// Temporarily here, just for show at the moment
+    /// </summary>
+    /// <returns> False </returns>
+    public bool IsLowHealth()
+    {
+        return false;
     }
 
     public void Dash()
@@ -204,7 +280,6 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
-        Debug.Log(aiState);
         if (aiState == GoblinAIState.Patrolling)
         {
             if (pathState == PathState.Unset)
@@ -579,7 +654,7 @@ public class Goblin : Enemy
         {
             Debug.Log("Stabbing");
             aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandlePrimary());
+            StartCoroutine(HandleStab());
         }
         else // Spinning
         {
@@ -625,7 +700,7 @@ public class Goblin : Enemy
         if (attackChoice < 4) // Stabbing
         {
             aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandlePrimary());
+            StartCoroutine(HandleStab());
         }
         else // Spinning
         {
