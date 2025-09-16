@@ -214,7 +214,7 @@ public class DefaultHitbox : MonoBehaviour
     /// Adds status effects to the character
     /// </summary>
     /// <param name="character"> Character to add status effects to </param>
-    private void AddStatusEffects(Character character)
+    protected void AddStatusEffects(Character character)
     {
         if (character && user) // Both the applied character and user are still alive
         {
@@ -236,7 +236,6 @@ public class DefaultHitbox : MonoBehaviour
 
     public void OnDestroy()
     {
-        Debug.Log("Destroying");
         foreach (DefaultHitbox child in children)
         {
             Destroy(child.gameObject);

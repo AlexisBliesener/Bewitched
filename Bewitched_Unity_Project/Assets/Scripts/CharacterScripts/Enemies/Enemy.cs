@@ -98,8 +98,6 @@ public abstract class Enemy : Character
 
     protected bool inAttackDelay = false;
 
-    protected Vector3 velocity = new Vector3(0, 0, 0);
-
     protected float timePlayerLastSeen;
 
     protected NavPath currentPath;

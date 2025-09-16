@@ -89,6 +89,8 @@ public abstract class Character : MonoBehaviour
     protected bool releasePrimaryImm = false;
     protected bool releaseSecondaryImm = false;
 
+    protected Vector3 velocity = new Vector3(0, 0, 0);
+
     private int currentPrimaryComboStep = 0;
 
     [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
@@ -232,6 +234,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDeath()
     {
+        DeactivateSurroundingPoints();
         Die();
     }
 
@@ -486,5 +489,27 @@ public abstract class Character : MonoBehaviour
     public GameObject FindClosestSurroundingPoint(Enemy enemy)
     {
         return surroundingPoints.AssignPoint(enemy);
+    }
+
+    /// <summary>
+    /// Deflects the user's current velocity towards a different direction
+    /// </summary>
+    /// <param name="direction"> Direction to deflect towards </param>
+    public void DeflectVelocity(Vector3 direction)
+    {
+        float currentMagnitude = velocity.magnitude;
+        velocity = direction.normalized;
+        velocity.y = 0;
+        velocity = velocity.normalized * currentMagnitude;
+    }
+
+    /// <summary>
+    /// Setter function for the player controller to use when changing velocity so that
+    /// when the player is controlling a character the velocity is accessible through character
+    /// </summary>
+    /// <param name="vel"> Velocity to set </param>
+    public void SetVelocity(Vector3 vel)
+    {
+        velocity = vel;
     }
 }
