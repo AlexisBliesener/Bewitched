@@ -43,6 +43,16 @@ public class Hag : Character
         else throw new System.Exception("Hag Knockback Cone Not Assigned!");
     }
 
+    public override IEnumerator BeginPrimary()
+    {
+       yield return null;
+    }
+
+    public override IEnumerator BeginSecondary()
+    {
+        yield return null;
+    }
+
     public override void PrimaryAttack()
     {
 

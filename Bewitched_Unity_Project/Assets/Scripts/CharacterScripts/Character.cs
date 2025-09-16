@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Cinemachine;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -15,14 +16,25 @@ public abstract class Character : MonoBehaviour
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
-    [Tooltip("Speed the Character Can Move")]
+
+    [Header("Movement Settings")]
+    [Tooltip("Speed the Character Can Move While Chasing")]
     public float movementSpeed = 5;
     [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
     private float jumpSpeed;
+    [Tooltip("Acceleration of the Character")]
+    public float acceleration = 5;
+    [Tooltip("Deceleration of the Character")]
+    public float deceleration = 5;
+
     [Tooltip("Weight of the character")]
     public float weight = 10;
     [Tooltip("Character Hitbox Radius")]
     public float sizeRadius;
+    [Tooltip("Number of Points to Surround")]
+    public int numSurroundingPoints = 8;
+    [Tooltip("Radius of Surrounding Points (For AI Navigation)")]
+    public float surroundingRadius = 2;
     [Tooltip("Team of the character")]
     public int teamID;
     [Tooltip("Primary Fire Image")]
@@ -89,6 +101,8 @@ public abstract class Character : MonoBehaviour
 
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
     [SerializeField] private List<string> effectJSONs = new List<string>();
+
+    private SurroundingPoints surroundingPoints;
 
     #region Saving/Loading
 
@@ -400,6 +414,17 @@ public abstract class Character : MonoBehaviour
         return new Vector3(0, 0, 0);
     }
 
+    //public void AnimateMove()
+    //{
+    //    if (characterAnimator)
+    //    {
+    //        if (!characterAnimator..GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
+    //        {
+    //            animator.SetTrigger("StartRunning");
+    //        }
+    //    }
+    //}
+
     public void EndAttacks()
     {
         SetPrimaryAttack(false);
@@ -415,5 +440,51 @@ public abstract class Character : MonoBehaviour
     {
         attackingSecondary = val;
     }
-}
 
+
+
+    /// <summary>
+    /// Create surrounding points for AI navigation
+    /// </summary>
+    public void ActivateSurroundingPoints()
+    {
+        if (!surroundingPoints)
+        {
+            gameObject.TryGetComponent<SurroundingPoints>(out surroundingPoints);
+        }
+
+        if (surroundingPoints != null)
+        {
+            surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
+        }
+        else
+        {
+            Debug.LogWarning("surround points not present");
+        }
+    }
+
+    /// <summary>
+    /// Destroy the surrounding points when inactive
+    /// </summary>
+    public void DeactivateSurroundingPoints()
+    {
+        if(surroundingPoints != null)
+        {
+            surroundingPoints.DestroyPoints();
+        }
+        else
+        {
+            Debug.LogWarning("surround points not present");
+        }
+    }
+
+    /// <summary>
+    /// Finds the closest available surrounding point
+    /// </summary>
+    /// <param name="enemy"> Enemy searching for a point </param>
+    /// <returns></returns>
+    public GameObject FindClosestSurroundingPoint(Enemy enemy)
+    {
+        return surroundingPoints.AssignPoint(enemy);
+    }
+}
