@@ -57,7 +57,6 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Cooldown After Secondary Ability")]
     public float secondaryCooldown = 5;
 
-
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 

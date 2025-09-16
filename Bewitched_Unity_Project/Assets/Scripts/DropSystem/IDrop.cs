@@ -6,7 +6,9 @@ using UnityEngine;
 /// IDrop is an interface for all upgrade drops
 /// </summary>
 public interface IDrop
-{                              
+{                
+    int stackNum { get; set; }
+
     /// <summary>
     /// Activate the drop
     /// </summary>

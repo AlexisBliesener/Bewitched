@@ -16,6 +16,8 @@ public class DropSystemTests
     {
         public bool wasActivated = false;
 
+        public int stackNum { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
         public void Activate()
         {
             wasActivated = true;
