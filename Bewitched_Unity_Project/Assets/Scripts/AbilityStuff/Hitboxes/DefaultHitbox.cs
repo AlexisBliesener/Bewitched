@@ -263,6 +263,15 @@ public class DefaultHitbox : MonoBehaviour
 
         Destroy(gameObject);
     }
+
+    /// <summary>
+    /// Gets the user
+    /// </summary>
+    /// <returns> User of this hitbox </returns>
+    public Character GetUser()
+    {
+        return user;
+    }
 }
 
 

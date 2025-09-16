@@ -82,9 +82,24 @@ public class DeflectingHitbox : DefaultHitbox
                 hitWall = true;
             }
 
-            // Now deflect user's velocity away from hit if the collision was not with the floor
+            // If not colliding with the floor
             if (other.gameObject.layer != 6)
             {
+                // Check if other hit is on a hitbox
+                if (other.TryGetComponent<DefaultHitbox>(out DefaultHitbox otherBox))
+                {
+                    // If it is a projectile hitbox (future) only apply deflection to hitbox
+
+                    if (otherBox.GetType() == typeof(DeflectingHitbox)) // If it is a deflecting hitbox deflect the enemy velocity too
+                    {
+                        otherBox.GetUser().DeflectVelocity(other.transform.position - user.transform.position);
+                    }
+                    else // Otherwise just apply knockback to enemy
+                    {
+                        statusEffects.ApplyKnockback(user, otherBox.GetUser(), this);
+                    }
+                }
+                // Now deflect user's velocity away from hit if the collision was not with the floor
                 user.DeflectVelocity(user.transform.position - other.transform.position);
             }
         }
