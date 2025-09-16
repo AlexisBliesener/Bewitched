@@ -209,18 +209,23 @@ public class DropSystemTests
         bool actionTriggered = false;
         DropData receivedDrop1 = null;
         DropData receivedDrop2 = null;
+        DropData receivedDrop3 = null;
 
-        dropSystem.OnDropRandomDrop += (drop1, drop2) => {
+
+        dropSystem.OnDropRandomDrop += (drop1, drop2, drop3) =>
+        {
             actionTriggered = true;
             receivedDrop1 = drop1;
             receivedDrop2 = drop2;
+            receivedDrop2 = drop3;
         };
 
         dropSystem.ShowDropSelection(Vector3.zero);
-        
+
         Assert.IsTrue(actionTriggered);
         Assert.IsNotNull(receivedDrop1);
         Assert.IsNotNull(receivedDrop2);
+        Assert.IsNull(receivedDrop3);
     }
 
     /// <summary>
@@ -232,7 +237,7 @@ public class DropSystemTests
         dropSystem.availableDrops.Clear();
         bool actionTriggered = false;
 
-        dropSystem.OnDropRandomDrop += (drop1, drop2) => actionTriggered = true;
+        dropSystem.OnDropRandomDrop += (drop1, drop2, drop3) => actionTriggered = true;
 
         dropSystem.ShowDropSelection(Vector3.zero);
 
