@@ -32,6 +32,21 @@ public class Goblin : Enemy
     [Tooltip("Offset of the hitbox forward")]
     [SerializeField] private float offSetForward = 0.5f;
 
+    [Tooltip("Spin Hitbox")]
+    [SerializeField] GameObject spinHitbox;
+    [Tooltip("Spin Damage")]
+    [SerializeField] float spinDamage = 30;
+    [Tooltip("Spin Duration")]
+    [SerializeField] float spinDuration = 5;
+    [Tooltip("Spin Speed")]
+    [SerializeField] float spinSpeed = 15;
+    [Tooltip("Spin Rotational Speed")]
+    [SerializeField] float spinRotationalSpeed = 120;
+    [Tooltip("Standard Acceleration Period")]
+    [SerializeField] float standardAccelerationPeriod = 0.5f;
+    [Tooltip("Low Health Acceleration Period")]
+    [SerializeField] float lowHealthAccelerationPeriod = 0.25f;
+
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance")]
     [SerializeField] float minPatrolDistance = 3;
@@ -148,6 +163,43 @@ public class Goblin : Enemy
         Dash();
         attackingSecondary = true;
         timeLastSecondary = Time.time;
+    }
+
+    public IEnumerator HandleSpin()
+    {
+        float timeStarted = Time.time;
+        float rotationalSpeed = 0;
+        Vector3 targetVelocity = transform.forward * spinSpeed;
+
+        float accelerationTime;
+        // Handle low health AI behavior here in the future, (apply random rotational offset depending on health)
+        if (!IsLowHealth()) accelerationTime = standardAccelerationPeriod;
+        else accelerationTime = lowHealthAccelerationPeriod;
+
+        Vector3 spinVelocity = velocity;
+
+        while (Time.time - timeStarted > spinDuration)
+        {
+            if (Time.time - timeStarted < accelerationTime)
+            {
+                spinVelocity = Vector3.Lerp(spinVelocity, targetVelocity, Time.deltaTime / accelerationTime);
+
+                rotationalSpeed = Mathf.Lerp(rotationalSpeed, spinRotationalSpeed, Time.deltaTime / accelerationTime);
+            }
+
+            GetComponent<CharacterController>().Move(spinVelocity);
+            transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// Temporarily here, just for show at the moment
+    /// </summary>
+    /// <returns> False </returns>
+    public bool IsLowHealth()
+    {
+        return false;
     }
 
     public void Dash()
