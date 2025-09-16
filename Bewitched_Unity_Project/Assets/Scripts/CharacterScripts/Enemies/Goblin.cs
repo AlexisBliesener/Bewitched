@@ -46,6 +46,10 @@ public class Goblin : Enemy
     [SerializeField] float standardAccelerationPeriod = 0.5f;
     [Tooltip("Low Health Acceleration Period")]
     [SerializeField] float lowHealthAccelerationPeriod = 0.25f;
+    [Tooltip("Low Health Angle Variation Range")]
+    [SerializeField] float lowHealthAngleRange = 80; // maximum 40 degree change
+    [Tooltip("Maximum drift speed")]
+    [SerializeField] float maxDriftSpeed = 4;
     [Tooltip("Spin Effects")]
     [SerializeField] AttackStatusEffects spinEffects;
 
@@ -191,10 +195,23 @@ public class Goblin : Enemy
         targetVelocity.y = 0;
         targetVelocity = targetVelocity.normalized * spinSpeed;
 
+        Vector3 drift;
+        bool lowHealthActions;
+
         float accelerationTime;
         // Handle low health AI behavior here in the future, (apply random rotational offset depending on health)
-        if (!IsLowHealth()) accelerationTime = standardAccelerationPeriod;
-        else accelerationTime = lowHealthAccelerationPeriod;
+        if (!IsLowHealth() || playerControlling)
+        {
+            accelerationTime = standardAccelerationPeriod;
+            drift = Vector3.zero;
+            lowHealthActions = false;
+        }
+        else
+        {
+            accelerationTime = lowHealthAccelerationPeriod;
+            drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * targetVelocity.normalized * maxDriftSpeed;
+            lowHealthActions = true;
+        }
 
         while (Time.time - timeStarted < spinDuration)
         {
@@ -205,9 +222,10 @@ public class Goblin : Enemy
                 {
                     targetVelocity = velocity.normalized * spinSpeed; // If we deflected while speeding up then adjust target velocity
                     Debug.Log("Deflected");
+                    if (lowHealthActions) drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * targetVelocity.normalized * maxDriftSpeed;
                 }
 
-                velocity = Vector3.Lerp(velocity, targetVelocity, Time.deltaTime / accelerationTime);
+                velocity = Vector3.Lerp(velocity, targetVelocity + drift, Time.deltaTime / accelerationTime);
 
                 rotationalSpeed = Mathf.Lerp(rotationalSpeed, spinRotationalSpeed, Time.deltaTime / accelerationTime);
             }
@@ -233,15 +251,6 @@ public class Goblin : Enemy
 
         if (!playerControlling) aiState = GoblinAIState.Chasing;
         else PlayerController.instance.SetAllowMovement(true);
-    }
-
-    /// <summary>
-    /// Temporarily here, just for show at the moment
-    /// </summary>
-    /// <returns> False </returns>
-    public bool IsLowHealth()
-    {
-        return false;
     }
 
     public void Dash()
@@ -755,5 +764,17 @@ public class Goblin : Enemy
             aiState = GoblinAIState.AttackSpin;
             SecondaryAttack();
         }
+    }
+
+    /// <summary>
+    /// Gets the priority of a goblin to be added for attacking
+    /// </summary>
+    /// <returns> Enemy priority </returns>
+    public override int GetAttackingPriority()
+    {
+        int val = base.GetAttackingPriority();
+        if (IsLowHealth()) val += 2;
+
+        return val;
     }
 }

@@ -512,4 +512,13 @@ public abstract class Character : MonoBehaviour
     {
         velocity = vel;
     }
+
+    /// <summary>
+    /// Checks the health controller to see if the character is low health
+    /// </summary>
+    /// <returns> True if low health </returns>
+    public bool IsLowHealth()
+    {
+        return health.IsLowHealth;
+    }
 }

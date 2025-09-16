@@ -300,16 +300,18 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
-        List<Enemy> tempEnemies = surroundingEnemies;
-
-        if (Time.time - timeLastAttack > startAttackTime && tempEnemies.Count > 0)
+        if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0)
         {
-            int randIndex = Random.Range(0, tempEnemies.Count);
-
-            while (tempEnemies.Count > 0 && !surroundingEnemies[randIndex].AttackFromSurrounding(this))
+            PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
+            foreach (Enemy enemy in surroundingEnemies)
             {
-                tempEnemies.RemoveAt(randIndex);
-                randIndex = Random.Range(0, tempEnemies.Count);
+                tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
+            }
+
+            Enemy chosen = tempEnemies.Dequeue();
+            while (tempEnemies.Count > 0 && !chosen.AttackFromSurrounding(this))
+            {
+                chosen = tempEnemies.Dequeue();
             }
 
             startAttackTime = Random.Range(minAttackTime, maxAttackTime);

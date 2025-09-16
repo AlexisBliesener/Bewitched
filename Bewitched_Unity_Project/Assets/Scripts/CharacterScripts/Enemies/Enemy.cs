@@ -62,6 +62,9 @@ public abstract class Enemy : Character
     [Tooltip("Leave Body Explosion Maximum Knockback")]
     public float leaveBodyExplosionMaximumKnockback = 30;
 
+    [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
+    public float lowHealthThresholdPercentage = 30;
+
     [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
     protected GameObject surroundPoint;
 
@@ -818,4 +821,13 @@ public abstract class Enemy : Character
     ///  Returns whether the player is currently controlling this enemy.
     /// </summary>
     public bool IsPlayerControlling() => playerControlling;
+
+    /// <summary>
+    /// Gets the priority of an enemy to be added for attacking
+    /// </summary>
+    /// <returns> Enemy priority </returns>
+    public virtual int GetAttackingPriority()
+    {
+        return pathfindingPriority;
+    }
 }
