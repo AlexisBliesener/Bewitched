@@ -13,9 +13,6 @@ public abstract class Enemy : Character
     [Tooltip("Minimum Stopping Distance")]
     public float minStopDistance = 0.5f;
 
-    [Tooltip("Minimum Slow Distance")]
-    public float minSlowDistance = 3;
-
     [Tooltip("Pathfinding Priority")]
     public int pathfindingPriority;
 
@@ -153,13 +150,6 @@ public abstract class Enemy : Character
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime * deceleration);
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-            Vector3 lookDir = Vector3.RotateTowards(transform.forward, (currentPath.GetDestinationPosition(gameObject) - transform.position).normalized, Time.deltaTime * 5, 0);
-            transform.rotation = Quaternion.LookRotation(lookDir);
-            if (lookAtPlayer)
-            {
-                Quaternion look = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
-                transform.rotation = look;
-            }
             return;
         }
 
@@ -208,7 +198,13 @@ public abstract class Enemy : Character
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
         GetComponent<CharacterController>().Move(Vector3.down);
+    }
 
+    /// <summary>
+    /// Function to handle the rotation of an AI controller
+    /// </summary>
+    public void AILook()
+    {
         Quaternion lookRotation;
         if (lookAtPlayer)
         {

@@ -299,6 +299,8 @@ public class Goblin : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
+        Debug.Log(aiState);
+
         if (aiState == GoblinAIState.Patrolling) // If patrolling
         {
             Patrol();
@@ -382,6 +384,7 @@ public class Goblin : Enemy
         }
 
         AIMove();
+        AILook();
 
         if (pathState == PathState.Set)
         {
@@ -544,11 +547,13 @@ public class Goblin : Enemy
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             AIMove();
+            Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
             if (debugging)
             {
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= currentPlayer.surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
@@ -575,6 +580,7 @@ public class Goblin : Enemy
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if (Vector3.Distance(transform.position, currentPlayer.transform.position) > surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
@@ -620,6 +626,7 @@ public class Goblin : Enemy
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if ((agent.destination - transform.position).magnitude <= agent.stoppingDistance)
         {

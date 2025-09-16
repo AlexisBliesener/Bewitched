@@ -3377,6 +3377,7 @@ GameObject:
   - component: {fileID: 1515034274812679110}
   - component: {fileID: 3937552589655486426}
   - component: {fileID: 3001831873393093468}
+  - component: {fileID: 4902741983886367773}
   m_Layer: 7
   m_Name: Eleth
   m_TagString: Player
@@ -3531,6 +3532,19 @@ MonoBehaviour:
   minAttackTime: 1
   maxAttackTime: 3
   resetCostlyAreaDistance: 1
+--- !u!114 &4902741983886367773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e10c1900093201a479a63911a9a721cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gettingKnockback: 0
 --- !u!1 &6838290167594602703
 GameObject:
   m_ObjectHideFlags: 0

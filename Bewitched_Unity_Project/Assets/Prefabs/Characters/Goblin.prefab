@@ -109,8 +109,7 @@ MonoBehaviour:
   attackEffects: []
   effectJSONs: []
   agent: {fileID: 5347660582151986861}
-  minStopDistance: 1
-  minSlowDistance: 3
+  minStopDistance: 0.5
   pathfindingPriority: 3
   seenBuffer: 0.5
   ground:
@@ -149,9 +148,9 @@ MonoBehaviour:
   offSetForward: 0.5
   spinHitbox: {fileID: 2590818123613103327, guid: d403e190d57802d43b0d58d1bafbf7e5, type: 3}
   spinDamage: 30
-  spinDuration: 2.5
+  spinDuration: 2
   spinSpeed: 25
-  spinRotationalSpeed: 1020
+  spinRotationalSpeed: 2400
   standardAccelerationPeriod: 0.5
   lowHealthAccelerationPeriod: 0.25
   spinEffects: {fileID: 672220797181763766, guid: 4e3d6de762ba70147bc88da840bc4e9a, type: 3}
