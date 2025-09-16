@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
-using Unity.VisualScripting.YamlDotNet.Serialization;
 using UnityEngine;
 /// <summary>
 /// DropSystem is a singleton class that manage the drops in the game.
