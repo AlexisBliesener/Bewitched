@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -21,6 +20,8 @@ public class DropSystem : MonoBehaviour
     [Tooltip("The amount of health restored to the player when salvaging a drop.")]
     [SerializeField] public float salvageAmount = 10;
     [Tooltip("The list of the rarities in the game")]
+    public GameObject upgradeSelectionUI;
+    [Tooltip("The Upgrades Selection UI Screen")]
     [SerializeField] public List<ItemRarity> availableRarities = new List<ItemRarity>();
     [Tooltip("The list of the drops in the game")]
     public List<DropData> availableDrops = new List<DropData>();
@@ -30,10 +31,11 @@ public class DropSystem : MonoBehaviour
     [Tooltip("Do you want to use the pity system?")]
     [SerializeField] private bool usePitySystem = true;
     [Tooltip("The action that is triggered when a drop is picked up")]
-    public Action<DropData, DropData> OnDropRandomDrop;
+    public Action<DropData, DropData, DropData> OnDropRandomDrop;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
+
     private PitySystem pitySystem;
     /// <summary> Get the number of items dropped this run </summary>
     public int GetDroppedItemThisRun() => droppedItemThisRun;
@@ -107,20 +109,30 @@ public class DropSystem : MonoBehaviour
     }
     /// <summary>
     /// it selects a random drop from the available drops and shows it to the player.
-    /// It will trigger the OnDropRandomDrop action with the random drop and the second random drop.
+    /// It will trigger the OnDropRandomDrop action with the three random drops
     /// This is called from DropPickup.cs when the player picks up the drop.
     /// </summary>
     public void ShowDropSelection(Vector3 pickupPosition)
     {
-        // Get two random drops
+        // Get three random drops
         DropData option1 = GetRandomDrop();
         DropData option2 = GetRandomDrop();
-        if (option1 == null || option2 == null) return;
+        DropData option3 = GetRandomDrop();
+        if (option1 == null || option2 == null || option3 == null) return;
 
-        OnDropRandomDrop?.Invoke(option1, option2);
+        OnDropRandomDrop?.Invoke(option1, option2, option3);
 
-        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()}");
+        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
         Debug.Log($"At this point, the ui should react to this event and then call the function DropSystem.Instance.SelectDropsOption(option); to activate the drops or salvage the drops by calling DropSystem.Instance.SalvageDrop();");
+
+        if(upgradeSelectionUI != null)
+        {
+            upgradeSelectionUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("The upgrade selection UI is null!");
+        }
 
 
     }
