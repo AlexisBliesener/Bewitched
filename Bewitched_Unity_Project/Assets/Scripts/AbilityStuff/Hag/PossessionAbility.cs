@@ -23,8 +23,6 @@ public class PossessionAbility : MonoBehaviour
     protected float maxPossessionDistance;
     [SerializeField, Tooltip("Possession Orb Cooldown UI")]
     private CooldownDisplay possessionCooldownDisplay;
-    [SerializeField, Tooltip("Time to fill up enemy explosion")]
-    private float enemyExplosionTime = 10;
     [SerializeField, Tooltip("Rate at which life is drained"), Range(0,100)]
     private float lifeDrainPercentage = 2;
     [SerializeField, Tooltip("The currently controlled character's health bar")]
@@ -168,8 +166,18 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
+                if(!GrandFinale.instance.GetActive())
+                {
+                    // respawn old Hag
+                    currentCharacter.SetControlled(false);
+                    CharacterControlChangeEvent?.Invoke(oldHag);
+                }
+                else
+                {
+                   GrandFinale.instance.Explode(timePossessing, false);
+                }
+
                 timePossessionLastLeft = Time.time;
-                StartCoroutine(ExplodeEnemy());
             }
             else
             {
@@ -312,30 +320,6 @@ public class PossessionAbility : MonoBehaviour
         }
 
         possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
-    }
-
-    /// <summary>
-    /// Coroutine that handles enemy explosion and switches back to the Hag when possession ends.
-    /// </summary>
-    protected virtual IEnumerator ExplodeEnemy()
-    {
-        yield return null; // wait one frame
-
-        if (currentCharacter != oldHag)
-        {
-            if (Time.time - timePossessing > enemyExplosionTime)
-            {
-                
-                currentCharacter.Explode();
-                currentCharacter.Die();
-                // Apply shunt damage
-            }
-            timePossessionLastLeft = Time.time;
-
-            // respawn old Hag
-            currentCharacter.SetControlled(false);
-            CharacterControlChangeEvent?.Invoke(oldHag);
-        }
     }
 
     /// <summary>
