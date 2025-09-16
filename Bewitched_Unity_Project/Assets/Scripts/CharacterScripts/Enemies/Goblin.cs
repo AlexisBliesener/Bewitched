@@ -117,6 +117,8 @@ public class Goblin : Enemy
         targetVelocity.y = 0; // Ensure no flying goblins
         Vector3 stabVelocity = velocity;
 
+        Debug.Log(stabVelocity.magnitude);
+
         float timeStarted = Time.time;
 
         while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
@@ -125,9 +127,14 @@ public class Goblin : Enemy
             GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
             yield return null; 
         }
-        while (Time.time - timeStarted < knifeDuration) // Decelerate the next 1/4
+
+        while (stabVelocity.magnitude > 0) // Decelerate to zero within remaining duration time
         {
-            stabVelocity = Vector3.Lerp(stabVelocity, Vector3.zero, Time.deltaTime / knifeDuration);
+            stabVelocity = Vector3.Lerp(stabVelocity, Vector3.zero, Time.deltaTime / (knifeDuration / 4));
+            if (stabVelocity.magnitude < 0.05f)
+            {
+                stabVelocity = Vector3.zero;
+            }
             GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
             yield return null;
         }
@@ -221,7 +228,6 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
-        Debug.Log(aiState);
         if (aiState == GoblinAIState.Patrolling)
         {
             if (pathState == PathState.Unset)
