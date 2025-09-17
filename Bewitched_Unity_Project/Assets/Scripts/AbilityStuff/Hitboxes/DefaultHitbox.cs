@@ -6,7 +6,7 @@ using UnityEngine;
 
 /// <summary>
 /// A class for a hitbox
-/// This hitbox will apply  effects through it on trigger with other characters
+/// This hitbox will apply effects through it on trigger with other characters
 /// </summary>
 public class DefaultHitbox : MonoBehaviour
 {
@@ -218,7 +218,6 @@ public class DefaultHitbox : MonoBehaviour
     {
         if (character && user) // Both the applied character and user are still alive
         {
-            Debug.Log(this);
             statusEffects.ApplyStatusEffects(user, character, this);
         }
     }

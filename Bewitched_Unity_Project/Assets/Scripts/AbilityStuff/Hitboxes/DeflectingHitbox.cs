@@ -76,6 +76,10 @@ public class DeflectingHitbox : DefaultHitbox
                         parent.AddToHit(character);
                     }
                 }
+                else if (character == user) // If hit the user, return
+                {
+                    return;
+                }
             }
             else if (other.gameObject.layer == 8)
             {
@@ -88,6 +92,7 @@ public class DeflectingHitbox : DefaultHitbox
                 // Check if other hit is on a hitbox
                 if (other.TryGetComponent<DefaultHitbox>(out DefaultHitbox otherBox))
                 {
+                    Debug.Log("Hit other");
                     // If it is a projectile hitbox (future) only apply deflection to hitbox
 
                     if (otherBox.GetType() == typeof(DeflectingHitbox)) // If it is a deflecting hitbox deflect the enemy velocity too
@@ -98,6 +103,11 @@ public class DeflectingHitbox : DefaultHitbox
                     {
                         statusEffects.ApplyKnockback(user, otherBox.GetUser(), this);
                     }
+                }
+
+                if (other.TryGetComponent<Character>(out Character charac))
+                {
+                    Debug.Log("Deflecting off of: " + charac);
                 }
                 // Now deflect user's velocity away from hit if the collision was not with the floor
                 user.DeflectVelocity(user.transform.position - other.transform.position);

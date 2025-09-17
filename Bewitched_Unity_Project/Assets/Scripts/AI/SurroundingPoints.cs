@@ -180,6 +180,8 @@ public class SurroundingPoints : MonoBehaviour
     /// <returns></returns>
     public GameObject AssignPoint(Enemy enemy)
     {
+        if (enemy == null) return null;
+
         List<GameObject> finiteCopy = new List<GameObject>(points.Keys);
         float closestDist = Mathf.Infinity;
         GameObject closestPoint = null;
@@ -316,7 +318,6 @@ public class SurroundingPoints : MonoBehaviour
 
             startAttackTime = Random.Range(minAttackTime, maxAttackTime);
             timeLastAttack = Time.time;
-            Debug.Log("Start Attack Time: " + startAttackTime);
         }
     }
 

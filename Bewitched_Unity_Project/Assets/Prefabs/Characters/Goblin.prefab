@@ -130,6 +130,7 @@ MonoBehaviour:
   leaveBodyExplosionMaximumDamage: 40
   leaveBodyExplosionMinimumKnockback: 10
   leaveBodyExplosionMaximumKnockback: 30
+  lowHealthThresholdPercentage: 30
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 1348470291095463243}
@@ -139,6 +140,9 @@ MonoBehaviour:
   knifeDamage: 20
   knifeDuration: 0.25
   knifeStabSpeed: 20
+  knifeMagnetismRange: 2
+  knifeMagnetismAngle: 20
+  knifeMagnetismTime: 0.1
   knifeEffects: {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashSpeed: 30
@@ -153,6 +157,8 @@ MonoBehaviour:
   spinRotationalSpeed: 2400
   standardAccelerationPeriod: 0.5
   lowHealthAccelerationPeriod: 0.25
+  lowHealthAngleRange: 80
+  maxDriftSpeed: 4
   spinEffects: {fileID: 672220797181763766, guid: 4e3d6de762ba70147bc88da840bc4e9a, type: 3}
   minPatrolDistance: 3
   maxPatrolDistance: 5
@@ -329,8 +335,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  lowHealthCoefficient: 0.3
   decayRate: 0
-  miniBarPrefab: {fileID: 0}
+  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
 --- !u!114 &353843413732292894
 MonoBehaviour:
   m_ObjectHideFlags: 0
