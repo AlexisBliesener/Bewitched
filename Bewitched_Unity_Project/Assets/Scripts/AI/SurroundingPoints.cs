@@ -316,6 +316,8 @@ public class SurroundingPoints : MonoBehaviour
                 chosen = tempEnemies.Dequeue();
             }
 
+            chosen.AttackFromSurrounding(this);
+
             startAttackTime = Random.Range(minAttackTime, maxAttackTime);
             timeLastAttack = Time.time;
         }

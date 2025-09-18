@@ -501,10 +501,7 @@ public abstract class Character : MonoBehaviour
         float currentMagnitude = velocity.magnitude;
         direction.y = 0;
         direction = direction.normalized;
-        velocity = direction.normalized;
-        velocity.y = 0;
-        velocity = direction.normalized * currentMagnitude;
-        Debug.Log(velocity);
+        velocity = direction * currentMagnitude;
     }
 
     /// <summary>

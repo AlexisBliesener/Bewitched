@@ -229,7 +229,6 @@ public class Goblin : Enemy
             if (velocityToMove != prevTargetVelocity)
             {
                 velocityToMove = velocity.normalized * spinSpeed; // If we deflected while speeding up then adjust target velocity
-                Debug.Log("Deflected");
                 if (lowHealthActions) drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;
             }
 
@@ -251,8 +250,6 @@ public class Goblin : Enemy
 
             yield return null;
         }
-
-        Debug.Log("Main spin ended");
 
         while (Time.time - timeStarted < spinDuration + 0.5f) // Spend the remaining half second slowing down
         {
@@ -718,6 +715,8 @@ public class Goblin : Enemy
         {
             return false;
         }
+
+        Debug.Log("Attacking");
 
         points.RemoveSurroundingEnemy(this);
 
