@@ -85,6 +85,12 @@ public class LevelManager : MonoBehaviour
     protected virtual void LoadScene(string levelName)
     {
         SceneManager.LoadScene(levelName);
+
+        // Reset soul system
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetSouls();
+        }
     }
 
     #endregion
