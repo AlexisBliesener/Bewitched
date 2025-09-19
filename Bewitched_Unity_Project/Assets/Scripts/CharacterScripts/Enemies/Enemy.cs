@@ -49,22 +49,9 @@ public abstract class Enemy : Character
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
 
-    [Tooltip("Leave Body Explosion Range")]
-    public float leaveBodyExplosionRadius = 5;
-
-    [Tooltip("Leave Body Explosion Minimum Damage")]
-    public float leaveBodyExplosionMinimumDamage = 10;
-    [Tooltip("Leave Body Explosion Maximum Damage")]
-    public float leaveBodyExplosionMaximumDamage = 40;
-
-    [Tooltip("Leave Body Explosion Minimum Knockback")]
-    public float leaveBodyExplosionMinimumKnockback = 10;
-    [Tooltip("Leave Body Explosion Maximum Knockback")]
-    public float leaveBodyExplosionMaximumKnockback = 30;
-
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
     public float lowHealthThresholdPercentage = 30;
-
+    
     [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
     protected GameObject surroundPoint;
 
@@ -293,6 +280,10 @@ public abstract class Enemy : Character
     {
         if (playerControlling)
         {
+            if(GrandFinale.instance.GetActive())
+            {
+                GrandFinale.instance.Explode(0f, true);
+            }
             playerControlling = false;
             PossessionAbility.CharacterControlChangeEvent?.Invoke(hag);
         }
@@ -470,22 +461,6 @@ public abstract class Enemy : Character
         return false;
     }
 
-    //public override void SubHealth(float dmg)
-    //{
-    //    base.SubHealth(dmg);
-
-    //    if (minibar == null && !playerControlling)
-    //    {
-    //        minibar = Instantiate(miniBarPrefab);
-    //        minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
-    //    }
-    //}
-
-    //public float GetTimeLastHit()
-    //{
-    //    return timeLastHit;
-    //}
-
     public override void CreateHitStun()
     {
         if (!playerControlling)
@@ -561,30 +536,6 @@ public abstract class Enemy : Character
         return base.BeginPrimary();
     }
 
-    public override void Explode()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, leaveBodyExplosionRadius, characters);
-
-        foreach (Collider hit in hits)
-        {
-            Character hitChar = hit.GetComponent<Character>();
-            if (hitChar != null)
-            {
-                if (CheckCharacterBehindEnvironment(hitChar.transform) && hitChar.teamID != teamID)
-                {
-                    float dist = (hitChar.transform.position - transform.position).magnitude;
-                    Vector3 direction = (hitChar.transform.position - transform.position).normalized;
-
-                    float dmg = Mathf.Lerp(leaveBodyExplosionMinimumDamage, leaveBodyExplosionMaximumDamage, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-                    float knockback = Mathf.Lerp(leaveBodyExplosionMinimumKnockback, leaveBodyExplosionMaximumKnockback, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-
-                    hitChar.health.SubHealth(dmg);
-                    if (!playerControlling) {health.ShowMiniHealthBar(true, hitChar);}
-                    hitChar.GetComponent<KnockbackControl>().AddImpact(direction, knockback);
-                }
-            }
-        }
-    }
 
     public void StartPath(bool usingAgent = true)
     {
