@@ -17,6 +17,12 @@ public class Goblin : Enemy
     [SerializeField] float knifeDuration = 1;
     [Tooltip("Knife Lunge Speed")]
     [SerializeField] float knifeStabSpeed = 10;
+    [Tooltip("Knife Magnetism Range")]
+    [SerializeField] float knifeMagnetismRange = 2;
+    [Tooltip("Knife Magnetism Max Angle")]
+    [SerializeField] float knifeMagnetismAngle = 20;
+    [Tooltip("Knife Magnetism Time")]
+    [SerializeField] float knifeMagnetismTime = 0.1f;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -46,6 +52,12 @@ public class Goblin : Enemy
     [SerializeField] float standardAccelerationPeriod = 0.5f;
     [Tooltip("Low Health Acceleration Period")]
     [SerializeField] float lowHealthAccelerationPeriod = 0.25f;
+    [Tooltip("Low Health Angle Variation Range")]
+    [SerializeField] float lowHealthAngleRange = 80; // maximum 40 degree change
+    [Tooltip("Maximum drift speed")]
+    [SerializeField] float maxDriftSpeed = 4;
+    [Tooltip("Spin Effects")]
+    [SerializeField] AttackStatusEffects spinEffects;
 
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance")]
@@ -78,6 +90,9 @@ public class Goblin : Enemy
     private bool needsDestination = true;
 
     private bool isDashing = false;
+
+    [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
+    private Vector3 prevSpinVelocity = Vector3.zero;
 
     private void Start()
     {
@@ -120,6 +135,11 @@ public class Goblin : Enemy
     public IEnumerator HandleStab()
     {
         if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
+        else
+        {
+            StartCoroutine(MagnetizeLook(knifeMagnetismRange, knifeMagnetismAngle, knifeMagnetismTime));
+            yield return new WaitForSeconds(knifeMagnetismTime);
+        }
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -132,12 +152,11 @@ public class Goblin : Enemy
         targetVelocity.y = 0; // Ensure no flying goblins
         Vector3 stabVelocity = velocity;
 
-        Debug.Log(stabVelocity.magnitude);
-
         float timeStarted = Time.time;
 
         while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
         {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
             stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
             GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
             yield return null; 
@@ -145,6 +164,7 @@ public class Goblin : Enemy
 
         while (stabVelocity.magnitude > 0) // Decelerate to zero within remaining duration time
         {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
             stabVelocity = Vector3.Lerp(stabVelocity, Vector3.zero, Time.deltaTime / (knifeDuration / 4));
             if (stabVelocity.magnitude < 0.05f)
             {
@@ -156,50 +176,95 @@ public class Goblin : Enemy
 
         if (!playerControlling) aiState = GoblinAIState.Chasing;
         else PlayerController.instance.SetAllowMovement(true);
+
+        attackingPrimary = false;
     }
 
     public override void SecondaryAttack()
     {
-        Dash();
         attackingSecondary = true;
         timeLastSecondary = Time.time;
+
+        GameObject hitbox = Instantiate(spinHitbox, transform);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: spinDamage, attackDuration: spinDuration, status: spinEffects);
+
+        StartCoroutine(HandleSpin());
     }
 
     public IEnumerator HandleSpin()
     {
+        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+        else yield return new WaitForSeconds(attackDelayAI);
+
         float timeStarted = Time.time;
         float rotationalSpeed = 0;
-        Vector3 targetVelocity = transform.forward * spinSpeed;
+        velocityToMove = transform.forward;
+        velocityToMove.y = 0;
+        velocityToMove = velocityToMove.normalized * spinSpeed;
+
+        Vector3 prevTargetVelocity = velocityToMove;
+
+        Vector3 drift;
+        bool lowHealthActions;
 
         float accelerationTime;
         // Handle low health AI behavior here in the future, (apply random rotational offset depending on health)
-        if (!IsLowHealth()) accelerationTime = standardAccelerationPeriod;
-        else accelerationTime = lowHealthAccelerationPeriod;
-
-        Vector3 spinVelocity = velocity;
-
-        while (Time.time - timeStarted > spinDuration)
+        if (!IsLowHealth() || playerControlling)
         {
+            accelerationTime = standardAccelerationPeriod;
+            drift = Vector3.zero;
+            lowHealthActions = false;
+        }
+        else
+        {
+            accelerationTime = lowHealthAccelerationPeriod;
+            drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;
+            lowHealthActions = true;
+        }
+
+        while (Time.time - timeStarted < spinDuration)
+        {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
+
+            if (velocityToMove != prevTargetVelocity)
+            {
+                velocityToMove = velocity.normalized * spinSpeed; // If we deflected while speeding up then adjust target velocity
+                if (lowHealthActions) drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;
+            }
+
             if (Time.time - timeStarted < accelerationTime)
             {
-                spinVelocity = Vector3.Lerp(spinVelocity, targetVelocity, Time.deltaTime / accelerationTime);
+                velocity = Vector3.Lerp(velocity, velocityToMove + drift, Time.deltaTime / accelerationTime);
 
                 rotationalSpeed = Mathf.Lerp(rotationalSpeed, spinRotationalSpeed, Time.deltaTime / accelerationTime);
             }
+            else
+            {
+                velocity = velocityToMove;
+            }
 
-            GetComponent<CharacterController>().Move(spinVelocity);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
+
+            prevTargetVelocity = velocityToMove;
+
+            yield return null;
+        }
+
+        while (Time.time - timeStarted < spinDuration + 0.5f) // Spend the remaining half second slowing down
+        {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
+            velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime / 0.5f);
+            rotationalSpeed = Mathf.Lerp(rotationalSpeed, 0, Time.deltaTime / 0.5f);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
             yield return null;
         }
-    }
 
-    /// <summary>
-    /// Temporarily here, just for show at the moment
-    /// </summary>
-    /// <returns> False </returns>
-    public bool IsLowHealth()
-    {
-        return false;
+        attackingSecondary = false;
+
+        if (!playerControlling) aiState = GoblinAIState.Chasing;
+        else PlayerController.instance.SetAllowMovement(true);
     }
 
     public void Dash()
@@ -340,6 +405,7 @@ public class Goblin : Enemy
         }
 
         AIMove();
+        AILook();
 
         if (pathState == PathState.Set)
         {
@@ -380,7 +446,6 @@ public class Goblin : Enemy
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
-        Debug.Log(walkPoint);
 
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
@@ -508,6 +573,7 @@ public class Goblin : Enemy
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= currentPlayer.surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
@@ -534,6 +600,7 @@ public class Goblin : Enemy
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if (Vector3.Distance(transform.position, currentPlayer.transform.position) > surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
         {
@@ -579,6 +646,7 @@ public class Goblin : Enemy
                 UpdatePath(false);
             }
         }
+        AILook();
 
         if ((agent.destination - transform.position).magnitude <= agent.stoppingDistance)
         {
@@ -648,6 +716,8 @@ public class Goblin : Enemy
             return false;
         }
 
+        Debug.Log("Attacking");
+
         points.RemoveSurroundingEnemy(this);
 
         if (attackChoice == 0) // Stabbing
@@ -707,5 +777,25 @@ public class Goblin : Enemy
             aiState = GoblinAIState.AttackSpin;
             SecondaryAttack();
         }
+    }
+
+    /// <summary>
+    /// Gets the priority of a goblin to be added for attacking
+    /// </summary>
+    /// <returns> Enemy priority </returns>
+    public override int GetAttackingPriority()
+    {
+        int val = base.GetAttackingPriority();
+        if (IsLowHealth()) val += 2;
+
+        return val;
+    }
+
+    public override void DeflectVelocity(Vector3 direction)
+    {
+        base.DeflectVelocity(direction);
+        velocityToMove = direction.normalized;
+        velocityToMove.y = 0;
+        velocityToMove = velocityToMove.normalized;
     }
 }
