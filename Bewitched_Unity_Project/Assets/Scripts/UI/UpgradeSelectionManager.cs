@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 
@@ -14,6 +16,7 @@ public class UpgradeSelectionManager : MonoBehaviour
     [Tooltip("The Upgrade Selection Screen")]
     public GameObject upgradeSelectionScreen;
 
+
     /// <summary>
     /// Shows the screen on enable, allows player to use cursor to navigate the screen
     /// </summary>
@@ -21,6 +24,19 @@ public class UpgradeSelectionManager : MonoBehaviour
     {
         upgradeSelectionScreen.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
+
+        //List <GameObject> ButtonList = new List<GameObject>();
+        foreach (Transform child in upgradeSelectionScreen.transform.GetComponentInChildren<Transform>())
+        {
+            //if (child.gameObject.name == "SalvageButton")
+            TMP_Text buttonText = child.GetComponentInChildren<TMP_Text>(true);
+            if (buttonText != null)
+            {
+                Debug.Log(buttonText.text);
+                //Debug.Log(DropSystem.option1?.GetDropName());
+            }
+        }
+
     }
 
     /// <summary>
@@ -36,14 +52,6 @@ public class UpgradeSelectionManager : MonoBehaviour
     /// Closes screen, call if need be
     /// </summary>
     public void CloseScreen()
-    {
-        upgradeSelectionScreen.SetActive(false);
-    }
-
-    /// <summary>
-    /// Closes screen when an upgrade is selected.
-    /// </summary>
-    public void OnClick()
     {
         this.gameObject.SetActive(false);
     }
