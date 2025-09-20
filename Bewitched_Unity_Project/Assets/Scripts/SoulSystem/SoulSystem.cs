@@ -54,4 +54,9 @@ public class SoulSystem : MonoBehaviour
     public void UseSoulCurrency(int amount) => soulCount = Mathf.Max(0, soulCount - amount);
     // <summary> Reset souls to 0</summary>
     public void ResetSouls() => soulCount = 0;
+    // <summary> Set the soul prefab to use for spawning (This is used for the test cases) </summary>
+    public void SetSoulPrefab(GameObject soulPrefab) => this.soulPrefab = soulPrefab;
+    // <summary> Get the soul prefab to use for spawning (This is used for the test cases) </summary>
+    public GameObject GetSoulPrefab() => this.soulPrefab;
+
 }
