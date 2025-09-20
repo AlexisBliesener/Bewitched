@@ -178,6 +178,7 @@ public class PlayerController : MonoBehaviour
                 velocity = new Vector3(0, 0, 0);
                 characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
+            currentCharacter.SetVelocity(velocity);
         }
     }
 

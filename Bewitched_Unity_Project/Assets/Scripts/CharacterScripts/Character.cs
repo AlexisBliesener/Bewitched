@@ -88,6 +88,9 @@ public abstract class Character : MonoBehaviour
     protected bool releasePrimaryImm = false;
     protected bool releaseSecondaryImm = false;
 
+    protected Vector3 velocity = Vector3.zero;
+    protected Vector3 velocityToMove = Vector3.zero;
+
     private int currentPrimaryComboStep = 0;
 
     [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
@@ -231,6 +234,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDeath()
     {
+        DeactivateSurroundingPoints();
         Die();
     }
 
@@ -485,5 +489,90 @@ public abstract class Character : MonoBehaviour
     public GameObject FindClosestSurroundingPoint(Enemy enemy)
     {
         return surroundingPoints.AssignPoint(enemy);
+    }
+
+    /// <summary>
+    /// Deflects the user's current velocity towards a different direction
+    /// </summary>
+    /// <param name="direction"> Direction to deflect towards </param>
+    public virtual void DeflectVelocity(Vector3 direction)
+    {
+        float currentMagnitude = velocity.magnitude;
+        direction.y = 0;
+        direction = direction.normalized;
+        velocity = direction * currentMagnitude;
+    }
+
+    /// <summary>
+    /// Setter function for the player controller to use when changing velocity so that
+    /// when the player is controlling a character the velocity is accessible through character
+    /// </summary>
+    /// <param name="vel"> Velocity to set </param>
+    public void SetVelocity(Vector3 vel)
+    {
+        velocity = vel;
+    }
+
+    /// <summary>
+    /// Checks the health controller to see if the character is low health
+    /// </summary>
+    /// <returns> True if low health </returns>
+    public bool IsLowHealth()
+    {
+        return health.IsLowHealth;
+    }
+
+    /// <summary>
+    /// Changes the direction the character is facing towards the enemy it is facing closest to
+    /// </summary>
+    /// <param name="range"> Range of sweep </param>
+    /// <param name="angle"> Angle of arc it is sweeping </param>
+    /// <param name="time"> Time to change the look </param>
+    /// <returns> Time </returns>
+    public IEnumerator MagnetizeLook(float range, float angle, float time)
+    {
+        Collider[] collisions = Physics.OverlapSphere(transform.position, range, characters);
+
+        GameObject closest = null;
+        float mostDirectValue = Mathf.Infinity;
+
+        foreach (Collider other in collisions)
+        {
+            if (!other.gameObject == gameObject && other.TryGetComponent<Character>(out Character character))
+            {
+                Debug.Log(character);
+                Vector3 direction = other.transform.position - transform.position;
+                float angleToTarget = Vector3.Angle(transform.forward, direction);
+
+                if (angleToTarget <= angle) // If in valid range
+                {
+                    float modifier = 1 + angleToTarget / angle;
+                    float score = direction.magnitude * modifier;
+
+                    if (score < mostDirectValue)
+                    {
+                        mostDirectValue = score;
+                        closest = other.gameObject;
+                    }
+                }
+            }
+        }
+
+        if (closest == null)
+        {
+            yield return new WaitForSeconds(time);
+            yield break;
+        }
+
+        float timeBegan = Time.time;
+        Vector3 turnDirection = closest.transform.position - transform.position;
+        turnDirection.y = 0;
+        turnDirection = turnDirection.normalized;
+
+        while (Time.time - timeBegan <= time)
+        {
+            transform.forward = Vector3.Lerp(transform.forward, turnDirection, Time.deltaTime / time);
+            yield return null;
+        }
     }
 }
