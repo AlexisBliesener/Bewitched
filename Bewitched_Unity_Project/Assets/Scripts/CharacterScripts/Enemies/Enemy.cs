@@ -291,6 +291,8 @@ public abstract class Enemy : Character
         {
             // Drop the upgrade only if the enemy is dead and the player is not controlling it
             DropSystem.Instance.TryDropItem(transform.position);
+            // Spawn soul on death
+            SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
