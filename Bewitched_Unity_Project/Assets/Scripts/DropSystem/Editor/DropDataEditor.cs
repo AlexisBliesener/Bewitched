@@ -19,6 +19,7 @@ public class DropDataDrawer : PropertyDrawer
         // Redraw the default inspector
         EditorGUILayout.PropertyField(property.FindPropertyRelative("dropName"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("description"));
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("dropID"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("icon"));
 
         // create a rarity dropdown which convert the index to a string and that's only in the editor
