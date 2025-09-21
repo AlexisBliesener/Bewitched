@@ -28,8 +28,10 @@ public class DropSystemTests
     private GameObject mockDropPrefab;
     private DropData mockDrop1;
     private DropData mockDrop2;
+    private DropData mockDrop3;
     private GameObject mockDropScript1;
     private GameObject mockDropScript2;
+    private GameObject mockDropScript3;
     private ItemRarity commonRarity;
     private ItemRarity rareRarity;
 
@@ -78,6 +80,15 @@ public class DropSystemTests
         mockDrop2.SetRarityIndex(0);
         dropSystem.availableDrops.Add(mockDrop2);
 
+        mockDropScript3 = new GameObject("MockDrop3");
+        mockDropScript3.AddComponent<MockActivatableDrop>();
+        mockDrop3 = new DropData();
+        mockDrop3.SetDropScript(mockDropScript1);
+        mockDrop3.SetDropName("Health Potion 3");
+        mockDrop3.SetDescription("Restores health 3x");
+        mockDrop3.SetRarityIndex(0);
+        dropSystem.availableDrops.Add(mockDrop3);
+
         // Set up drop system with test data
         dropSystem.dropPickupPrefab = mockDropPrefab;
 
@@ -97,6 +108,8 @@ public class DropSystemTests
             mockDrop1 = null;
         if (mockDrop2 != null)
             mockDrop2 = null;
+        if (mockDrop3 != null)
+            mockDrop3 = null;
         if (commonRarity != null)
             commonRarity = null;
         if (rareRarity != null)
@@ -105,6 +118,8 @@ public class DropSystemTests
             Object.DestroyImmediate(mockDropScript1);
         if (mockDropScript2 != null)
             Object.DestroyImmediate(mockDropScript2);
+        if (mockDropScript3 != null)
+            Object.DestroyImmediate(mockDropScript3);
     }
 
     /// <summary>
@@ -219,7 +234,7 @@ public class DropSystemTests
             actionTriggered = true;
             receivedDrop1 = drop1;
             receivedDrop2 = drop2;
-            receivedDrop2 = drop3;
+            receivedDrop3 = drop3;
         };
 
         dropSystem.ShowDropSelection(Vector3.zero);
@@ -227,7 +242,7 @@ public class DropSystemTests
         Assert.IsTrue(actionTriggered);
         Assert.IsNotNull(receivedDrop1);
         Assert.IsNotNull(receivedDrop2);
-        Assert.IsNull(receivedDrop3);
+        Assert.IsNotNull(receivedDrop3);
     }
 
     /// <summary>
@@ -274,18 +289,26 @@ public class DropSystemTests
         GameObject newGameObject1 = new GameObject();
         newGameObject1.AddComponent<MockActivatableDrop>();
         newDropData1.SetDropScript(newGameObject1);
-        
+
         dropSystem.SelectDropsOption(newDropData1);
 
         DropData newDropData2 = new DropData();
         GameObject newGameObject2 = new GameObject();
         newGameObject2.AddComponent<MockActivatableDrop>();
         newDropData2.SetDropScript(newGameObject2);
-        
+
         dropSystem.SelectDropsOption(newDropData2);
+
+        DropData newDropData3 = new DropData();
+        GameObject newGameObject3 = new GameObject();
+        newGameObject3.AddComponent<MockActivatableDrop>();
+        newDropData3.SetDropScript(newGameObject3);
+
+        dropSystem.SelectDropsOption(newDropData3);
 
         Assert.IsTrue(newGameObject1.GetComponent<MockActivatableDrop>().wasActivated);
         Assert.IsTrue(newGameObject2.GetComponent<MockActivatableDrop>().wasActivated);
+        Assert.IsTrue(newGameObject3.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>
@@ -324,5 +347,6 @@ public class DropSystemTests
         Assert.AreEqual(2, dropSystem.availableDrops.Count);
         Assert.AreEqual("Health Potion", dropSystem.availableDrops[0].GetDropName());
         Assert.AreEqual("Health Potion 2", dropSystem.availableDrops[1].GetDropName());
+        Assert.AreEqual("Health Potion 3", dropSystem.availableDrops[2].GetDropName());
     }
 }

@@ -14,6 +14,9 @@ public class DropSystem : MonoBehaviour
 {
     // Singleton instance
     public static DropSystem Instance { get; private set; }
+    [Header("Player Upgrades")]
+    [Tooltip("List of upgrades that the player has acquired.")]
+    public List<DropData> playerUpgrades = new List<DropData>();
     [Header("Drop Settings")]
     [Tooltip("The chance of dropping an item from enemies")]
     [SerializeField] public int dropChance = 50;
@@ -120,11 +123,6 @@ public class DropSystem : MonoBehaviour
         DropData option3 = GetRandomDrop();
         if (option1 == null || option2 == null || option3 == null) return;
 
-        OnDropRandomDrop?.Invoke(option1, option2, option3);
-
-        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
-        Debug.Log($"At this point, the ui should react to this event and then call the function DropSystem.Instance.SelectDropsOption(option); to activate the drops or salvage the drops by calling DropSystem.Instance.SalvageDrop();");
-
         if(upgradeSelectionUI != null)
         {
             upgradeSelectionUI.SetActive(true);
@@ -134,6 +132,9 @@ public class DropSystem : MonoBehaviour
             Debug.LogWarning("The upgrade selection UI is null!");
         }
 
+        OnDropRandomDrop?.Invoke(option1, option2, option3);
+
+        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
 
     }
     /// <summary>
@@ -184,6 +185,8 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
             return;
         }
+        playerUpgrades.Add(drop);
+        HUDManager.Instance.AddUpgrade(drop);
         // for now we will simple just activate the drop
         if (usePitySystem)
         {
