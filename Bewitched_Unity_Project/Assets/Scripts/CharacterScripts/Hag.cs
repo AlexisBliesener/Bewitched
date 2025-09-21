@@ -20,9 +20,13 @@ public class Hag : Character
     [Tooltip("Wall Layermask")]
     [SerializeField] LayerMask environment;
     [SerializeField] GameObject knockBackCone;
+    [SerializeField, Tooltip("Objects to disable when eleth is possessing an enemy")]
+    private GameObject[] objectsToDisable;
 
     [Tooltip("The animator controller for eleth character")]
     private ElethAnimator elethAnimator;
+
+
 
     private void Start()
     {
@@ -77,6 +81,28 @@ public class Hag : Character
         inst.setParameterByName("Damage", amount / health.GetMaxHealth());
         inst.start();
         inst.release();
+    }
+
+    /// <summary>
+    /// When the player is done possessing calling this disables Eleth
+    /// </summary>
+    public void DisableEleth()
+    {
+        foreach(GameObject go in objectsToDisable)
+        {
+            go.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// When the player is done possessing calling this enables Eleth
+    /// </summary>
+    public void EnableEleth()
+    {
+        foreach (GameObject go in objectsToDisable)
+        {
+            go.SetActive(true);
+        }
     }
 
     /// <summary>
