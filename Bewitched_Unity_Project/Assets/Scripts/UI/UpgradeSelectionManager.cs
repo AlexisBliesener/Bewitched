@@ -60,6 +60,12 @@ public class UpgradeSelectionManager : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
+        Time.timeScale = 1.0f;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private void OnDestroy()
+    {
         if (DropSystem.Instance != null)
         {
             DropSystem.Instance.OnDropRandomDrop -= UpdateOptions;
@@ -68,8 +74,6 @@ public class UpgradeSelectionManager : MonoBehaviour
         {
             Debug.LogWarning("DropSystem.Instance not found.");
         }
-        Time.timeScale = 1.0f;
-        Cursor.lockState = CursorLockMode.Locked;
     }
 
     /// <summary>
