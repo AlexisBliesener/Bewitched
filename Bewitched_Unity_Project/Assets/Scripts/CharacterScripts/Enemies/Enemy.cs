@@ -28,6 +28,12 @@ public abstract class Enemy : Character
     public LayerMask ground;
     public LayerMask environment;
 
+    [Tooltip("Minimum distance to have enemy surround from")]
+    [SerializeField] protected float minSurroundDistance = 4;
+
+    [Tooltip("Maximum distance to have enemy surround from")]
+    [SerializeField] protected float maxSurroundDistance = 10;
+
     [Tooltip("Sight Range")]
     public float sightRange;
 
@@ -99,8 +105,6 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
-    public bool tempDebugging = false;
-
     protected enum PathState
     {
         Unset,
@@ -110,6 +114,32 @@ public abstract class Enemy : Character
 
     [Tooltip("Current path state")]
     protected PathState pathState = PathState.Unset;
+
+    protected enum AIMovementState
+    {
+        Patrolling, // Before spotting player
+        Chasing, // Reaching the player
+        Surrounding, // Staying in range of the player
+        Blocked // For attacking, stun, etc. the character does not move or look
+    }
+
+    [Tooltip("The Current AI State of the enemy")]
+    protected AIMovementState aiState = AIMovementState.Patrolling;
+
+    [Tooltip("Enemy manager of this enemy")]
+    protected EnemyManager enemyManager;
+
+    [Tooltip("Point relative to player for enemy to navigate towards")]
+    protected Vector3 chasePoint;
+
+    /// <summary>
+    /// Sets the enemy manager for this enemy
+    /// </summary>
+    /// <param name="manager"></param>
+    public void SetEnemyManager(EnemyManager manager)
+    {
+        enemyManager = manager;
+    }
 
     /// <summary>
     /// Function for handling movement
@@ -170,11 +200,6 @@ public abstract class Enemy : Character
 
         if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
 
-        if (tempDebugging)
-        {
-            Debug.Log("X: " + xChange + " Z:" + zChange);
-        }
-
 
         if (velocity.magnitude > movementSpeed)
         {
@@ -196,7 +221,7 @@ public abstract class Enemy : Character
     public void AILook()
     {
         Quaternion lookRotation;
-        if (lookAtPlayer)
+        if (aiState == AIMovementState.Surrounding) // If surrounding then look at player
         {
             lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
         }
@@ -780,5 +805,27 @@ public abstract class Enemy : Character
     public virtual int GetAttackingPriority()
     {
         return pathfindingPriority;
+    }
+    
+    /// <summary>
+    /// Checks if the enemy is surrounding
+    /// </summary>
+    /// <returns></returns>
+    public bool IsSurrounding()
+    {
+        if (aiState == AIMovementState.Surrounding) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Sets a point to chase towards 
+    /// </summary>
+    public void SetChasePoint()
+    {
+        float dist = Random.Range(minSurroundDistance + 1, maxSurroundDistance - 1);
+        Vector3 direction = (transform.position - currentPlayer.transform.position).normalized; // Gets direction out from player
+        chasePoint = dist * direction;
+
+        Debug.Log(dist);
     }
 }

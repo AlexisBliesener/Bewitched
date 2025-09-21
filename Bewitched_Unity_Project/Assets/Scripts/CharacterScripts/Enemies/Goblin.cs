@@ -17,12 +17,8 @@ public class Goblin : Enemy
     [SerializeField] float knifeDuration = 1;
     [Tooltip("Knife Lunge Speed")]
     [SerializeField] float knifeStabSpeed = 10;
-    [Tooltip("Knife Magnetism Range")]
-    [SerializeField] float knifeMagnetismRange = 2;
-    [Tooltip("Knife Magnetism Max Angle")]
-    [SerializeField] float knifeMagnetismAngle = 20;
-    [Tooltip("Knife Magnetism Time")]
-    [SerializeField] float knifeMagnetismTime = 0.1f;
+    [Tooltip("Knife Range")]
+    [SerializeField] float knifeRange = 3;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -70,19 +66,6 @@ public class Goblin : Enemy
     [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
     private bool inProcess = false;
 
-    private enum GoblinAIState
-    {
-        Patrolling,
-        Chasing,
-        Searching,
-        Surrounding,
-        AttackStab,
-        AttackSpin
-    }
-
-    [Tooltip("The Current AI State of the Goblin")]
-    private GoblinAIState aiState = GoblinAIState.Patrolling;
-
     [Tooltip("The Goblin's Patrol Point Origin")]
     private Vector3 patrolOrigin;
 
@@ -103,7 +86,7 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
 
-        aiState = GoblinAIState.Patrolling;
+        aiState = AIMovementState.Patrolling;
 
         // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
         agent.updatePosition = false;
@@ -123,23 +106,50 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
-        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+        Character target;
+        if (playerControlling)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            target = PlayerController.instance.TargetEnemy();
+        }
+        else
+        {
+            target = currentPlayer;
+            aiState = AIMovementState.Blocked;
+        }
 
-        StartCoroutine(HandleStab());
+        attackStateCoroutine = StartCoroutine(KnifeApproach(target));
+    }
+
+    public IEnumerator KnifeApproach(Character target)
+    {
+        attackState = AttackState.Approaching;
+        while (Vector3.Distance(target.transform.position, transform.position) > knifeRange)
+        {
+            Vector3 desired = (target.transform.position - transform.position).normalized * movementSpeed;
+            velocity = Vector3.Lerp(velocity, desired, acceleration * Time.deltaTime);
+            yield return null;
+        }
+
+        attackStateCoroutine = StartCoroutine(KnifeWindup(target));
+    }
+
+    public IEnumerator KnifeWindup(Character target)
+    {
+        attackState = AttackState.Windup;
+        // For now wait 0.25 seconds, in future wait for animation trigger
+        yield return new WaitForSeconds(0.25f);
+        attackStateCoroutine = StartCoroutine(HandleStab(target));
     }
 
     /// <summary>
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
     /// <returns> Time breaks </returns>
-    public IEnumerator HandleStab()
+    public IEnumerator HandleStab(Character target)
     {
         if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
-        else
-        {
-            StartCoroutine(MagnetizeLook(knifeMagnetismRange, knifeMagnetismAngle, knifeMagnetismTime));
-            yield return new WaitForSeconds(knifeMagnetismTime);
-        }
+        
 
         timeLastPrimary = Time.time;
         attackingPrimary = true;
@@ -174,7 +184,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (!playerControlling) aiState = GoblinAIState.Chasing;
+        if (!playerControlling) aiState = AIMovementState.Chasing;
         else PlayerController.instance.SetAllowMovement(true);
 
         attackingPrimary = false;
@@ -263,55 +273,8 @@ public class Goblin : Enemy
 
         attackingSecondary = false;
 
-        if (!playerControlling) aiState = GoblinAIState.Chasing;
+        if (!playerControlling) aiState = AIMovementState.Chasing;
         else PlayerController.instance.SetAllowMovement(true);
-    }
-
-    public void Dash()
-    {
-        isDashing = true;
-        health.SetInvincible(true);
-        PlayerController.instance.SetAllowMovement(false);
-
-        GameObject hitbox = Instantiate(dashHitbox, transform);
-        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: dashDamage, attackDuration: dashDuration, status: dashEffects);
-
-        StartCoroutine(HandleDashMovement(hitbox));
-    }
-
-    private IEnumerator HandleDashMovement(GameObject hitbox)
-    {
-        float timeSinceStarted = 0f;
-
-        while (timeSinceStarted < dashDuration)
-        {
-            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
-            {
-                StartCoroutine(EnableMovement());
-                isDashing = false;
-                health.SetInvincible(false);
-                attackingSecondary = false;
-                aiState = GoblinAIState.Chasing;
-
-                transform.position = transform.position - transform.forward.normalized * dashSpeed * Time.deltaTime;
-
-                yield break;
-            }
-
-            transform.position = transform.position + transform.forward.normalized * dashSpeed * Time.deltaTime;
-            timeSinceStarted += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.position = transform.position + transform.forward.normalized * dashSpeed * Time.deltaTime;
-
-        Destroy(hitbox);
-
-        StartCoroutine(EnableMovement());
-        isDashing = false;
-        health.SetInvincible(false);
-        attackingSecondary = false;
-        aiState = GoblinAIState.Chasing;
     }
 
     /// <summary>
@@ -322,21 +285,17 @@ public class Goblin : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
-        if (aiState == GoblinAIState.Patrolling) // If patrolling
+        if (aiState == AIMovementState.Patrolling) // If patrolling
         {
             Patrol();
         }
-        else if (aiState == GoblinAIState.Chasing)
+        else if (aiState == AIMovementState.Chasing)
         {
             Chase();
         }
-        else if (aiState == GoblinAIState.Surrounding)
+        else if (aiState == AIMovementState.Surrounding)
         {
             Surround();
-        }
-        else if (aiState == GoblinAIState.Searching)
-        {
-            Search();
         }
     }
 
@@ -345,44 +304,23 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
-        if (aiState == GoblinAIState.Patrolling)
+        if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
                 SetPatrollingPoint();
             }
-            
         }
-        else if (aiState == GoblinAIState.Chasing)
-        {
-            surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
-            if (surroundPoint) // If there is a valid point
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
-        }
-        else if (aiState == GoblinAIState.Surrounding) // Handles the same as chasing, just in closer range
-        {
-            surroundPoint = currentPlayer.FindClosestSurroundingPoint(this);
-            if (surroundPoint) // If there is a valid point
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
-        }
-        else if (aiState == GoblinAIState.Searching)
+        else if (aiState == AIMovementState.Chasing)
         {
             pathState = PathState.Searching;
-            if (surroundPoint) // If still set
-            {
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
-            else
-            {
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, lastTargetLocation));
-            }
+            StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPlayer.transform.position + chasePoint));
+        }
+        else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
+        {
+            pathState = PathState.Searching;
+            StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPlayer.transform.position + chasePoint));
         }
     }
 
@@ -398,10 +336,6 @@ public class Goblin : Enemy
         {
             StartCoroutine(SpotPlayer());
             return;
-        }
-        else if (CanHearTarget(target.transform))
-        {
-            TransitionToSearch();
         }
 
         AIMove();
@@ -468,7 +402,7 @@ public class Goblin : Enemy
             return false;
         }
 
-        if (aiState == GoblinAIState.Patrolling) // If a valid patrol point
+        if (aiState == AIMovementState.Patrolling) // If a valid patrol point
         {
             float distance = currentPath.GetDistance();
 
@@ -531,13 +465,15 @@ public class Goblin : Enemy
     /// <returns> Waits for animation to be done </returns>
     private IEnumerator SpotPlayer(bool fromGoblin = false)
     {
-        aiState = GoblinAIState.Chasing;
+        aiState = AIMovementState.Chasing;
         if (debugging)
         {
             DestroyPath();
         }
 
         inProcess = true;
+
+        SetChasePoint();
 
         timePlayerLastSeen = Time.time;
 
@@ -558,12 +494,6 @@ public class Goblin : Enemy
     public override void Chase()
     {
         lookAtPlayer = false;
-        if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
-        {
-            TransitionToSearch();
-            return;
-        }
-
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
@@ -575,13 +505,9 @@ public class Goblin : Enemy
         }
         AILook();
 
-        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= currentPlayer.surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= maxSurroundDistance) // If within range
         {
-            aiState = GoblinAIState.Surrounding;
-            if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-            {
-                points.AddSurroundingEnemy(this);
-            }
+            aiState = AIMovementState.Surrounding;
         }
     }
 
@@ -602,67 +528,15 @@ public class Goblin : Enemy
         }
         AILook();
 
-        if (Vector3.Distance(transform.position, currentPlayer.transform.position) > surroundingRadius + 1.5) // If within a meter and a half of surrounding radius
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) > maxSurroundDistance) // If within a meter and a half of surrounding radius
         {
-            aiState = GoblinAIState.Chasing;
+            aiState = AIMovementState.Chasing;
+            SetChasePoint();
             if (currentPlayer.TryGetComponent(out SurroundingPoints points))
             {
                 points.RemoveSurroundingEnemy(this);
             }
         }
-        else if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= primaryAttackRange)
-        {
-            ReactAttack();
-        }
-    }
-
-    /// <summary>
-    /// Function that executes when the Goblin is searching
-    /// Will navigate to the last known player location then go back to patrolling
-    /// </summary>
-    public void Search()
-    {
-        if (LookForPlayer()) // Constantly look for player
-        {
-            StartCoroutine(SpotPlayer());
-            return;
-        }
-        else if (RequestLocation())
-        {
-            StartCoroutine(SpotPlayer(fromGoblin: true));
-            return;
-        }
-
-        if (CanHearTarget(currentPlayer.transform)) // Constantly listen for player
-        {
-            TransitionToSearch(); // Resets last player position
-        }
-
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
-        {
-            AIMove();
-            if (debugging)
-            {
-                UpdatePath(false);
-            }
-        }
-        AILook();
-
-        if ((agent.destination - transform.position).magnitude <= agent.stoppingDistance)
-        {
-            // Lost target, start patrolling again
-            aiState = GoblinAIState.Patrolling;
-        }
-    }
-
-    /// <summary>
-    /// Function that is called when changing to search mode
-    /// Sets state and last target location
-    /// </summary>
-    public void TransitionToSearch()
-    {
-        lastTargetLocation = currentPlayer.transform.position;
-        aiState = GoblinAIState.Searching;
     }
 
     /// <summary>
@@ -687,96 +561,6 @@ public class Goblin : Enemy
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// When surrounding, the goblin may receive a command to attack
-    /// When this happens, there is a 50% chance that it will stab and a 50% chance it will spin
-    /// </summary>
-    /// <param name="points"> The surrounding points calling this function </param>
-    /// <returns> True if attack is started, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
-    {
-        int attackChoice;
-
-        if (CheckPrimaryUsable() && CheckSecondaryUsable())
-        {
-            attackChoice = Random.Range(0, 2);
-        }
-        else if (CheckPrimaryUsable())
-        {
-            attackChoice = 0;
-        }
-        else if (CheckSecondaryUsable())
-        {
-            attackChoice = 1;
-        }
-        else
-        {
-            return false;
-        }
-
-        Debug.Log("Attacking");
-
-        points.RemoveSurroundingEnemy(this);
-
-        if (attackChoice == 0) // Stabbing
-        {
-            Debug.Log("Stabbing");
-            aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandleStab());
-        }
-        else // Spinning
-        {
-            aiState = GoblinAIState.AttackSpin;
-            SecondaryAttack();
-
-            foreach (Goblin goblin in points.GetEnemiesSameType(this)) // Gets all available goblins to also spin
-            {
-                if (goblin.CheckSecondaryUsable())
-                {
-                    goblin.SecondaryAttack();
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Attack decider called when reacting to the player getting too close
-    /// </summary>
-    public void ReactAttack()
-    {
-        int attackChoice;
-
-        if (CheckPrimaryUsable() && CheckSecondaryUsable())
-        {
-            attackChoice = Random.Range(0, 5);
-        }
-        else if (CheckPrimaryUsable())
-        {
-            attackChoice = 0;
-        }
-        else if (CheckSecondaryUsable())
-        {
-            attackChoice = 4;
-        }
-        else
-        {
-            return;
-        }
-
-        if (attackChoice < 4) // Stabbing
-        {
-            aiState = GoblinAIState.AttackStab;
-            StartCoroutine(HandleStab());
-        }
-        else // Spinning
-        {
-            aiState = GoblinAIState.AttackSpin;
-            SecondaryAttack();
-        }
     }
 
     /// <summary>

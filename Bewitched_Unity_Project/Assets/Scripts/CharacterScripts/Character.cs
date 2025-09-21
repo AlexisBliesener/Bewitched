@@ -106,6 +106,26 @@ public abstract class Character : MonoBehaviour
 
     private SurroundingPoints surroundingPoints;
 
+    [Tooltip("Character to lock onto")]
+    protected Character lockedCharacter;
+
+    [Tooltip("The coroutine handling attacking actions")]
+    protected Coroutine attackStateCoroutine = null;
+
+    /// <summary>
+    /// The different attacking states a character can have
+    /// </summary>
+    public enum AttackState
+    {
+        Approaching, // The run up before the attack begins to close distance
+        Windup, // The windup stage of the attack - basic animation
+        Attacking, // The attack itself
+        Retreating, // Post attack gain distance and get back to neutral
+        Neutral // Neutral state for enemies to be selected to begin attack
+    }
+
+    protected AttackState attackState;
+
     #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
@@ -191,6 +211,8 @@ public abstract class Character : MonoBehaviour
         health.OnDeath += OnDeath;
 
         SetBaseStats();
+
+        attackStateCoroutine = StartCoroutine(NeutralRoutine());
     }
     protected virtual void OnDestroy()
     {
@@ -572,6 +594,31 @@ public abstract class Character : MonoBehaviour
         while (Time.time - timeBegan <= time)
         {
             transform.forward = Vector3.Lerp(transform.forward, turnDirection, Time.deltaTime / time);
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// Checks the attack state to see if able to start an attack
+    /// </summary>
+    /// <returns></returns>
+    public bool IsNeutral()
+    {
+        if (attackState == AttackState.Neutral) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Coroutine handling neutral enemy behavior
+    /// </summary>
+    /// <returns> Loops indefinitely until state change </returns>
+    public IEnumerator NeutralRoutine()
+    {
+        attackState = AttackState.Neutral;
+
+        while (!health.IsDead) // Loop indefinitely until some other function stops this or character dies
+        {
+
             yield return null;
         }
     }

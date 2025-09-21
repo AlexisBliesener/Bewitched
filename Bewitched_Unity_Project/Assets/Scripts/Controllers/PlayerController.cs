@@ -26,6 +26,8 @@ public class PlayerController : MonoBehaviour
     public Character currentCharacter;
     [Tooltip("The main character body (possessor)")]
     public Hag oldHag;
+    [Tooltip("The targeting range for a character")]
+    public float targetingRange = 8;
 
     [Header("UI Settings")]
 
@@ -182,6 +184,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Gets the direction of the player to move in
+    /// </summary>
+    /// <returns> The direction of input if moving or the direction the player is facing </returns>
+    public Vector3 GetMovementDirection()
+    {
+        Vector3 inputDirection;
+
+        if (input.sqrMagnitude > 0.01)
+        {
+            inputDirection = Camera.main.transform.TransformDirection(direction);
+        }
+        else
+        {
+            inputDirection = currentCharacter.transform.forward;
+        }
+
+        return inputDirection;
+    }
+
     public void Move(InputAction.CallbackContext context)
     {
         input = context.ReadValue<Vector2>();
@@ -288,4 +310,30 @@ public class PlayerController : MonoBehaviour
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
     }
     
+    /// <summary>
+    /// Targets the closest enemy to the input direction if it is within a range
+    /// </summary>
+    /// <returns> The targeted enemy if it exists </returns>
+    public Enemy TargetEnemy()
+    {
+        Vector3 desired;
+
+        if (direction.magnitude < 0.01f)
+        {
+            desired = currentCharacter.transform.forward.normalized;
+        }
+        else
+        {
+            desired = direction;
+            desired = Camera.main.transform.TransformDirection(desired).normalized;
+        }
+
+        RaycastHit info;
+
+        if (Physics.SphereCast(transform.position, 3f, desired, out info, targetingRange, enemyLayerMask))
+        {
+             return info.collider.transform.GetComponent<Enemy>();
+        }
+        return null;
+    }
 }
