@@ -103,6 +103,19 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+        // Apply vampirism upgrade
+        if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetComponent<Character>())
+        {
+            if (Vampirism.instance != null)
+            {
+                Vampirism.instance.stealHealth(amt);
+            }
+            else
+            {
+                Debug.LogWarning("Vamprism upgrade instance is not set!");
+            }
+        }
+
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke();
         else

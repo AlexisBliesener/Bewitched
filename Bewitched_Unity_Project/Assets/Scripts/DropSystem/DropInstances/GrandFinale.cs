@@ -54,7 +54,7 @@ public class GrandFinale : MonoBehaviour, IDrop
         string statsStr = JsonUtility.ToJson(this, true);
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CharacterStats");
+        folderPath = Path.Combine(folderPath, "UpgradeStats");
         SeeFilePath();
         if (!Directory.Exists(folderPath))
         {
@@ -76,7 +76,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     public void SeeFilePath()
     {
         string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CharacterStats");
+        folderPath = Path.Combine(folderPath, "UpgradeStats");
         Debug.Log("Path To JSON File:");
         Debug.Log(folderPath);
     }
@@ -86,7 +86,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     {
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CharacterStats");
+        folderPath = Path.Combine(folderPath, "UpgradeStats");
         string filePath = Path.Combine(folderPath, "GrandFinale" + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);

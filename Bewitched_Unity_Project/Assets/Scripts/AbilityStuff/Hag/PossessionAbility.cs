@@ -201,6 +201,7 @@ public class PossessionAbility : MonoBehaviour
         {
             CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
@@ -344,7 +345,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (secondaryHealthBar != null)
             {
-                oldHag.gameObject.SetActive(true);
+                oldHag.EnableEleth();
                 secondaryHealthBar.SetActive(false);
             }
             currentCharacter.SetTeamID(2);
@@ -365,7 +366,7 @@ public class PossessionAbility : MonoBehaviour
                 if (secondaryHealthBar != null)
                 {
                     secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
-                    oldHag.gameObject.SetActive(false);
+                    oldHag.DisableEleth();
                     secondaryHealthBar.SetActive(true);
                 }
             }
