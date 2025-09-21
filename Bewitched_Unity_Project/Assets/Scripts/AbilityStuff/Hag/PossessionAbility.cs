@@ -1,4 +1,3 @@
-using Cinemachine;
 using FMOD.Studio;
 using System.Collections;
 using System.IO;
@@ -31,6 +30,14 @@ public class PossessionAbility : MonoBehaviour
     protected Hag oldHag;
     [SerializeField, Tooltip("Crosshair image component")]
     private Image crossHair;
+
+    [Header("VFX")]
+    [SerializeField, Tooltip("Highlights the enemy that is currently being targeted by possession")]
+    private GameObject targetVFX;
+    [SerializeField, Tooltip("Prefab of firing possession VFX")]
+    private GameObject firingVFX;
+    [SerializeField, Tooltip("Prefab of smoke cloud around enemy that got possessed")]
+    private GameObject smokeCloudVFX;
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
@@ -131,6 +138,7 @@ public class PossessionAbility : MonoBehaviour
         UpdateCooldowns();
         UpdateState();
         UpdateCrossHair();
+        UpdateTargetVFX();
 
         // Move hag to current characters position
         if (currentCharacter != oldHag)
@@ -202,6 +210,11 @@ public class PossessionAbility : MonoBehaviour
             CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
 
+            // Possession smoke VFX
+            Instantiate(smokeCloudVFX, new Vector3(currentPossessableEnemy.transform.position.x,
+                currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
+                currentPossessableEnemy.transform.position.z), currentPossessableEnemy.transform.rotation);
+
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
@@ -211,8 +224,29 @@ public class PossessionAbility : MonoBehaviour
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 2);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
+
+        // Possession fire VFX
+        Instantiate(firingVFX, oldHag.transform.position + new Vector3(oldHag.transform.forward.x, 1f, oldHag.transform.forward.z), oldHag.transform.rotation);
     }
     
+    /// <summary>
+    /// Updates the aim target VFX
+    /// Places it on the enemy being targeted or disabled it if there is no enemy being targeted
+    /// </summary>
+    private void UpdateTargetVFX()
+    {
+        if(possessionState == PossessionStates.canPossess)
+        {
+            targetVFX.SetActive(true);
+            targetVFX.transform.position = new Vector3(currentPossessableEnemy.transform.position.x,
+                currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height/2 ,
+                currentPossessableEnemy.transform.position.z); ;
+        }
+        else
+        {
+            targetVFX.SetActive(false);
+        }
+    }
 
     /// <summary>
     /// Updates the color of the cross hair baised on if the player can currently possess
@@ -351,6 +385,11 @@ public class PossessionAbility : MonoBehaviour
             currentCharacter.SetTeamID(2);
             PlayerController.instance.SetAllowMovement(true);
             AudioManager.TryPlayOneShot("LeaveBody");
+
+            // Possession smoke VFX
+            Instantiate(smokeCloudVFX, new Vector3(oldHag.transform.position.x,
+                oldHag.transform.position.y + oldHag.GetComponent<CharacterController>().height / 2,
+                oldHag.transform.position.z), oldHag.transform.rotation);
         }
         else
         {

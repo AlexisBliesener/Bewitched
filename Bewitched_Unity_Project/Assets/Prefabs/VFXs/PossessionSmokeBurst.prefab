@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7366818682898258827}
   - component: {fileID: 3277756821376961899}
   - component: {fileID: 8171325671253785603}
+  - component: {fileID: 2894884891462977958}
   m_Layer: 0
   m_Name: PossessionSmokeBurst
   m_TagString: Untagged
@@ -4898,3 +4899,16 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &2894884891462977958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8969461073718270138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85902fb90733cf4bb1829546562b201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeToDestroy: 2

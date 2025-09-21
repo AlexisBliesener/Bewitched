@@ -56,6 +56,13 @@ public class DeflectingHitbox : DefaultHitbox
                     character.health.SubHealth(damage);
                     AddStatusEffects(character);
                     AddToHit(character);
+
+                    // Hit VFX
+                    Instantiate(hitVFX, new Vector3(character.transform.position.x,
+                        character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
+                        character.transform.position.z), character.transform.rotation);
+
+
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead ? "Death" : "Hit";
                     if (AudioManager.TryGetReference(soundEffectKey, out EventReference evRef))
