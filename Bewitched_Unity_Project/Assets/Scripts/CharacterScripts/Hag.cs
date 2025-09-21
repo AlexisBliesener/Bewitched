@@ -174,7 +174,7 @@ public class Hag : Character
     /// </summary>
     public void AnimatePossess()
     {
-        elethAnimator.SwitchState(ElethAnimator.AnimationStates.possession);
+        elethAnimator.SwitchState("Possession");
     }
 
     public void Blink()
