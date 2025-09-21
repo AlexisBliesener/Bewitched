@@ -20,6 +20,8 @@ public abstract class Character : MonoBehaviour
     [Header("Movement Settings")]
     [Tooltip("Speed the Character Can Move While Chasing")]
     public float movementSpeed = 5;
+    [Tooltip("Speed the character can move while approaching for an attack")]
+    public float approachSpeed = 7;
     [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
     private float jumpSpeed;
     [Tooltip("Acceleration of the Character")]
@@ -112,6 +114,9 @@ public abstract class Character : MonoBehaviour
     [Tooltip("The coroutine handling attacking actions")]
     protected Coroutine attackStateCoroutine = null;
 
+    [Tooltip("Bool determining if an attack has hit a character")]
+    protected bool hitCharacter = false;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -120,7 +125,6 @@ public abstract class Character : MonoBehaviour
         Approaching, // The run up before the attack begins to close distance
         Windup, // The windup stage of the attack - basic animation
         Attacking, // The attack itself
-        Retreating, // Post attack gain distance and get back to neutral
         Neutral // Neutral state for enemies to be selected to begin attack
     }
 
@@ -211,8 +215,7 @@ public abstract class Character : MonoBehaviour
         health.OnDeath += OnDeath;
 
         SetBaseStats();
-
-        attackStateCoroutine = StartCoroutine(NeutralRoutine());
+        attackState = AttackState.Neutral;
     }
     protected virtual void OnDestroy()
     {
@@ -609,17 +612,11 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Coroutine handling neutral enemy behavior
+    /// Sets the hitcharacter value
     /// </summary>
-    /// <returns> Loops indefinitely until state change </returns>
-    public IEnumerator NeutralRoutine()
+    /// <param name="val"></param>
+    public void SetHitCharacter(bool val)
     {
-        attackState = AttackState.Neutral;
-
-        while (!health.IsDead) // Loop indefinitely until some other function stops this or character dies
-        {
-
-            yield return null;
-        }
+        hitCharacter = val;
     }
 }

@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The main character body (possessor)")]
     public Hag oldHag;
     [Tooltip("The targeting range for a character")]
-    public float targetingRange = 8;
+    public float targetingRange = 10;
 
     [Header("UI Settings")]
 
@@ -318,22 +318,41 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 desired;
 
-        if (direction.magnitude < 0.01f)
+        if (velocity.magnitude < 0.01f)
         {
             desired = currentCharacter.transform.forward.normalized;
         }
         else
         {
-            desired = direction;
-            desired = Camera.main.transform.TransformDirection(desired).normalized;
+            desired = Camera.main.transform.TransformDirection(direction).normalized;
         }
 
-        RaycastHit info;
+        desired.y = 0;
 
-        if (Physics.SphereCast(transform.position, 3f, desired, out info, targetingRange, enemyLayerMask))
+        Collider[] hits = Physics.OverlapSphere(currentCharacter.transform.position, targetingRange, enemyLayerMask);
+
+        Debug.DrawRay(currentCharacter.transform.position, desired * 3, Color.green);
+
+        Enemy bestTarget = null;
+        float bestDot = -1;
+
+        foreach (Collider hit in hits)
         {
-             return info.collider.transform.GetComponent<Enemy>();
+            if (hit.TryGetComponent(out Enemy enemy))
+            {
+                Vector3 toEnemy = (transform.position - enemy.transform.position).normalized;
+                float dot = Vector3.Dot(desired, toEnemy);
+
+                Debug.DrawRay(currentCharacter.transform.position, toEnemy * 3, Color.red);
+
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    bestTarget = enemy;
+                }
+            }
         }
-        return null;
+
+        return bestTarget;
     }
 }

@@ -120,7 +120,9 @@ public abstract class Enemy : Character
         Patrolling, // Before spotting player
         Chasing, // Reaching the player
         Surrounding, // Staying in range of the player
-        Blocked // For attacking, stun, etc. the character does not move or look
+        Retreating, // Post attack, return to safe distance
+        Blocked, // For attacking, stun, etc. the character does not move or look
+        Targeted // For now does nothing to keep enemy in place, in future allows for dodging/countering
     }
 
     [Tooltip("The Current AI State of the enemy")]
@@ -221,7 +223,7 @@ public abstract class Enemy : Character
     public void AILook()
     {
         Quaternion lookRotation;
-        if (aiState == AIMovementState.Surrounding) // If surrounding then look at player
+        if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
             lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
         }
@@ -825,7 +827,22 @@ public abstract class Enemy : Character
         float dist = Random.Range(minSurroundDistance + 1, maxSurroundDistance - 1);
         Vector3 direction = (transform.position - currentPlayer.transform.position).normalized; // Gets direction out from player
         chasePoint = dist * direction;
+    }
 
-        Debug.Log(dist);
+    /// <summary>
+    /// Set enemy to be targeted or have them retreat
+    /// </summary>
+    /// <param name="val"> Val determining the actions to take </param>
+    public void SetTargeted(bool val)
+    {
+        if (val)
+        {
+            aiState = AIMovementState.Targeted;
+        }
+        else
+        {
+            SetChasePoint();
+            aiState = AIMovementState.Retreating;
+        }
     }
 }

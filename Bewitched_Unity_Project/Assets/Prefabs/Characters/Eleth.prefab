@@ -3436,6 +3436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
 --- !u!114 &1515034274812679110
@@ -3451,7 +3452,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Hag
-  movementSpeed: 10
+  movementSpeed: 3.5
+  approachSpeed: 7
   jumpSpeed: 5
   acceleration: 5
   deceleration: 5

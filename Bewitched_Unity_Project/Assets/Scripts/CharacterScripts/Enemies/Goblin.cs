@@ -106,6 +106,7 @@ public class Goblin : Enemy
 
     public override void PrimaryAttack()
     {
+        hitCharacter = false;
         Character target;
         if (playerControlling)
         {
@@ -118,22 +119,54 @@ public class Goblin : Enemy
             aiState = AIMovementState.Blocked;
         }
 
+        if (target)
+        {
+            if (target.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
+
         attackStateCoroutine = StartCoroutine(KnifeApproach(target));
     }
 
+    /// <summary>
+    /// Approach function for stabbing
+    /// </summary>
+    /// <param name="target"> Targeted character </param>
+    /// <returns> Time </returns>
     public IEnumerator KnifeApproach(Character target)
     {
         attackState = AttackState.Approaching;
-        while (Vector3.Distance(target.transform.position, transform.position) > knifeRange)
+
+        if (target)
         {
-            Vector3 desired = (target.transform.position - transform.position).normalized * movementSpeed;
-            velocity = Vector3.Lerp(velocity, desired, acceleration * Time.deltaTime);
+            while (Vector3.Distance(target.transform.position, transform.position) > knifeRange)
+            {
+                Vector3 desired = (target.transform.position - transform.position).normalized * approachSpeed;
+                velocity = Vector3.Lerp(velocity, desired, acceleration * Time.deltaTime);
+                GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+                transform.rotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+                yield return null;
+            }
+        }
+
+        while (velocity.magnitude > 0.01f) // Slow down first
+        {
+            velocity = Vector3.Lerp(velocity, Vector3.zero, deceleration * Time.deltaTime);
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            transform.rotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
             yield return null;
         }
 
         attackStateCoroutine = StartCoroutine(KnifeWindup(target));
     }
 
+    /// <summary>
+    /// Starts the windup for the knife
+    /// </summary>
+    /// <param name="target"> Target character </param>
+    /// <returns> Time </returns>
     public IEnumerator KnifeWindup(Character target)
     {
         attackState = AttackState.Windup;
@@ -145,9 +178,11 @@ public class Goblin : Enemy
     /// <summary>
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
+    /// <param name="target"> The targeted character </param>
     /// <returns> Time breaks </returns>
     public IEnumerator HandleStab(Character target)
     {
+        attackState = AttackState.Attacking;
         if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
         
 
@@ -164,7 +199,7 @@ public class Goblin : Enemy
 
         float timeStarted = Time.time;
 
-        while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
+        while (Time.time - timeStarted < (3 * knifeDuration / 4) && !hitCharacter) // Accelerate forward 3/4 the attack or until we hit character
         {
             if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
             stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
@@ -184,8 +219,20 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (!playerControlling) aiState = AIMovementState.Chasing;
+        if (!playerControlling)
+        {
+            aiState = AIMovementState.Retreating;
+            SetChasePoint();
+        }
         else PlayerController.instance.SetAllowMovement(true);
+
+        if (target)
+        {
+            if (target.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
 
         attackingPrimary = false;
     }
@@ -297,6 +344,10 @@ public class Goblin : Enemy
         {
             Surround();
         }
+        else if (aiState == AIMovementState.Retreating)
+        {
+            Retreat();
+        }
     }
 
     /// <summary>
@@ -318,6 +369,11 @@ public class Goblin : Enemy
             StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPlayer.transform.position + chasePoint));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
+        {
+            pathState = PathState.Searching;
+            StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPlayer.transform.position + chasePoint));
+        }
+        else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
             pathState = PathState.Searching;
             StartCoroutine(GraphBuilder.instance.AStarSearch(this, currentPlayer.transform.position + chasePoint));
@@ -536,6 +592,29 @@ public class Goblin : Enemy
             {
                 points.RemoveSurroundingEnemy(this);
             }
+        }
+    }
+
+    /// <summary>
+    /// Retreat from close distance, get back to surrounding
+    /// </summary>
+    public void Retreat()
+    {
+        lookAtPlayer = false;
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
+        }
+        AILook();
+
+        if (Vector3.Distance(transform.position, currentPlayer.transform.position) > minSurroundDistance) // If within range
+        {
+            aiState = AIMovementState.Surrounding;
         }
     }
 

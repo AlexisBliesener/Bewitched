@@ -84,6 +84,7 @@ public class DefaultHitbox : MonoBehaviour
                 hitbox.AddToHit(character);
             }
         }
+        user.SetHitCharacter(true);
     }
 
     /// <summary>
@@ -177,7 +178,7 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && character.teamID != user.teamID && !hitChars.Contains(character))
+                if (character && !hitChars.Contains(character) && character != user)
                 {
                     character.health.SubHealth(damage);
                     AddStatusEffects(character);
