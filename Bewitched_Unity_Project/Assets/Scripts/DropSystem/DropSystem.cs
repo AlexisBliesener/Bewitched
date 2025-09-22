@@ -22,9 +22,11 @@ public class DropSystem : MonoBehaviour
     [SerializeField] public int dropChance = 50;
     [Tooltip("The amount of health restored to the player when salvaging a drop.")]
     [SerializeField] public float salvageAmount = 10;
-    [Tooltip("The list of the rarities in the game")]
+    [Tooltip("The UI screen for selecting upgrades.")]
     public GameObject upgradeSelectionUI;
-    [Tooltip("The Upgrades Selection UI Screen")]
+    [Tooltip("The UI screen for swapping upgrades when player hits limit of upgrades.")]
+    public GameObject swapUpgradeUI;
+    [Tooltip("The list of the rarities in the game")]
     [SerializeField] public List<ItemRarity> availableRarities = new List<ItemRarity>();
     [Tooltip("The list of the drops in the game")]
     public List<DropData> availableDrops = new List<DropData>();
@@ -185,8 +187,26 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
             return;
         }
-        playerUpgrades.Add(drop);
-        HUDManager.Instance.AddUpgrade(drop);
+
+        // If player already has 5 upgrades, activate the swap screen.
+        if (playerUpgrades.Count == 5)
+        {
+            if (swapUpgradeUI != null)
+            {
+                swapUpgradeUI.SetActive(true);
+                upgradeSelectionUI.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("The swap upgrade UI is null!");
+            }
+        }
+        else
+        {
+            playerUpgrades.Add(drop);
+            HUDManager.Instance.AddUpgrade(drop);
+        }
+
         // for now we will simple just activate the drop
         if (usePitySystem)
         {

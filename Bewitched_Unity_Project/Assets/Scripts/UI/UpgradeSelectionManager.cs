@@ -15,8 +15,11 @@ public class UpgradeSelectionManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Upgrade Selection Screen")]
     public GameObject upgradeSelectionScreen;
+    public GameObject swapUpgradeUI;
 
+    [Tooltip("List of buttons for the upgrade drops")]
     private Button[] upgradeOptionButtons;
+    [Tooltip("Salvage Upgrade Button")]
     private Button salvageButton;
 
     /// <summary>
@@ -56,14 +59,21 @@ public class UpgradeSelectionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Disables Screen
+    /// Disables Screen, unless Swap Upgrade is active.
     /// </summary>
     private void OnDisable()
     {
-        Time.timeScale = 1.0f;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (swapUpgradeUI == null || !swapUpgradeUI.activeSelf)
+        {
+            Time.timeScale = 1.0f;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        
     }
 
+    /// <summary>
+    /// Destroys the subscription so that the UI screen buttons will re-load with the new drops in the next upgrade.
+    /// </summary>
     private void OnDestroy()
     {
         if (DropSystem.Instance != null)
