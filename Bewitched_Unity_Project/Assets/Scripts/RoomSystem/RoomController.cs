@@ -259,6 +259,15 @@ public class RoomController : MonoBehaviour
             door?.Lock();
         }
         doorState = DoorState.Locked;
+
+        if(CameraController.instance != null)
+        {
+            CameraController.instance.SetInCombat(true);
+        }
+        else
+        {
+            Debug.LogWarning("CameraController instance is not set");
+        }
     }
 
     /// <summary>
@@ -272,6 +281,15 @@ public class RoomController : MonoBehaviour
             door?.Unlock();
         }
         doorState = DoorState.Unlocked;
+
+        if (CameraController.instance != null)
+        {
+            CameraController.instance.SetInCombat(false);
+        }
+        else
+        {
+            Debug.LogWarning("CameraController instance is not set");
+        }
     }
 
     /// <summary>
