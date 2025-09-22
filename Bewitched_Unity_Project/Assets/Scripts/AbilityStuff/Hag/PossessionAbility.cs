@@ -211,9 +211,16 @@ public class PossessionAbility : MonoBehaviour
             currentPossessableEnemy.SetControlled(true);
 
             // Possession smoke VFX
-            Instantiate(smokeCloudVFX, new Vector3(currentPossessableEnemy.transform.position.x,
-                currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
-                currentPossessableEnemy.transform.position.z), currentPossessableEnemy.transform.rotation);
+            if(smokeCloudVFX != null)
+            {
+                Instantiate(smokeCloudVFX, new Vector3(currentPossessableEnemy.transform.position.x,
+                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
+                    currentPossessableEnemy.transform.position.z), currentPossessableEnemy.transform.rotation);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke Cloud VFX is not assigned!");
+            }
 
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
@@ -226,7 +233,14 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Possession fire VFX
-        Instantiate(firingVFX, oldHag.transform.position + new Vector3(oldHag.transform.forward.x, 1f, oldHag.transform.forward.z), oldHag.transform.rotation);
+        if(firingVFX != null)
+        {
+            Instantiate(firingVFX, oldHag.transform.position + new Vector3(oldHag.transform.forward.x, 1f, oldHag.transform.forward.z), oldHag.transform.rotation);
+        }
+        else
+        {
+            Debug.LogWarning("Firing Possession VFX is not assigned!");
+        }
     }
     
     /// <summary>
@@ -235,16 +249,23 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void UpdateTargetVFX()
     {
-        if(possessionState == PossessionStates.canPossess)
+        if(targetVFX != null)
         {
-            targetVFX.SetActive(true);
-            targetVFX.transform.position = new Vector3(currentPossessableEnemy.transform.position.x,
-                currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height/2 ,
-                currentPossessableEnemy.transform.position.z); ;
+            if (possessionState == PossessionStates.canPossess)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.position = new Vector3(currentPossessableEnemy.transform.position.x,
+                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
+                    currentPossessableEnemy.transform.position.z); ;
+            }
+            else
+            {
+                targetVFX.SetActive(false);
+            }
         }
         else
         {
-            targetVFX.SetActive(false);
+            Debug.LogWarning("Target Possession VFX not assigned!");
         }
     }
 
@@ -387,9 +408,16 @@ public class PossessionAbility : MonoBehaviour
             AudioManager.TryPlayOneShot("LeaveBody");
 
             // Possession smoke VFX
-            Instantiate(smokeCloudVFX, new Vector3(oldHag.transform.position.x,
-                oldHag.transform.position.y + oldHag.GetComponent<CharacterController>().height / 2,
-                oldHag.transform.position.z), oldHag.transform.rotation);
+            if (smokeCloudVFX != null)
+            {
+                Instantiate(smokeCloudVFX, new Vector3(oldHag.transform.position.x,
+                    oldHag.transform.position.y + oldHag.GetComponent<CharacterController>().height / 2,
+                    oldHag.transform.position.z), oldHag.transform.rotation);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke Cloud VFX is not assigned!");
+            }
         }
         else
         {

@@ -12,7 +12,7 @@ public class DeflectingHitbox : DefaultHitbox
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -58,10 +58,16 @@ public class DeflectingHitbox : DefaultHitbox
                     AddToHit(character);
 
                     // Hit VFX
-                    Instantiate(hitVFX, new Vector3(character.transform.position.x,
-                        character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
-                        character.transform.position.z), character.transform.rotation);
-
+                    if (hitVFX != null)
+                    {
+                        Instantiate(hitVFX, new Vector3(character.transform.position.x,
+                            character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
+                            character.transform.position.z), character.transform.rotation);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("HitVFX is not assigned!");
+                    }
 
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead ? "Death" : "Hit";

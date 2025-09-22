@@ -186,11 +186,18 @@ public class DefaultHitbox : MonoBehaviour
                     character.health.SubHealth(damage);
 
                     // Hit VFX
-                    Instantiate(hitVFX, new Vector3(character.transform.position.x,
-                        character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
-                        character.transform.position.z), character.transform.rotation);
+                    if(hitVFX != null)
+                    {
+                        Instantiate(hitVFX, new Vector3(character.transform.position.x,
+                            character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
+                            character.transform.position.z), character.transform.rotation);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("HitVFX is not assigned!");
+                    }
 
-                    AddStatusEffects(character);
+                        AddStatusEffects(character);
                     AddToHit(character);
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead? "Death" : "Hit";
