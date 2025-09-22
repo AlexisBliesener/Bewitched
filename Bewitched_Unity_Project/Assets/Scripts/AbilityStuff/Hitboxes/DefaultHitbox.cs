@@ -6,10 +6,14 @@ using UnityEngine;
 
 /// <summary>
 /// A class for a hitbox
-/// This hitbox will apply  effects through it on trigger with other characters
+/// This hitbox will apply effects through it on trigger with other characters
 /// </summary>
 public class DefaultHitbox : MonoBehaviour
 {
+    [Header("VFX")]
+    [SerializeField, Tooltip("Hit VFX")]
+    protected GameObject hitVFX;
+
     [Tooltip("The Character using this Hitbox")]
     protected Character user;
 
@@ -180,7 +184,20 @@ public class DefaultHitbox : MonoBehaviour
                 if (character && character.teamID != user.teamID && !hitChars.Contains(character))
                 {
                     character.health.SubHealth(damage);
-                    AddStatusEffects(character);
+
+                    // Hit VFX
+                    if(hitVFX != null)
+                    {
+                        Instantiate(hitVFX, new Vector3(character.transform.position.x,
+                            character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
+                            character.transform.position.z), character.transform.rotation);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("HitVFX is not assigned!");
+                    }
+
+                        AddStatusEffects(character);
                     AddToHit(character);
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead? "Death" : "Hit";
@@ -214,11 +231,10 @@ public class DefaultHitbox : MonoBehaviour
     /// Adds status effects to the character
     /// </summary>
     /// <param name="character"> Character to add status effects to </param>
-    private void AddStatusEffects(Character character)
+    protected void AddStatusEffects(Character character)
     {
         if (character && user) // Both the applied character and user are still alive
         {
-            Debug.Log(this);
             statusEffects.ApplyStatusEffects(user, character, this);
         }
     }
@@ -236,7 +252,6 @@ public class DefaultHitbox : MonoBehaviour
 
     public void OnDestroy()
     {
-        Debug.Log("Destroying");
         foreach (DefaultHitbox child in children)
         {
             Destroy(child.gameObject);
@@ -263,6 +278,15 @@ public class DefaultHitbox : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Gets the user
+    /// </summary>
+    /// <returns> User of this hitbox </returns>
+    public Character GetUser()
+    {
+        return user;
     }
 }
 

@@ -178,6 +178,7 @@ public class PlayerController : MonoBehaviour
                 velocity = new Vector3(0, 0, 0);
                 characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
+            currentCharacter.SetVelocity(velocity);
         }
     }
 
@@ -221,9 +222,21 @@ public class PlayerController : MonoBehaviour
     {
         if(characterController.isGrounded && context.started)
         {
-            jumpSpeed = currentCharacter.GetJumpSpeed();
-            yVelocity = jumpSpeed;
+            currentCharacter.Jump();
+            StartCoroutine(JumpCoroutine());
         }
+    }
+
+    /// <summary>
+    /// Starts the jump
+    /// Waits for jump delay for animation purposes then starts movement 
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator JumpCoroutine()
+    {
+        yield return new WaitForSeconds(currentCharacter.GetJumpDelay());
+        jumpSpeed = currentCharacter.GetJumpSpeed();
+        yVelocity = jumpSpeed;
     }
 
     public void PauseGame(InputAction.CallbackContext context)

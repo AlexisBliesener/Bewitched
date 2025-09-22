@@ -49,6 +49,11 @@ public class LevelManager : MonoBehaviour
     {
         // No stages available
         if (levelData.stages.Count == 0) return;
+        // This means the level has been loaded from the main menu as the stage should be reset to -1 
+        if (currentStageIndex == -1)
+        {
+            ResetLevel();
+        }
         // Move to the next stage 
         currentStageIndex++;
         // All stages completed
@@ -78,6 +83,18 @@ public class LevelManager : MonoBehaviour
         if (!string.IsNullOrEmpty(levelName))
             LoadScene(levelName);
     
+    }
+    /// <summary>
+    /// Reset managers to initial state
+    /// This is called when the level is loaded from the main menu
+    /// </summary>
+    private void ResetLevel()
+    {
+        // Reset soul system
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetSouls();
+        }
     }
     /// <summary>
     /// Loads a scene by name. Omade it virtual to allow overriding in tests

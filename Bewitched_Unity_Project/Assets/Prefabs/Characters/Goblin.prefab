@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 1348470291095463243}
   - component: {fileID: 1604847013949478277}
   - component: {fileID: 7573160092936169644}
-  - component: {fileID: 353843413732292894}
+  - component: {fileID: 4388634277021614962}
   m_Layer: 7
   m_Name: Goblin
   m_TagString: Enemy
@@ -82,7 +82,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Goblin
   movementSpeed: 7
-  jumpSpeed: 0
+  jumpSpeed: 8
+  jumpDelay: 0.3
   acceleration: 6
   deceleration: 14
   weight: 2
@@ -109,8 +110,7 @@ MonoBehaviour:
   attackEffects: []
   effectJSONs: []
   agent: {fileID: 5347660582151986861}
-  minStopDistance: 1
-  minSlowDistance: 3
+  minStopDistance: 0.5
   pathfindingPriority: 3
   seenBuffer: 0.5
   ground:
@@ -126,6 +126,7 @@ MonoBehaviour:
   timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
+  lowHealthThresholdPercentage: 30
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 1348470291095463243}
@@ -135,6 +136,9 @@ MonoBehaviour:
   knifeDamage: 20
   knifeDuration: 0.25
   knifeStabSpeed: 20
+  knifeMagnetismRange: 2
+  knifeMagnetismAngle: 20
+  knifeMagnetismTime: 0.1
   knifeEffects: {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashSpeed: 30
@@ -142,13 +146,16 @@ MonoBehaviour:
   dashDamage: 30
   dashEffects: {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
   offSetForward: 0.5
-  spinHitbox: {fileID: 0}
+  spinHitbox: {fileID: 2590818123613103327, guid: d403e190d57802d43b0d58d1bafbf7e5, type: 3}
   spinDamage: 30
-  spinDuration: 5
-  spinSpeed: 15
-  spinRotationalSpeed: 120
+  spinDuration: 2
+  spinSpeed: 25
+  spinRotationalSpeed: 2400
   standardAccelerationPeriod: 0.5
   lowHealthAccelerationPeriod: 0.25
+  lowHealthAngleRange: 80
+  maxDriftSpeed: 4
+  spinEffects: {fileID: 672220797181763766, guid: 4e3d6de762ba70147bc88da840bc4e9a, type: 3}
   minPatrolDistance: 3
   maxPatrolDistance: 5
   communicationRange: 30
@@ -324,9 +331,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
---- !u!114 &353843413732292894
+--- !u!114 &4388634277021614962
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -335,13 +343,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2305004250363809269}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
+  m_Script: {fileID: 11500000, guid: 40bad13273738a34ebe0057d9dd6f207, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryAnimationDelay: 0.5
+  primaryAnimationDelay: 0.6
   secondaryAnimationDelay: 0.5
-  primaryAttackLength: 1
-  secondaryAttackLength: 1
+  primaryAttackLength: 0.5
+  secondaryAttackLength: 2.5
   animator: {fileID: 1222534179925912091}
   characterController: {fileID: 3852248043185768998}
 --- !u!1001 &7703581107334453669
