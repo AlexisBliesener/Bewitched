@@ -222,9 +222,21 @@ public class PlayerController : MonoBehaviour
     {
         if(characterController.isGrounded && context.started)
         {
-            jumpSpeed = currentCharacter.GetJumpSpeed();
-            yVelocity = jumpSpeed;
+            currentCharacter.Jump();
+            StartCoroutine(JumpCoroutine());
         }
+    }
+
+    /// <summary>
+    /// Starts the jump
+    /// Waits for jump delay for animation purposes then starts movement 
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator JumpCoroutine()
+    {
+        yield return new WaitForSeconds(currentCharacter.GetJumpDelay());
+        jumpSpeed = currentCharacter.GetJumpSpeed();
+        yVelocity = jumpSpeed;
     }
 
     public void PauseGame(InputAction.CallbackContext context)

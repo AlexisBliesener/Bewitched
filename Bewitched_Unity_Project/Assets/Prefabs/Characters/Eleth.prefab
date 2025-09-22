@@ -3436,6 +3436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
 --- !u!114 &1515034274812679110
@@ -3453,6 +3454,7 @@ MonoBehaviour:
   characterName: Hag
   movementSpeed: 10
   jumpSpeed: 5
+  jumpDelay: 0
   acceleration: 5
   deceleration: 5
   weight: 10
@@ -3486,6 +3488,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   knockBackCone: {fileID: 5113937800638118768}
+  objectsToDisable: []
 --- !u!143 &3937552589655486426
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3505,13 +3508,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
+  m_Height: 3
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &3001831873393093468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4152,19 +4155,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.99513334
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.09853773
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.00000007208629
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.00000010877685
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

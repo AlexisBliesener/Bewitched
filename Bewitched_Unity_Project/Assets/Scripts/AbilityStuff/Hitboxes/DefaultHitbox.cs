@@ -10,6 +10,10 @@ using UnityEngine;
 /// </summary>
 public class DefaultHitbox : MonoBehaviour
 {
+    [Header("VFX")]
+    [SerializeField, Tooltip("Hit VFX")]
+    protected GameObject hitVFX;
+
     [Tooltip("The Character using this Hitbox")]
     protected Character user;
 
@@ -180,7 +184,20 @@ public class DefaultHitbox : MonoBehaviour
                 if (character && character.teamID != user.teamID && !hitChars.Contains(character))
                 {
                     character.health.SubHealth(damage);
-                    AddStatusEffects(character);
+
+                    // Hit VFX
+                    if(hitVFX != null)
+                    {
+                        Instantiate(hitVFX, new Vector3(character.transform.position.x,
+                            character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
+                            character.transform.position.z), character.transform.rotation);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("HitVFX is not assigned!");
+                    }
+
+                        AddStatusEffects(character);
                     AddToHit(character);
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead? "Death" : "Hit";
