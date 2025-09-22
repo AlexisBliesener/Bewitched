@@ -126,6 +126,29 @@ public class Goblin : Enemy
         HandleHitStun();
     }
 
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null)
+        {
+            if (Time.time - timeLastPrimary >= primaryComboResetTime)
+            {
+                currentPrimaryComboStep = 0;
+            }
+
+            if (currentPrimaryComboStep >= primaryComboSteps)
+            {
+                currentPrimaryComboStep = 0;
+            }
+
+            currentPrimaryComboStep += 1;
+
+            characterAnimator.SwitchState("PrimaryAttack");
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
+
+            PrimaryAttack();
+        }
+    }
+
     public override void PrimaryAttack()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
@@ -159,12 +182,23 @@ public class Goblin : Enemy
 
         float timeStarted = Time.time;
 
+        //Sound Effect
+        if (AudioManager.TryGetReference("GoblinPrimary", out EventReference evRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            if (currentPrimaryComboStep == 3) ev.setParameterByNameWithLabel("FinalHit", "True");
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
+        }
+
         while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
         {
             if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
-            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
+            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3 * knifeDuration / 4));
             GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
-            yield return null; 
+            yield return null;
         }
 
         while (stabVelocity.magnitude > 0) // Decelerate to zero within remaining duration time
@@ -278,7 +312,7 @@ public class Goblin : Enemy
             transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
 
             prevTargetVelocity = velocityToMove;
-            
+
             yield return null;
         }
 
@@ -386,7 +420,7 @@ public class Goblin : Enemy
                 pathState = PathState.Searching;
                 SetPatrollingPoint();
             }
-            
+
         }
         else if (aiState == GoblinAIState.Chasing)
         {
@@ -537,7 +571,7 @@ public class Goblin : Enemy
         }
 
         inProcess = true;
-       // AnimateIdle(); // Play animation (temporarily idle)
+        // AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
         while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
@@ -831,5 +865,16 @@ public class Goblin : Enemy
         velocityToMove = direction.normalized;
         velocityToMove.y = 0;
         velocityToMove = velocityToMove.normalized;
+    }
+
+    public override void Die()
+    {
+        //Stopping any playing sound effects on death.
+        if (secondaryAudio.isValid())
+        {
+            secondaryAudio.getPlaybackState(out var state);
+            if (state == PLAYBACK_STATE.PLAYING) secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        base.Die();
     }
 }

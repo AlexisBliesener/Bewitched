@@ -93,7 +93,7 @@ public abstract class Character : MonoBehaviour
     protected Vector3 velocity = Vector3.zero;
     protected Vector3 velocityToMove = Vector3.zero;
 
-    private int currentPrimaryComboStep = 0;
+    protected int currentPrimaryComboStep = 0;
 
     [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
     private CinemachineFreeLook freeLookCam;
