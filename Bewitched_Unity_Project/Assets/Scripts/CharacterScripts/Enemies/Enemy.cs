@@ -69,7 +69,7 @@ public abstract class Enemy : Character
     protected bool playerInSightRange, currentInSightRange, targetInSightRange = false;
     protected bool targetInPrimaryRange = false;
 
-    protected bool playerControlling = false; // flag for determining actions (player or AI)
+    [SerializeField,NaughtyAttributes.ReadOnly]protected bool playerControlling = false; // flag for determining actions (player or AI)
 
     protected Vector3 walkPoint;
 

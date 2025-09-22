@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -94,6 +96,9 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
+    //The sound effect for the spin attack
+    EventInstance secondaryAudio;
+
     private void Start()
     {
         SetPlayerInfo();
@@ -180,6 +185,27 @@ public class Goblin : Enemy
         attackingPrimary = false;
     }
 
+    public override IEnumerator BeginSecondary()
+    {
+        characterAnimator.SwitchState("SecondaryAttack");
+        //audio
+        if (AudioManager.TryGetReference("GoblinSecondary", out EventReference evRef))
+        {
+            secondaryAudio = RuntimeManager.CreateInstance(evRef);
+            secondaryAudio.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            RuntimeManager.AttachInstanceToGameObject(secondaryAudio, gameObject);
+            secondaryAudio.start();
+            secondaryAudio.release();
+        }
+
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
+        if (gameObject)
+        {
+            SecondaryAttack();
+
+        }
+    }
+
     public override void SecondaryAttack()
     {
         attackingSecondary = true;
@@ -194,7 +220,12 @@ public class Goblin : Enemy
     public IEnumerator HandleSpin()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-        else yield return new WaitForSeconds(attackDelayAI);
+        else
+        {
+            //start secondary sound effect (for AI)
+            AudioManager.TryPlayInstance("GoblinSecondary", out secondaryAudio, true, gameObject);
+            yield return new WaitForSeconds(attackDelayAI);
+        }
 
         float timeStarted = Time.time;
         float rotationalSpeed = 0;
@@ -247,7 +278,7 @@ public class Goblin : Enemy
             transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
 
             prevTargetVelocity = velocityToMove;
-
+            
             yield return null;
         }
 
@@ -260,6 +291,9 @@ public class Goblin : Enemy
             transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
             yield return null;
         }
+
+        //stop the secondary sound effect
+        if (secondaryAudio.isValid()) secondaryAudio.setParameterByNameWithLabel("End", "True");
 
         attackingSecondary = false;
 

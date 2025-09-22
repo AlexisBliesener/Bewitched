@@ -101,7 +101,7 @@ public abstract class Character : MonoBehaviour
     private CinemachineVirtualCamera virtualCam;
 
     [Tooltip("The script that controls chaning animation states")]
-    private CharacterAnimator characterAnimator;
+    protected CharacterAnimator characterAnimator;
 
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
     [SerializeField] private List<string> effectJSONs = new List<string>();
