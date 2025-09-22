@@ -259,6 +259,8 @@ public class RoomController : MonoBehaviour
             door?.Lock();
         }
         doorState = DoorState.Locked;
+
+        CameraController.instance.SetInCombat(true);
     }
 
     /// <summary>
@@ -272,6 +274,8 @@ public class RoomController : MonoBehaviour
             door?.Unlock();
         }
         doorState = DoorState.Unlocked;
+
+        CameraController.instance.SetInCombat(false);
     }
 
     /// <summary>
