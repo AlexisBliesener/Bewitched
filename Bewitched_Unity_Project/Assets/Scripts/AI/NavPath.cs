@@ -93,7 +93,7 @@ public class NavPath
         positions = new List<Node>();
         corners = new List<Node>();
 
-        Tuple<int, int> prevDirection = new Tuple<int,int>(0, 0);
+        Tuple<int, int, int> prevDirection = new Tuple<int,int, int>(0, 0, 0);
 
         if (destination == origin)
         {
@@ -115,9 +115,9 @@ public class NavPath
 
             totalCost += jumpVertex.GetDistance() + next.GetCost();
 
-            Tuple<int, int> jumpDirection = GetDirection(currentNode.GetNodeValues(), next.GetNodeValues());
+            Tuple<int, int, int> jumpDirection = GetDirection(currentNode.GetNodeValues(), next.GetNodeValues());
 
-            if (jumpDirection.Item1 != prevDirection.Item1 || jumpDirection.Item2 != prevDirection.Item2)
+            if (jumpDirection.Item1 != prevDirection.Item1 || jumpDirection.Item2 != prevDirection.Item2 || jumpDirection.Item3 != prevDirection.Item3 || jumpVertex.IsVertical())
             {
                 corners.Add(currentNode);
             }
@@ -132,16 +132,17 @@ public class NavPath
     }
 
     /// <summary>
-    /// Gets the direction traversed between two nodes
+    /// Gets the direction traversed between two nodes and that including vertical movement
     /// </summary>
     /// <param name="first"> First node in path </param>
     /// <param name="second"> Second node in path </param>
     /// <returns> Tuple representing the direction travelled </returns>
-    private Tuple<int,int> GetDirection(Tuple<int,int> first, Tuple<int,int> second)
+    private Tuple<int,int, int> GetDirection(Tuple<int,int, int> first, Tuple<int,int, int> second)
     {
         int x = second.Item1 - first.Item1;
         int z = second.Item2 - first.Item2;
-        return new Tuple<int, int>(x, z);
+        int y = second.Item3 - first.Item3;
+        return new Tuple<int, int, int>(x, z, y);
     }
 
     /// <summary>
@@ -173,9 +174,9 @@ public class NavPath
     /// Gets the position of the destination node
     /// </summary>
     /// <returns> Destination position </returns>
-    public Vector3 GetDestinationPosition(GameObject obj)
+    public Vector3 GetDestinationPosition(GameObject obj = null)
     {
-        return destination.GetPosition(obj);
+        return destination.GetPosition(); // now it will use real y (floor height)
     }
 
     /// <summary>
@@ -185,10 +186,19 @@ public class NavPath
     /// <returns> True if they reached their destination </returns>
     public bool ReachedDestination(Enemy enemy)
     {
-        if (Vector3.Distance(enemy.transform.position, destination.GetPosition(enemy.gameObject)) <= enemy.minStopDistance)
+
+        // if (Vector3.Distance(enemy.transform.position, destination.GetPosition(enemy.gameObject)) <= enemy.minStopDistance)
+        // {
+        //     return true;
+        // }
+        // return false;
+
+        // we will check first the horizontal distance then the vertical distance
+        float horizontalDistance = Vector2.Distance(new Vector2(enemy.transform.position.x, enemy.transform.position.z), new Vector2(destination.GetPosition().x, destination.GetPosition().z));
+        if (horizontalDistance <= enemy.minStopDistance && Mathf.Abs(enemy.transform.position.y - destination.GetPosition().y) <= 2f)
         {
             return true;
-        }
+        }   
         return false;
     }
 
