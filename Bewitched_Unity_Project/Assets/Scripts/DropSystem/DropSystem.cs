@@ -188,8 +188,10 @@ public class DropSystem : MonoBehaviour
             return;
         }
 
+        bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
+
         // If player already has 5 upgrades, activate the swap screen.
-        if (playerUpgrades.Count == 5)
+        if (isNewUnique && HUDManager.Instance.uniqueUpgradesCount == 5)
         {
             if (swapUpgradeUI != null)
             {
@@ -201,11 +203,9 @@ public class DropSystem : MonoBehaviour
                 Debug.LogWarning("The swap upgrade UI is null!");
             }
         }
-        else
-        {
-            playerUpgrades.Add(drop);
-            HUDManager.Instance.AddUpgrade(drop);
-        }
+        playerUpgrades.Add(drop);
+        HUDManager.Instance.AddUpgrade(drop);
+        
 
         // for now we will simple just activate the drop
         if (usePitySystem)
