@@ -13,27 +13,42 @@ using UnityEngine.UI;
 /// </summary>
 public class CameraController : MonoBehaviour
 {
+    public static CameraController instance;
+
     [SerializeField, Tooltip("Duration in seconds to prevent camera switching during transitions.")]
     private const float TRANSITION_TIME = 2;
 
-    [SerializeField, Tooltip("The free-look Cinemachine camera used for general third-person movement.")]
-    private CinemachineFreeLook freeLookCam;
+    [SerializeField, Tooltip("The free-look Cinemachine camera used for combat view.")]
+    private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine virtual camera used for aiming (shoulder view).")]
-    private CinemachineVirtualCamera virtualCam;
+    private CinemachineVirtualCamera aimCam;
+    [SerializeField, Tooltip("The Cinemachine virtual camera used for exploration view")]
+    private CinemachineFreeLook explorationCam;
     [SerializeField, Tooltip("The currently controlled character whose perspective the camera follows.")]
     private Character currentCharacter;
     [SerializeField, Tooltip("Crosshair image displayed on screen while aiming.")]
     private Image crossHair;
-
 
     [Tooltip("The FMOD studio listener attached to the camera for 3D audio spatialization.")]
     private StudioListener listener;
     [Tooltip("Whether the player is currently aiming.")]
     private static bool aiming = false;
     [Tooltip("Reference to the AimCam component that manages aim-related camera logic.")]
-    private AimCam aimCam;
+    private AimCam aimCamScript;
     [Tooltip("Flag to prevent camera priority switching during character transitions.")]
     private bool transitioning = false;
+    [Tooltip("True if the player is locked in a room")]
+    private bool inCombat = false;
+
+    /// <summary>
+    /// Sets whether the player is in combat or not.
+    /// </summary>
+    /// <param name="val">Whether the player is in combat or not.</param>
+    public void SetInCombat(bool val)
+    {
+        inCombat = val;
+        UpdateCam();
+    }
 
     /// <summary>
     /// Returns whether the player is currently aiming.
@@ -48,11 +63,19 @@ public class CameraController : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        instance = this;
         aiming = false;
-        aimCam = virtualCam.GetComponent<AimCam>();
-        freeLookCam.Priority = 2;
-        virtualCam.Priority = 1;
-        aimCam.SetYaw(freeLookCam.m_XAxis.Value);
+        aimCamScript = aimCam.GetComponent<AimCam>();
+        combatCam.Priority = 2;
+        aimCam.Priority = 1;
+        if (inCombat)
+        {
+            aimCamScript.SetYaw(combatCam.m_XAxis.Value);
+        }
+        else
+        {
+            aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
+        }
 
         // FMOD set up
         if (!listener) listener = GetComponent<StudioListener>();
@@ -67,15 +90,37 @@ public class CameraController : MonoBehaviour
     {
         if (transitioning) return;
 
-        if (aiming)
+        if(inCombat)
         {
-            freeLookCam.Priority = 1;
-            virtualCam.Priority = 2;
+            if (aiming)
+            {
+                currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
+                aimCam.Priority = 2;
+                combatCam.Priority = 1;
+                explorationCam.Priority = 0;
+            }
+            else
+            {
+                combatCam.Priority = 2;
+                aimCam.Priority = 1;
+                explorationCam.Priority = 0;
+            }
         }
         else
         {
-            freeLookCam.Priority = 2;
-            virtualCam.Priority = 1;
+            if (aiming)
+            {
+                currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
+                aimCam.Priority = 2;
+                explorationCam.Priority = 1;
+                combatCam.Priority = 0;
+            }
+            else
+            {
+                explorationCam.Priority = 2;
+                aimCam.Priority = 1;
+                combatCam.Priority = 0;
+            }
         }
     }
 
@@ -86,7 +131,10 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        aimCam.Look(context);
+        if(aiming)
+        {
+            aimCamScript.Look(context);
+        }
     }
 
     /// <summary>
@@ -97,28 +145,26 @@ public class CameraController : MonoBehaviour
     {
         if (context.started)
         {
-            aimCam.SetYaw(freeLookCam.m_XAxis.Value);
+            PossessionAbility.instance.SetStartedHoldTime(Time.time);
+            if (inCombat)
+            {
+                aimCamScript.SetYaw(combatCam.m_XAxis.Value);
+            }
+            else
+            {
+                aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
+            }
+
             crossHair.gameObject.SetActive(true);
             aiming = true;
         }
         else if (context.canceled)
         {
+            PossessionAbility.instance.SetStartedHoldTime(-1);
             crossHair.gameObject.SetActive(false);
             aiming = false;
         }
         UpdateCam();
-    }
-
-    /// <summary>
-    /// Keeps the free-look camera aligned with the current character while aiming.
-    /// </summary>
-    private void Update()
-    {
-        if (aiming)
-        {
-            freeLookCam.transform.rotation = currentCharacter.gameObject.transform.rotation;
-            freeLookCam.transform.position = currentCharacter.gameObject.transform.position;
-        }
     }
 
     /// <summary>
@@ -147,26 +193,27 @@ public class CameraController : MonoBehaviour
         transitioning = true;
         StartCoroutine(WaitTransitionTime());
 
-        virtualCam.Priority = 0;
-        freeLookCam.Priority = 0;
+        aimCam.Priority = 0;
+        combatCam.Priority = 0;
 
         currentCharacter = character;
         if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
 
-        virtualCam = character.GetVirtualCam();
-        freeLookCam = character.GetFreeLookCam();
+        aimCam = character.GetAimCam();
+        combatCam = character.GetCombatCam();
+        explorationCam = character.GetExploreCam();
 
         try
         {
-            aimCam = virtualCam.GetComponent<AimCam>();
+            aimCamScript = aimCam.GetComponent<AimCam>();
         }
         catch
         {
             Debug.LogWarning("No aim cam component found!");
         }
 
-        freeLookCam.Priority = 2;
-        virtualCam.Priority = 1;
+        combatCam.Priority = 2;
+        aimCam.Priority = 1;
 
         UpdateCam();
     }

@@ -33,6 +33,11 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("How many nodes can be searched before the next frame is played")]
     [SerializeField] int nodesSearchedPerFrame = 60;
+    [SerializeField, Tooltip("Maximum height to scan for floors")]
+    private float maxFloorHeight = 50f;
+
+    [SerializeField,Tooltip("Minimum height difference between floors")]
+    private float minFloorSeparation = 2f;
 
     [Tooltip("Mesh Filter")]
     [SerializeField] MeshFilter meshFilter;
@@ -50,13 +55,13 @@ public class GraphBuilder : MonoBehaviour
     [SerializeField] LayerMask wallLayer;
 
     [Tooltip("Dual dictionary holding coordinate values")]
-    [SerializeField] SerializableDictionary<int, SerializableDictionary<int, Node>> nodeDictionary = new SerializableDictionary<int, SerializableDictionary<int, Node>>();
+    [SerializeField] SerializableDictionary<int, SerializableDictionary<int, SerializableDictionary<int, Node>>> nodeDictionary = new SerializableDictionary<int, SerializableDictionary<int, SerializableDictionary<int, Node>>>();
 
     [Tooltip("Singleton")]
     public static GraphBuilder instance { get; private set; }
 
     [Tooltip("Dictionary of positions to vertex indexes")]
-    SerializableDictionary<Tuple<int, int>, int> vertexPositions = new SerializableDictionary<Tuple<int, int>, int>();
+    SerializableDictionary<Tuple<int, int, int>, int> vertexPositions = new SerializableDictionary<Tuple<int, int, int>, int>();
 
     [Tooltip("Priority queue of all enemies in scene by their pathfinding priority")]
     PriorityQueue<Enemy> enemyQueue;
@@ -118,7 +123,7 @@ public class GraphBuilder : MonoBehaviour
             graphMesh = new Mesh();
         }
 
-        vertexPositions = new SerializableDictionary<Tuple<int, int>, int>();
+        vertexPositions = new SerializableDictionary<Tuple<int, int, int>, int>();
         string path = "Assets/Prefabs/Meshes/" + graphName + ".asset";
 
 #if UNITY_EDITOR
@@ -148,20 +153,29 @@ public class GraphBuilder : MonoBehaviour
         int validNodes = 0;
         for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x+=pointDistance)
         {
-            SerializableDictionary<int, Node> zPositions = new SerializableDictionary<int, Node>();
+            SerializableDictionary<int, SerializableDictionary<int, Node>> zPositions = new SerializableDictionary<int, SerializableDictionary<int, Node>>();
             nodeDictionary[x] = zPositions;
 
-            for (int z = (int)(-buildLength * 5); z < (int)(buildLength * 5); z+=pointDistance)
+            for (int z = (int)(-buildLength * 5); z < (int)(buildLength * 5); z += pointDistance)
             {
-                Node newNode = Node.Create(x, z, pointDistance, floorLayer, wallLayer);
-                if (newNode != null)
+                SerializableDictionary<int, Node> yPositions = new SerializableDictionary<int, Node>();
+                zPositions[z] = yPositions;
+                List<Node> floorsAtPosition = Node.Create(x, z, pointDistance, floorLayer, wallLayer, maxFloorHeight, minFloorSeparation);
+                foreach (Node newNode in floorsAtPosition)
                 {
-                    zPositions[z] = newNode;
-                    FillVertices(x, z);
+                    int yPos = (int)(newNode.GetPosition().y * 10);
+                    yPositions[yPos] = newNode;
+                    FillVertices(x, z, yPos);
                     vertices.Add(newNode.GetPosition());
-                    vertexPositions[new Tuple<int, int>(x, z)] = validNodes;
+                    vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
                     validNodes++;
                 }
+                // Check if this floor is far enough from existing floors
+                if (yPositions.Count == 0)
+                {
+                    zPositions.Remove(z);
+                }
+                
             }
 
             if (zPositions.Count == 0)
@@ -191,43 +205,62 @@ public class GraphBuilder : MonoBehaviour
     /// </summary>
     /// <param name="x"> X position in dictionary </param>
     /// <param name="z"> Z position in dictionary </param>
-    public void FillVertices(int x, int z)
+    /// <param name="y"> Y position in dictionary </param>
+    public void FillVertices(int x, int z, int y)
     {
-        Node originNode = nodeDictionary[x][z];
+        Node originNode = nodeDictionary[x][z][y];
 
 
         // Try node with z-1
-        if (nodeDictionary[x].ContainsKey(z-pointDistance))
+        if (nodeDictionary[x].ContainsKey(z - pointDistance) && nodeDictionary[x][z - pointDistance].ContainsKey(y))
         {
-            Vertex vertex = new Vertex(originNode, nodeDictionary[x][z - pointDistance], false);
+            Vertex vertex = new Vertex(originNode, nodeDictionary[x][z - pointDistance][y], false);
             originNode.AssignVertex(vertex);
-            nodeDictionary[x][z - pointDistance].AssignVertex(vertex);
+            nodeDictionary[x][z - pointDistance][y].AssignVertex(vertex);
         }
 
-        if (nodeDictionary.ContainsKey(x- pointDistance))
+        if (nodeDictionary.ContainsKey(x - pointDistance))
         {
             // Try node with z-1 and x-1
-            if (nodeDictionary[x- pointDistance].ContainsKey(z - pointDistance))
+            if (nodeDictionary[x - pointDistance].ContainsKey(z - pointDistance) && nodeDictionary[x - pointDistance][z - pointDistance].ContainsKey(y))
             {
-                Vertex vertex = new Vertex(originNode, nodeDictionary[x- pointDistance][z - pointDistance], true);
+                Vertex vertex = new Vertex(originNode, nodeDictionary[x - pointDistance][z - pointDistance][y], true);
                 originNode.AssignVertex(vertex);
-                nodeDictionary[x- pointDistance][z - pointDistance].AssignVertex(vertex);
+                nodeDictionary[x - pointDistance][z - pointDistance][y].AssignVertex(vertex);
             }
 
             // Try node with x-1
-            if (nodeDictionary[x- pointDistance].ContainsKey(z))
+            if (nodeDictionary[x - pointDistance].ContainsKey(z) && nodeDictionary[x - pointDistance][z].ContainsKey(y))
             {
-                Vertex vertex = new Vertex(originNode, nodeDictionary[x- pointDistance][z], false);
+                Vertex vertex = new Vertex(originNode, nodeDictionary[x - pointDistance][z][y], false);
                 originNode.AssignVertex(vertex);
-                nodeDictionary[x- pointDistance][z].AssignVertex(vertex);
+                nodeDictionary[x - pointDistance][z][y].AssignVertex(vertex);
             }
 
             // Try node with x-1 and z+1
-            if (nodeDictionary[x- pointDistance].ContainsKey(z + pointDistance))
+            if (nodeDictionary[x - pointDistance].ContainsKey(z + pointDistance) && nodeDictionary[x - pointDistance][z + pointDistance].ContainsKey(y))
             {
-                Vertex vertex = new Vertex(originNode, nodeDictionary[x- pointDistance][z + pointDistance], true);
+                Vertex vertex = new Vertex(originNode, nodeDictionary[x - pointDistance][z + pointDistance][y], true);
                 originNode.AssignVertex(vertex);
-                nodeDictionary[x- pointDistance][z + pointDistance].AssignVertex(vertex);
+                nodeDictionary[x - pointDistance][z + pointDistance][y].AssignVertex(vertex);
+            }
+        }
+        
+        // Vertical connections (between floors at same X,Z)
+        foreach (int otherY in nodeDictionary[x][z].Keys)
+        {
+            if (otherY != y)
+            {
+                float heightDifference = Mathf.Abs((otherY - y) / 10f);
+                
+                // Only connect floors that are close vertically (within minFloorSeparation)
+                if (heightDifference >= minFloorSeparation && heightDifference <= minFloorSeparation * 3f)
+                {
+                    Node otherFloorNode = nodeDictionary[x][z][otherY];
+                    Vertex verticalVertex = new Vertex(originNode, otherFloorNode, false, true); // true for vertical
+                    originNode.AssignVertex(verticalVertex);
+                    otherFloorNode.AssignVertex(verticalVertex);
+                }
             }
         }
     }
@@ -243,22 +276,25 @@ public class GraphBuilder : MonoBehaviour
         {
             foreach (int z in nodeDictionary[x].Keys)
             {
-                if (nodeDictionary.ContainsKey(x + pointDistance) && nodeDictionary[x+pointDistance].ContainsKey(z) && nodeDictionary[x].ContainsKey(z+pointDistance) && nodeDictionary[x+pointDistance].ContainsKey(z+pointDistance)) // If quad exists
+                foreach (int y in nodeDictionary[x][z].Keys)
                 {
-                    int TLIndex = GetVertexIndex(new Tuple<int, int>(x, z));
-                    int BLIndex = GetVertexIndex(new Tuple<int, int>(x + pointDistance, z));
-                    int TRIndex = GetVertexIndex(new Tuple<int, int>(x, z + pointDistance));
-                    int BRIndex = GetVertexIndex(new Tuple<int, int>(x + pointDistance, z + pointDistance));
-
-                    if (TLIndex != -1 && BLIndex != -1 && TRIndex != -1 && BRIndex != -1)
+                    if (nodeDictionary.ContainsKey(x + pointDistance) && nodeDictionary[x + pointDistance].ContainsKey(z) && nodeDictionary[x].ContainsKey(z + pointDistance) && nodeDictionary[x + pointDistance].ContainsKey(z + pointDistance) && nodeDictionary[x + pointDistance][z].ContainsKey(y) && nodeDictionary[x][z + pointDistance].ContainsKey(y) && nodeDictionary[x + pointDistance][z + pointDistance].ContainsKey(y)) // If quad exists
                     {
-                        triangles.Add(TLIndex);
-                        triangles.Add(BLIndex);
-                        triangles.Add(TRIndex);
+                        int TLIndex = GetVertexIndex(new Tuple<int, int, int>(x, z, y));
+                        int BLIndex = GetVertexIndex(new Tuple<int, int, int>(x + pointDistance, z, y));
+                        int TRIndex = GetVertexIndex(new Tuple<int, int, int>(x, z + pointDistance, y));
+                        int BRIndex = GetVertexIndex(new Tuple<int, int, int>(x + pointDistance, z + pointDistance, y));
 
-                        triangles.Add(TRIndex);
-                        triangles.Add(BLIndex);
-                        triangles.Add(BRIndex);
+                        if (TLIndex != -1 && BLIndex != -1 && TRIndex != -1 && BRIndex != -1)
+                        {
+                            triangles.Add(TLIndex);
+                            triangles.Add(BLIndex);
+                            triangles.Add(TRIndex);
+
+                            triangles.Add(TRIndex);
+                            triangles.Add(BLIndex);
+                            triangles.Add(BRIndex);
+                        }
                     }
                 }
             }
@@ -275,7 +311,7 @@ public class GraphBuilder : MonoBehaviour
     /// </summary>
     /// <param name="posVals"> Tuple of position values </param>
     /// <returns> Index if it exists, -1 otherwise </returns>
-    int GetVertexIndex(Tuple<int, int> posVals)
+    int GetVertexIndex(Tuple<int, int, int> posVals)
     {
         if (vertexPositions.ContainsKey(posVals))
         {
@@ -306,9 +342,16 @@ public class GraphBuilder : MonoBehaviour
         if (!nodeDictionary[xPos].ContainsKey(zPos))
             return null;
 
-        if (xPos == -1 || zPos == -1) return null;
+        int yInt = (int)(position.y * 10);
+        List<int> yList = new List<int>(nodeDictionary[xPos][zPos].Keys);
+        int yPos = BinaryCoordinateSearch(yInt, yList);
+        if (!nodeDictionary[xPos][zPos].ContainsKey(yPos))
+            return null;
 
-        return nodeDictionary[xPos][zPos];
+        if (xPos == -1 || zPos == -1 || yPos == -1) return null;
+        
+        return nodeDictionary[xPos][zPos][yPos];
+
     }
 
     //public NavPath AStarSearch(Enemy enemy, Vector3 destination)
@@ -453,7 +496,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (Vertex vertex in current.GetVertices())
             {
-                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2];
+                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
                 if (closedSet.Contains(neighbor))
                     continue;
@@ -525,17 +568,20 @@ public class GraphBuilder : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the node at a given tuple x/z value
+    /// Returns the node at a given tuple x/z/y value
     /// </summary>
     /// <param name="posVals"> Given values </param>
     /// <returns> The node present there </returns>
-    public Node GetNodeFromTuple(Tuple<int, int> posVals)
+    public Node GetNodeFromTuple(Tuple<int, int, int> posVals)
     {
         if (nodeDictionary.ContainsKey(posVals.Item1))
         {
             if (nodeDictionary[posVals.Item1].ContainsKey(posVals.Item2))
             {
-                return nodeDictionary[posVals.Item1][posVals.Item2];
+                if (nodeDictionary[posVals.Item1][posVals.Item2].ContainsKey(posVals.Item3))
+                {
+                    return nodeDictionary[posVals.Item1][posVals.Item2][posVals.Item3];
+                }
             }
         }
         return null;
@@ -655,7 +701,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (Vertex vertex in current.GetVertices())
             {
-                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2];
+                Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
                 if (closedSet.Contains(neighbor))
                     continue;
@@ -727,11 +773,14 @@ public class GraphBuilder : MonoBehaviour
                 {
                     if (nodeDictionary[x].ContainsKey(z))
                     {
-                        Vector3 dist = nodeDictionary[x][z].GetPosition(user) - user.transform.position;
-
-                        if (dist.sqrMagnitude < radius)
+                        foreach (int y in nodeDictionary[x][z].Keys)
                         {
-                            includedNodes.Add(nodeDictionary[x][z]);
+                            Vector3 dist = nodeDictionary[x][z][y].GetPosition(user) - user.transform.position;
+
+                            if (dist.sqrMagnitude < radius)
+                            {
+                                includedNodes.Add(nodeDictionary[x][z][y]);
+                            }
                         }
                     }
                 }

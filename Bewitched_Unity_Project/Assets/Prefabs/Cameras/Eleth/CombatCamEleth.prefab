@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8184564195210290314}
-  - component: {fileID: 8366709107818746742}
+  - component: {fileID: -8387043692582237963}
   m_Layer: 0
   m_Name: MiddleRig
   m_TagString: Untagged
@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 638536901552064918}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.22745688, y: 0.000000011611937, z: -0.0000000027123097, w: 0.9737882}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -33,7 +33,7 @@ Transform:
   - {fileID: 1976610997075583298}
   m_Father: {fileID: 5417981128579115085}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8366709107818746742
+--- !u!114 &-8387043692582237963
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,8 +89,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1976610997075583298}
   - component: {fileID: 5601329291318260138}
-  - component: {fileID: 6822309076493883219}
-  - component: {fileID: 7936700314768564269}
+  - component: {fileID: 6997659802136352868}
+  - component: {fileID: 3481868519853843702}
   m_Layer: 0
   m_Name: cm
   m_TagString: Untagged
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6822309076493883219
+--- !u!114 &6997659802136352868
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -179,7 +179,7 @@ MonoBehaviour:
   m_LegacyHeightOffset: 3.4028235e+38
   m_LegacyHeadingBias: 3.4028235e+38
   m_HeadingIsSlave: 1
---- !u!114 &7936700314768564269
+--- !u!114 &3481868519853843702
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 2571246862698613598}
   - component: {fileID: 2461723433660053713}
   m_Layer: 0
-  m_Name: FreeLookCamEleth
+  m_Name: CombatCamEleth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -259,7 +259,7 @@ MonoBehaviour:
   - m_Script
   m_LockStageInInspector: 
   m_StreamingVersion: 20170927
-  m_Priority: 10
+  m_Priority: 0
   m_StandbyUpdate: 2
   m_LookAt: {fileID: 0}
   m_Follow: {fileID: 0}
@@ -345,9 +345,9 @@ MonoBehaviour:
     m_Radius: 1.5
   m_LegacyHeadingBias: 3.4028235e+38
   m_Rigs:
-  - {fileID: 588743291432160315}
-  - {fileID: 8366709107818746742}
-  - {fileID: 4634337855091774383}
+  - {fileID: -2398782485062217043}
+  - {fileID: -8387043692582237963}
+  - {fileID: -5440597740710568044}
 --- !u!114 &2571246862698613598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -404,8 +404,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1751854557925508566}
   - component: {fileID: 5377599817003618774}
-  - component: {fileID: 5957819643957031120}
-  - component: {fileID: 4255980970160162033}
+  - component: {fileID: 531319933180178059}
+  - component: {fileID: -5551844488747927606}
   m_Layer: 0
   m_Name: cm
   m_TagString: Untagged
@@ -440,7 +440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5957819643957031120
+--- !u!114 &531319933180178059
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -494,7 +494,7 @@ MonoBehaviour:
   m_LegacyHeightOffset: 3.4028235e+38
   m_LegacyHeadingBias: 3.4028235e+38
   m_HeadingIsSlave: 1
---- !u!114 &4255980970160162033
+--- !u!114 &-5551844488747927606
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -531,8 +531,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3967413868466209217}
   - component: {fileID: 7164395774719716067}
-  - component: {fileID: 5878865461780812295}
-  - component: {fileID: 6952395038183366125}
+  - component: {fileID: -6609206926516579590}
+  - component: {fileID: -8154041353853494334}
   m_Layer: 0
   m_Name: cm
   m_TagString: Untagged
@@ -567,7 +567,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5878865461780812295
+--- !u!114 &-6609206926516579590
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -621,7 +621,7 @@ MonoBehaviour:
   m_LegacyHeightOffset: 3.4028235e+38
   m_LegacyHeadingBias: 3.4028235e+38
   m_HeadingIsSlave: 1
---- !u!114 &6952395038183366125
+--- !u!114 &-8154041353853494334
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -657,7 +657,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6210241663052744327}
-  - component: {fileID: 588743291432160315}
+  - component: {fileID: -2398782485062217043}
   m_Layer: 0
   m_Name: TopRig
   m_TagString: Untagged
@@ -673,7 +673,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6543356088443075661}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2756825, y: -0.000000011194107, z: 0.0000000032104277, w: 0.96124876}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -681,7 +681,7 @@ Transform:
   - {fileID: 1751854557925508566}
   m_Father: {fileID: 5417981128579115085}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &588743291432160315
+--- !u!114 &-2398782485062217043
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -736,7 +736,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8927168466951190709}
-  - component: {fileID: 4634337855091774383}
+  - component: {fileID: -5440597740710568044}
   m_Layer: 0
   m_Name: BottomRig
   m_TagString: Untagged
@@ -752,7 +752,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8481376601514761023}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17962165, y: 0.0000000146588075, z: -0.0000000026765716, w: 0.9837358}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -760,7 +760,7 @@ Transform:
   - {fileID: 3967413868466209217}
   m_Father: {fileID: 5417981128579115085}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4634337855091774383
+--- !u!114 &-5440597740710568044
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}

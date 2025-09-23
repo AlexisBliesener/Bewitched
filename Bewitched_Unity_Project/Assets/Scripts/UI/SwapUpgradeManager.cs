@@ -75,7 +75,6 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void UpdateSwappableUpgrades()
     {
-        Debug.Log(playerUpgradeButtons.Length);
         for (int i = 0; i < playerUpgradeButtons.Length; i++)
         {
             // Attach button text

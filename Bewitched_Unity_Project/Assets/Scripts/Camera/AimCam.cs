@@ -1,7 +1,4 @@
 using Cinemachine;
-using FMODUnity;
-using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,6 +22,10 @@ public class AimCam : MonoBehaviour
     private CinemachinePOV cameraPOVComponent;
     [Tooltip("The y-axis rotation applied to the player based on mouse or controller movement.")]
     private float yaw = 0;
+    [Tooltip("Prev yaw of the aim cam last frame")]
+    private float prevYaw = 0;
+    [Tooltip("The look direction of the camera")]
+    private Vector2 lookDir = Vector2.zero;
 
     /// <summary>
     /// Initializes references to the character, virtual camera, and POV component.
@@ -44,10 +45,15 @@ public class AimCam : MonoBehaviour
     {
         if (virtualCamera.Priority < 2) return;
 
+        cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
+
         if (CameraController.GetIsAiming())
         {
-            characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            // Scale and apply input to yaw
+            yaw += lookDir.x * xSensitivity;
+            characterToFollow.transform.Rotate(new Vector3(0, yaw - prevYaw, 0)); 
             cameraPOVComponent.m_HorizontalAxis.Value = characterToFollow.transform.rotation.y;
+            prevYaw = yaw;
         }
     }
 
@@ -59,6 +65,7 @@ public class AimCam : MonoBehaviour
     public void SetYaw(float yaw)
     {
         this.yaw = yaw;
+        prevYaw = yaw;
     }
 
     /// <summary>
@@ -70,14 +77,11 @@ public class AimCam : MonoBehaviour
     {
         Vector2 lookInput = context.ReadValue<Vector2>();
 
-        cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
-
         if (context.action.activeControl.device.description.deviceClass != "Mouse")
         {
             lookInput.x *= 20;
         }
 
-        // Scale and apply input to yaw
-        yaw += lookInput.x * xSensitivity;
+        lookDir = lookInput;
     }
 }

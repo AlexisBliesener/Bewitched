@@ -14,7 +14,7 @@ public class Node
     [Tooltip("X position multiplied by 10")]
     [SerializeField] private int xPos;
 
-    [Tooltip("Relative y position to graph (for jumping)")]
+    [Tooltip("Relative y position to graph")]
     [SerializeField] private int yPos;
 
     [Tooltip("Z position multiplied by 10")]
@@ -29,10 +29,11 @@ public class Node
     [Tooltip("Node separation")]
     [SerializeField] private int nodeSeparation;
 
-    public void SetValues(int x, int z, int nodeDistance)
+    public void SetValues(int x, int z, int nodeDistance, int y)
     {
         xPos = x;
         zPos = z;
+        yPos = y;
         nodeCost = 0;
         nodeSeparation = nodeDistance;
     }
@@ -47,17 +48,47 @@ public class Node
     /// <param name="nodeDistance"> Distance apart the nodes are </param>
     /// <param name="floor"> Floor layer </param>
     /// <param name="environment">Environment layer </param>
+    /// <param name="maxHeight">Maximum height to scan for floors</param>
+    /// <param name="minSeparation">Minimum separation between floors</param>
     /// <returns> A new node or null </returns>
-    public static Node Create(int x, int z, int nodeDistance, LayerMask floor, LayerMask environment)
+    public static  List<Node> Create(int x, int z, int nodeDistance, LayerMask floor, LayerMask environment, float maxHeight, float minSeparation)
     {
-        Node newNode = new Node();
-        newNode.SetValues(x, z, nodeDistance);
-        if (!newNode.IsOpen(floor, environment))
+        List<Node> validNodes = new List<Node>();
+        Vector3 basePosition = new Vector3(x / 10f, 0, z / 10f);
+        List<float> foundFloors = new List<float>();
+        
+        // Scan from top to bottom using RaycastAll
+        Vector3 rayStart = basePosition + Vector3.up * maxHeight;
+        RaycastHit[] hits = Physics.RaycastAll(rayStart, Vector3.down, maxHeight * 2f, floor);
+        
+        // sort to closest first
+        Array.Sort(hits, (hit1, hit2) => hit1.distance.CompareTo(hit2.distance));
+        
+        foreach (RaycastHit hit in hits)
         {
-            return null;
+            bool validFloor = true;
+            foreach (float existingFloor in foundFloors)
+            {
+                if (Mathf.Abs(hit.point.y - existingFloor) < minSeparation)
+                {
+                    validFloor = false;
+                    break;
+                }
+            }
+            
+            if (validFloor)
+            {
+                Node newNode = new Node();
+                newNode.SetValues(x, z, nodeDistance, (int)(hit.point.y * 10));
+                if (newNode.IsOpen(floor, environment))
+                {
+                    foundFloors.Add(hit.point.y);
+                    validNodes.Add(newNode);
+                }
+            }
         }
 
-        return newNode;
+        return validNodes;
     }
 
     /// <summary>
@@ -74,15 +105,15 @@ public class Node
         position.y += 5;
 
         RaycastHit hit;
-        RaycastHit hit2;
-
         if (Physics.Raycast(position, Vector3.down, out hit, 30, floor))
         {
-            if (Physics.Raycast(position, Vector3.down, out hit2, 30, walls))
+            yPos = (int)(hit.point.y * 10);
+            // check if blocked by walls
+            Vector3 checkPos = hit.point + Vector3.up * 0.1f;
+            if (Physics.CheckSphere(checkPos, 0.01f, walls)) // with a radius of 0.01f
             {
                 return false;
             }
-            yPos = (int)(hit.point.y * 10);
             return true;
         }
         return false;
@@ -118,12 +149,12 @@ public class Node
     /// <summary>
     /// Gets the node's real position
     /// </summary>
-    /// <returns> The position of the node (y not real though) </returns>
+    /// <returns> The position of the node (y is real now:) ) </returns>
     public Vector3 GetPosition(GameObject obj = null)
     {
         if (obj == null)
         {
-            return new Vector3(xPos / 10f, yPos, zPos / 10f);
+            return new Vector3(xPos / 10f, yPos / 10f, zPos / 10f);
         }
         return new Vector3(xPos / 10f, obj.transform.position.y, zPos / 10f);
     }
@@ -138,12 +169,12 @@ public class Node
     }
 
     /// <summary>
-    /// Gets the node x/z values
+    /// Gets the node x/z/y values
     /// </summary>
-    /// <returns> Tuple containing x and z </returns>
-    public Tuple<int, int> GetNodeValues()
+    /// <returns> Tuple containing x , z and y </returns>
+    public Tuple<int, int, int> GetNodeValues()
     {
-        return new Tuple<int, int>(xPos, zPos);
+        return new Tuple<int, int, int>(xPos, zPos, yPos);
     }
 
     /// <summary>
