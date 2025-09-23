@@ -184,6 +184,7 @@ public abstract class Character : MonoBehaviour
     {
         combatCam = GetComponentInChildren<CinemachineFreeLook>();
         aimCam = GetComponentInChildren<CinemachineVirtualCamera>();
+        exploreCam = GetComponentInChildren<CinemachineFreeLook>();
 
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
