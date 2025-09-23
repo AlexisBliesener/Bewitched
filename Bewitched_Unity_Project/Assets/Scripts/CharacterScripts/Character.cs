@@ -95,11 +95,11 @@ public abstract class Character : MonoBehaviour
 
     protected int currentPrimaryComboStep = 0;
 
-    [Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
+    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
     private CinemachineFreeLook combatCam;
-    [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
+    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
     private CinemachineVirtualCamera aimCam;
-    [Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
+    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
     private CinemachineFreeLook exploreCam;
 
     [Tooltip("The script that controls chaning animation states")]
@@ -182,10 +182,30 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        combatCam = GetComponentInChildren<CinemachineFreeLook>();
-        aimCam = GetComponentInChildren<CinemachineVirtualCamera>();
-        exploreCam = GetComponentInChildren<CinemachineFreeLook>();
-
+        if(combatCam != null)
+        {
+            combatCam.Priority = 0;
+        }
+        else
+        {
+            Debug.LogWarning("Combat cam is not set!");
+        }
+        if (aimCam != null)
+        {
+            aimCam.Priority = 1;
+        }
+        else
+        {
+            Debug.LogWarning("Aim cam is not set!");
+        }
+        if (exploreCam != null)
+        {
+            exploreCam.Priority = 2;
+        }
+        else
+        {
+            Debug.LogWarning("Explore cam is not set!");
+        }
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {

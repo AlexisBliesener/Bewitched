@@ -195,6 +195,7 @@ public class CameraController : MonoBehaviour
 
         aimCam.Priority = 0;
         combatCam.Priority = 0;
+        explorationCam.Priority = 0;
 
         currentCharacter = character;
         if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
