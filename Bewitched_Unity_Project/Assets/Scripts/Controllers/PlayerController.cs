@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
+using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
@@ -64,6 +65,8 @@ public class PlayerController : MonoBehaviour
     private float speed;
 
     private bool allowMovement = true;
+
+    private bool dodging = false;
 
     [Tooltip("The y velocity the player is moving at")]
     private float yVelocity;
@@ -195,7 +198,6 @@ public class PlayerController : MonoBehaviour
                 characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
             currentCharacter.SetVelocity(velocity);
-            Debug.Log(velocity.magnitude);
         }
     }
 
@@ -287,10 +289,18 @@ public class PlayerController : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if(characterController.isGrounded && context.started)
+        if(characterController.isGrounded && context.started && currentCharacter.GetJumpSpeed() > 0)
         {
-            jumpSpeed = currentCharacter.GetJumpSpeed();
-            yVelocity = jumpSpeed;
+            Character attacker = currentCharacter.GetAttacker();
+            if (attacker != null && !dodging) // Do a dodge if being attacked
+            {
+                StartCoroutine(Dodge(attacker.Dodgable(), attacker));
+            }
+            else
+            {
+                jumpSpeed = currentCharacter.GetJumpSpeed();
+                yVelocity = jumpSpeed;
+            }
         }
     }
 
@@ -409,5 +419,83 @@ public class PlayerController : MonoBehaviour
     public Enemy GetLockedTarget()
     {
         return lockedCharacter;
+    }
+
+    /// <summary>
+    /// Handles dodging for a character
+    /// </summary>
+    /// <param name="wellTimed"></param>
+    /// <returns></returns>
+    public IEnumerator Dodge(bool wellTimed, Character attacker)
+    {
+        dodging = true;
+        SetAllowMovement(false);
+
+        Debug.Log(attacker);
+        attacker.SetDodged();
+        if (wellTimed)
+        {
+            //Time.timeScale = 0.75f;
+        }
+
+        Vector3 toAttacker = attacker.transform.position - currentCharacter.transform.position;
+        int attackDirection;
+
+        if (direction.magnitude < 0.01f) // If inputting in direction
+        {
+            attackDirection = 0; // Backwards
+        }
+        else
+        {
+            float angle = Vector3.SignedAngle(direction, toAttacker, Vector3.up);
+
+            if (angle <= 0 && angle > -135)
+            {
+                attackDirection = -1; // Left
+            }
+            else if (angle > 0 && angle < 135)
+            {
+                attackDirection = 1; // Right
+            }
+            else
+            {
+                attackDirection = 0;
+            }
+        }
+
+        Vector3 dodgeDirection;
+
+        if (attackDirection == 0) // Dodge backwards
+        {
+            dodgeDirection = -toAttacker.normalized;
+        }
+        else if (attackDirection == -1)
+        {
+            dodgeDirection = Quaternion.AngleAxis(90f, Vector3.up) * toAttacker.normalized;
+        }
+        else
+        {
+            dodgeDirection = Quaternion.AngleAxis(-90f, Vector3.up) * toAttacker.normalized;
+        }
+
+        Vector3 targetPosition = currentCharacter.transform.position + dodgeDirection * 2;
+        Vector3 lookBackDir = (targetPosition - currentCharacter.transform.position).normalized;
+        lookBackDir.y = 0;
+
+        Time.timeScale = 1;
+        SetAllowMovement(true);
+        dodging = false;
+        characterController.enabled = true;
+
+        currentCharacter.transform.DOMove(targetPosition, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+
+        //Manually set position after
+        currentCharacter.transform.position = targetPosition;
+
+        Time.timeScale = 1;
+        SetAllowMovement(true);
+        dodging = false;
+        Debug.Log("Dodge End");
     }
 }

@@ -14,14 +14,8 @@ public class Goblin : Enemy
     [SerializeField] float thrustSpeed = 10;
     [Tooltip("Knife Damage")]
     [SerializeField] float knifeDamage = 20;
-    [Tooltip("Knife duration")]
-    [SerializeField] float knifeLungeRange = 2;
     [Tooltip("Knife Lunge Speed")]
     [SerializeField] float knifeStabSpeed = 10;
-    [Tooltip("Knife Range")]
-    [SerializeField] float knifeRange = 3;
-    [Tooltip("Locking radius for the knife lunge")]
-    [SerializeField] float knifeLungeRadius = 2;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -75,6 +69,9 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
+    public Material dodgeTimeMaterial;
+    public Material defaultMaterial;
+
     private void Start()
     {
         SetPlayerInfo();
@@ -92,7 +89,7 @@ public class Goblin : Enemy
         agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         currentPlayer = playerController.GetCurrentCharacter();
         if (!playerControlling)
@@ -114,10 +111,13 @@ public class Goblin : Enemy
         {
             lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
+            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
+            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
 
         if (lockedCharacter)
         {
+            lockedCharacter.SetAttacker(this);
             if (lockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(true);
@@ -133,6 +133,7 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeApproach()
     {
+        Debug.Log("Approaching");
         attackDodged = false;
         dodgable = false;
 
@@ -147,15 +148,20 @@ public class Goblin : Enemy
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime)
             {
-                if (Time.time - timeStarted >= chaseTime / 2)
+                if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
-                    if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
+                    dodgable = false;
+                    if (attackIndicator != null)
                     {
-                        dodgable = false;
+                        attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
                     }
-                    else // Third quarter, attack is dodgable
+                }
+                else // First 3 quarters, attack is dodgable
+                {
+                    dodgable = true;
+                    if (attackIndicator != null)
                     {
-                        dodgable = true;
+                        attackIndicator.GetComponent<MeshRenderer>().material = dodgeTimeMaterial;
                     }
                 }
 
@@ -165,10 +171,17 @@ public class Goblin : Enemy
                     direc.y = 0;
                     Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                     transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-                    yield return null;
                 }
+                yield return null;
             }
         }
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+
+        Debug.Log("Not Approaching");
 
         attackStateCoroutine = StartCoroutine(HandleStab());
         yield break;
@@ -226,11 +239,11 @@ public class Goblin : Enemy
 
         if (lockedCharacter)
         {
+            lockedCharacter.SetAttacker(null);
             if (lockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
-            if (lockedCharacter == currentPlayer) PlayerController.instance.SetAllowMovement(true);
         }
 
         lockedCharacter = null;

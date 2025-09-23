@@ -113,6 +113,7 @@ MonoBehaviour:
     m_Bits: 128
   attackEffects: []
   effectJSONs: []
+  attackIndicatorPrefab: {fileID: 5268847967852326968, guid: f9010be385ea18341b16aa0fb2416a56, type: 3}
   agent: {fileID: 5347660582151986861}
   minStopDistance: 0.5
   pathfindingPriority: 3
@@ -139,12 +140,9 @@ MonoBehaviour:
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 1348470291095463243}
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
-  thrustSpeed: 10
+  thrustSpeed: 3
   knifeDamage: 20
-  knifeLungeRange: 2.5
   knifeStabSpeed: 20
-  knifeRange: 2.5
-  knifeLungeRadius: 2
   knifeEffects: {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashSpeed: 30
@@ -165,6 +163,8 @@ MonoBehaviour:
   minPatrolDistance: 3
   maxPatrolDistance: 5
   communicationRange: 30
+  dodgeTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
 --- !u!195 &5347660582151986861
 NavMeshAgent:
   m_ObjectHideFlags: 0

@@ -126,6 +126,14 @@ public abstract class Character : MonoBehaviour
     protected bool dodgable = false;
     protected bool attackDodged = false;
 
+    protected Character attackingEnemy = null;
+
+    [Tooltip("Attack indicator prefab")]
+    public GameObject attackIndicatorPrefab;
+
+    [Tooltip("Attack indicator")]
+    protected GameObject attackIndicator = null;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -558,60 +566,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes the direction the character is facing towards the enemy it is facing closest to
-    /// </summary>
-    /// <param name="range"> Range of sweep </param>
-    /// <param name="angle"> Angle of arc it is sweeping </param>
-    /// <param name="time"> Time to change the look </param>
-    /// <returns> Time </returns>
-    public IEnumerator MagnetizeLook(float range, float angle, float time)
-    {
-        Collider[] collisions = Physics.OverlapSphere(transform.position, range, characters);
-
-        GameObject closest = null;
-        float mostDirectValue = Mathf.Infinity;
-
-        foreach (Collider other in collisions)
-        {
-            if (!other.gameObject == gameObject && other.TryGetComponent<Character>(out Character character))
-            {
-                Debug.Log(character);
-                Vector3 direction = other.transform.position - transform.position;
-                float angleToTarget = Vector3.Angle(transform.forward, direction);
-
-                if (angleToTarget <= angle) // If in valid range
-                {
-                    float modifier = 1 + angleToTarget / angle;
-                    float score = direction.magnitude * modifier;
-
-                    if (score < mostDirectValue)
-                    {
-                        mostDirectValue = score;
-                        closest = other.gameObject;
-                    }
-                }
-            }
-        }
-
-        if (closest == null)
-        {
-            yield return new WaitForSeconds(time);
-            yield break;
-        }
-
-        float timeBegan = Time.time;
-        Vector3 turnDirection = closest.transform.position - transform.position;
-        turnDirection.y = 0;
-        turnDirection = turnDirection.normalized;
-
-        while (Time.time - timeBegan <= time)
-        {
-            transform.forward = Vector3.Lerp(transform.forward, turnDirection, Time.deltaTime / time);
-            yield return null;
-        }
-    }
-
-    /// <summary>
     /// Checks the attack state to see if able to start an attack
     /// </summary>
     /// <returns></returns>
@@ -628,5 +582,40 @@ public abstract class Character : MonoBehaviour
     public void SetHitCharacter(bool val)
     {
         hitCharacter = val;
+    }
+
+    /// <summary>
+    /// Sets the attacking enemy
+    /// </summary>
+    /// <param name="attacker"> Enemy to set </param>
+    public void SetAttacker(Character attacker)
+    {
+        attackingEnemy = attacker;
+    }
+
+    /// <summary>
+    /// Gets the attacker
+    /// </summary>
+    /// <returns> Attacker </returns>
+    public Character GetAttacker()
+    {
+        return attackingEnemy;
+    }
+
+    /// <summary>
+    /// Checks if a character is dodgable
+    /// </summary>
+    /// <returns> True if dodgable </returns>
+    public bool Dodgable()
+    {
+        return dodgable;
+    }
+
+    /// <summary>
+    /// Sets dodged to true
+    /// </summary>
+    public void SetDodged()
+    {
+        attackDodged = true;
     }
 }
