@@ -44,6 +44,11 @@ public class PlayerController : MonoBehaviour
 
     [Header("Pause UI")]
     public GameObject pauseMenu;
+    [Header("Interact UI")]
+    [Tooltip("nearby drop object")]
+    public DropPickup nearbyDrop;
+    [SerializeField, Tooltip("UI prefab for the interact button (it will be shown when the player is near the interactable object)")]
+    private GameObject interactUI;
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
@@ -93,6 +98,7 @@ public class PlayerController : MonoBehaviour
         oldHag.ActivateSurroundingPoints();
 
         ResumeGame();
+        HideInteractUI();
     }
 
     private void Awake()
@@ -178,6 +184,7 @@ public class PlayerController : MonoBehaviour
                 velocity = new Vector3(0, 0, 0);
                 characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
+            currentCharacter.SetVelocity(velocity);
         }
     }
 
@@ -221,9 +228,21 @@ public class PlayerController : MonoBehaviour
     {
         if(characterController.isGrounded && context.started)
         {
-            jumpSpeed = currentCharacter.GetJumpSpeed();
-            yVelocity = jumpSpeed;
+            currentCharacter.Jump();
+            StartCoroutine(JumpCoroutine());
         }
+    }
+
+    /// <summary>
+    /// Starts the jump
+    /// Waits for jump delay for animation purposes then starts movement 
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator JumpCoroutine()
+    {
+        yield return new WaitForSeconds(currentCharacter.GetJumpDelay());
+        jumpSpeed = currentCharacter.GetJumpSpeed();
+        yVelocity = jumpSpeed;
     }
 
     public void PauseGame(InputAction.CallbackContext context)
@@ -241,15 +260,42 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
+    /// <summary>
+    /// This is called when the player interacts with the interactable object
+    /// It will trigger the pickup event
+    /// </summary>
     public void Interact(InputAction.CallbackContext context)
     {
         if (context.started)
         {
-            exitDoor.OpenDoor();
+            if (nearbyDrop != null)
+            {
+                nearbyDrop.Pickup();
+            }
+            // Hide the interact UI since the interact action has been performed
+            HideInteractUI();
+            if (exitDoor != null)
+            {
+                exitDoor.OpenDoor();
+            }
         }
     }
-
+    /// <summary>
+    /// Shows the interact UI, this is called when the player is near the interactable object
+    /// </summary>
+    public void ShowInteractUI()
+    {
+        if (interactUI == null) return;
+        interactUI.SetActive(true);
+    }
+    /// <summary>
+    /// Hides the interact UI, this is called when the player is out of range of the interactable object
+    /// </summary>
+    public void HideInteractUI()
+    {
+        if (interactUI == null) return;
+        interactUI.SetActive(false);
+    }
     public void ResumeGame()
     {
         Time.timeScale = 1;

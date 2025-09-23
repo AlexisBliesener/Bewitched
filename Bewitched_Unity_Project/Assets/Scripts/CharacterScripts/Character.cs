@@ -22,6 +22,8 @@ public abstract class Character : MonoBehaviour
     public float movementSpeed = 5;
     [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
     private float jumpSpeed;
+    [SerializeField, Tooltip("How long to wait before doing a jump")]
+    private float jumpDelay;
     [Tooltip("Acceleration of the Character")]
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
@@ -57,7 +59,6 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Cooldown After Secondary Ability")]
     public float secondaryCooldown = 5;
 
-
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
@@ -89,12 +90,17 @@ public abstract class Character : MonoBehaviour
     protected bool releasePrimaryImm = false;
     protected bool releaseSecondaryImm = false;
 
+    protected Vector3 velocity = Vector3.zero;
+    protected Vector3 velocityToMove = Vector3.zero;
+
     private int currentPrimaryComboStep = 0;
 
-    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
-    private CinemachineFreeLook freeLookCam;
+    [Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
+    private CinemachineFreeLook combatCam;
     [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
-    private CinemachineVirtualCamera virtualCam;
+    private CinemachineVirtualCamera aimCam;
+    [Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
+    private CinemachineFreeLook exploreCam;
 
     [Tooltip("The script that controls chaning animation states")]
     private CharacterAnimator characterAnimator;
@@ -176,8 +182,8 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
-        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
+        combatCam = GetComponentInChildren<CinemachineFreeLook>();
+        aimCam = GetComponentInChildren<CinemachineVirtualCamera>();
 
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
@@ -197,22 +203,42 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+
     /// <summary>
-    /// Returns the Cinemachine FreeLook camera associated with this character.
+    /// Returns the amount of time to wait before doing a jump
+    /// For animation purposes
     /// </summary>
-    /// <returns>The FreeLook Cinemachine camera.</returns>
-    public CinemachineFreeLook GetFreeLookCam()
+    /// <returns>The amount of time to wait before doing a jump </returns>
+    public float GetJumpDelay()
     {
-        return freeLookCam;
+        return jumpDelay;
     }
 
     /// <summary>
-    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// Returns the Cinemachine Combat camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
+    public CinemachineFreeLook GetCombatCam()
+    {
+        return combatCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Aim Camera associated with this character.
     /// </summary>
     /// <returns>The Virtual Cinemachine camera.</returns>
-    public CinemachineVirtualCamera GetVirtualCam()
+    public CinemachineVirtualCamera GetAimCam()
     {
-        return virtualCam;
+        return aimCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Explore Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
+    public CinemachineFreeLook GetExploreCam()
+    {
+        return exploreCam;
     }
 
     /// <summary>
@@ -232,6 +258,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDeath()
     {
+        DeactivateSurroundingPoints();
         Die();
     }
 
@@ -240,7 +267,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.death);
+        characterAnimator.SwitchState("Death");
     }
 
     public virtual void PrimaryAttack()
@@ -253,6 +280,10 @@ public abstract class Character : MonoBehaviour
 
     public abstract void Die();
 
+    /// <summary>
+    /// Return the jump speed of this character
+    /// </summary>
+    /// <returns>The jump speed of this character</returns>
     public float GetJumpSpeed()
     {
         return jumpSpeed;
@@ -309,6 +340,14 @@ public abstract class Character : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         if (PlayerController.instance != null)
             PlayerController.instance.SetAllowMovement(true);
+    }
+
+    /// <summary>
+    /// Sets the characters animation state to jump
+    /// </summary>
+    public void Jump()
+    {
+        characterAnimator.SwitchState("Jump");
     }
 
     public IEnumerator StartTime(float stopTime)
@@ -381,8 +420,8 @@ public abstract class Character : MonoBehaviour
 
             currentPrimaryComboStep += 1;
 
-            characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
-            yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.primaryAttack));
+            characterAnimator.SwitchState("PrimaryAttack");
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
 
             PrimaryAttack();
         }
@@ -390,18 +429,13 @@ public abstract class Character : MonoBehaviour
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.secondaryAttack);
-        yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.secondaryAttack));
+        characterAnimator.SwitchState("SecondaryAttack");
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
         if (gameObject)
         {
             SecondaryAttack();
 
         }
-    }
-
-    public void AnimatePrimary()
-    {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
     }
 
     public virtual void Explode()
@@ -413,17 +447,6 @@ public abstract class Character : MonoBehaviour
     {
         return new Vector3(0, 0, 0);
     }
-
-    //public void AnimateMove()
-    //{
-    //    if (characterAnimator)
-    //    {
-    //        if (!characterAnimator..GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
-    //        {
-    //            animator.SetTrigger("StartRunning");
-    //        }
-    //    }
-    //}
 
     public void EndAttacks()
     {
@@ -440,8 +463,6 @@ public abstract class Character : MonoBehaviour
     {
         attackingSecondary = val;
     }
-
-
 
     /// <summary>
     /// Create surrounding points for AI navigation
@@ -486,5 +507,90 @@ public abstract class Character : MonoBehaviour
     public GameObject FindClosestSurroundingPoint(Enemy enemy)
     {
         return surroundingPoints.AssignPoint(enemy);
+    }
+
+    /// <summary>
+    /// Deflects the user's current velocity towards a different direction
+    /// </summary>
+    /// <param name="direction"> Direction to deflect towards </param>
+    public virtual void DeflectVelocity(Vector3 direction)
+    {
+        float currentMagnitude = velocity.magnitude;
+        direction.y = 0;
+        direction = direction.normalized;
+        velocity = direction * currentMagnitude;
+    }
+
+    /// <summary>
+    /// Setter function for the player controller to use when changing velocity so that
+    /// when the player is controlling a character the velocity is accessible through character
+    /// </summary>
+    /// <param name="vel"> Velocity to set </param>
+    public void SetVelocity(Vector3 vel)
+    {
+        velocity = vel;
+    }
+
+    /// <summary>
+    /// Checks the health controller to see if the character is low health
+    /// </summary>
+    /// <returns> True if low health </returns>
+    public bool IsLowHealth()
+    {
+        return health.IsLowHealth;
+    }
+
+    /// <summary>
+    /// Changes the direction the character is facing towards the enemy it is facing closest to
+    /// </summary>
+    /// <param name="range"> Range of sweep </param>
+    /// <param name="angle"> Angle of arc it is sweeping </param>
+    /// <param name="time"> Time to change the look </param>
+    /// <returns> Time </returns>
+    public IEnumerator MagnetizeLook(float range, float angle, float time)
+    {
+        Collider[] collisions = Physics.OverlapSphere(transform.position, range, characters);
+
+        GameObject closest = null;
+        float mostDirectValue = Mathf.Infinity;
+
+        foreach (Collider other in collisions)
+        {
+            if (!other.gameObject == gameObject && other.TryGetComponent<Character>(out Character character))
+            {
+                Debug.Log(character);
+                Vector3 direction = other.transform.position - transform.position;
+                float angleToTarget = Vector3.Angle(transform.forward, direction);
+
+                if (angleToTarget <= angle) // If in valid range
+                {
+                    float modifier = 1 + angleToTarget / angle;
+                    float score = direction.magnitude * modifier;
+
+                    if (score < mostDirectValue)
+                    {
+                        mostDirectValue = score;
+                        closest = other.gameObject;
+                    }
+                }
+            }
+        }
+
+        if (closest == null)
+        {
+            yield return new WaitForSeconds(time);
+            yield break;
+        }
+
+        float timeBegan = Time.time;
+        Vector3 turnDirection = closest.transform.position - transform.position;
+        turnDirection.y = 0;
+        turnDirection = turnDirection.normalized;
+
+        while (Time.time - timeBegan <= time)
+        {
+            transform.forward = Vector3.Lerp(transform.forward, turnDirection, Time.deltaTime / time);
+            yield return null;
+        }
     }
 }

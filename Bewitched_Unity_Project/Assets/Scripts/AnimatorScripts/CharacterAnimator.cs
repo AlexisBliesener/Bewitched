@@ -1,0 +1,205 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Base animator controller for characters.
+/// Handles animation state transitions and enforces timing rules.
+/// </summary>
+public class CharacterAnimator : MonoBehaviour
+{
+    [Header("Animation Timings")]
+    [SerializeField, Tooltip("Time delay before completing the primary ability animation.")]
+    protected float primaryAnimationDelay = 0.5f;
+    [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
+    protected float secondaryAnimationDelay = 0.5f;
+    [SerializeField, Tooltip("Primary attack animation length.")]
+    protected float primaryAttackLength = 1f;
+    [SerializeField, Tooltip("Secondary attack animation length.")]
+    protected float secondaryAttackLength = 1f;
+
+    [Header("References")]
+    [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
+    protected Animator animator;
+    [SerializeField, Tooltip("Character controller attached to this gameobject.")]
+    private CharacterController characterController;
+
+    [Tooltip("The possible animation states this animator can enter")]
+    protected HashSet<string> animationStates = new HashSet<string>
+    {
+            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump"
+    };
+
+    [Tooltip("The current animation state of the character")]
+    protected string currentAnimationState = "Idle";
+    [Tooltip("Whether the animation state can change right now")]
+    protected bool canChange = true;
+    [Tooltip("Holds the current animator state info")]
+    protected AnimatorStateInfo stateInfo;
+    [Tooltip("The character this animator is working on")]
+    private Character character;
+
+
+    protected virtual void Start()
+    {
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        characterController = GetComponent<CharacterController>();
+        character = GetComponent<Character>();
+    }
+
+    protected virtual void Update()
+    {
+        if (animator == null)
+        {
+            Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
+            return;
+        }
+
+        // Track current animator state
+        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        UpdateCurrentStateFromAnimator();
+
+        // Idle/run switching
+        if (canChange && characterController != null)
+        {
+            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
+                SwitchState("Idle");
+            else
+                SwitchState("Run");
+        }
+    }
+
+    /// <summary>
+    /// Switches the character's animation state and updates the Animator accordingly.
+    /// </summary>
+    public virtual void SwitchState(string newState)
+    {
+        if(!animationStates.Contains(newState))
+        {
+            Debug.LogWarning("This animation state: " + newState + " does not exist!");
+        } 
+
+        if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
+            return;
+
+        currentAnimationState = newState;
+
+        if (animator == null) return;
+
+        ResetAllTriggers();
+
+        switch (newState)
+        {
+            case "Idle":
+                animator.SetTrigger("Idle");
+                canChange = true;
+                break;
+            case "Run":
+                animator.SetTrigger("Run");
+                canChange = true;
+                break;
+            case "PrimaryAttack":
+                animator.SetTrigger("PrimaryAttack");
+                canChange = false;
+                StartCoroutine(WaitForEndAnimation(primaryAttackLength));
+                break;
+            case "SecondaryAttack":
+                animator.SetTrigger("SecondaryAttack");
+                canChange = false;
+                StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
+                break;
+            case "Jump":
+                animator.SetTrigger("Jump");
+                canChange = false;
+                StartCoroutine(WaitForGrounded());
+                break;
+            case "Death":
+                animator.SetTrigger("Death");
+                canChange = false;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates currentAnimationState based on the animator’s active state.
+    /// </summary>
+    protected virtual void UpdateCurrentStateFromAnimator()
+    {
+        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
+        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
+        else if (stateInfo.IsName("PrimaryAttack")) currentAnimationState = "PrimaryAttack";
+        else if (stateInfo.IsName("SecondaryAttack")) currentAnimationState = "SecondaryAttack";
+        else if (stateInfo.IsName("Jump")) currentAnimationState = "Jump";
+        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
+    }
+
+    /// <summary>
+    /// Resets all animation triggers to avoid conflicting transitions.
+    /// </summary>
+    protected virtual void ResetAllTriggers()
+    {
+        animator.ResetTrigger("Idle");
+        animator.ResetTrigger("Run");
+        animator.ResetTrigger("PrimaryAttack");
+        animator.ResetTrigger("SecondaryAttack");
+        animator.ResetTrigger("Jump");
+        animator.ResetTrigger("ExitJump");
+        animator.ResetTrigger("Death");
+    }
+
+    /// <summary>
+    /// Checks if the character is not currently in a primary attack animation.
+    /// </summary>
+    public bool NotInPrimary()
+    {
+        return currentAnimationState != "PrimaryAttack";
+    }
+
+    /// <summary>
+    /// Returns the animation state the character is currently in
+    /// </summary>
+    /// <returns>Current animation state </returns>
+    public string GetCurrentState()
+    {
+        return currentAnimationState;
+    }
+
+    /// <summary>
+    /// Waits for a delay corresponding to the current animation state.
+    /// </summary>
+    public IEnumerator WaitForDelay(string animation)
+    {
+        switch (animation)
+        {
+            case "PrimaryAttack":
+                yield return new WaitForSeconds(primaryAnimationDelay);
+                break;
+            case "SecondaryAttack":
+                yield return new WaitForSeconds(secondaryAnimationDelay);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Waits until the character is back on the ground before letting them change out of the jump animation
+    /// </summary>
+    /// <returns></returns>
+    protected virtual IEnumerator WaitForGrounded()
+    {
+        yield return new WaitForFixedUpdate();
+        yield return new WaitForSeconds(character.GetJumpDelay());
+        yield return new WaitUntil(() => characterController.isGrounded);
+        canChange = true;
+    }
+
+    /// <summary>
+    /// Waits for the end of an animation before allowing new state changes.
+    /// </summary>
+    protected virtual IEnumerator WaitForEndAnimation(float sec)
+    {
+        yield return new WaitForSeconds(sec);
+        canChange = true;
+    }
+}

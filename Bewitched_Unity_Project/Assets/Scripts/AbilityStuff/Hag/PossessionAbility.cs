@@ -1,4 +1,3 @@
-using Cinemachine;
 using FMOD.Studio;
 using System.Collections;
 using System.IO;
@@ -23,8 +22,6 @@ public class PossessionAbility : MonoBehaviour
     protected float maxPossessionDistance;
     [SerializeField, Tooltip("Possession Orb Cooldown UI")]
     private CooldownDisplay possessionCooldownDisplay;
-    [SerializeField, Tooltip("Time to fill up enemy explosion")]
-    private float enemyExplosionTime = 10;
     [SerializeField, Tooltip("Rate at which life is drained"), Range(0,100)]
     private float lifeDrainPercentage = 2;
     [SerializeField, Tooltip("The currently controlled character's health bar")]
@@ -33,6 +30,14 @@ public class PossessionAbility : MonoBehaviour
     protected Hag oldHag;
     [SerializeField, Tooltip("Crosshair image component")]
     private Image crossHair;
+
+    [Header("VFX")]
+    [SerializeField, Tooltip("Highlights the enemy that is currently being targeted by possession")]
+    private GameObject targetVFX;
+    [SerializeField, Tooltip("Prefab of firing possession VFX")]
+    private GameObject firingVFX;
+    [SerializeField, Tooltip("Prefab of smoke cloud around enemy that got possessed")]
+    private GameObject smokeCloudVFX;
 
     [Tooltip("The time possession was left")]
     private float timePossessionLastLeft = Mathf.NegativeInfinity;
@@ -133,6 +138,7 @@ public class PossessionAbility : MonoBehaviour
         UpdateCooldowns();
         UpdateState();
         UpdateCrossHair();
+        UpdateTargetVFX();
 
         // Move hag to current characters position
         if (currentCharacter != oldHag)
@@ -168,8 +174,18 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
+                if(!GrandFinale.instance.GetActive())
+                {
+                    // respawn old Hag
+                    currentCharacter.SetControlled(false);
+                    CharacterControlChangeEvent?.Invoke(oldHag);
+                }
+                else
+                {
+                   GrandFinale.instance.Explode(timePossessing, false);
+                }
+
                 timePossessionLastLeft = Time.time;
-                StartCoroutine(ExplodeEnemy());
             }
             else
             {
@@ -193,6 +209,19 @@ public class PossessionAbility : MonoBehaviour
         {
             CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+
+            // Possession smoke VFX
+            if(smokeCloudVFX != null)
+            {
+                Instantiate(smokeCloudVFX, new Vector3(currentPossessableEnemy.transform.position.x,
+                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
+                    currentPossessableEnemy.transform.position.z), currentPossessableEnemy.transform.rotation);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke Cloud VFX is not assigned!");
+            }
+
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
@@ -202,8 +231,43 @@ public class PossessionAbility : MonoBehaviour
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 2);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
         }
+
+        // Possession fire VFX
+        if(firingVFX != null)
+        {
+            Instantiate(firingVFX, oldHag.transform.position + new Vector3(oldHag.transform.forward.x, 1f, oldHag.transform.forward.z), oldHag.transform.rotation);
+        }
+        else
+        {
+            Debug.LogWarning("Firing Possession VFX is not assigned!");
+        }
     }
     
+    /// <summary>
+    /// Updates the aim target VFX
+    /// Places it on the enemy being targeted or disabled it if there is no enemy being targeted
+    /// </summary>
+    private void UpdateTargetVFX()
+    {
+        if(targetVFX != null)
+        {
+            if (possessionState == PossessionStates.canPossess)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.position = new Vector3(currentPossessableEnemy.transform.position.x,
+                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
+                    currentPossessableEnemy.transform.position.z); ;
+            }
+            else
+            {
+                targetVFX.SetActive(false);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Target Possession VFX not assigned!");
+        }
+    }
 
     /// <summary>
     /// Updates the color of the cross hair baised on if the player can currently possess
@@ -315,30 +379,6 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Coroutine that handles enemy explosion and switches back to the Hag when possession ends.
-    /// </summary>
-    protected virtual IEnumerator ExplodeEnemy()
-    {
-        yield return null; // wait one frame
-
-        if (currentCharacter != oldHag)
-        {
-            if (Time.time - timePossessing > enemyExplosionTime)
-            {
-                
-                currentCharacter.Explode();
-                currentCharacter.Die();
-                // Apply shunt damage
-            }
-            timePossessionLastLeft = Time.time;
-
-            // respawn old Hag
-            currentCharacter.SetControlled(false);
-            CharacterControlChangeEvent?.Invoke(oldHag);
-        }
-    }
-
-    /// <summary>
     /// Switches control between the Hag and a possessed character, updating health and UI accordingly.
     /// </summary>
     /// <param name="newCharacter">The new character to switch control to.</param>
@@ -360,12 +400,24 @@ public class PossessionAbility : MonoBehaviour
 
             if (secondaryHealthBar != null)
             {
-                oldHag.gameObject.SetActive(true);
+                oldHag.EnableEleth();
                 secondaryHealthBar.SetActive(false);
             }
             currentCharacter.SetTeamID(2);
             PlayerController.instance.SetAllowMovement(true);
             AudioManager.TryPlayOneShot("LeaveBody");
+
+            // Possession smoke VFX
+            if (smokeCloudVFX != null)
+            {
+                Instantiate(smokeCloudVFX, new Vector3(oldHag.transform.position.x,
+                    oldHag.transform.position.y + oldHag.GetComponent<CharacterController>().height / 2,
+                    oldHag.transform.position.z), oldHag.transform.rotation);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke Cloud VFX is not assigned!");
+            }
         }
         else
         {
@@ -381,7 +433,7 @@ public class PossessionAbility : MonoBehaviour
                 if (secondaryHealthBar != null)
                 {
                     secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
-                    oldHag.gameObject.SetActive(false);
+                    oldHag.DisableEleth();
                     secondaryHealthBar.SetActive(true);
                 }
             }

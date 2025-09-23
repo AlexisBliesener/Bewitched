@@ -13,9 +13,6 @@ public abstract class Enemy : Character
     [Tooltip("Minimum Stopping Distance")]
     public float minStopDistance = 0.5f;
 
-    [Tooltip("Minimum Slow Distance")]
-    public float minSlowDistance = 3;
-
     [Tooltip("Pathfinding Priority")]
     public int pathfindingPriority;
 
@@ -52,19 +49,9 @@ public abstract class Enemy : Character
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
 
-    [Tooltip("Leave Body Explosion Range")]
-    public float leaveBodyExplosionRadius = 5;
-
-    [Tooltip("Leave Body Explosion Minimum Damage")]
-    public float leaveBodyExplosionMinimumDamage = 10;
-    [Tooltip("Leave Body Explosion Maximum Damage")]
-    public float leaveBodyExplosionMaximumDamage = 40;
-
-    [Tooltip("Leave Body Explosion Minimum Knockback")]
-    public float leaveBodyExplosionMinimumKnockback = 10;
-    [Tooltip("Leave Body Explosion Maximum Knockback")]
-    public float leaveBodyExplosionMaximumKnockback = 30;
-
+    [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
+    public float lowHealthThresholdPercentage = 30;
+    
     [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
     protected GameObject surroundPoint;
 
@@ -97,8 +84,6 @@ public abstract class Enemy : Character
     protected bool isStunned = false;
 
     protected bool inAttackDelay = false;
-
-    protected Vector3 velocity = new Vector3(0, 0, 0);
 
     protected float timePlayerLastSeen;
 
@@ -155,13 +140,6 @@ public abstract class Enemy : Character
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime * deceleration);
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-            Vector3 lookDir = Vector3.RotateTowards(transform.forward, (currentPath.GetDestinationPosition(gameObject) - transform.position).normalized, Time.deltaTime * 5, 0);
-            transform.rotation = Quaternion.LookRotation(lookDir);
-            if (lookAtPlayer)
-            {
-                Quaternion look = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
-                transform.rotation = look;
-            }
             return;
         }
 
@@ -210,7 +188,13 @@ public abstract class Enemy : Character
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
         GetComponent<CharacterController>().Move(Vector3.down);
+    }
 
+    /// <summary>
+    /// Function to handle the rotation of an AI controller
+    /// </summary>
+    public void AILook()
+    {
         Quaternion lookRotation;
         if (lookAtPlayer)
         {
@@ -296,6 +280,10 @@ public abstract class Enemy : Character
     {
         if (playerControlling)
         {
+            if(GrandFinale.instance.GetActive())
+            {
+                GrandFinale.instance.Explode(0f, true);
+            }
             playerControlling = false;
             PossessionAbility.CharacterControlChangeEvent?.Invoke(hag);
         }
@@ -303,6 +291,8 @@ public abstract class Enemy : Character
         {
             // Drop the upgrade only if the enemy is dead and the player is not controlling it
             DropSystem.Instance.TryDropItem(transform.position);
+            // Spawn soul on death
+            SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
@@ -473,22 +463,6 @@ public abstract class Enemy : Character
         return false;
     }
 
-    //public override void SubHealth(float dmg)
-    //{
-    //    base.SubHealth(dmg);
-
-    //    if (minibar == null && !playerControlling)
-    //    {
-    //        minibar = Instantiate(miniBarPrefab);
-    //        minibar.GetComponent<MiniHealthBar>().SetCharacter(this);
-    //    }
-    //}
-
-    //public float GetTimeLastHit()
-    //{
-    //    return timeLastHit;
-    //}
-
     public override void CreateHitStun()
     {
         if (!playerControlling)
@@ -564,30 +538,6 @@ public abstract class Enemy : Character
         return base.BeginPrimary();
     }
 
-    public override void Explode()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, leaveBodyExplosionRadius, characters);
-
-        foreach (Collider hit in hits)
-        {
-            Character hitChar = hit.GetComponent<Character>();
-            if (hitChar != null)
-            {
-                if (CheckCharacterBehindEnvironment(hitChar.transform) && hitChar.teamID != teamID)
-                {
-                    float dist = (hitChar.transform.position - transform.position).magnitude;
-                    Vector3 direction = (hitChar.transform.position - transform.position).normalized;
-
-                    float dmg = Mathf.Lerp(leaveBodyExplosionMinimumDamage, leaveBodyExplosionMaximumDamage, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-                    float knockback = Mathf.Lerp(leaveBodyExplosionMinimumKnockback, leaveBodyExplosionMaximumKnockback, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-
-                    hitChar.health.SubHealth(dmg);
-                    if (!playerControlling) {health.ShowMiniHealthBar(true, hitChar);}
-                    hitChar.GetComponent<KnockbackControl>().AddImpact(direction, knockback);
-                }
-            }
-        }
-    }
 
     public void StartPath(bool usingAgent = true)
     {
@@ -824,4 +774,13 @@ public abstract class Enemy : Character
     ///  Returns whether the player is currently controlling this enemy.
     /// </summary>
     public bool IsPlayerControlling() => playerControlling;
+
+    /// <summary>
+    /// Gets the priority of an enemy to be added for attacking
+    /// </summary>
+    /// <returns> Enemy priority </returns>
+    public virtual int GetAttackingPriority()
+    {
+        return pathfindingPriority;
+    }
 }
