@@ -187,7 +187,10 @@ public class PossessionAbility : MonoBehaviour
             currentPossessionAngle = startingPossessionAngle;
         }
 
-        possessionTrigger.transform.position = currentCharacter.transform.position;
+        if (possessionTrigger != null)
+        {
+            possessionTrigger.transform.position = currentCharacter.transform.position;
+        }
 
         // Keep Hag aligned with possessed character
         if (currentCharacter != oldHag)
@@ -358,7 +361,7 @@ public class PossessionAbility : MonoBehaviour
             return;
         }
 
-        if(possessionColliderScript.GetCharactersInPossession().Count != 0)
+        if (possessionColliderScript != null && possessionColliderScript.GetCharactersInPossession().Count != 0)
         {
             PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
