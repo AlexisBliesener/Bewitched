@@ -93,7 +93,7 @@ public abstract class Character : MonoBehaviour
     protected Vector3 velocity = Vector3.zero;
     protected Vector3 velocityToMove = Vector3.zero;
 
-    private int currentPrimaryComboStep = 0;
+    protected int currentPrimaryComboStep = 0;
 
     [Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
     private CinemachineFreeLook combatCam;
@@ -103,7 +103,7 @@ public abstract class Character : MonoBehaviour
     private CinemachineFreeLook exploreCam;
 
     [Tooltip("The script that controls chaning animation states")]
-    private CharacterAnimator characterAnimator;
+    protected CharacterAnimator characterAnimator;
 
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
     [SerializeField] private List<string> effectJSONs = new List<string>();

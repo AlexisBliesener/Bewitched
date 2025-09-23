@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -94,6 +96,11 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
+    //The sound effect for the spin attack
+    EventInstance secondaryAudio;
+    //FMOD Event for idle sound effects
+    EventInstance idleAudio;
+
     private void Start()
     {
         SetPlayerInfo();
@@ -119,6 +126,29 @@ public class Goblin : Enemy
             SetBehavior();
         }
         HandleHitStun();
+    }
+
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null)
+        {
+            if (Time.time - timeLastPrimary >= primaryComboResetTime)
+            {
+                currentPrimaryComboStep = 0;
+            }
+
+            if (currentPrimaryComboStep >= primaryComboSteps)
+            {
+                currentPrimaryComboStep = 0;
+            }
+
+            currentPrimaryComboStep += 1;
+
+            characterAnimator.SwitchState("PrimaryAttack");
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
+
+            PrimaryAttack();
+        }
     }
 
     public override void PrimaryAttack()
@@ -154,12 +184,23 @@ public class Goblin : Enemy
 
         float timeStarted = Time.time;
 
+        //Sound Effect
+        if (AudioManager.TryGetReference("GoblinPrimary", out EventReference evRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            if (currentPrimaryComboStep == 3) ev.setParameterByNameWithLabel("FinalHit", "True");
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
+        }
+
         while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
         {
             if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
-            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3*knifeDuration/4));
+            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3 * knifeDuration / 4));
             GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
-            yield return null; 
+            yield return null;
         }
 
         while (stabVelocity.magnitude > 0) // Decelerate to zero within remaining duration time
@@ -180,6 +221,27 @@ public class Goblin : Enemy
         attackingPrimary = false;
     }
 
+    public override IEnumerator BeginSecondary()
+    {
+        characterAnimator.SwitchState("SecondaryAttack");
+        //audio
+        if (AudioManager.TryGetReference("GoblinSecondary", out EventReference evRef))
+        {
+            secondaryAudio = RuntimeManager.CreateInstance(evRef);
+            secondaryAudio.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            RuntimeManager.AttachInstanceToGameObject(secondaryAudio, gameObject);
+            secondaryAudio.start();
+            secondaryAudio.release();
+        }
+
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
+        if (gameObject)
+        {
+            SecondaryAttack();
+
+        }
+    }
+
     public override void SecondaryAttack()
     {
         attackingSecondary = true;
@@ -194,7 +256,12 @@ public class Goblin : Enemy
     public IEnumerator HandleSpin()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-        else yield return new WaitForSeconds(attackDelayAI);
+        else
+        {
+            //start secondary sound effect (for AI)
+            AudioManager.TryPlayInstance("GoblinSecondary", out secondaryAudio, true, gameObject);
+            yield return new WaitForSeconds(attackDelayAI);
+        }
 
         float timeStarted = Time.time;
         float rotationalSpeed = 0;
@@ -260,6 +327,9 @@ public class Goblin : Enemy
             transform.Rotate(Vector3.up, rotationalSpeed * Time.deltaTime);
             yield return null;
         }
+
+        //stop the secondary sound effect
+        if (secondaryAudio.isValid()) secondaryAudio.setParameterByNameWithLabel("End", "True");
 
         attackingSecondary = false;
 
@@ -352,7 +422,7 @@ public class Goblin : Enemy
                 pathState = PathState.Searching;
                 SetPatrollingPoint();
             }
-            
+
         }
         else if (aiState == GoblinAIState.Chasing)
         {
@@ -393,6 +463,8 @@ public class Goblin : Enemy
     /// </summary>
     public override void Patrol()
     {
+        if (!idleAudio.isValid()) AudioManager.TryPlayInstance("GoblinIdle", out idleAudio, true, gameObject);
+
         // Check if player is visible
         if (LookForPlayer())
         {
@@ -503,7 +575,7 @@ public class Goblin : Enemy
         }
 
         inProcess = true;
-       // AnimateIdle(); // Play animation (temporarily idle)
+        // AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
         while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
@@ -557,6 +629,8 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
+
+        StopIdleAudio();
         lookAtPlayer = false;
         if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
@@ -590,6 +664,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Surround()
     {
+        StopIdleAudio();
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -622,6 +697,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Search()
     {
+        StopIdleAudio();
         if (LookForPlayer()) // Constantly look for player
         {
             StartCoroutine(SpotPlayer());
@@ -797,5 +873,59 @@ public class Goblin : Enemy
         velocityToMove = direction.normalized;
         velocityToMove.y = 0;
         velocityToMove = velocityToMove.normalized;
+    }
+
+    public override void Die()
+    {
+        //Stopping any playing sound effects on death.
+        if (secondaryAudio.isValid())
+        {
+            secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (AudioManager.TryPlayInstance("GoblinDeath", out EventInstance ev, true, gameObject))
+        {
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True": "False");
+        }
+        base.Die();
+    }
+
+    public override void SetControlled(bool val)
+    {
+
+        if (secondaryAudio.isValid())
+        {
+            secondaryAudio.setParameterByNameWithLabel("End", "True");
+        }
+        base.SetControlled(val);
+    }
+    /// <summary>
+    /// Stops the idle sound effects of the goblin if it's currently playing
+    /// </summary>
+    void StopIdleAudio()
+    {
+        if (idleAudio.isValid())
+        {
+            idleAudio.setParameterByNameWithLabel("End", "True");
+            idleAudio = new();
+        }
+    }
+    //Override to implement Goblin's hit sound effect
+    protected override void OnDamaged(float amount)
+    {
+        base.OnDamaged(amount);
+        if (AudioManager.TryGetReference("GoblinHit", out EventReference eventRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(eventRef);
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.setParameterByName("Damage", amount / health.GetMaxHealth());
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.start();
+            ev.release();
+        }
     }
 }
