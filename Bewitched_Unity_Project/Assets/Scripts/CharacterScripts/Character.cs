@@ -123,6 +123,9 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Bool determining if an attack has hit a character")]
     protected bool hitCharacter = false;
 
+    protected bool dodgable = false;
+    protected bool attackDodged = false;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>

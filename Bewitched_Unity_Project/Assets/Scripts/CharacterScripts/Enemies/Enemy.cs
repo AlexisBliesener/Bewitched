@@ -210,7 +210,9 @@ public abstract class Enemy : Character
         }
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-        GetComponent<CharacterController>().Move(Vector3.down);
+
+        if (!GetComponent<CharacterController>().isGrounded)
+            GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
     }
 
     /// <summary>
