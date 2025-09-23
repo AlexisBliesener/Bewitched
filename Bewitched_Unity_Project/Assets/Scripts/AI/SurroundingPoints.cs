@@ -329,6 +329,12 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
+                if (!enemy.IsNeutral()) // If coming across an enemy in an attack dont attack
+                {
+                    startAttackTime = Random.Range(minAttackTime, maxAttackTime);
+                    timeLastAttack = Time.time;
+                    return;
+                }
                 tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
             }
 

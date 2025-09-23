@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     public Hag oldHag;
     [Tooltip("The targeting range for a character")]
     public float targetingRange = 10;
+    [Tooltip("Character current locked onto")]
+    public Enemy lockedCharacter = null;
 
     [Header("UI Settings")]
 
@@ -106,6 +108,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        TargetEnemy();
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
@@ -355,8 +358,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Targets the closest enemy to the input direction if it is within a range
     /// </summary>
-    /// <returns> The targeted enemy if it exists </returns>
-    public Enemy TargetEnemy()
+    public void TargetEnemy()
     {
         Vector3 desired;
 
@@ -382,10 +384,8 @@ public class PlayerController : MonoBehaviour
         {
             if (hit.TryGetComponent(out Enemy enemy))
             {
-                Vector3 toEnemy = (transform.position - enemy.transform.position).normalized;
+                Vector3 toEnemy = (currentCharacter.transform.position - enemy.transform.position).normalized;
                 float dot = Vector3.Dot(desired, toEnemy);
-
-                Debug.DrawRay(currentCharacter.transform.position, toEnemy * 3, Color.red);
 
                 if (dot > bestDot)
                 {
@@ -395,6 +395,19 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        return bestTarget;
+        if (bestTarget)
+        {
+            Debug.DrawRay(currentCharacter.transform.position, bestTarget.transform.position - currentCharacter.transform.position, Color.red);
+        }
+        lockedCharacter = bestTarget;
+    }
+
+    /// <summary>
+    /// Gets the locked target
+    /// </summary>
+    /// <returns> Locked target </returns>
+    public Enemy GetLockedTarget()
+    {
+        return lockedCharacter;
     }
 }

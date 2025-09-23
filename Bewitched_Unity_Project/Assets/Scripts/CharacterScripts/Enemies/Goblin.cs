@@ -107,7 +107,7 @@ public class Goblin : Enemy
         if (playerControlling)
         {
             PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.TargetEnemy();
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
         {
