@@ -1,62 +1,101 @@
 using FMOD.Studio;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static PlayerController;
 
-
 /// <summary>
-/// Handles the player�s possession ability, allowing the Hag character to
-/// possess enemies, manage cooldowns, update the UI, and switch between
-/// controlled characters.
+/// Handles the player's possession ability.
+/// Allows the Hag character to possess enemies, manages cooldowns, 
+/// updates the UI, plays VFX/SFX, and handles character switching.
 /// </summary>
 public class PossessionAbility : MonoBehaviour
 {
+    [Header("Singleton & Events")]
+    [Tooltip("Singleton instance of PossessionAbility.")]
+    public static PossessionAbility instance;
+    [Tooltip("Event triggered when the player switches controlled characters.")]
     public static PlayerControlHandler CharacterControlChangeEvent;
-    const string FILE_ENDING = ".json";
-    [SerializeField, Tooltip("The cooldown in seconds that the player must wait in witch state before being able to possess again")]
-    float possessionCooldown = 10;
-    [SerializeField, Tooltip("The max distance away from the camera that the player can possess")]
+
+    private const string FILE_ENDING = ".json";
+
+    [Header("Possession Settings")]
+    [SerializeField, Tooltip("Cooldown (in seconds) the player must wait in Hag state before possessing again.")]
+    private float possessionCooldown = 10f;
+    [SerializeField, Tooltip("Maximum distance from the camera where possession is possible.")]
     protected float maxPossessionDistance;
-    [SerializeField, Tooltip("Possession Orb Cooldown UI")]
+    [SerializeField, Tooltip("Rate at which life drains from possessed enemies (percentage)."), Range(0, 100)]
+    private float lifeDrainPercentage = 2f;
+    [SerializeField, Tooltip("Layer mask used to check valid possession targets.")]
+    private LayerMask possessionMask;
+
+    [Header("UI References")]
+    [SerializeField, Tooltip("UI element that displays the cooldown for possession.")]
     private CooldownDisplay possessionCooldownDisplay;
-    [SerializeField, Tooltip("Rate at which life is drained"), Range(0,100)]
-    private float lifeDrainPercentage = 2;
-    [SerializeField, Tooltip("The currently controlled character's health bar")]
+    [SerializeField, Tooltip("UI element that displays the currently controlled character's health bar.")]
     private GameObject secondaryHealthBar;
-    [SerializeField, Tooltip("Hag script on the witch gameobject")]
-    protected Hag oldHag;
-    [SerializeField, Tooltip("Crosshair image component")]
+    [SerializeField, Tooltip("Crosshair image that changes color based on possession availability.")]
     private Image crossHair;
 
-    [Header("VFX")]
-    [SerializeField, Tooltip("Highlights the enemy that is currently being targeted by possession")]
-    private GameObject targetVFX;
-    [SerializeField, Tooltip("Prefab of firing possession VFX")]
-    private GameObject firingVFX;
-    [SerializeField, Tooltip("Prefab of smoke cloud around enemy that got possessed")]
-    private GameObject smokeCloudVFX;
-
-    [Tooltip("The time possession was left")]
-    private float timePossessionLastLeft = Mathf.NegativeInfinity;
-    [Tooltip("The time when possession of the current enemy started")]
-    private float timePossessing;
-    [Tooltip("The current character that is possessed")]
+    [Header("Character References")]
+    [SerializeField, Tooltip("Reference to the Hag character script.")]
+    protected Hag oldHag;
+    [Tooltip("The current character that is being controlled (Hag or possessed enemy).")]
     protected Character currentCharacter;
 
-    [Tooltip("States to log if the player currently is in range of a possessable enemy and can possess or not")]
-    private enum PossessionStates { canPossess, canNotPossess};
-    [Tooltip("The players current possession state, if they have an available and legal possession to do or not")]
-    private PossessionStates possessionState = PossessionStates.canNotPossess;
-    [Tooltip("The current enemy that would be possessed if the ability is fired")]
+    [Header("VFX")]
+    [SerializeField, Tooltip("Highlights the enemy currently targeted for possession.")]
+    private GameObject targetVFX;
+    [SerializeField, Tooltip("Prefab for firing possession visual effect.")]
+    private GameObject firingVFX;
+    [SerializeField, Tooltip("Prefab for smoke cloud spawned when possession succeeds.")]
+    private GameObject smokeCloudVFX;
+
+    [Header("Possession Collider")]
+    [SerializeField, Tooltip("Trigger object used to detect possessable enemies.")]
+    private GameObject possessionTrigger;
+    [SerializeField, Tooltip("Script attached to possession trigger for tracking nearby enemies.")]
+    private PossessionCollider possessionColliderScript;
+
+    [Header("Dynamic Possession Range")]
+    [SerializeField, Tooltip("Starting angle of possession field of view.")]
+    private float startingPossessionAngle;
+    [SerializeField, Tooltip("Ending angle of possession field of view after charging.")]
+    private float endingPossesionAngle;
+    [SerializeField, Tooltip("Starting distance of possession range.")]
+    private float startingPossessionDistance;
+    [SerializeField, Tooltip("Ending distance of possession range after charging.")]
+    private float endingPossesionDistance;
+    [SerializeField, Tooltip("Time required to fully focus possession (angle and distance).")]
+    private float timeToFocus;
+
+    [Header("Runtime Data")]
+    [Tooltip("The angle of possession cone currently being used.")]
+    private float currentPossessionAngle;
+    [Tooltip("The distance of possession ray currently being used.")]
+    private float currentPossesionDistance;
+    [Tooltip("The time when possession was last released.")]
+    private float timePossessionLastLeft = Mathf.NegativeInfinity;
+    [Tooltip("The time when possession of the current enemy started.")]
+    private float timePossessing;
+    [Tooltip("The current enemy targeted for possession.")]
     private Character currentPossessableEnemy = null;
-    //The possession sound effect that is currently playing if any
+    [Tooltip("Tracks whether the player is in range of a possessable enemy.")]
+    private enum PossessionStates { canPossess, canNotPossess }
+    [Tooltip("Current possession state (can or cannot possess).")]
+    private PossessionStates possessionState = PossessionStates.canNotPossess;
+    [Tooltip("Sound effect instance for possession (if currently playing).")]
     private EventInstance possessionSoundEffect;
+    [Tooltip("Time when possession input started being held (-1 if not held).")]
+    private float startedHoldTime = -1;
 
     #region Saving/Loading
-
+    /// <summary>
+    /// Saves current possession settings to a JSON file.
+    /// </summary>
     [ContextMenu("Save to JSON")]
     public void SaveToJson()
     {
@@ -73,14 +112,14 @@ public class PossessionAbility : MonoBehaviour
         string filePath = Path.Combine(folderPath, "PossessionAbility" + FILE_ENDING);
         File.WriteAllText(filePath, possessionStatsStr);
 
-
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
 #endif
-
-
     }
 
+    /// <summary>
+    /// Logs the path where JSON files are stored.
+    /// </summary>
     [ContextMenu("See File Path")]
     public void SeeFilePath()
     {
@@ -90,49 +129,46 @@ public class PossessionAbility : MonoBehaviour
         Debug.Log(folderPath);
     }
 
+    /// <summary>
+    /// Loads possession settings from a JSON file.
+    /// </summary>
     [ContextMenu("Load From JSON")]
     public void LoadFromJson()
     {
-
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "PossessionAbility");
         string filePath = Path.Combine(folderPath, "PossessionAbility" + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
-
         string[] jsons = jsonStr.Split("|");
-
         JsonUtility.FromJsonOverwrite(jsons[0], this);
 
 #if UNITY_EDITOR
         UnityEditor.AssetDatabase.Refresh();
 #endif
-
     }
-
     #endregion
 
     /// <summary>
-    /// Initializes possession state and subscribes to character switching events.
+    /// Records when possession input starts being held.
     /// </summary>
+    public void SetStartedHoldTime(float val) => startedHoldTime = val;
+
     private void Awake()
     {
+        instance = this;
         Cursor.lockState = CursorLockMode.Locked;
         currentCharacter = oldHag;
         CharacterControlChangeEvent += SwitchCharacter;
+        currentPossessionAngle = startingPossessionAngle;
+        currentPossesionDistance = startingPossessionDistance;
     }
 
-    /// <summary>
-    /// Unsubscribes from character switching events when disabled.
-    /// </summary>
-    void OnDisable()
+    private void OnDisable()
     {
         CharacterControlChangeEvent -= SwitchCharacter;
     }
 
-    /// <summary>
-    /// Updates possession abilities, UI, and keeps the Hag's position aligned when possessing an enemy.
-    /// </summary>
     private void Update()
     {
         UpdateCooldowns();
@@ -140,7 +176,23 @@ public class PossessionAbility : MonoBehaviour
         UpdateCrossHair();
         UpdateTargetVFX();
 
-        // Move hag to current characters position
+        if (startedHoldTime != -1)
+        {
+            currentPossesionDistance = Mathf.Lerp(startingPossessionDistance, endingPossesionDistance, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+            currentPossessionAngle = Mathf.Lerp(startingPossessionAngle, endingPossesionAngle, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+        }
+        else
+        {
+            currentPossesionDistance = startingPossessionDistance;
+            currentPossessionAngle = startingPossessionAngle;
+        }
+
+        if (possessionTrigger != null)
+        {
+            possessionTrigger.transform.position = currentCharacter.transform.position;
+        }
+
+        // Keep Hag aligned with possessed character
         if (currentCharacter != oldHag)
         {
             oldHag.transform.position = currentCharacter.transform.position;
@@ -174,7 +226,7 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
-                if(!GrandFinale.instance.GetActive())
+                if (!GrandFinale.instance.GetActive())
                 {
                     // respawn old Hag
                     currentCharacter.SetControlled(false);
@@ -182,7 +234,7 @@ public class PossessionAbility : MonoBehaviour
                 }
                 else
                 {
-                   GrandFinale.instance.Explode(timePossessing, false);
+                    GrandFinale.instance.Explode(timePossessing, false);
                 }
 
                 timePossessionLastLeft = Time.time;
@@ -309,50 +361,45 @@ public class PossessionAbility : MonoBehaviour
             return;
         }
 
-        // Detect enemy for possession
-        if(CameraController.GetIsAiming())
+        if (possessionColliderScript != null && possessionColliderScript.GetCharactersInPossession().Count != 0)
         {
-            Ray possessionRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-            RaycastHit hitInfo;
-            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
+            PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
+            foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
-                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
-                {
-                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
-                    possessionState = PossessionStates.canPossess;
-                }
-                else
-                {
-                    possessionState = PossessionStates.canNotPossess;
-                }
-            }
-            else
-            {
-                possessionState = PossessionStates.canNotPossess;
-            }
-        }
-        else
-        {
-            Ray possessionRay = new Ray(currentCharacter.transform.position - Vector3.up, currentCharacter.transform.forward);
-            RaycastHit hitInfo;
-            if (Physics.Raycast(possessionRay, out hitInfo, maxPossessionDistance))
-            {
-                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
-                {
-                    currentPossessableEnemy = hitInfo.collider.gameObject.GetComponent<Character>();
-                    possessionState = PossessionStates.canPossess;
-                }
-                else
-                {
-                    possessionState = PossessionStates.canNotPossess;
-                }
-            }
-            else
-            {
-                possessionState = PossessionStates.canNotPossess;
-            }
-        }
+                Vector3 playerForward = currentCharacter.transform.forward;
+                Vector3 toCharacter = (character.transform.position + Vector3.up) - currentCharacter.transform.position;
 
+                playerForward = playerForward.normalized;
+                toCharacter = toCharacter.normalized;
+
+                float dotProduct = Vector3.Dot(playerForward, toCharacter);
+                float angle = Mathf.Acos(dotProduct);
+                angle = Mathf.Rad2Deg * angle;
+                if (angle < currentPossessionAngle / 2.0f)
+                {
+                    Ray possessionRay = new Ray(currentCharacter.transform.position, toCharacter);
+                    RaycastHit hitInfo;
+                    if (Physics.Raycast(possessionRay, out hitInfo, currentPossesionDistance, possessionMask))
+                    {
+                        if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
+                        {
+                            distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));
+                        }
+                    }
+                }
+            }
+
+            if (distances.Count > 0)
+            {
+                (float, Character) characterPair = distances.Dequeue();
+                currentPossessableEnemy = characterPair.Item2;
+                possessionState = PossessionStates.canPossess;
+            }
+            else
+            {
+                possessionState = PossessionStates.canNotPossess;
+            }
+        }
     }
 
     /// <summary>

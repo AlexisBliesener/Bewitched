@@ -145,6 +145,7 @@ public class CameraController : MonoBehaviour
     {
         if (context.started)
         {
+            PossessionAbility.instance.SetStartedHoldTime(Time.time);
             if (inCombat)
             {
                 aimCamScript.SetYaw(combatCam.m_XAxis.Value);
@@ -159,6 +160,7 @@ public class CameraController : MonoBehaviour
         }
         else if (context.canceled)
         {
+            PossessionAbility.instance.SetStartedHoldTime(-1);
             crossHair.gameObject.SetActive(false);
             aiming = false;
         }
