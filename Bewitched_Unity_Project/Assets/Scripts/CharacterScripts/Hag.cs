@@ -25,6 +25,8 @@ public class Hag : Character
 
     [Tooltip("The animator controller for eleth character")]
     private ElethAnimator elethAnimator;
+    //The character controller component that controls the hag. For accessing hitbox.
+    CharacterController controller;
 
 
 
@@ -45,6 +47,10 @@ public class Hag : Character
             knockBackCone.SetActive(false);
         }
         else throw new System.Exception("Hag Knockback Cone Not Assigned!");
+        if (!TryGetComponent(out controller))
+        {
+            Debug.LogError("Eleth doesn't have a CharacterController component!");
+        }
     }
 
     public override IEnumerator BeginPrimary()
@@ -88,10 +94,11 @@ public class Hag : Character
     /// </summary>
     public void DisableEleth()
     {
-        foreach(GameObject go in objectsToDisable)
+        foreach (GameObject go in objectsToDisable)
         {
             go.SetActive(false);
         }
+        controller.detectCollisions = false;
     }
 
     /// <summary>
@@ -103,6 +110,7 @@ public class Hag : Character
         {
             go.SetActive(true);
         }
+        controller.detectCollisions = true;
     }
 
     /// <summary>
