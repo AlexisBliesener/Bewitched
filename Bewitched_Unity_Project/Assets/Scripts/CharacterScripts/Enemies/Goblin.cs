@@ -882,12 +882,21 @@ public class Goblin : Enemy
         {
             secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (AudioManager.TryPlayInstance("GoblinDeath", out EventInstance ev, true, gameObject))
+        {
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True": "False");
+        }
         base.Die();
     }
 
     public override void SetControlled(bool val)
     {
-        
+
         if (secondaryAudio.isValid())
         {
             secondaryAudio.setParameterByNameWithLabel("End", "True");
@@ -903,6 +912,20 @@ public class Goblin : Enemy
         {
             idleAudio.setParameterByNameWithLabel("End", "True");
             idleAudio = new();
+        }
+    }
+    //Override to implement Goblin's hit sound effect
+    protected override void OnDamaged(float amount)
+    {
+        base.OnDamaged(amount);
+        if (AudioManager.TryGetReference("GoblinHit", out EventReference eventRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(eventRef);
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.setParameterByName("Damage", amount / health.GetMaxHealth());
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.start();
+            ev.release();
         }
     }
 }
