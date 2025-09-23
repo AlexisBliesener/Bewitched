@@ -105,12 +105,12 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     /// <param name="numPoints"> Number of points to make </param>
     /// <param name="radius"> Radius of point placement </param>
-    public void Init(int numPoints, float radius)
+    public void Init(int numPoints, float minRadius, float maxRadius)
     {
         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
         timeLastAttack = Time.time;
 
-        pointRadius = radius;
+        pointRadius = maxRadius; // Use max radius so enemies go around
 
         surroundingEnemies = new List<Enemy>();
         parentPoint = new GameObject("Parent Point");
@@ -127,6 +127,8 @@ public class SurroundingPoints : MonoBehaviour
                 point = new GameObject("point" + (i + 1));
             }
             point.transform.SetParent(parentPoint.transform, worldPositionStays: true);
+
+            float radius = Random.Range(minRadius, maxRadius);
 
             point.transform.localPosition = new Vector3(radius * Mathf.Sin(Mathf.Deg2Rad * i * 360 / numPoints), 0, radius * Mathf.Cos(Mathf.Deg2Rad * i * 360 / numPoints));
             points[point] = null;
@@ -283,15 +285,35 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     /// <param name="enemy"> Enemy looking for others of same type </param>
     /// <returns> List of enemies surrounding player of same type </returns>
-    public List<Enemy> GetEnemiesSameType(Enemy enemy)
+    public List<Goblin> GetEnemiesSameType(Goblin enemy)
     {
-        List<Enemy> sameEnemies = new List<Enemy>();
+        List<Goblin> sameEnemies = new List<Goblin>();
 
         foreach (Enemy other in surroundingEnemies)
         {
-            if (enemy.GetType() == other.GetType())
+            if (other.TryGetComponent(out Goblin gob) && other != enemy)
             {
-                sameEnemies.Add(other);
+                sameEnemies.Add(gob);
+            }
+        }
+        return sameEnemies;
+    }
+
+    /// <summary>
+    /// Function that gets all enemies of the same type
+    /// Useful for group attacks
+    /// </summary>
+    /// <param name="enemy"> Enemy looking for others of same type </param>
+    /// <returns> List of enemies surrounding player of same type </returns>
+    public List<Guard> GetEnemiesSameType(Guard enemy)
+    {
+        List<Guard> sameEnemies = new List<Guard>();
+
+        foreach (Enemy other in surroundingEnemies)
+        {
+            if (other.TryGetComponent(out Guard gard) && other != enemy)
+            {
+                sameEnemies.Add(gard);
             }
         }
         return sameEnemies;

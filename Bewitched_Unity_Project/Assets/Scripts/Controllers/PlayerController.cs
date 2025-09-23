@@ -128,10 +128,9 @@ public class PlayerController : MonoBehaviour
                     Vector3 desiredVelocity = direction * speed;
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
-                    desiredVelocity = desiredVelocity.normalized * speed;
                     if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
                     {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.acceleration);
+                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.deltaTime;
                     }
                     else
                     {
@@ -150,16 +149,28 @@ public class PlayerController : MonoBehaviour
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
                     desiredVelocity = desiredVelocity.normalized * speed;
-                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
+                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
+                    velocity.x += xChange;
+
+                    if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.deltaTime;
+                    velocity.z += zChange;
+
+                    if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
+
+
+                    if (velocity.magnitude > speed)
                     {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.acceleration);
-                    }
-                    else
-                    {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.deceleration);
+                        velocity = velocity.normalized * speed;
                     }
 
-                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
+                    if (velocity.magnitude < 0.01f)
+                    {
+                        velocity = Vector3.zero;
+                    }
+
+                    characterController.Move(velocity * Time.deltaTime);
 
                     Vector3 finalMovement = velocity * Time.deltaTime + new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime;
                     characterController.Move(finalMovement);
@@ -181,6 +192,37 @@ public class PlayerController : MonoBehaviour
                 characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
             }
             currentCharacter.SetVelocity(velocity);
+            Debug.Log(velocity.magnitude);
+        }
+    }
+
+    /// <summary>
+    /// Determines what acceleration/deceleration value should be used for x and z values
+    /// </summary>
+    /// <param name="currentVelocity"> Current velocity in direction </param>
+    /// <param name="desired"> Desired velocity (at top speed in direction) </param>
+    /// <returns> Acceleration or deceleraton value </returns>
+    public float GetAccelerationValue(float currentVelocity, float desired)
+    {
+        float currentSign = Mathf.Sign(currentVelocity);
+        float desiredSign = Mathf.Sign(desired);
+
+        if (Mathf.Abs(currentVelocity) <= 0.01f) return currentCharacter.acceleration * desiredSign;
+
+        if (currentSign == desiredSign) // If moving in same direction
+        {
+            if (Mathf.Abs(currentVelocity) > Mathf.Abs(desired)) // If going faster than desired in direction
+            {
+                return currentCharacter.deceleration * -currentSign; // Reverse direction so adding substracts from magnitude
+            }
+            else // Otherwise accelerate
+            {
+                return currentCharacter.acceleration * Mathf.Sign(desired);
+            }
+        }
+        else // If needing to move in a different direction, move in desired direction
+        {
+            return currentCharacter.deceleration * desired;
         }
     }
 

@@ -10,7 +10,6 @@ using UnityEngine;
 /// If the last enemy is defeated, the doors unlock automatically.
 /// </summary>
 [RequireComponent(typeof(BoxCollider))]
-[RequireComponent(typeof(EnemyManager))]
 public class RoomController : MonoBehaviour
 {
     [Header("Room Configuration")]
@@ -54,9 +53,6 @@ public class RoomController : MonoBehaviour
     }
     [Tooltip("Time of the last enemy status check")]
     private float lastEnemyCheckTime = 0f;
-
-    [Tooltip("The enemy manager for this room")]
-    private EnemyManager enemyManager = new EnemyManager();
 
     /// <summary>
     /// Get the current state of the room
@@ -202,8 +198,6 @@ public class RoomController : MonoBehaviour
                 roomEnemies.Add(collider.gameObject);
             }
         }
-
-        enemyManager.SetEnemies(roomEnemies);
     }
 
     /// <summary>

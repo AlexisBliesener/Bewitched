@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 1604847013949478277}
   - component: {fileID: 7573160092936169644}
   - component: {fileID: 353843413732292894}
+  - component: {fileID: 3281374062124283230}
   m_Layer: 7
   m_Name: Goblin
   m_TagString: Enemy
@@ -81,15 +82,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Goblin
-  movementSpeed: 4
-  approachSpeed: 7
+  movementSpeed: 5
+  approachSpeed: 9
   jumpSpeed: 0
-  acceleration: 6
-  deceleration: 14
+  acceleration: 18
+  deceleration: 50
+  rotationalVelocity: 540
   weight: 2
   sizeRadius: 0.6
   numSurroundingPoints: 8
-  surroundingRadius: 2
+  minSurroundingRadius: 3.5
+  maxSurroundingRadius: 6
   teamID: 2
   primaryFireIcon: {fileID: 21300000, guid: b79c25c267f0e6149becb38c5d850ba5, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: dcbeb3c47a62e314090481e53d9d389c, type: 3}
@@ -119,8 +122,8 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  minSurroundDistance: 4
-  maxSurroundDistance: 10
+  surroundingToChaseRadius: 2
+  chaseToSurroundingRadius: 1
   sightRange: 15
   maxSightAngle: 60
   hearingRange: 2
@@ -128,6 +131,8 @@ MonoBehaviour:
   timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
+  primaryAttackChance: 0.8
+  secondaryAttackChance: 0.2
   lowHealthThresholdPercentage: 30
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
@@ -135,9 +140,10 @@ MonoBehaviour:
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
   thrustSpeed: 10
   knifeDamage: 20
-  knifeDuration: 0.25
+  knifeLungeRange: 2.5
   knifeStabSpeed: 20
-  knifeRange: 3
+  knifeRange: 2.5
+  knifeLungeRadius: 2
   knifeEffects: {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashSpeed: 30
@@ -312,7 +318,7 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  debugging: 0
+  debugging: 1
   pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
   minAttackTime: 1
   maxAttackTime: 3
@@ -351,6 +357,29 @@ MonoBehaviour:
   secondaryAttackLength: 1
   animator: {fileID: 1222534179925912091}
   characterController: {fileID: 3852248043185768998}
+--- !u!136 &3281374062124283230
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2305004250363809269}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0.5}
 --- !u!1001 &7703581107334453669
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -528,19 +557,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.36662778
+      value: -0.36662784
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.024676584
+      value: 0.024676617
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.9279409
+      value: 0.92794085
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.062456843
+      value: 0.06245689
       objectReference: {fileID: 0}
     - target: {fileID: 3661707226821301937, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_Lens.FieldOfView
@@ -572,19 +601,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.36727524
+      value: -0.36727527
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.011570151
+      value: -0.01157017
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.9295792
+      value: 0.92957914
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.029284228
+      value: -0.029284263
       objectReference: {fileID: 0}
     - target: {fileID: 6254074510790357329, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_Name
@@ -604,11 +633,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.3673955
+      value: -0.36739558
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.006739551
+      value: 0.0067395545
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
@@ -616,7 +645,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.017057914
+      value: 0.017057922
       objectReference: {fileID: 0}
     - target: {fileID: 8062432107531938040, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalPosition.x

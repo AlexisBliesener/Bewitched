@@ -28,6 +28,10 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
     public float deceleration = 5;
+    [Tooltip("Rotational velocity of the character")]
+    public float rotationalVelocity = 240;
+    [Tooltip("Time chasing a character for an attack")]
+    public float chaseTime = 3;
 
     [Tooltip("Weight of the character")]
     public float weight = 10;
@@ -35,8 +39,10 @@ public abstract class Character : MonoBehaviour
     public float sizeRadius;
     [Tooltip("Number of Points to Surround")]
     public int numSurroundingPoints = 8;
-    [Tooltip("Radius of Surrounding Points (For AI Navigation)")]
-    public float surroundingRadius = 2;
+    [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
+    public float minSurroundingRadius = 2;
+    [Tooltip("Maximum Radius of Surrounding Points (For AI Navigation)")]
+    public float maxSurroundingRadius = 5;
     [Tooltip("Team of the character")]
     public int teamID;
     [Tooltip("Primary Fire Image")]
@@ -109,7 +115,7 @@ public abstract class Character : MonoBehaviour
     private SurroundingPoints surroundingPoints;
 
     [Tooltip("Character to lock onto")]
-    protected Character lockedCharacter;
+    protected Character lockedCharacter = null;
 
     [Tooltip("The coroutine handling attacking actions")]
     protected Coroutine attackStateCoroutine = null;
@@ -128,6 +134,7 @@ public abstract class Character : MonoBehaviour
         Neutral // Neutral state for enemies to be selected to begin attack
     }
 
+    [Tooltip("The attack state")]
     protected AttackState attackState;
 
     #region Saving/Loading
@@ -483,7 +490,7 @@ public abstract class Character : MonoBehaviour
 
         if (surroundingPoints != null)
         {
-            surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
+            surroundingPoints.Init(numSurroundingPoints, minSurroundingRadius, maxSurroundingRadius);
         }
         else
         {

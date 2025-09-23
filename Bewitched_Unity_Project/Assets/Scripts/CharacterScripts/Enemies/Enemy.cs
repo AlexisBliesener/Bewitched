@@ -28,11 +28,11 @@ public abstract class Enemy : Character
     public LayerMask ground;
     public LayerMask environment;
 
-    [Tooltip("Minimum distance to have enemy surround from")]
-    [SerializeField] protected float minSurroundDistance = 4;
+    [Tooltip("Distance from point an enemy can be before switching to chase")]
+    [SerializeField] protected float surroundingToChaseRadius = 2;
 
-    [Tooltip("Maximum distance to have enemy surround from")]
-    [SerializeField] protected float maxSurroundDistance = 10;
+    [Tooltip("Distance from point an enemy must reach before switching to surround")]
+    [SerializeField] protected float chaseToSurroundingRadius = 1;
 
     [Tooltip("Sight Range")]
     public float sightRange;
@@ -54,6 +54,12 @@ public abstract class Enemy : Character
 
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
+
+    [Tooltip("Chance for AI primary attack")]
+    public float primaryAttackChance = .5f;
+
+    [Tooltip("Chance for AI secondary attack")]
+    public float secondaryAttackChance = .5f;
 
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
     public float lowHealthThresholdPercentage = 30;
@@ -128,20 +134,11 @@ public abstract class Enemy : Character
     [Tooltip("The Current AI State of the enemy")]
     protected AIMovementState aiState = AIMovementState.Patrolling;
 
-    [Tooltip("Enemy manager of this enemy")]
-    protected EnemyManager enemyManager;
-
     [Tooltip("Point relative to player for enemy to navigate towards")]
     protected Vector3 chasePoint;
 
-    /// <summary>
-    /// Sets the enemy manager for this enemy
-    /// </summary>
-    /// <param name="manager"></param>
-    public void SetEnemyManager(EnemyManager manager)
-    {
-        enemyManager = manager;
-    }
+    [Tooltip("Bool determining if enemy can be stopped perfectly")]
+    protected bool inPerfectStopZone = false;
 
     /// <summary>
     /// Function for handling movement
@@ -159,8 +156,7 @@ public abstract class Enemy : Character
 
         if (currentPath == null) // No path, decelerate to 0
         {
-            Vector3 direction = Vector3.zero;
-            velocity = Vector3.Lerp(velocity, direction, Time.deltaTime * deceleration);
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }
@@ -170,7 +166,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime * deceleration);
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }
@@ -291,7 +287,6 @@ public abstract class Enemy : Character
     {
         StopAllCoroutines();
         playerControlling = val;
-        SetPlayerControlledBuffs(val, PlayerController.instance.playerBuffs);
 
         if (val)
         {
@@ -820,16 +815,6 @@ public abstract class Enemy : Character
     }
 
     /// <summary>
-    /// Sets a point to chase towards 
-    /// </summary>
-    public void SetChasePoint()
-    {
-        float dist = Random.Range(minSurroundDistance + 1, maxSurroundDistance - 1);
-        Vector3 direction = (transform.position - currentPlayer.transform.position).normalized; // Gets direction out from player
-        chasePoint = dist * direction;
-    }
-
-    /// <summary>
     /// Set enemy to be targeted or have them retreat
     /// </summary>
     /// <param name="val"> Val determining the actions to take </param>
@@ -841,7 +826,6 @@ public abstract class Enemy : Character
         }
         else
         {
-            SetChasePoint();
             aiState = AIMovementState.Retreating;
         }
     }

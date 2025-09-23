@@ -3378,6 +3378,7 @@ GameObject:
   - component: {fileID: 3937552589655486426}
   - component: {fileID: 3001831873393093468}
   - component: {fileID: 4902741983886367773}
+  - component: {fileID: 3365764115368975285}
   m_Layer: 7
   m_Name: Eleth
   m_TagString: Player
@@ -3452,15 +3453,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Hag
-  movementSpeed: 3.5
+  movementSpeed: 4.5
   approachSpeed: 7
   jumpSpeed: 5
-  acceleration: 5
-  deceleration: 5
+  acceleration: 10
+  deceleration: 12
+  rotationalVelocity: 240
   weight: 10
   sizeRadius: 1
   numSurroundingPoints: 8
-  surroundingRadius: 2
+  minSurroundingRadius: 4
+  maxSurroundingRadius: 7
   teamID: 1
   primaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
@@ -3547,6 +3550,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gettingKnockback: 0
+--- !u!136 &3365764115368975285
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.75
+  m_Height: 3
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1 &6838290167594602703
 GameObject:
   m_ObjectHideFlags: 0
@@ -4154,19 +4180,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.99513334
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.09853773
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.00000007208629
       objectReference: {fileID: 0}
     - target: {fileID: 8927168466951190709, guid: 6f4fb3aab1458a94dbfc567d949c5a64, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.00000010877685
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
