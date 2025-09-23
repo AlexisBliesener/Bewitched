@@ -98,6 +98,8 @@ public class Goblin : Enemy
 
     //The sound effect for the spin attack
     EventInstance secondaryAudio;
+    //FMOD Event for idle sound effects
+    EventInstance idleAudio;
 
     private void Start()
     {
@@ -461,6 +463,8 @@ public class Goblin : Enemy
     /// </summary>
     public override void Patrol()
     {
+        if (!idleAudio.isValid()) AudioManager.TryPlayInstance("GoblinIdle", out idleAudio, true, gameObject);
+
         // Check if player is visible
         if (LookForPlayer())
         {
@@ -625,6 +629,8 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
+
+        StopIdleAudio();
         lookAtPlayer = false;
         if (!LookForPlayer() && !RequestLocation()) // If Goblin cannot see player and not being communicated location, search
         {
@@ -658,6 +664,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Surround()
     {
+        StopIdleAudio();
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -690,6 +697,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Search()
     {
+        StopIdleAudio();
         if (LookForPlayer()) // Constantly look for player
         {
             StartCoroutine(SpotPlayer());
@@ -872,9 +880,29 @@ public class Goblin : Enemy
         //Stopping any playing sound effects on death.
         if (secondaryAudio.isValid())
         {
-            secondaryAudio.getPlaybackState(out var state);
-            if (state == PLAYBACK_STATE.PLAYING) secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
         base.Die();
+    }
+
+    public override void SetControlled(bool val)
+    {
+        
+        if (secondaryAudio.isValid())
+        {
+            secondaryAudio.setParameterByNameWithLabel("End", "True");
+        }
+        base.SetControlled(val);
+    }
+    /// <summary>
+    /// Stops the idle sound effects of the goblin if it's currently playing
+    /// </summary>
+    void StopIdleAudio()
+    {
+        if (idleAudio.isValid())
+        {
+            idleAudio.setParameterByNameWithLabel("End", "True");
+            idleAudio = new();
+        }
     }
 }

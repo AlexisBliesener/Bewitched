@@ -295,7 +295,7 @@ public abstract class Enemy : Character
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
-        GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
+        //GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
