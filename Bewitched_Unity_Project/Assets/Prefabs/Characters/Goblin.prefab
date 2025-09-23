@@ -131,6 +131,7 @@ MonoBehaviour:
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 1348470291095463243}
+  playerControlling: 0
   tempDebugging: 0
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
   thrustSpeed: 10
@@ -722,6 +723,22 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: -195638626278143691, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 3e5318b9aba03a14aa34713fc4d053a3, type: 2}
+    - target: {fileID: -195638626278143691, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 3329f82115157104b8e699efa90675cb, type: 2}
+    - target: {fileID: -195638626278143691, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+      propertyPath: m_Materials.Array.data[2]
+      value: 
+      objectReference: {fileID: 2100000, guid: 4d98fee6fb66ad44db2f4b49a5ab75af, type: 2}
+    - target: {fileID: -195638626278143691, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+      propertyPath: m_Materials.Array.data[3]
+      value: 
+      objectReference: {fileID: 2100000, guid: 49a8a5ec96975c348bd498bed34492ad, type: 2}
     - target: {fileID: 89369812248539943, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
       propertyPath: m_Layer
       value: 7
