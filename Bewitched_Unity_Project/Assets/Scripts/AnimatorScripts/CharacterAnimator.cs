@@ -145,7 +145,6 @@ public class CharacterAnimator : MonoBehaviour
         animator.ResetTrigger("PrimaryAttack");
         animator.ResetTrigger("SecondaryAttack");
         animator.ResetTrigger("Jump");
-        animator.ResetTrigger("ExitJump");
         animator.ResetTrigger("Death");
     }
 
