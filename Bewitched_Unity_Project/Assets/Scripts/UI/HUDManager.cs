@@ -47,29 +47,20 @@ public class HUDManager : MonoBehaviour
     {
         if (upgrade == null) return;
 
+        // Make new stack for each new upgrade
         string upgradeID = upgrade.GetID();
         if (!upgradeDict.ContainsKey(upgradeID))
         {
-            GameObject stack = new GameObject(upgrade.GetDropName() + "_Stack");
+            GameObject stack = new GameObject(upgrade.GetDropName() + "_Stack", typeof(RectTransform));
             stack.transform.SetParent(upgradeIconParent, false);
-
-            VerticalLayoutGroup verticalStack = stack.AddComponent<VerticalLayoutGroup>();
-            verticalStack.childAlignment = TextAnchor.UpperCenter;
-            verticalStack.childForceExpandWidth = false;
-            verticalStack.childForceExpandHeight = false;
-
-            ContentSizeFitter resizer = stack.AddComponent<ContentSizeFitter>();
-            resizer.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            resizer.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-
 
             upgradeDict[upgradeID] = stack.transform;
         }
 
-
         GameObject upgradeObject = new GameObject(upgrade.GetDropName(), typeof(RectTransform));
         upgradeObject.transform.SetParent(upgradeDict[upgradeID], false);
 
+        // Add icons of upgrades
         Image upgradeIcon = upgradeObject.AddComponent<Image>();
 
         if (upgrade.GetIcon() != null)
@@ -97,5 +88,6 @@ public class HUDManager : MonoBehaviour
         float overlap = 20f;
 
         rt.anchoredPosition = new Vector2(0, -count * overlap);
+        upgradeObject.transform.SetAsFirstSibling();
     }
 }
