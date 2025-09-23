@@ -14,14 +14,19 @@ public class DropSystem : MonoBehaviour
 {
     // Singleton instance
     public static DropSystem Instance { get; private set; }
+    [Header("Player Upgrades")]
+    [Tooltip("List of upgrades that the player has acquired.")]
+    public List<DropData> playerUpgrades = new List<DropData>();
     [Header("Drop Settings")]
     [Tooltip("The chance of dropping an item from enemies")]
     [SerializeField] public int dropChance = 50;
     [Tooltip("The amount of health restored to the player when salvaging a drop.")]
     [SerializeField] public float salvageAmount = 10;
-    [Tooltip("The list of the rarities in the game")]
+    [Tooltip("The UI screen for selecting upgrades.")]
     public GameObject upgradeSelectionUI;
-    [Tooltip("The Upgrades Selection UI Screen")]
+    [Tooltip("The UI screen for swapping upgrades when player hits limit of upgrades.")]
+    public GameObject swapUpgradeUI;
+    [Tooltip("The list of the rarities in the game")]
     [SerializeField] public List<ItemRarity> availableRarities = new List<ItemRarity>();
     [Tooltip("The list of the drops in the game")]
     public List<DropData> availableDrops = new List<DropData>();
@@ -120,11 +125,6 @@ public class DropSystem : MonoBehaviour
         DropData option3 = GetRandomDrop();
         if (option1 == null || option2 == null || option3 == null) return;
 
-        OnDropRandomDrop?.Invoke(option1, option2, option3);
-
-        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
-        Debug.Log($"At this point, the ui should react to this event and then call the function DropSystem.Instance.SelectDropsOption(option); to activate the drops or salvage the drops by calling DropSystem.Instance.SalvageDrop();");
-
         if(upgradeSelectionUI != null)
         {
             upgradeSelectionUI.SetActive(true);
@@ -134,6 +134,9 @@ public class DropSystem : MonoBehaviour
             Debug.LogWarning("The upgrade selection UI is null!");
         }
 
+        OnDropRandomDrop?.Invoke(option1, option2, option3);
+
+        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
 
     }
     /// <summary>
@@ -184,6 +187,33 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
             return;
         }
+
+        if(HUDManager.Instance != null)
+        {
+            bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
+
+            // If player already has 5 upgrades, activate the swap screen.
+            if (isNewUnique && HUDManager.Instance.uniqueUpgradesCount == 5)
+            {
+                if (swapUpgradeUI != null)
+                {
+                    swapUpgradeUI.SetActive(true);
+                    upgradeSelectionUI.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogWarning("The swap upgrade UI is null!");
+                }
+            }
+            playerUpgrades.Add(drop);
+            HUDManager.Instance.AddUpgrade(drop);
+        }
+        else
+        {
+            Debug.LogWarning("HUD Manager instance is not assigned!");
+        }
+
+
         // for now we will simple just activate the drop
         if (usePitySystem)
         {
