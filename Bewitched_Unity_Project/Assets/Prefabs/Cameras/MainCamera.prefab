@@ -29,13 +29,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 531639687178396361}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.46796507, y: -0.5301025, z: 0.46796507, w: 0.53010255}
+  m_LocalRotation: {x: 0.4679652, y: -0.53010243, z: 0.4679652, w: 0.53010243}
   m_LocalPosition: {x: 49.74, y: 5.5, z: -42.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -3.617, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 82.875, y: -90, z: 0}
 --- !u!20 &6867233639704589142
 Camera:
   m_ObjectHideFlags: 0
@@ -68,7 +68,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.1
-  far clip plane: 1000
+  far clip plane: 5000
   field of view: 90
   orthographic: 0
   orthographic size: 10
@@ -110,7 +110,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -177,10 +177,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8265603e762f7de4097c1cc3d364c242, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  freeLookCam: {fileID: 0}
-  virtualCam: {fileID: 0}
-  crossHair: {fileID: 0}
+  combatCam: {fileID: 0}
+  aimCam: {fileID: 0}
+  explorationCam: {fileID: 0}
   currentCharacter: {fileID: 0}
+  crossHair: {fileID: 0}
 --- !u!114 &5556196742744654720
 MonoBehaviour:
   m_ObjectHideFlags: 0

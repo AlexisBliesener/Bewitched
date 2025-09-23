@@ -344,6 +344,8 @@ MonoBehaviour:
   primaryCooldownDisplay: {fileID: 0}
   secondaryCooldownDisplay: {fileID: 0}
   pauseMenu: {fileID: 0}
+  nearbyDrop: {fileID: 0}
+  interactUI: {fileID: 0}
   exitDoor: {fileID: 0}
   input: {x: 0, y: 0}
   direction: {x: 0, y: 0, z: 0}
@@ -380,11 +382,13 @@ MonoBehaviour:
   possessionCooldown: 10
   maxPossessionDistance: 10
   possessionCooldownDisplay: {fileID: 0}
-  enemyExplosionTime: 10
   lifeDrainPercentage: 2
   secondaryHealthBar: {fileID: 0}
   oldHag: {fileID: 1678128613887762981}
   crossHair: {fileID: 0}
+  targetVFX: {fileID: 0}
+  firingVFX: {fileID: 8793291929081330377, guid: 12de295a5fe62364280a0358439b33ef, type: 3}
+  smokeCloudVFX: {fileID: 2559313966253667506, guid: f0ce394722376c94087b926531c2171b, type: 3}
 --- !u!1 &6049376072004412199
 GameObject:
   m_ObjectHideFlags: 0

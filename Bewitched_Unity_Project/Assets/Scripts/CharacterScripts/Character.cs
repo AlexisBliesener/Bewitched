@@ -95,10 +95,12 @@ public abstract class Character : MonoBehaviour
 
     protected int currentPrimaryComboStep = 0;
 
-    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
-    private CinemachineFreeLook freeLookCam;
+    [Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
+    private CinemachineFreeLook combatCam;
     [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
-    private CinemachineVirtualCamera virtualCam;
+    private CinemachineVirtualCamera aimCam;
+    [Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
+    private CinemachineFreeLook exploreCam;
 
     [Tooltip("The script that controls chaning animation states")]
     protected CharacterAnimator characterAnimator;
@@ -180,8 +182,8 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
-        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
+        combatCam = GetComponentInChildren<CinemachineFreeLook>();
+        aimCam = GetComponentInChildren<CinemachineVirtualCamera>();
 
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
@@ -201,14 +203,6 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
-    /// <summary>
-    /// Returns the Cinemachine FreeLook camera associated with this character.
-    /// </summary>
-    /// <returns>The FreeLook Cinemachine camera.</returns>
-    public CinemachineFreeLook GetFreeLookCam()
-    {
-        return freeLookCam;
-    }
 
     /// <summary>
     /// Returns the amount of time to wait before doing a jump
@@ -221,12 +215,30 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// Returns the Cinemachine Combat camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
+    public CinemachineFreeLook GetCombatCam()
+    {
+        return combatCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Aim Camera associated with this character.
     /// </summary>
     /// <returns>The Virtual Cinemachine camera.</returns>
-    public CinemachineVirtualCamera GetVirtualCam()
+    public CinemachineVirtualCamera GetAimCam()
     {
-        return virtualCam;
+        return aimCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Explore Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
+    public CinemachineFreeLook GetExploreCam()
+    {
+        return exploreCam;
     }
 
     /// <summary>
