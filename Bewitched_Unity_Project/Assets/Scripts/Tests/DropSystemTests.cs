@@ -344,7 +344,7 @@ public class DropSystemTests
     public void AvailableDrops_ProperlyInitialized()
     {
         Assert.IsNotNull(dropSystem.availableDrops);
-        Assert.AreEqual(2, dropSystem.availableDrops.Count);
+        Assert.AreEqual(3, dropSystem.availableDrops.Count);
         Assert.AreEqual("Health Potion", dropSystem.availableDrops[0].GetDropName());
         Assert.AreEqual("Health Potion 2", dropSystem.availableDrops[1].GetDropName());
         Assert.AreEqual("Health Potion 3", dropSystem.availableDrops[2].GetDropName());

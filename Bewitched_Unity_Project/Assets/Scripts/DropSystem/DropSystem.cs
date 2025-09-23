@@ -188,24 +188,31 @@ public class DropSystem : MonoBehaviour
             return;
         }
 
-        bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
-
-        // If player already has 5 upgrades, activate the swap screen.
-        if (isNewUnique && HUDManager.Instance.uniqueUpgradesCount == 5)
+        if(HUDManager.Instance != null)
         {
-            if (swapUpgradeUI != null)
+            bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
+
+            // If player already has 5 upgrades, activate the swap screen.
+            if (isNewUnique && HUDManager.Instance.uniqueUpgradesCount == 5)
             {
-                swapUpgradeUI.SetActive(true);
-                upgradeSelectionUI.SetActive(false);
+                if (swapUpgradeUI != null)
+                {
+                    swapUpgradeUI.SetActive(true);
+                    upgradeSelectionUI.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogWarning("The swap upgrade UI is null!");
+                }
             }
-            else
-            {
-                Debug.LogWarning("The swap upgrade UI is null!");
-            }
+            playerUpgrades.Add(drop);
+            HUDManager.Instance.AddUpgrade(drop);
         }
-        playerUpgrades.Add(drop);
-        HUDManager.Instance.AddUpgrade(drop);
-        
+        else
+        {
+            Debug.LogWarning("HUD Manager instance is not assigned!");
+        }
+
 
         // for now we will simple just activate the drop
         if (usePitySystem)
