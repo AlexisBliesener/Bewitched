@@ -16,7 +16,7 @@ public class DropSystemTests
     {
         public bool wasActivated = false;
 
-        public int stackNum { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public int stackNum { get; set; }
 
         public void Activate()
         {
@@ -371,15 +371,15 @@ public class DropSystemTests
     {
         DropData stackableDrop = new DropData();
         stackableDrop.SetDropName("Stackable Item");
-        stackableDrop.SetDropScript(new GameObject());
+        stackableDrop.SetDropScript(mockDropScript1);
         stackableDrop.SetRarityIndex(0);
-        stackableDrop.IncreaseStack(); // Make stack count 2
+        stackableDrop.IncreaseStack(); // Make stack count 1
 
         dropSystem.playerUpgrades.Add(stackableDrop);
 
         dropSystem.BuyUpgrade(stackableDrop, 0);
 
-        Assert.AreEqual(3, dropSystem.playerUpgrades[0].GetStackCount()); // 2+1
+        Assert.AreEqual(2, dropSystem.playerUpgrades[0].GetStackCount()); // 1+1
     }
 
     /// <summary>
@@ -416,15 +416,15 @@ public class DropSystemTests
     {
         DropData stackableDrop = new DropData();
         stackableDrop.SetDropName("Stackable Item");
-        stackableDrop.SetDropScript(new GameObject());
+        stackableDrop.SetDropScript(mockDropScript1);
         stackableDrop.SetRarityIndex(0);
-        stackableDrop.IncreaseStack(); // Start with 2 items
+        stackableDrop.IncreaseStack(); // Start with 1 stack
 
         dropSystem.playerUpgrades.Add(stackableDrop);
 
         dropSystem.SellUpgrade(0);
 
-        Assert.AreEqual(1, dropSystem.playerUpgrades[0].GetStackCount());
+        Assert.AreEqual(0, dropSystem.playerUpgrades[0].GetStackCount());
     }
 
     /// <summary>

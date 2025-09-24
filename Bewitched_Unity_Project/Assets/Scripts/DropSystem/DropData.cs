@@ -19,8 +19,6 @@ public class DropData
     [SerializeField] private int rarityIndex;
     [Tooltip("The script that will be used to activate the drop (must implement IDrop)")]
     [SerializeField] private GameObject dropScript;
-    [Tooltip("How many of this item are stacked including this one")]
-    private int stackCount = 1;
     // <summary> Get the name of the drop </summary>
     public string GetDropName() => dropName;
     // <summary> Get the description of the drop </summary>
@@ -46,11 +44,51 @@ public class DropData
     // <summary> Set the drop script </summary>
     public void SetDropScript(GameObject val) => dropScript = val;
     public bool CanStackWith(DropData other) => dropName == other.dropName;
-    // <summary> Increase the stack count of the drop </summary>
-    public void IncreaseStack() => stackCount += 1;
-    // <summary> Decrease the stack count of the drop </summary>
-    public void DecreaseStack() => stackCount -= 1;
-    // <summary> Get the stack count of the drop </summary>
-    public int GetStackCount() => stackCount;
+    /// <summary>
+    /// Helper function to get the stack count of a drop
+    /// </summary>
+    /// <returns>The stack count of the drop</returns>
+    public int GetStackCount()
+    {
+        IDrop dropScript = GetDropScript()?.GetComponent<IDrop>();
+        if (dropScript != null)
+        {
+            return dropScript.stackNum;
+        }
 
+        Debug.LogError($"No drop script found for drop {GetDropName()}");
+        return 0;
+    }
+    /// <summary>
+    /// Helper function to increase the stack count of a drop
+    /// </summary>
+    /// <returns>The new stack count of the drop</returns>
+    public int IncreaseStack()
+    {
+        IDrop dropScript = GetDropScript()?.GetComponent<IDrop>();
+        if (dropScript != null)
+        {
+            dropScript.stackNum++;
+            return dropScript.stackNum;
+        }
+
+        Debug.LogError($"No drop script found for drop {GetDropName()}");
+        return 0;
+    }
+    /// <summary>
+    /// Helper function to decrease the stack count of a drop
+    /// </summary>
+    /// <returns>The new stack count of the drop</returns>
+    public int DecreaseStack()
+    {
+        IDrop dropScript = GetDropScript()?.GetComponent<IDrop>();
+        if (dropScript != null)
+        {
+            dropScript.stackNum--;
+            return dropScript.stackNum;
+        }
+
+        Debug.LogError($"No drop script found for drop {GetDropName()}");
+        return 0;
+    }
 }

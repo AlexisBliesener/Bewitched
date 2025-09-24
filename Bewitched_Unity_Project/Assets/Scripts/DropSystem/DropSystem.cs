@@ -279,11 +279,11 @@ public class DropSystem : MonoBehaviour
 
         if (playerUpgrades[slotNumber] != null)
         {
-            // if the slot is not empty, and it has a stack count of more than 1, then remove 1 from the stack count
-            // if the stack count is 1, then remove it from the slot
-            if (playerUpgrades[slotNumber].GetStackCount() > 1)
+            // if the slot is not empty, and it has a stack, then remove 1 from the stack count
+            // if the stack count is 0, then remove it from the slot
+            if (playerUpgrades[slotNumber].GetStackCount() > 0)
             {
-                playerUpgrades[slotNumber].DecreaseStack();
+               playerUpgrades[slotNumber].DecreaseStack();
             }
             else
             {
