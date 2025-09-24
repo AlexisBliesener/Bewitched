@@ -43,4 +43,15 @@ public class DropData
     public GameObject GetDropScript() => dropScript;
     // <summary> Set the drop script </summary>
     public void SetDropScript(GameObject val) => dropScript = val;
+    /// <summary>
+    /// Helper function to deactivate the drop
+    /// </summary>
+    public void Deactivate()
+    {
+        IDrop dropScript = GetDropScript()?.GetComponent<IDrop>();
+        if (dropScript != null)
+        {
+            dropScript.Deactivate();
+        }
+    }
 }

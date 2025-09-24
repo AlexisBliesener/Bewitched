@@ -139,6 +139,13 @@ public class GrandFinale : MonoBehaviour, IDrop
     {
         active = true;
     }
+    /// <summary>
+    /// Deactivates the Grand Finale effect.
+    /// </summary>
+    public void Deactivate()
+    {
+        active = false;
+    }
 
     /// <summary>
     /// Triggers the explosion logic depending on possession time and whether it should hit the player.

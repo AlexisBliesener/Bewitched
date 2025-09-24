@@ -90,7 +90,13 @@ public class Vampirism : MonoBehaviour, IDrop
     {
         active = true;
     }
-
+    /// <summary>
+    /// Deactivates the Vampirism effect, disabling life steal.
+    /// </summary>
+    public void Deactivate()
+    {
+        active = false;
+    }
     /// <summary>
     /// Steals health from the damage dealt to enemies.
     /// When active, heals the player by a percentage of the damage done,

@@ -22,6 +22,11 @@ public class DropSystemTests
         {
             wasActivated = true;
         }
+
+        public void Deactivate()
+        {
+            wasActivated = false;
+        }
     }
     private GameObject dropSystemObject;
     private DropSystem dropSystem;
@@ -276,6 +281,27 @@ public class DropSystemTests
         dropSystem.SelectDropsOption(newDropData);
 
         Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+    }
+
+    /// <summary>
+    /// Test that SelectDropsOption deactivates single drop correctly
+    /// </summary>
+    [Test]
+    public void SelectDropsOption_DeactivatesSingleDrop()
+    {
+        // Create mock drop that tracks activation/deactivation
+        DropData newDropData = new DropData();
+        GameObject newGameObject = new GameObject();
+        newGameObject.AddComponent<MockActivatableDrop>();
+        newDropData.SetDropScript(newGameObject);
+
+        dropSystem.SelectDropsOption(newDropData);
+
+        Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+        
+        newDropData.Deactivate();
+
+        Assert.IsFalse(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>
