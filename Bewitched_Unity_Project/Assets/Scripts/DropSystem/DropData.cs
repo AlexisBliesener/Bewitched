@@ -19,6 +19,8 @@ public class DropData
     [SerializeField] private int rarityIndex;
     [Tooltip("The script that will be used to activate the drop (must implement IDrop)")]
     [SerializeField] private GameObject dropScript;
+    [Tooltip("How many of this item are stacked including this one")]
+    private int stackCount = 1;
     // <summary> Get the name of the drop </summary>
     public string GetDropName() => dropName;
     // <summary> Get the description of the drop </summary>
@@ -43,4 +45,12 @@ public class DropData
     public GameObject GetDropScript() => dropScript;
     // <summary> Set the drop script </summary>
     public void SetDropScript(GameObject val) => dropScript = val;
+    public bool CanStackWith(DropData other) => dropName == other.dropName;
+    // <summary> Increase the stack count of the drop </summary>
+    public void IncreaseStack() => stackCount += 1;
+    // <summary> Decrease the stack count of the drop </summary>
+    public void DecreaseStack() => stackCount -= 1;
+    // <summary> Get the stack count of the drop </summary>
+    public int GetStackCount() => stackCount;
+
 }
