@@ -252,8 +252,7 @@ public class DropSystem : MonoBehaviour
         {
             pitySystem.OnUpgradesOffered(availableRarities[drop.GetRarityIndex()]);
         }
-        IDrop dropScript = drop.GetDropScript().GetComponent<IDrop>();
-        dropScript.Activate();
+        drop.Activate();
     }
     /// <summary>
     /// Salvage a drop from the player.
@@ -264,6 +263,25 @@ public class DropSystem : MonoBehaviour
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
     }
+    /// <summary>
+    /// This function will deactives the whole stack and activates the new upgrade
+    /// </summary>
+    /// <param name="drop">The new drop to swap</param>
+    /// <param name="slotNumber">The slot number to swap the drop in</param>
+    public void SwapDrop(DropData drop, int slotNumber)
+    {
+        if (drop == null) return;
+        // Swap only if there is a real upgrade in the slot
+        if (playerUpgrades[slotNumber] == null) return;
+        // Deactivate the current upgrade
+        playerUpgrades[slotNumber].Deactivate();
+        // Reset the stack count of the current upgrade
+        playerUpgrades[slotNumber].ResetStack();
+        // Activate the new upgrade
+        playerUpgrades[slotNumber] = drop;
+        drop.Activate();
+    }
+
 
         #region Saving/Loading
 
