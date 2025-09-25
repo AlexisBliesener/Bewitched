@@ -951,19 +951,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4785180815718376311, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.93725216
+      value: 0.9372522
       objectReference: {fileID: 0}
     - target: {fileID: 4785180815718376311, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0016866414
+      value: 0.0016867688
       objectReference: {fileID: 0}
     - target: {fileID: 4785180815718376311, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.22490883
+      value: -0.22490871
       objectReference: {fileID: 0}
     - target: {fileID: 4785180815718376311, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.26640493
+      value: 0.26640493
       objectReference: {fileID: 0}
     - target: {fileID: 5031287725861206007, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_FollowOffset.y
@@ -1035,19 +1035,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7336993535815352698, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.9361726
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7336993535815352698, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.045003403
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7336993535815352698, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.23790023
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7336993535815352698, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.25487065
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8044828711030021445, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1063,19 +1063,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8044828711030021445, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.93285704
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8044828711030021445, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.09067618
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8044828711030021445, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.25006524
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8044828711030021445, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.24294648
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8590794543151710858, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
       propertyPath: pauseMenu
@@ -1137,11 +1137,51 @@ PrefabInstance:
       propertyPath: m_FirstSelected
       value: 
       objectReference: {fileID: 212494972}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7486010686905595970, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3519332637266514593, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 201089029}
   m_SourcePrefab: {fileID: 100100000, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
+--- !u!1 &201089028 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3519332637266514593, guid: b2e36479220fcd44fbd742c8d4cf35ac, type: 3}
+  m_PrefabInstance: {fileID: 201089027}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &201089029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 201089028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
 --- !u!1 &203428226 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2305004250363809269, guid: e00dc79e828bf034cbcd718582cd9860, type: 3}
@@ -38131,6 +38171,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 953346157}
     - target: {fileID: 2591076986975920593, guid: b9829b0350d5330458c1890649c958d6, type: 3}
+      propertyPath: swapButton
+      value: 
+      objectReference: {fileID: 107727784}
+    - target: {fileID: 2591076986975920593, guid: b9829b0350d5330458c1890649c958d6, type: 3}
       propertyPath: pauseButton
       value: 
       objectReference: {fileID: 2026156560}
@@ -38154,6 +38198,10 @@ PrefabInstance:
       propertyPath: compendiumButton
       value: 
       objectReference: {fileID: 321232908}
+    - target: {fileID: 2591076986975920593, guid: b9829b0350d5330458c1890649c958d6, type: 3}
+      propertyPath: upgradeMenuButton
+      value: 
+      objectReference: {fileID: 212494972}
     - target: {fileID: 2591076986975920593, guid: b9829b0350d5330458c1890649c958d6, type: 3}
       propertyPath: upgradeSelectionUI
       value: 
