@@ -38,7 +38,7 @@ public class DropSystem : MonoBehaviour
     [Tooltip("The action that is triggered when a drop is picked up")]
     public Action<DropData, DropData, DropData> OnDropRandomDrop;
     [Tooltip("The action that is triggered when the player interacts with the shop alter. This is will be called on PlayerController")]
-    public Action OnShopAlterInteract;
+    public Action<List<DropData>>  OnShopAlterInteract;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
@@ -145,7 +145,8 @@ public class DropSystem : MonoBehaviour
     /// This is a helper function to get a random drop from the available drops.
     /// It will return null if there are no drops in the available drops list.
     /// </summary>
-    private DropData GetRandomDrop()
+    /// <param name="previousDrops">A list of drops that have already been picked up</param>
+    public DropData GetRandomDrop(List<DropData> previousDrops = null)
     {
         if (availableDrops.Count == 0)
             return null;
@@ -162,12 +163,44 @@ public class DropSystem : MonoBehaviour
             possibleDrops = availableDrops.Where(drop => 
                 availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
         }
+        // exclude drops that are already in the previous drops
+        if (previousDrops != null)
+        {
+            foreach (DropData drop in previousDrops)
+            {
+                possibleDrops.Remove(drop);
+            }
+        }
         if (possibleDrops.Count == 0)
         {
-            // if for some reason we don't have any drops with the chance we want,return null as we don't have a drop 
-            Debug.Log("No drops with the chance we want found!");
-            return null;
+            // if for some reason we don't have any drops with the chance we want, it will fallback to the highest chance drop so it gurantees this returns a drop 
+            List<DropData> fallbackList = new List<DropData>(availableDrops);
+            if (previousDrops != null){
+                foreach (DropData drop in previousDrops)
+                {
+                    fallbackList.Remove(drop);
+                }
+
+                if (fallbackList.Count == 0)
+                {
+                    // return a dupliacte drop since all previous drops are in the fallback list
+                    return availableDrops[UnityEngine.Random.Range(0, availableDrops.Count)];
+                }
+            }
+            DropData fallbackDrop;
+            if (usePitySystem)
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => pitySystem.GetModifiedDropChance(availableRarities[drop.GetRarityIndex()])).First();
+            }
+            else
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => availableRarities[drop.GetRarityIndex()].dropChance).First();
+            }
+
+            return fallbackDrop;
         }
+
+        
 
         // if we have drops with the chance we want, return a random from the possible drops
         return possibleDrops[UnityEngine.Random.Range(0, possibleDrops.Count)];
