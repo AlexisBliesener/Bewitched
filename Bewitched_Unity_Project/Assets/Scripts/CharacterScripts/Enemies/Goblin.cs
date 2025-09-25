@@ -35,10 +35,8 @@ public class Goblin : Enemy
     [SerializeField] GameObject spinHitbox;
     [Tooltip("Spin Damage")]
     [SerializeField] float spinDamage = 30;
-    [Tooltip("Distance for first spin jump")]
-    [SerializeField] float spinDistance = 8;
-    [Tooltip("Distance dropoff per bounce")]
-    [SerializeField] float spinDistanceDropoff = 2.5f;
+    [Tooltip("Spin Duration")]
+    [SerializeField] float spinDuration = 5;
     [Tooltip("Spin Speed")]
     [SerializeField] float spinSpeed = 15;
     [Tooltip("Spin Rotational Speed")]
@@ -73,8 +71,6 @@ public class Goblin : Enemy
 
     public Material dodgeTimeMaterial;
     public Material defaultMaterial;
-
-    private bool deflect = false;
 
     private void Start()
     {
@@ -114,6 +110,7 @@ public class Goblin : Enemy
         else
         {
             lockedCharacter = currentPlayer;
+            aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
             attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
@@ -256,80 +253,31 @@ public class Goblin : Enemy
 
     public override void SecondaryAttack()
     {
-        hitCharacter = false;
-        if (playerControlling)
-        {
-            PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-        else
-        {
-            lockedCharacter = currentPlayer;
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
-        }
-
-        if (lockedCharacter)
-        {
-            lockedCharacter.SetAttacker(this);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
-            {
-                enemy.SetTargeted(true);
-            }
-        }
-
         attackingSecondary = true;
         timeLastSecondary = Time.time;
 
-        StartCoroutine(SpinWindup());
-    }
+        GameObject hitbox = Instantiate(spinHitbox, transform);
+        hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: spinDamage, attackDuration: spinDuration, status: spinEffects);
 
-    public IEnumerator SpinWindup()
-    {
-        attackState = AttackState.Windup;
-        float timeStarted = Time.time;
-        // For now wait 0.5 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.5f)
-        {
-            if (lockedCharacter)
-            {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-                yield return null;
-            }
-        }
-        StartCoroutine(HandleSpin(spinDistance));
+        StartCoroutine(HandleSpin());
     }
 
     /// <summary>
     /// Handles the spinning attack itself
     /// </summary>
-    /// <param name="distance"> Distance this spin can travel </param>
-    /// <param name="fromCollision"> If being called from a collision </param>
     /// <returns> Time </returns>
-    public IEnumerator HandleSpin(float distance, bool fromCollision = false)
+    public IEnumerator HandleSpin()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
         else yield return new WaitForSeconds(attackDelayAI);
 
-        deflect = false;
-
+        float timeStarted = Time.time;
         float rotationalSpeed = 0;
+        velocityToMove = transform.forward;
+        velocityToMove.y = 0;
+        velocityToMove = velocityToMove.normalized * spinSpeed;
 
-        Vector3 desiredVelocity;
-
-        if (lockedCharacter && (Vector3.Distance(lockedCharacter.transform.position, transform.position) <= distance))
-        {
-            desiredVelocity = (lockedCharacter.transform.position - transform.position).normalized;
-        }
-        else
-        {
-            desiredVelocity = transform.forward.normalized;
-        }
-        desiredVelocity.y = 0;
-        desiredVelocity = desiredVelocity.normalized * spinSpeed;
+        Vector3 prevTargetVelocity = velocityToMove;
 
         Vector3 drift;
         bool lowHealthActions;
@@ -349,12 +297,11 @@ public class Goblin : Enemy
             lowHealthActions = true;
         }
 
-        float distanceTravelled = 0;
-        while (distanceTravelled < distance)
+        while (Time.time - timeStarted < spinDuration)
         {
             if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
 
-            if (deflect)
+            if (velocityToMove != prevTargetVelocity)
             {
                 velocityToMove = velocity.normalized * spinSpeed; // If we deflected while speeding up then adjust target velocity
                 if (lowHealthActions) drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;

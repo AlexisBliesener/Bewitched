@@ -101,8 +101,6 @@ public abstract class Character : MonoBehaviour
 
     private int currentPrimaryComboStep = 0;
 
-    private bool invulnerable = false;
-
     [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
     private CinemachineFreeLook freeLookCam;
     [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
@@ -619,26 +617,5 @@ public abstract class Character : MonoBehaviour
     public void SetDodged()
     {
         attackDodged = true;
-    }
-
-    /// <summary>
-    /// Gives the character invulnerability for a duration
-    /// </summary>
-    /// <param name="duration"> Duration to be invulnerable </param>
-    /// <returns> Time </returns>
-    public IEnumerator GiveInvulnerability(float duration)
-    {
-        invulnerable = true;
-        yield return new WaitForSeconds(duration);
-        invulnerable = false;
-    }
-
-    /// <summary>
-    /// Gets the invulnerability status
-    /// </summary>
-    /// <returns> Invulnerability status </returns>
-    public bool Invulnerable()
-    {
-        return invulnerable;
     }
 }
