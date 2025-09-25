@@ -45,8 +45,8 @@ public class PlayerController : MonoBehaviour
     [Header("Pause UI")]
     public GameObject pauseMenu;
     [Header("Interact UI")]
-    [Tooltip("nearby drop object")]
-    public DropPickup nearbyDrop;
+    [Tooltip("nearby interactable object")]
+    public IInteract nearbyInteractable;
     [SerializeField, Tooltip("UI prefab for the interact button (it will be shown when the player is near the interactable object)")]
     private GameObject interactUI;
 
@@ -268,12 +268,13 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            if (nearbyDrop != null)
+            if (nearbyInteractable != null)
             {
-                nearbyDrop.Pickup();
+                nearbyInteractable.Interact();
+                // Hide the interact UI since the interact action has been performed
+                HideInteractUI();
+                return;
             }
-            // Hide the interact UI since the interact action has been performed
-            HideInteractUI();
             if (exitDoor != null)
             {
                 exitDoor.OpenDoor();
