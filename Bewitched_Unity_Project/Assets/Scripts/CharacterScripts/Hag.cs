@@ -28,6 +28,9 @@ public class Hag : Character
     //The character controller component that controls the hag. For accessing hitbox.
     CharacterController controller;
 
+    [Tooltip("Death UI Pop-up Screen")]
+    public GameObject deathUI;
+
 
 
     private void Start()
@@ -137,7 +140,8 @@ public class Hag : Character
     public override void Die()
     {
         StopAllCoroutines();
-        SceneManager.LoadScene(0);
+        deathUI.SetActive(true);
+        //SceneManager.LoadScene(0); // go back to main menu
     }
 
     private void Update()
