@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// This has to be attached to the SwapUpgradeUI gameObject,
@@ -18,10 +19,15 @@ public class SwapUpgradeManager : MonoBehaviour
     [Tooltip("The Swap Upgrade Screen")]
     public GameObject SwapUpgradeUI;
 
+    [Header("List of Upgrades Acquired")]
     [Tooltip("List of upgrades that the player has acquired.")]
     private List<DropData> playerUpgrades;
+
+    [Header("Buttons")]
     [Tooltip("List of buttons for the upgrades that can be swapped")]
     private Button[] playerUpgradeButtons;
+    [Tooltip("The first button to be selected when menu is opened.")]
+    public GameObject firstButton;
 
     /// <summary>
     /// On awake, create list of buttons that are the children of the swap upgrades screen, 
@@ -56,6 +62,8 @@ public class SwapUpgradeManager : MonoBehaviour
     private void OnEnable()
     {
         SwapUpgradeUI.SetActive(true);
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
     }
@@ -65,6 +73,7 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
+        EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
     }
