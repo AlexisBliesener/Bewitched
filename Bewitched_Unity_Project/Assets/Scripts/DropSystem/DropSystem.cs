@@ -287,7 +287,7 @@ public class DropSystem : MonoBehaviour
             }
         }
 
-         
+
 
         // if the slot is not empty, check if the drop can stack with the current drops
         // if not, replace the current drop with the new drop 
@@ -296,9 +296,14 @@ public class DropSystem : MonoBehaviour
             playerUpgrades[slotNumber].IncreaseStack();
             return;
         }
-
-        // if it can't stack with the current drop then replace the current drop with the new drop or add the new drop to the slot if it was empty
-        playerUpgrades[slotNumber] = drop;
+        if (playerUpgrades[slotNumber] == null)
+        {
+            // add the new drop to the slot if it was empty
+            playerUpgrades[slotNumber] = drop;
+            return;
+        }
+        // if it can't stack with the current drop then swap it with the new drop
+        SwapDrop(drop, slotNumber);
     }
     /// <summary>
     /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
@@ -319,6 +324,7 @@ public class DropSystem : MonoBehaviour
             }
             else
             {
+                playerUpgrades[slotNumber].Deactivate();
                 playerUpgrades[slotNumber] = null;
             }
         }
