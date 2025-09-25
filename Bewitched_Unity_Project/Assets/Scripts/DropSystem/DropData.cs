@@ -82,7 +82,6 @@ public class DropData
     {
         GetDropScriptComponent().stackNum = 0;
     }
-
     /// Helper function to get the stack count of a drop
     /// </summary>
     /// <returns>The stack count of the drop</returns>
