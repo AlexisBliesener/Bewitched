@@ -67,8 +67,6 @@ public class HealthController : MonoBehaviour
                 NotifyHealthChanged();
                 if (IsDead)
                 {
-                    //deathUI.SetActive(true);
-                    //Debug.Log("death screen");
                     OnDeath?.Invoke();
                 }
             }
