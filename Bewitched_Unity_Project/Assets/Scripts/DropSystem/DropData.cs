@@ -19,7 +19,6 @@ public class DropData
     [SerializeField] private int rarityIndex;
     [Tooltip("The script that will be used to activate the drop (must implement IDrop)")]
     [SerializeField] private GameObject dropScript;
-
     [Tooltip("The IDrop script of the drop to avoid GetComponent<IDrop>() calls which is a little bit expensive")]
     private IDrop dropScriptComponent;
     // <summary> Get the name of the drop </summary>
@@ -46,10 +45,11 @@ public class DropData
     public GameObject GetDropScript() => dropScript;
     // <summary> Set the drop script </summary>
     public void SetDropScript(GameObject val) => dropScript = val;
+    public bool CanStackWith(DropData other) => dropName == other.dropName;
     /// <summary>
     /// Get the drop script component
     /// </summary>
-    private IDrop GetDropScriptComponent()
+    public IDrop GetDropScriptComponent()
     {
         if (dropScriptComponent == null)
         {
@@ -83,4 +83,29 @@ public class DropData
         GetDropScriptComponent().stackNum = 0;
     }
 
+    /// Helper function to get the stack count of a drop
+    /// </summary>
+    /// <returns>The stack count of the drop</returns>
+    public int GetStackCount()
+    {
+        return GetDropScriptComponent().stackNum;
+    }
+    /// <summary>
+    /// Helper function to increase the stack count of a drop
+    /// </summary>
+    /// <returns>The new stack count of the drop</returns>
+    public int IncreaseStack()
+    {
+        GetDropScriptComponent().stackNum++;
+        return GetDropScriptComponent().stackNum;
+    }
+    /// <summary>
+    /// Helper function to decrease the stack count of a drop
+    /// </summary>
+    /// <returns>The new stack count of the drop</returns>
+    public int DecreaseStack()
+    {
+        GetDropScriptComponent().stackNum--;
+        return GetDropScriptComponent().stackNum;
+    }
 }
