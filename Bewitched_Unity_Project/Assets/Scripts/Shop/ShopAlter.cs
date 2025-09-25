@@ -38,7 +38,13 @@ public class ShopAlter : MonoBehaviour, IInteract
     /// </summary>
     public void Interact()
     {
-        DropSystem.Instance.OnShopAlterInteract?.Invoke();
+        // Gets 5 random drops 
+        List<DropData> randomDrops = new List<DropData>();
+        for (int i = 0; i < 5; i++)
+        {
+            randomDrops.Add(DropSystem.Instance.GetRandomDrop(randomDrops));
+        }
+        DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
     }
 
     public GameObject GetGameObject() => gameObject;

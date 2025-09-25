@@ -38,7 +38,7 @@ public class DropSystem : MonoBehaviour
     [Tooltip("The action that is triggered when a drop is picked up")]
     public Action<DropData, DropData, DropData> OnDropRandomDrop;
     [Tooltip("The action that is triggered when the player interacts with the shop alter. This is will be called on PlayerController")]
-    public Action OnShopAlterInteract;
+    public Action<List<DropData>>  OnShopAlterInteract;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
@@ -146,7 +146,7 @@ public class DropSystem : MonoBehaviour
     /// It will return null if there are no drops in the available drops list.
     /// </summary>
     /// <param name="previousDrops">A list of drops that have already been picked up</param>
-    private DropData GetRandomDrop(List<DropData> previousDrops = null)
+    public DropData GetRandomDrop(List<DropData> previousDrops = null)
     {
         if (availableDrops.Count == 0)
             return null;
