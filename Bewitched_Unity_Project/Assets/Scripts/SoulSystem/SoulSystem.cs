@@ -64,7 +64,14 @@ public class SoulSystem : MonoBehaviour
     public void AddSouls(int amount)
     {
         soulCount += amount;
-        soulCountText.text = soulCount.ToString();
+        if (soulCountText != null)
+        {
+            soulCountText.text = soulCount.ToString();
+        }
+        else
+        {
+            Debug.LogWarning("There is no soul text assigned!");
+        }
     }
 
 }
