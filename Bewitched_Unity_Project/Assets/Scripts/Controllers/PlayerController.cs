@@ -124,7 +124,6 @@ public class PlayerController : MonoBehaviour
             yVelocity += (Physics.gravity * Time.fixedDeltaTime * 2).y;
         }
 
-
         if (allowMovement)
         {
             if (input.sqrMagnitude > 0.01)
@@ -294,7 +293,8 @@ public class PlayerController : MonoBehaviour
             Character attacker = currentCharacter.GetAttacker();
             if (attacker != null && !dodging) // Do a dodge if being attacked
             {
-                StartCoroutine(Dodge(attacker.Dodgable(), attacker));
+                Debug.Log(attacker.Dodgable());
+                Dodge(attacker.Dodgable(), attacker);
             }
             else
             {
@@ -425,9 +425,9 @@ public class PlayerController : MonoBehaviour
     /// Handles dodging for a character
     /// </summary>
     /// <param name="wellTimed"></param>
-    /// <returns></returns>
-    public IEnumerator Dodge(bool wellTimed, Character attacker)
+    public void Dodge(bool wellTimed, Character attacker)
     {
+        Debug.Log("Start Dodge");
         dodging = true;
         SetAllowMovement(false);
 
@@ -435,7 +435,9 @@ public class PlayerController : MonoBehaviour
         attacker.SetDodged();
         if (wellTimed)
         {
-            //Time.timeScale = 0.75f;
+            Debug.Log("Well timed dodge");
+            currentCharacter.GiveInvulnerability(0.75f);
+            Time.timeScale = 0.25f;
         }
 
         Vector3 toAttacker = attacker.transform.position - currentCharacter.transform.position;
@@ -487,11 +489,18 @@ public class PlayerController : MonoBehaviour
         dodging = false;
         characterController.enabled = true;
 
-        currentCharacter.transform.DOMove(targetPosition, 0.5f);
-        yield return new WaitForSeconds(0.5f);
+        Debug.Log(currentCharacter.transform.position);
+        Debug.Log(targetPosition);
 
-        //Manually set position after
-        currentCharacter.transform.position = targetPosition;
+        currentCharacter.transform.DOMove(targetPosition, 0.5f).OnComplete(() => FinishDodge());
+    }
+
+    /// <summary>
+    /// Finishes the dodge actions
+    /// </summary>
+    public void FinishDodge()
+    {
+        velocity = Vector3.zero;
 
         Time.timeScale = 1;
         SetAllowMovement(true);
