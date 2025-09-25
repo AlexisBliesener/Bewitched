@@ -37,6 +37,8 @@ public class DropSystem : MonoBehaviour
     [SerializeField] private bool usePitySystem = true;
     [Tooltip("The action that is triggered when a drop is picked up")]
     public Action<DropData, DropData, DropData> OnDropRandomDrop;
+    [Tooltip("The action that is triggered when the player interacts with the shop alter. This is will be called on PlayerController")]
+    public Action<List<DropData>>  OnShopAlterInteract;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
@@ -143,7 +145,8 @@ public class DropSystem : MonoBehaviour
     /// This is a helper function to get a random drop from the available drops.
     /// It will return null if there are no drops in the available drops list.
     /// </summary>
-    private DropData GetRandomDrop()
+    /// <param name="previousDrops">A list of drops that have already been picked up</param>
+    public DropData GetRandomDrop(List<DropData> previousDrops = null)
     {
         if (availableDrops.Count == 0)
             return null;
@@ -160,12 +163,44 @@ public class DropSystem : MonoBehaviour
             possibleDrops = availableDrops.Where(drop => 
                 availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
         }
+        // exclude drops that are already in the previous drops
+        if (previousDrops != null)
+        {
+            foreach (DropData drop in previousDrops)
+            {
+                possibleDrops.Remove(drop);
+            }
+        }
         if (possibleDrops.Count == 0)
         {
-            // if for some reason we don't have any drops with the chance we want,return null as we don't have a drop 
-            Debug.Log("No drops with the chance we want found!");
-            return null;
+            // if for some reason we don't have any drops with the chance we want, it will fallback to the highest chance drop so it gurantees this returns a drop 
+            List<DropData> fallbackList = new List<DropData>(availableDrops);
+            if (previousDrops != null){
+                foreach (DropData drop in previousDrops)
+                {
+                    fallbackList.Remove(drop);
+                }
+
+                if (fallbackList.Count == 0)
+                {
+                    // return a dupliacte drop since all previous drops are in the fallback list
+                    return availableDrops[UnityEngine.Random.Range(0, availableDrops.Count)];
+                }
+            }
+            DropData fallbackDrop;
+            if (usePitySystem)
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => pitySystem.GetModifiedDropChance(availableRarities[drop.GetRarityIndex()])).First();
+            }
+            else
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => availableRarities[drop.GetRarityIndex()].dropChance).First();
+            }
+
+            return fallbackDrop;
         }
+
+        
 
         // if we have drops with the chance we want, return a random from the possible drops
         return possibleDrops[UnityEngine.Random.Range(0, possibleDrops.Count)];
@@ -221,6 +256,73 @@ public class DropSystem : MonoBehaviour
         }
         IDrop dropScript = drop.GetDropScript().GetComponent<IDrop>();
         dropScript.Activate();
+    }
+    /// <summary>
+    /// Buy an upgrade and it takes two parameters: the drop to buy and the slot number to buy it in
+    /// If the slot number was not passed then it will add the drop in the first empty slot
+    /// </summary>
+    /// <param name="drop"> Drop to buy </param>
+    /// <param name="slotNumber"> Slot number to buy the drop in, if not passed it will add the drop in the first empty slot </param>
+    public void BuyUpgrade(DropData drop, int slotNumber = -1)
+    {
+        if (drop == null) return;
+        if (slotNumber >= playerUpgrades.Count) return;
+
+        if (slotNumber == -1)
+        {
+            // find the empty slot then set that slot number to the drop
+            for (int i = 0; i < playerUpgrades.Count; i++)
+            {
+                if (playerUpgrades[i] == null)
+                {
+                    slotNumber = i;
+                    break;
+                }
+            }
+
+            // if no empty slot was found, add the drop to the last slot
+            if (slotNumber == -1)
+            {
+                playerUpgrades.Add(drop);
+                return;
+            }
+        }
+
+         
+
+        // if the slot is not empty, check if the drop can stack with the current drops
+        // if not, replace the current drop with the new drop 
+        if (playerUpgrades[slotNumber] != null && playerUpgrades[slotNumber].CanStackWith(drop))
+        {
+            playerUpgrades[slotNumber].IncreaseStack();
+            return;
+        }
+
+        // if it can't stack with the current drop then replace the current drop with the new drop or add the new drop to the slot if it was empty
+        playerUpgrades[slotNumber] = drop;
+    }
+    /// <summary>
+    /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
+    /// if the slot han an item that has a stack count of more than 1, then remove 1 from the stack count
+    /// if the stack count is 1, then remove it from the slot
+    /// </summary>
+    public void SellUpgrade(int slotNumber)
+    {
+        if (slotNumber >= playerUpgrades.Count) return;
+
+        if (playerUpgrades[slotNumber] != null)
+        {
+            // if the slot is not empty, and it has a stack, then remove 1 from the stack count
+            // if the stack count is 0, then remove it from the slot
+            if (playerUpgrades[slotNumber].GetStackCount() > 0)
+            {
+               playerUpgrades[slotNumber].DecreaseStack();
+            }
+            else
+            {
+                playerUpgrades[slotNumber] = null;
+            }
+        }
     }
     /// <summary>
     /// Salvage a drop from the player.
