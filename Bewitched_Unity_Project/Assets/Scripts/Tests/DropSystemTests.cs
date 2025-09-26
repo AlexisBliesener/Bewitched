@@ -37,8 +37,10 @@ public class DropSystemTests
     private GameObject mockDropScript1;
     private GameObject mockDropScript2;
     private GameObject mockDropScript3;
+    private GameObject soulSystemObject;
     private ItemRarity commonRarity;
     private ItemRarity rareRarity;
+
 
     [SetUp]
     public void Setup()
@@ -99,6 +101,11 @@ public class DropSystemTests
 
         // Disable pity system since we don't test it here 
         dropSystem.SetUsePitySystem(false);
+
+        // Create a soul system 
+        soulSystemObject = new GameObject("SoulSystem");
+        SoulSystem.Instance = soulSystemObject.AddComponent<SoulSystem>();
+        SoulSystem.Instance.AddSouls(10);
     }
 
     [TearDown]
@@ -125,6 +132,8 @@ public class DropSystemTests
             Object.DestroyImmediate(mockDropScript2);
         if (mockDropScript3 != null)
             Object.DestroyImmediate(mockDropScript3);
+        if (soulSystemObject != null)
+            Object.DestroyImmediate(soulSystemObject);
     }
 
     /// <summary>
@@ -298,7 +307,7 @@ public class DropSystemTests
         dropSystem.SelectDropsOption(newDropData);
 
         Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
-        
+			
         newDropData.Deactivate();
 
         Assert.IsFalse(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
@@ -370,7 +379,7 @@ public class DropSystemTests
         DropData oldDrop = new DropData();
         GameObject oldDropObj = new GameObject("OldDrop");
         MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
-        oldScript.stackNum = 5; 
+        oldScript.stackNum = 5;
         oldDrop.SetDropScript(oldDropObj);
         dropSystem.playerUpgrades.Add(oldDrop);
 
@@ -513,4 +522,38 @@ public class DropSystemTests
         Assert.IsNull(dropSystem.playerUpgrades[0]);
     }
 
+    /// <summary>
+    /// Buy upgrade that is not enough to buy
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_NotEnoughSouls()
+    {
+        SoulSystem.Instance.ResetSouls();
+        mockDrop1.SetBuyAmount(10);
+        Assert.IsFalse(dropSystem.BuyUpgrade(mockDrop1));
+    }
+    /// <summary>
+    /// Buy upgrade that is enough to buy
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_EnoughSouls()
+    {
+        SoulSystem.Instance.ResetSouls();
+        SoulSystem.Instance.AddSouls(10);
+        mockDrop1.SetBuyAmount(1);
+        Assert.IsTrue(dropSystem.BuyUpgrade(mockDrop1));
+        Assert.AreEqual(9, SoulSystem.Instance.GetSoulCurrency());
+    }
+    /// <summary>
+    /// Sell upgrade and add souls
+    /// </summary>
+    [Test]
+    public void SellUpgrade_AddSouls()
+    {
+        SoulSystem.Instance.ResetSouls();
+        mockDrop1.SetSellAmount(10);
+        dropSystem.playerUpgrades.Add(mockDrop1);
+        Assert.IsTrue(dropSystem.SellUpgrade(0));
+        Assert.AreEqual(10, SoulSystem.Instance.GetSoulCurrency());
+    }
 }
