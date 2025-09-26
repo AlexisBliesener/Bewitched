@@ -16,11 +16,16 @@ public class DropSystemTests
     {
         public bool wasActivated = false;
 
-        public int stackNum { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public int stackNum { get; set; }
 
         public void Activate()
         {
             wasActivated = true;
+        }
+
+        public void Deactivate()
+        {
+            wasActivated = false;
         }
     }
     private GameObject dropSystemObject;
@@ -57,7 +62,7 @@ public class DropSystemTests
         commonRarity.dropChance = 100;
         dropSystem.availableRarities.Add(commonRarity);
         rareRarity = new ItemRarity();
-        rareRarity.displayName = "Rare"; 
+        rareRarity.displayName = "Rare";
         rareRarity.dropChance = 6;
         dropSystem.availableRarities.Add(rareRarity);
 
@@ -272,10 +277,31 @@ public class DropSystemTests
         GameObject newGameObject = new GameObject();
         newGameObject.AddComponent<MockActivatableDrop>();
         newDropData.SetDropScript(newGameObject);
-        
+
         dropSystem.SelectDropsOption(newDropData);
 
         Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+    }
+
+    /// <summary>
+    /// Test that SelectDropsOption deactivates single drop correctly
+    /// </summary>
+    [Test]
+    public void SelectDropsOption_DeactivatesSingleDrop()
+    {
+        // Create mock drop that tracks activation/deactivation
+        DropData newDropData = new DropData();
+        GameObject newGameObject = new GameObject();
+        newGameObject.AddComponent<MockActivatableDrop>();
+        newDropData.SetDropScript(newGameObject);
+
+        dropSystem.SelectDropsOption(newDropData);
+
+        Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+        
+        newDropData.Deactivate();
+
+        Assert.IsFalse(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>
@@ -309,6 +335,53 @@ public class DropSystemTests
         Assert.IsTrue(newGameObject1.GetComponent<MockActivatableDrop>().wasActivated);
         Assert.IsTrue(newGameObject2.GetComponent<MockActivatableDrop>().wasActivated);
         Assert.IsTrue(newGameObject3.GetComponent<MockActivatableDrop>().wasActivated);
+    }
+    /// <summary>
+    /// Test that SwapDrop replaces the old drop with the new one
+    /// </summary>
+    [Test]
+    public void SwapDrop_ReplacesOldWithNew()
+    {
+        DropData oldDrop = new DropData();
+        GameObject oldDropObj = new GameObject("OldDrop");
+        MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
+        oldDrop.SetDropScript(oldDropObj);
+        dropSystem.playerUpgrades.Add(oldDrop);
+
+        DropData newDrop = new DropData();
+        GameObject newDropObj = new GameObject("NewDrop");
+        MockActivatableDrop newScript = newDropObj.AddComponent<MockActivatableDrop>();
+        newDrop.SetDropScript(newDropObj);
+
+        dropSystem.SwapDrop(newDrop, 0);
+
+        Assert.AreEqual(newDrop, dropSystem.playerUpgrades[0]);
+        Assert.IsTrue(newScript.wasActivated); // New drop should be activated
+        Assert.IsFalse(oldScript.wasActivated); // Old drop should be deactivated
+    }
+
+    /// <summary>
+    /// Test that SwapDrop resets old drop stack
+    /// </summary>
+    [Test]
+    public void SwapDrop_ResetsOldDropStack()
+    {
+        // Arrange
+        DropData oldDrop = new DropData();
+        GameObject oldDropObj = new GameObject("OldDrop");
+        MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
+        oldScript.stackNum = 5; 
+        oldDrop.SetDropScript(oldDropObj);
+        dropSystem.playerUpgrades.Add(oldDrop);
+
+        DropData newDrop = new DropData();
+        GameObject newDropObj = new GameObject("NewDrop");
+        newDropObj.AddComponent<MockActivatableDrop>();
+        newDrop.SetDropScript(newDropObj);
+
+        dropSystem.SwapDrop(newDrop, 0);
+
+        Assert.AreEqual(0, oldScript.stackNum); // Old stack should be reset
     }
 
     /// <summary>
@@ -349,4 +422,95 @@ public class DropSystemTests
         Assert.AreEqual("Health Potion 2", dropSystem.availableDrops[1].GetDropName());
         Assert.AreEqual("Health Potion 3", dropSystem.availableDrops[2].GetDropName());
     }
+
+    /// <summary>
+    /// Test that BuyUpgrade add an upgrade to an empty slot
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_AddUpgradeToEmptySlot()
+    {
+        dropSystem.playerUpgrades.Add(null); // Create one empty slot
+
+        dropSystem.BuyUpgrade(mockDrop1, 0);
+
+        Assert.AreEqual(mockDrop1, dropSystem.playerUpgrades[0]);
+    }
+
+    /// <summary>
+    /// Test that BuyUpgrade stack when same upgrade is already in slot
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_StackWithExistingUpgrade()
+    {
+        DropData stackableDrop = new DropData();
+        stackableDrop.SetDropName("Stackable Item");
+        stackableDrop.SetDropScript(mockDropScript1);
+        stackableDrop.SetRarityIndex(0);
+        stackableDrop.IncreaseStack(); // Make stack count 1
+
+        dropSystem.playerUpgrades.Add(stackableDrop);
+
+        dropSystem.BuyUpgrade(stackableDrop, 0);
+
+        Assert.AreEqual(2, dropSystem.playerUpgrades[0].GetStackCount()); // 1+1
+    }
+
+    /// <summary>
+    /// Test that BuyUpgrade replace when different upgrades in same slot
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_ReplaceNonStackableUpgrade()
+    {
+        dropSystem.playerUpgrades.Add(mockDrop1);
+
+        dropSystem.BuyUpgrade(mockDrop2, 0);
+
+        Assert.AreEqual(mockDrop2, dropSystem.playerUpgrades[0]);
+    }
+
+    /// <summary>
+    /// Test that BuyUpgrade append when no slot number is given
+    /// </summary>
+    [Test]
+    public void BuyUpgrade_AppendWhenNoSlotGiven()
+    {
+        dropSystem.playerUpgrades.Clear();
+
+        dropSystem.BuyUpgrade(mockDrop1);
+
+        Assert.Contains(mockDrop1, dropSystem.playerUpgrades);
+    }
+
+    /// <summary>
+    /// Test that SellUpgrade decrease stack count if more than one
+    /// </summary>
+    [Test]
+    public void SellUpgrade_DecreaseStackCount()
+    {
+        DropData stackableDrop = new DropData();
+        stackableDrop.SetDropName("Stackable Item");
+        stackableDrop.SetDropScript(mockDropScript1);
+        stackableDrop.SetRarityIndex(0);
+        stackableDrop.IncreaseStack(); // Start with 1 stack
+
+        dropSystem.playerUpgrades.Add(stackableDrop);
+
+        dropSystem.SellUpgrade(0);
+
+        Assert.AreEqual(0, dropSystem.playerUpgrades[0].GetStackCount());
+    }
+
+    /// <summary>
+    /// Test that SellUpgrade remove upgrade completely if only one in stack
+    /// </summary>
+    [Test]
+    public void SellUpgrade_RemovesUpgradeWhenLastInStack()
+    {
+        dropSystem.playerUpgrades.Add(mockDrop1);
+
+        dropSystem.SellUpgrade(0);
+
+        Assert.IsNull(dropSystem.playerUpgrades[0]);
+    }
+
 }
