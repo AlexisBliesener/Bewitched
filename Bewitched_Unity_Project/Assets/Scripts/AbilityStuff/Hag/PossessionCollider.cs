@@ -9,8 +9,18 @@ public class PossessionCollider : MonoBehaviour
 {
     [Tooltip("List of characters currently inside the possession collider, excluding the player.")]
     private List<Character> charactersInPossession = new List<Character>();
-    [SerializeField, Tooltip("Eleths gameobject")]
-    private GameObject eleth;
+    [SerializeField, Tooltip("The current character that is being controlled")]
+    private Character currentCharacter;
+
+    /// <summary>
+    /// Used to set the currentCharacter variable
+    /// It should only be set to the character the player is currently possessing
+    /// </summary>
+    /// <param name="character">The new currentCharacter</param>
+    public void SetCurrentCharacter(Character character)
+    {
+        currentCharacter = character;
+    }
 
     /// <summary>
     /// Gets the list of characters currently inside the possession collider.
@@ -43,7 +53,7 @@ public class PossessionCollider : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Character character = other.GetComponent<Character>();
-        if (character != null && character != PlayerController.instance.currentCharacter && character != eleth)
+        if (character != null && character != currentCharacter)
         {
             charactersInPossession.Add(character);
         }
@@ -57,7 +67,7 @@ public class PossessionCollider : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         Character character = other.GetComponent<Character>();
-        if (character != null && character != PlayerController.instance.currentCharacter)
+        if (character != null && character != currentCharacter)
         {
             charactersInPossession.Remove(character);
         }

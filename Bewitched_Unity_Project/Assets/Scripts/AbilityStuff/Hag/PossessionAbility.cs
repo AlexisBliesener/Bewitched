@@ -41,10 +41,11 @@ public class PossessionAbility : MonoBehaviour
     private Image crossHair;
 
     [Header("Character References")]
+    // protected for test purposes
     [SerializeField, Tooltip("Reference to the Hag character script.")]
-    private Hag oldHag;
+    protected Hag eleth;
     [Tooltip("The current character that is being controlled (Hag or possessed enemy).")]
-    private Character currentCharacter;
+    protected Character currentCharacter;
 
     [Header("VFX")]
     [SerializeField, Tooltip("Highlights the enemy currently targeted for possession.")]
@@ -91,6 +92,8 @@ public class PossessionAbility : MonoBehaviour
     private EventInstance possessionSoundEffect;
     [Tooltip("Time when possession input started being held (-1 if not held).")]
     private float startedHoldTime = -1;
+    [Tooltip("The possession collider script")]
+    private PossessionCollider possessionCollider;
 
     #region Saving/Loading
     /// <summary>
@@ -158,10 +161,21 @@ public class PossessionAbility : MonoBehaviour
     {
         instance = this;
         Cursor.lockState = CursorLockMode.Locked;
-        currentCharacter = oldHag;
+        currentCharacter = eleth;
         CharacterControlChangeEvent += SwitchCharacter;
         currentPossessionAngle = startingPossessionAngle;
         currentPossesionDistance = startingPossessionDistance;
+
+        possessionCollider = GetComponentInChildren<PossessionCollider>();
+
+        if (possessionCollider != null)
+        {
+            possessionCollider.SetCurrentCharacter(currentCharacter);
+        }
+        else
+        {
+            Debug.LogWarning("The possession collider is not found!");
+        }
     }
 
     private void OnDisable()
@@ -193,10 +207,10 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Keep Hag aligned with possessed character
-        if (currentCharacter != oldHag)
+        if (currentCharacter != eleth)
         {
-            oldHag.transform.position = currentCharacter.transform.position;
-            oldHag.transform.rotation = currentCharacter.transform.rotation;
+            eleth.transform.position = currentCharacter.transform.position;
+            eleth.transform.rotation = currentCharacter.transform.rotation;
         }
     }
 
@@ -211,7 +225,7 @@ public class PossessionAbility : MonoBehaviour
             if (Time.time - timePossessionLastLeft >= possessionCooldown)
             {
                 timePossessionLastLeft = Time.time;
-                oldHag.AnimatePossess();
+                eleth.AnimatePossess();
                 StartCoroutine(FirePossession());
             }
         }
@@ -227,7 +241,7 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context"></param>
     public void LeaveEnemy(InputAction.CallbackContext context)
     {
-        if(currentCharacter != oldHag)
+        if(currentCharacter != eleth)
         {
             if (context.started)
             {
@@ -235,7 +249,7 @@ public class PossessionAbility : MonoBehaviour
                 {
                     // respawn old Hag
                     currentCharacter.SetControlled(false);
-                    CharacterControlChangeEvent?.Invoke(oldHag);
+                    CharacterControlChangeEvent?.Invoke(eleth);
                 }
                 else
                 {
@@ -292,7 +306,7 @@ public class PossessionAbility : MonoBehaviour
         // Possession fire VFX
         if(firingVFX != null)
         {
-            Instantiate(firingVFX, oldHag.transform.position + new Vector3(oldHag.transform.forward.x, 1f, oldHag.transform.forward.z), oldHag.transform.rotation);
+            Instantiate(firingVFX, eleth.transform.position + new Vector3(eleth.transform.forward.x, 1f, eleth.transform.forward.z), eleth.transform.rotation);
         }
         else
         {
@@ -428,9 +442,9 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
-        HealthController hagHealth = oldHag.GetComponent<HealthController>();
+        HealthController hagHealth = eleth.GetComponent<HealthController>();
         HealthController newHealth = newCharacter.GetComponent<HealthController>();
-        if (newCharacter == oldHag)
+        if (newCharacter == eleth)
         {
             if (hagHealth != null)
             {
@@ -440,7 +454,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (secondaryHealthBar != null)
             {
-                oldHag.EnableEleth();
+                eleth.EnableEleth();
                 secondaryHealthBar.SetActive(false);
             }
             currentCharacter.SetTeamID(2);
@@ -450,9 +464,9 @@ public class PossessionAbility : MonoBehaviour
             // Possession smoke VFX
             if (smokeCloudVFX != null)
             {
-                Instantiate(smokeCloudVFX, new Vector3(oldHag.transform.position.x,
-                    oldHag.transform.position.y + oldHag.GetComponent<CharacterController>().height / 2,
-                    oldHag.transform.position.z), oldHag.transform.rotation);
+                Instantiate(smokeCloudVFX, new Vector3(eleth.transform.position.x,
+                    eleth.transform.position.y + eleth.GetComponent<CharacterController>().height / 2,
+                    eleth.transform.position.z), eleth.transform.rotation);
             }
             else
             {
@@ -473,7 +487,7 @@ public class PossessionAbility : MonoBehaviour
                 if (secondaryHealthBar != null)
                 {
                     secondaryHealthBar.GetComponent<HealthBar>().Subscribe(newHealth);
-                    oldHag.DisableEleth();
+                    eleth.DisableEleth();
                     secondaryHealthBar.SetActive(true);
                 }
             }
@@ -484,5 +498,14 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter = newCharacter;
         currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
+
+        if (possessionCollider != null)
+        {
+            possessionCollider.SetCurrentCharacter(currentCharacter);
+        }
+        else
+        {
+            Debug.LogWarning("The possession collider is not found!");
+        }
     }
 }
