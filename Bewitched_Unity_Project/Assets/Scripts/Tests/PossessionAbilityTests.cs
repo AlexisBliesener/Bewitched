@@ -38,7 +38,7 @@ public class PossessionAbilityTests
         possessionAbility = possessionObj.AddComponent<MockPossssionAbility>();
 
         hag = new GameObject("Hag").AddComponent<MockHag>();
-        SetPrivate(possessionAbility, "oldHag", hag);
+        SetPrivate(possessionAbility, "eleth", hag);
         SetPrivate(possessionAbility, "currentCharacter", hag);
 
 
