@@ -42,9 +42,9 @@ public class PossessionAbility : MonoBehaviour
 
     [Header("Character References")]
     [SerializeField, Tooltip("Reference to the Hag character script.")]
-    protected Hag oldHag;
+    private Hag oldHag;
     [Tooltip("The current character that is being controlled (Hag or possessed enemy).")]
-    protected Character currentCharacter;
+    private Character currentCharacter;
 
     [Header("VFX")]
     [SerializeField, Tooltip("Highlights the enemy currently targeted for possession.")]
@@ -201,28 +201,33 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Handles input for starting or ending possession.
+    /// Handles input for starting or possession.
     /// </summary>
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (currentCharacter == oldHag)
+        if (context.started)
         {
-            if (context.started)
+            if (Time.time - timePossessionLastLeft >= possessionCooldown)
             {
-                if (Time.time - timePossessionLastLeft >= possessionCooldown)
-                {
-                    timePossessionLastLeft = Time.time;
-                    oldHag.AnimatePossess();
-                    StartCoroutine(FirePossession());
-                }
-            }
-            else
-            {
-                return;
+                timePossessionLastLeft = Time.time;
+                oldHag.AnimatePossess();
+                StartCoroutine(FirePossession());
             }
         }
         else
+        {
+             return;
+        }
+    }
+
+    /// <summary>
+    /// Handles input for ending possession
+    /// </summary>
+    /// <param name="context"></param>
+    public void LeaveEnemy(InputAction.CallbackContext context)
+    {
+        if(currentCharacter != oldHag)
         {
             if (context.started)
             {
@@ -306,9 +311,7 @@ public class PossessionAbility : MonoBehaviour
             if (possessionState == PossessionStates.canPossess)
             {
                 targetVFX.SetActive(true);
-                targetVFX.transform.position = new Vector3(currentPossessableEnemy.transform.position.x,
-                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
-                    currentPossessableEnemy.transform.position.z); ;
+                targetVFX.transform.position = currentPossessableEnemy.transform.position ;
             }
             else
             {
@@ -347,13 +350,6 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void UpdateState()
     {
-        // Can only possess if the player is currently eleth
-        if(currentCharacter != oldHag)
-        {
-            possessionState = PossessionStates.canNotPossess;
-            return;
-        }
-
         // Can only possess if the cooldown is over
         if(possessionCooldown - (Time.time - timePossessionLastLeft) > 0)
         {
@@ -367,7 +363,7 @@ public class PossessionAbility : MonoBehaviour
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
                 Vector3 playerForward = currentCharacter.transform.forward;
-                Vector3 toCharacter = (character.transform.position + Vector3.up) - currentCharacter.transform.position;
+                Vector3 toCharacter = character.transform.position - currentCharacter.transform.position;
 
                 playerForward = playerForward.normalized;
                 toCharacter = toCharacter.normalized;
@@ -378,9 +374,13 @@ public class PossessionAbility : MonoBehaviour
                 if (angle < currentPossessionAngle / 2.0f)
                 {
                     Ray possessionRay = new Ray(currentCharacter.transform.position, toCharacter);
+
+                    Debug.DrawRay(currentCharacter.transform.position, toCharacter);
+
                     RaycastHit hitInfo;
                     if (Physics.Raycast(possessionRay, out hitInfo, currentPossesionDistance, possessionMask))
                     {
+                        Debug.Log("hitinfor " + hitInfo.collider.name);
                         if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
                         {
                             distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));
@@ -413,14 +413,7 @@ public class PossessionAbility : MonoBehaviour
             return;
         }
 
-        if (currentCharacter == oldHag)
-        {
-            possessionCooldownDisplay.SetAbleToUse(true);
-        }
-        else
-        {
-            possessionCooldownDisplay.SetAbleToUse(false);
-        }
+        possessionCooldownDisplay.SetAbleToUse(true);
 
         possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
     }
