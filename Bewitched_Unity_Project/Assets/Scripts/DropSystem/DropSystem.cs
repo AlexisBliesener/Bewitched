@@ -262,11 +262,22 @@ public class DropSystem : MonoBehaviour
     /// </summary>
     /// <param name="drop"> Drop to buy </param>
     /// <param name="slotNumber"> Slot number to buy the drop in, if not passed it will add the drop in the first empty slot </param>
-    public void BuyUpgrade(DropData drop, int slotNumber = -1)
+    /// <returns> True if the upgrade was bought, false if the upgrade was not bought </returns>
+    public bool BuyUpgrade(DropData drop, int slotNumber = -1)
     {
-        if (drop == null) return;
-        if (slotNumber >= playerUpgrades.Count) return;
+        if (drop == null) return false;
+        if (slotNumber >= playerUpgrades.Count) return false;
+        if (SoulSystem.Instance == null) return false;
+        // check the value of the souls 
+        int currentSouls = SoulSystem.Instance.GetSoulCurrency();
 
+        if (currentSouls < drop.GetBuyAmount())
+        {
+            // Not enough souls to buy this drop
+            return false;
+        }
+        // Subtract souls from the player
+        SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
         if (slotNumber == -1)
         {
             // find the empty slot then set that slot number to the drop
@@ -283,7 +294,7 @@ public class DropSystem : MonoBehaviour
             if (slotNumber == -1)
             {
                 playerUpgrades.Add(drop);
-                return;
+                return true;
             }
         }
 
@@ -294,40 +305,47 @@ public class DropSystem : MonoBehaviour
         if (playerUpgrades[slotNumber] != null && playerUpgrades[slotNumber].CanStackWith(drop))
         {
             playerUpgrades[slotNumber].IncreaseStack();
-            return;
+            return true;
         }
         if (playerUpgrades[slotNumber] == null)
         {
             // add the new drop to the slot if it was empty
             playerUpgrades[slotNumber] = drop;
-            return;
+            return true;
         }
         // if it can't stack with the current drop then swap it with the new drop
         SwapDrop(drop, slotNumber);
+        return true;
     }
     /// <summary>
     /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
     /// if the slot han an item that has a stack count of more than 1, then remove 1 from the stack count
     /// if the stack count is 1, then remove it from the slot
     /// </summary>
-    public void SellUpgrade(int slotNumber)
+    /// <returns> True if the upgrade was sold, false if the upgrade was not sold </returns>
+    public bool SellUpgrade(int slotNumber)
     {
-        if (slotNumber >= playerUpgrades.Count) return;
-
+        if (slotNumber >= playerUpgrades.Count) return false;
+        if (SoulSystem.Instance == null) return false;
         if (playerUpgrades[slotNumber] != null)
         {
+            // Add the souls to the player
+            SoulSystem.Instance.AddSouls(playerUpgrades[slotNumber].GetSellAmount());
             // if the slot is not empty, and it has a stack, then remove 1 from the stack count
             // if the stack count is 0, then remove it from the slot
             if (playerUpgrades[slotNumber].GetStackCount() > 0)
             {
-               playerUpgrades[slotNumber].DecreaseStack();
+                playerUpgrades[slotNumber].DecreaseStack();
             }
             else
             {
                 playerUpgrades[slotNumber].Deactivate();
                 playerUpgrades[slotNumber] = null;
             }
+            return true;
         }
+
+        return false;
     }
     /// <summary>
     /// Salvage a drop from the player.

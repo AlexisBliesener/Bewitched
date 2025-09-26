@@ -9,7 +9,7 @@ public class SoulSystem : MonoBehaviour
 {
 
     // Singleton instance
-    public static SoulSystem Instance { get; private set; }
+    public static SoulSystem Instance { get; set; }
     [SerializeField, Tooltip("The soul prefab to instantiate")]
     private GameObject soulPrefab;
     [SerializeField, Tooltip("Current soul count")]
