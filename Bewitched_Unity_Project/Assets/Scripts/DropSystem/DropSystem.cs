@@ -123,8 +123,8 @@ public class DropSystem : MonoBehaviour
     {
         // Get three random drops
         DropData option1 = GetRandomDrop();
-        DropData option2 = GetRandomDrop();
-        DropData option3 = GetRandomDrop();
+        DropData option2 = GetRandomDrop(new List<DropData>() { option1 });
+        DropData option3 = GetRandomDrop(new List<DropData>() { option1, option2 });
         if (option1 == null || option2 == null || option3 == null) return;
 
         if(upgradeSelectionUI != null)
@@ -254,8 +254,7 @@ public class DropSystem : MonoBehaviour
         {
             pitySystem.OnUpgradesOffered(availableRarities[drop.GetRarityIndex()]);
         }
-        IDrop dropScript = drop.GetDropScript().GetComponent<IDrop>();
-        dropScript.Activate();
+        drop.Activate();
     }
     /// <summary>
     /// Buy an upgrade and it takes two parameters: the drop to buy and the slot number to buy it in
@@ -288,7 +287,7 @@ public class DropSystem : MonoBehaviour
             }
         }
 
-         
+
 
         // if the slot is not empty, check if the drop can stack with the current drops
         // if not, replace the current drop with the new drop 
@@ -297,9 +296,14 @@ public class DropSystem : MonoBehaviour
             playerUpgrades[slotNumber].IncreaseStack();
             return;
         }
-
-        // if it can't stack with the current drop then replace the current drop with the new drop or add the new drop to the slot if it was empty
-        playerUpgrades[slotNumber] = drop;
+        if (playerUpgrades[slotNumber] == null)
+        {
+            // add the new drop to the slot if it was empty
+            playerUpgrades[slotNumber] = drop;
+            return;
+        }
+        // if it can't stack with the current drop then swap it with the new drop
+        SwapDrop(drop, slotNumber);
     }
     /// <summary>
     /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
@@ -320,6 +324,7 @@ public class DropSystem : MonoBehaviour
             }
             else
             {
+                playerUpgrades[slotNumber].Deactivate();
                 playerUpgrades[slotNumber] = null;
             }
         }
@@ -333,6 +338,25 @@ public class DropSystem : MonoBehaviour
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
     }
+    /// <summary>
+    /// This function will deactives the whole stack and activates the new upgrade
+    /// </summary>
+    /// <param name="drop">The new drop to swap</param>
+    /// <param name="slotNumber">The slot number to swap the drop in</param>
+    public void SwapDrop(DropData drop, int slotNumber)
+    {
+        if (drop == null) return;
+        // Swap only if there is a real upgrade in the slot
+        if (playerUpgrades[slotNumber] == null) return;
+        // Deactivate the current upgrade
+        playerUpgrades[slotNumber].Deactivate();
+        // Reset the stack count of the current upgrade
+        playerUpgrades[slotNumber].ResetStack();
+        // Activate the new upgrade
+        playerUpgrades[slotNumber] = drop;
+        drop.Activate();
+    }
+
 
         #region Saving/Loading
 

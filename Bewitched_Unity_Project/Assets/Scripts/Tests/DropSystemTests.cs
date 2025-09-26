@@ -22,6 +22,11 @@ public class DropSystemTests
         {
             wasActivated = true;
         }
+
+        public void Deactivate()
+        {
+            wasActivated = false;
+        }
     }
     private GameObject dropSystemObject;
     private DropSystem dropSystem;
@@ -279,6 +284,27 @@ public class DropSystemTests
     }
 
     /// <summary>
+    /// Test that SelectDropsOption deactivates single drop correctly
+    /// </summary>
+    [Test]
+    public void SelectDropsOption_DeactivatesSingleDrop()
+    {
+        // Create mock drop that tracks activation/deactivation
+        DropData newDropData = new DropData();
+        GameObject newGameObject = new GameObject();
+        newGameObject.AddComponent<MockActivatableDrop>();
+        newDropData.SetDropScript(newGameObject);
+
+        dropSystem.SelectDropsOption(newDropData);
+
+        Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+        
+        newDropData.Deactivate();
+
+        Assert.IsFalse(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
+    }
+
+    /// <summary>
     /// Test that SelectDropsOption activate both drops when two are provided
     /// </summary>
     [Test]
@@ -309,6 +335,53 @@ public class DropSystemTests
         Assert.IsTrue(newGameObject1.GetComponent<MockActivatableDrop>().wasActivated);
         Assert.IsTrue(newGameObject2.GetComponent<MockActivatableDrop>().wasActivated);
         Assert.IsTrue(newGameObject3.GetComponent<MockActivatableDrop>().wasActivated);
+    }
+    /// <summary>
+    /// Test that SwapDrop replaces the old drop with the new one
+    /// </summary>
+    [Test]
+    public void SwapDrop_ReplacesOldWithNew()
+    {
+        DropData oldDrop = new DropData();
+        GameObject oldDropObj = new GameObject("OldDrop");
+        MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
+        oldDrop.SetDropScript(oldDropObj);
+        dropSystem.playerUpgrades.Add(oldDrop);
+
+        DropData newDrop = new DropData();
+        GameObject newDropObj = new GameObject("NewDrop");
+        MockActivatableDrop newScript = newDropObj.AddComponent<MockActivatableDrop>();
+        newDrop.SetDropScript(newDropObj);
+
+        dropSystem.SwapDrop(newDrop, 0);
+
+        Assert.AreEqual(newDrop, dropSystem.playerUpgrades[0]);
+        Assert.IsTrue(newScript.wasActivated); // New drop should be activated
+        Assert.IsFalse(oldScript.wasActivated); // Old drop should be deactivated
+    }
+
+    /// <summary>
+    /// Test that SwapDrop resets old drop stack
+    /// </summary>
+    [Test]
+    public void SwapDrop_ResetsOldDropStack()
+    {
+        // Arrange
+        DropData oldDrop = new DropData();
+        GameObject oldDropObj = new GameObject("OldDrop");
+        MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
+        oldScript.stackNum = 5; 
+        oldDrop.SetDropScript(oldDropObj);
+        dropSystem.playerUpgrades.Add(oldDrop);
+
+        DropData newDrop = new DropData();
+        GameObject newDropObj = new GameObject("NewDrop");
+        newDropObj.AddComponent<MockActivatableDrop>();
+        newDrop.SetDropScript(newDropObj);
+
+        dropSystem.SwapDrop(newDrop, 0);
+
+        Assert.AreEqual(0, oldScript.stackNum); // Old stack should be reset
     }
 
     /// <summary>

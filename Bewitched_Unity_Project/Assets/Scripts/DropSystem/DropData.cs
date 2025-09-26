@@ -62,6 +62,27 @@ public class DropData
         return dropScriptComponent;
     }
     /// <summary>
+    /// Activate the drop
+    /// </summary>
+    public void Activate()
+    {
+        GetDropScriptComponent().Activate();
+    }
+    /// <summary>
+    /// Deactivate the drop
+    /// </summary>
+    public void Deactivate()
+    {
+        GetDropScriptComponent().Deactivate();
+    }
+    /// <summary>
+    /// Reset the stack count of the drop
+    /// </summary>
+    public void ResetStack()
+    {
+        GetDropScriptComponent().stackNum = 0;
+    }
+
     /// Helper function to get the stack count of a drop
     /// </summary>
     /// <returns>The stack count of the drop</returns>
