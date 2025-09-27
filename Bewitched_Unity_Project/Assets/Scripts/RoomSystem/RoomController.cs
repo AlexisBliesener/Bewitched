@@ -40,7 +40,7 @@ public class RoomController : MonoBehaviour
     [Tooltip("The list of the doors found in the room, this is going to be used in the awake function to get IDoor components")]
     private List<IDoor> doors = new List<IDoor>();
     [Tooltip("The list of the enmies found in the bounds, you can add enemies to this list in the inspector")]
-    [SerializeField] private List<GameObject> roomEnemies = new List<GameObject>();
+    [SerializeField] public List<GameObject> roomEnemies = new List<GameObject>();
     [Tooltip("The current state of the room")]
     private RoomState currentState = RoomState.Inactive;
     [Tooltip("The state of the door (lock/unlock)")]
