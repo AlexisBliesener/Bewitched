@@ -24,6 +24,8 @@ public abstract class Character : MonoBehaviour
     public float approachSpeed = 7;
     [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
     private float jumpSpeed;
+    [SerializeField, Tooltip("How long to wait before doing a jump")]
+    private float jumpDelay;
     [Tooltip("Acceleration of the Character")]
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
@@ -99,15 +101,17 @@ public abstract class Character : MonoBehaviour
     protected Vector3 velocity = Vector3.zero;
     protected Vector3 velocityToMove = Vector3.zero;
 
-    private int currentPrimaryComboStep = 0;
+    protected int currentPrimaryComboStep = 0;
 
-    [Tooltip("The Cinemachine FreeLook camera used for third-person movement.")]
-    private CinemachineFreeLook freeLookCam;
-    [Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
-    private CinemachineVirtualCamera virtualCam;
+    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
+    private CinemachineFreeLook combatCam;
+    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
+    private CinemachineVirtualCamera aimCam;
+    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
+    private CinemachineFreeLook exploreCam;
 
     [Tooltip("The script that controls chaning animation states")]
-    private CharacterAnimator characterAnimator;
+    protected CharacterAnimator characterAnimator;
 
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
     [SerializeField] private List<string> effectJSONs = new List<string>();
@@ -220,9 +224,30 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        freeLookCam = GetComponentInChildren<CinemachineFreeLook>();
-        virtualCam = GetComponentInChildren<CinemachineVirtualCamera>();
-
+        if(combatCam != null)
+        {
+            combatCam.Priority = 0;
+        }
+        else
+        {
+            Debug.LogWarning("Combat cam is not set!");
+        }
+        if (aimCam != null)
+        {
+            aimCam.Priority = 1;
+        }
+        else
+        {
+            Debug.LogWarning("Aim cam is not set!");
+        }
+        if (exploreCam != null)
+        {
+            exploreCam.Priority = 2;
+        }
+        else
+        {
+            Debug.LogWarning("Explore cam is not set!");
+        }
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
@@ -242,22 +267,42 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+
     /// <summary>
-    /// Returns the Cinemachine FreeLook camera associated with this character.
+    /// Returns the amount of time to wait before doing a jump
+    /// For animation purposes
     /// </summary>
-    /// <returns>The FreeLook Cinemachine camera.</returns>
-    public CinemachineFreeLook GetFreeLookCam()
+    /// <returns>The amount of time to wait before doing a jump </returns>
+    public float GetJumpDelay()
     {
-        return freeLookCam;
+        return jumpDelay;
     }
 
     /// <summary>
-    /// Returns the Cinemachine Virtual Camera associated with this character.
+    /// Returns the Cinemachine Combat camera associated with this character.
+    /// </summary>
+    /// <returns>The FreeLook Cinemachine camera.</returns>
+    public CinemachineFreeLook GetCombatCam()
+    {
+        return combatCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Aim Camera associated with this character.
     /// </summary>
     /// <returns>The Virtual Cinemachine camera.</returns>
-    public CinemachineVirtualCamera GetVirtualCam()
+    public CinemachineVirtualCamera GetAimCam()
     {
-        return virtualCam;
+        return aimCam;
+    }
+
+    /// <summary>
+    /// Returns the Cinemachine Explore Camera associated with this character.
+    /// </summary>
+    /// <returns>The Virtual Cinemachine camera.</returns>
+    public CinemachineFreeLook GetExploreCam()
+    {
+        return exploreCam;
     }
 
     /// <summary>
@@ -286,7 +331,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.death);
+        characterAnimator.SwitchState("Death");
     }
 
     public virtual void PrimaryAttack()
@@ -299,6 +344,10 @@ public abstract class Character : MonoBehaviour
 
     public abstract void Die();
 
+    /// <summary>
+    /// Return the jump speed of this character
+    /// </summary>
+    /// <returns>The jump speed of this character</returns>
     public float GetJumpSpeed()
     {
         return jumpSpeed;
@@ -355,6 +404,14 @@ public abstract class Character : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         if (PlayerController.instance != null)
             PlayerController.instance.SetAllowMovement(true);
+    }
+
+    /// <summary>
+    /// Sets the characters animation state to jump
+    /// </summary>
+    public void Jump()
+    {
+        characterAnimator.SwitchState("Jump");
     }
 
     public IEnumerator StartTime(float stopTime)
@@ -427,8 +484,8 @@ public abstract class Character : MonoBehaviour
 
             currentPrimaryComboStep += 1;
 
-            characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
-            yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.primaryAttack));
+            characterAnimator.SwitchState("PrimaryAttack");
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
 
             PrimaryAttack();
         }
@@ -436,18 +493,13 @@ public abstract class Character : MonoBehaviour
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.secondaryAttack);
-        yield return StartCoroutine(characterAnimator.WaitForDelay(CharacterAnimator.AnimationStates.secondaryAttack));
+        characterAnimator.SwitchState("SecondaryAttack");
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
         if (gameObject)
         {
             SecondaryAttack();
 
         }
-    }
-
-    public void AnimatePrimary()
-    {
-        characterAnimator.SwitchState(CharacterAnimator.AnimationStates.primaryAttack);
     }
 
     public virtual void Explode()
@@ -459,17 +511,6 @@ public abstract class Character : MonoBehaviour
     {
         return new Vector3(0, 0, 0);
     }
-
-    //public void AnimateMove()
-    //{
-    //    if (characterAnimator)
-    //    {
-    //        if (!characterAnimator..GetCurrentAnimatorStateInfo(0).IsName("Run") && !CheckInAnimations())
-    //        {
-    //            animator.SetTrigger("StartRunning");
-    //        }
-    //    }
-    //}
 
     public void EndAttacks()
     {
@@ -486,8 +527,6 @@ public abstract class Character : MonoBehaviour
     {
         attackingSecondary = val;
     }
-
-
 
     /// <summary>
     /// Create surrounding points for AI navigation

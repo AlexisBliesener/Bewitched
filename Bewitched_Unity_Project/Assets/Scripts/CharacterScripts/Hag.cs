@@ -20,9 +20,18 @@ public class Hag : Character
     [Tooltip("Wall Layermask")]
     [SerializeField] LayerMask environment;
     [SerializeField] GameObject knockBackCone;
+    [SerializeField, Tooltip("Objects to disable when eleth is possessing an enemy")]
+    private GameObject[] objectsToDisable;
 
     [Tooltip("The animator controller for eleth character")]
     private ElethAnimator elethAnimator;
+    //The character controller component that controls the hag. For accessing hitbox.
+    CharacterController controller;
+
+    [Tooltip("Death UI Pop-up Screen")]
+    public GameObject deathUI;
+
+
 
     private void Start()
     {
@@ -41,6 +50,10 @@ public class Hag : Character
             knockBackCone.SetActive(false);
         }
         else throw new System.Exception("Hag Knockback Cone Not Assigned!");
+        if (!TryGetComponent(out controller))
+        {
+            Debug.LogError("Eleth doesn't have a CharacterController component!");
+        }
     }
 
     public override IEnumerator BeginPrimary()
@@ -80,6 +93,30 @@ public class Hag : Character
     }
 
     /// <summary>
+    /// When the player is done possessing calling this disables Eleth
+    /// </summary>
+    public void DisableEleth()
+    {
+        foreach (GameObject go in objectsToDisable)
+        {
+            go.SetActive(false);
+        }
+        controller.detectCollisions = false;
+    }
+
+    /// <summary>
+    /// When the player is done possessing calling this enables Eleth
+    /// </summary>
+    public void EnableEleth()
+    {
+        foreach (GameObject go in objectsToDisable)
+        {
+            go.SetActive(true);
+        }
+        controller.detectCollisions = true;
+    }
+
+    /// <summary>
     /// Called when Eleth dies
     /// Fires death animation and music
     /// Stops movement
@@ -103,7 +140,8 @@ public class Hag : Character
     public override void Die()
     {
         StopAllCoroutines();
-        SceneManager.LoadScene(0);
+        deathUI.SetActive(true);
+        //SceneManager.LoadScene(0); // go back to main menu
     }
 
     private void Update()
@@ -148,7 +186,7 @@ public class Hag : Character
     /// </summary>
     public void AnimatePossess()
     {
-        elethAnimator.SwitchState(ElethAnimator.AnimationStates.possession);
+        elethAnimator.SwitchState("Possession");
     }
 
     public void Blink()

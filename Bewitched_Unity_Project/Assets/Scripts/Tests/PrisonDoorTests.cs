@@ -100,11 +100,11 @@ public class PrisonDoorTests
         prisonDoor.Unlock();
 
         // Wait halfway through animation
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.5f);
         Assert.IsFalse(boxCollider.enabled, "Collider should be disabled halfway through Unlock()");
 
         // Wait full duration
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.5f);
         Assert.AreNotEqual(initialPos, doorModel.transform.position, "Door position should change after Unlock()");
         Assert.Greater(doorModel.transform.position.y, initialPos.y, "Door should have moved upwards");
     }

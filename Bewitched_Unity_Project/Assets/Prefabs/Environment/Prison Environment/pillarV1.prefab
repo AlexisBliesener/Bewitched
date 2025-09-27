@@ -9,6 +9,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5
       objectReference: {fileID: 0}
@@ -48,6 +52,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: d851ab8d35aef184c80dd93953d6d358, type: 2}
     - target: {fileID: 919132149155446097, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
       propertyPath: m_Name
       value: pillarV1
@@ -55,6 +63,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
       propertyPath: m_Layer
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cd4e027d399073642883dcc5e522f7cc, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -88,5 +100,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 190.92203, y: 190.10793, z: 379.66217}
-  m_Center: {x: -104.8651, y: -104.865234, z: -189.83116}
+  m_Size: {x: 2.1260262, y: 3.9467428, z: 2.0827484}
+  m_Center: {x: -1.045625, y: 1.9525629, z: -1.0404587}

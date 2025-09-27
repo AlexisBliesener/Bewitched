@@ -81,7 +81,7 @@ public abstract class Enemy : Character
     protected bool playerInSightRange, currentInSightRange, targetInSightRange = false;
     protected bool targetInPrimaryRange = false;
 
-    protected bool playerControlling = false; // flag for determining actions (player or AI)
+    [SerializeField,NaughtyAttributes.ReadOnly]protected bool playerControlling = false; // flag for determining actions (player or AI)
 
     protected Vector3 walkPoint;
 
@@ -315,9 +315,11 @@ public abstract class Enemy : Character
         {
             // Drop the upgrade only if the enemy is dead and the player is not controlling it
             DropSystem.Instance.TryDropItem(transform.position);
+            // Spawn soul on death
+            SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
-        GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
+        //GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
