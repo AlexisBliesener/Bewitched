@@ -30,6 +30,7 @@ public class AudioManager : MonoBehaviour
     void OnDestroy()
     {
         if (levelMusic.isValid()) levelMusic.stop(FMOD.Studio.STOP_MODE.IMMEDIATE); 
+         RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
     }
 
     /// <summary>

@@ -66,6 +66,8 @@ public class UpgradeSelectionManager : MonoBehaviour
         }
         
         StartCoroutine(SetFirstButtonDelay());
+        //Audio
+        AudioManager.TryPlayOneShot("UpgradeOpen");
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
     }
@@ -138,6 +140,8 @@ public class UpgradeSelectionManager : MonoBehaviour
             {
                 DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
                 CloseScreen();
+                //Audio
+                AudioManager.TryPlayOneShot("UpgradeSelect");
             });
         }
 
