@@ -25,6 +25,17 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        
+        shopUpgradeButtons = ShopUI.GetComponentsInChildren<Button>(true);
+    }
+
+    /// <summary>
+    /// Shows the screen on enable, allows player to use cursor to navigate the screen
+    /// </summary>
+    private void OnEnable()
+    {
+        ShopUI.SetActive(true);
+
         // Subscribing to the random upgrades
         if (DropSystem.Instance != null)
         {
@@ -35,14 +46,6 @@ public class ShopManager : MonoBehaviour
             Debug.LogWarning("DropSystem.Instance not found.");
         }
 
-    }
-
-    /// <summary>
-    /// Shows the screen on enable, allows player to use cursor to navigate the screen
-    /// </summary>
-    private void OnEnable()
-    {
-        ShopUI.SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
@@ -54,21 +57,30 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
+        if (DropSystem.Instance != null)
+        {
+            DropSystem.Instance.OnShopAlterInteract -= UpdateShopOptions;
+        }
+
         EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+    /// <summary>
+    /// Updated the placeholder shop buttons with the name and icons of the random drops that can be bought.
+    /// </summary>
     private void UpdateShopOptions(List<DropData> options)
     {
+
         if (options == null || options.Count < 5)
         {
             Debug.LogWarning("Not enough shop options.");
         }
+
         for (int i = 0; i < 5; i++)
         {
             DropData shopUpgrade = options[i];
-            Debug.Log(options[i].GetDropName());
 
             // Attach button text
             TMP_Text buttonText = shopUpgradeButtons[i].GetComponentInChildren<TMP_Text>(true);

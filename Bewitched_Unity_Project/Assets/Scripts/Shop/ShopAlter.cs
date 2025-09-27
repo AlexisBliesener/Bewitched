@@ -47,11 +47,17 @@ public class ShopAlter : MonoBehaviour, IInteract
         {
             randomDrops.Add(DropSystem.Instance.GetRandomDrop(randomDrops));
         }
-        DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
-        if(shopUI != null)
+
+        if (shopUI != null)
         {
             shopUI.SetActive(true);
         }
+        else
+        {
+            Debug.LogWarning("ShopUI gameObject not assigned.");
+        }
+
+        DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
     }
 
     public GameObject GetGameObject() => gameObject;
