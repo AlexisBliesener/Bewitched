@@ -128,7 +128,8 @@ public abstract class Enemy : Character
         Surrounding, // Staying in range of the player
         Retreating, // Post attack, return to safe distance
         Blocked, // For attacking, stun, etc. the character does not move or look
-        Targeted // For now does nothing to keep enemy in place, in future allows for dodging/countering
+        Targeted, // For now does nothing to keep enemy in place, in future allows for dodging/countering
+        PlayerControlled // For when the player is controlling this enemy, should not be AI controlled
     }
 
     [Tooltip("The Current AI State of the enemy")]
@@ -145,6 +146,8 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
+        if (aiState == AIMovementState.PlayerControlled) return;
+
         if (currentPath == null) // No path, decelerate to 0
         {
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
@@ -211,6 +214,8 @@ public abstract class Enemy : Character
     /// </summary>
     public void AILook()
     {
+        if (aiState == AIMovementState.PlayerControlled) return;
+
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
@@ -285,10 +290,13 @@ public abstract class Enemy : Character
         {
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
+            aiState = AIMovementState.PlayerControlled;
+            pathState = PathState.Unset;
         }
         else
         {
             agent.enabled = true;
+            aiState = AIMovementState.Patrolling;
         }
     }
     public override void Die()
@@ -464,7 +472,6 @@ public abstract class Enemy : Character
                 walkPoint = hit.position;
                 walkPointSet = true;
                 agent.SetDestination(walkPoint);
-               // AnimateMove();
 
                 if (debugging)
                 {

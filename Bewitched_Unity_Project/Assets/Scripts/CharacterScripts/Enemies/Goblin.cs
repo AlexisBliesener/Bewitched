@@ -98,10 +98,9 @@ public class Goblin : Enemy
     private void FixedUpdate()
     {
         currentPlayer = playerController.GetCurrentCharacter();
-        if (!playerControlling)
-        {
+   
             SetBehavior();
-        }
+        
         HandleHitStun();
     }
 

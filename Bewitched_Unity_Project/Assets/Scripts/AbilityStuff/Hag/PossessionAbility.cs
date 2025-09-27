@@ -278,8 +278,8 @@ public class PossessionAbility : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         if (target)
         {
-            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
 
             // Possession smoke VFX
             if(smokeCloudVFX != null)
