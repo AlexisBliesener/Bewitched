@@ -9,6 +9,7 @@ namespace FMODUnity
         [SerializeField]
         private bool nonRigidbodyVelocity = false;
 
+        [SerializeField]
         public GameObject attenuationObject = null;
 
         private Vector3 lastFramePosition = Vector3.zero;
