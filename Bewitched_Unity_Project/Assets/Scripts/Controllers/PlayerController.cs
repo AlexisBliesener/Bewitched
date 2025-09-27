@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
-    public Vector2 input;
+    public Vector2 movementInput;
 
     public Vector3 direction;
 
@@ -133,7 +133,7 @@ public class PlayerController : MonoBehaviour
 
         if (allowMovement)
         {
-            if (input.sqrMagnitude > 0.01)
+            if (movementInput.sqrMagnitude > 0.01)
             {
                 if (CameraController.GetIsAiming())
                 {
@@ -245,7 +245,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 inputDirection;
 
-        if (input.sqrMagnitude > 0.01)
+        if (movementInput.sqrMagnitude > 0.01)
         {
             inputDirection = Camera.main.transform.TransformDirection(direction);
         }
@@ -259,8 +259,8 @@ public class PlayerController : MonoBehaviour
 
     public void Move(InputAction.CallbackContext context)
     {
-        input = context.ReadValue<Vector2>();
-        direction = new Vector3(input.x, 0, input.y).normalized;
+        movementInput = context.ReadValue<Vector2>();
+        direction = new Vector3(movementInput.x, 0, movementInput.y).normalized;
     }
 
     public void PrimaryFire(InputAction.CallbackContext context)
@@ -412,52 +412,38 @@ public class PlayerController : MonoBehaviour
         primaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownPrimary());
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
     }
+
     
     /// <summary>
     /// Targets the closest enemy to the input direction if it is within a range
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 desired;
+        Vector3 camForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
+        camForward = camForward.normalized;
 
-        if (velocity.magnitude < 0.01f)
+        Vector3 camRight = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z);
+        camRight = camRight.normalized;
+
+        Vector3 inputDirection =  camForward * movementInput.y + camRight * movementInput.x;
+        inputDirection = inputDirection.normalized;
+
+        Debug.DrawRay(currentCharacter.transform.position, inputDirection, Color.red);
+
+        RaycastHit info;
+
+        if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 10, enemyLayerMask))
         {
-            desired = currentCharacter.transform.forward.normalized;
-        }
-        else
-        {
-            desired = Camera.main.transform.TransformDirection(direction).normalized;
-        }
-
-        desired.y = 0;
-
-        Collider[] hits = Physics.OverlapSphere(currentCharacter.transform.position, targetingRange, enemyLayerMask);
-
-        Debug.DrawRay(currentCharacter.transform.position, desired * 3, Color.green);
-
-        Enemy bestTarget = null;
-        float bestDot = -1;
-
-        foreach (Collider hit in hits)
-        {
-            if (hit.TryGetComponent(out Enemy enemy))
+            if(info.collider.transform.GetComponent<Enemy>())
             {
-                Vector3 toEnemy = (currentCharacter.transform.position - enemy.transform.position).normalized;
-                float dot = Vector3.Dot(desired, toEnemy);
-
-                if (dot > bestDot)
-                {
-                    bestDot = dot;
-                    bestTarget = enemy;
-                }
+                lockedCharacter = info.collider.transform.GetComponent<Enemy>();
             }
         }
 
-        if (bestTarget)
+        if (lockedCharacter)
         {
-            Debug.DrawRay(currentCharacter.transform.position, bestTarget.transform.position - currentCharacter.transform.position, Color.red);
+            Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.red);
         }
-        lockedCharacter = bestTarget;
     }
 
     /// <summary>
