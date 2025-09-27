@@ -111,7 +111,7 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
-    protected enum PathState
+    public enum PathState
     {
         Unset,
         Searching,
@@ -119,9 +119,9 @@ public abstract class Enemy : Character
     }
 
     [Tooltip("Current path state")]
-    protected PathState pathState = PathState.Unset;
+    public PathState pathState = PathState.Unset;
 
-    protected enum AIMovementState
+    public enum AIMovementState
     {
         Patrolling, // Before spotting player
         Chasing, // Reaching the player
@@ -132,7 +132,7 @@ public abstract class Enemy : Character
     }
 
     [Tooltip("The Current AI State of the enemy")]
-    protected AIMovementState aiState = AIMovementState.Patrolling;
+    public AIMovementState aiState = AIMovementState.Patrolling;
 
     [Tooltip("Point relative to player for enemy to navigate towards")]
     protected Vector3 chasePoint;
@@ -145,15 +145,6 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
-        if (velocity.magnitude >= 0.01f)
-        {
-            //AnimateMove();
-        }
-        else
-        {
-          //  AnimateIdle();
-        }
-
         if (currentPath == null) // No path, decelerate to 0
         {
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
@@ -319,7 +310,7 @@ public abstract class Enemy : Character
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
-        //GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
+        GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"

@@ -253,12 +253,6 @@ public class Goblin : Enemy
 
         yield return new WaitForSeconds(0.25f);
 
-        if (!hitCharacter) // If missed, vulnerable for half a second
-        {
-            yield return new WaitForSeconds(0.5f);
-        }
-        float timeStarted = Time.time;
-
         //Sound Effect
         if (AudioManager.TryGetReference("GoblinPrimary", out EventReference evRef))
         {
@@ -270,12 +264,9 @@ public class Goblin : Enemy
             ev.release();
         }
 
-        while (Time.time - timeStarted < (3 * knifeDuration / 4)) // Accelerate forward 3/4 the attack
+        if (!hitCharacter) // If missed, vulnerable for half a second
         {
-            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
-            stabVelocity = Vector3.Lerp(stabVelocity, targetVelocity, Time.deltaTime / (3 * knifeDuration / 4));
-            GetComponent<CharacterController>().Move(stabVelocity * Time.deltaTime);
-            yield return null;
+            yield return new WaitForSeconds(0.5f);
         }
 
         if (!playerControlling)
@@ -723,22 +714,6 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        StopIdleAudio();
-        if (LookForPlayer()) // Constantly look for player
-        {
-            StartCoroutine(SpotPlayer());
-            return;
-        }
-        else if (RequestLocation())
-        {
-            StartCoroutine(SpotPlayer(fromGoblin: true));
-            return;
-        }
-
-        if (CanHearTarget(currentPlayer.transform)) // Constantly listen for player
-        {
-            TransitionToSearch(); // Resets last player position
-        }
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
@@ -762,6 +737,7 @@ public class Goblin : Enemy
             }
         }
     }
+
 
     /// <summary>
     /// Function that tells Goblins to communicate the player's location with each other
@@ -804,9 +780,10 @@ public class Goblin : Enemy
         base.DeflectVelocity(direction);
         velocityToMove = direction.normalized;
         velocityToMove.y = 0;
-        velocityToMove = velocityToMove.normalized;
+        velocityToMove =
+            velocityToMove.normalized;
     }
-       /// <summary>
+    /// <summary>
     /// Handles Goblin attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
@@ -877,6 +854,7 @@ public class Goblin : Enemy
         }
         base.SetControlled(val);
     }
+
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing
     /// </summary>
@@ -888,6 +866,7 @@ public class Goblin : Enemy
             idleAudio = new();
         }
     }
+
     //Override to implement Goblin's hit sound effect
     protected override void OnDamaged(float amount)
     {
