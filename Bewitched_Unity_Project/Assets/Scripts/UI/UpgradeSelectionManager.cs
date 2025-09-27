@@ -66,8 +66,9 @@ public class UpgradeSelectionManager : MonoBehaviour
         }
         
         StartCoroutine(SetFirstButtonDelay());
-        //Audio
+        //Plays UpgradeOpen and ducks audio
         AudioManager.TryPlayOneShot("UpgradeOpen");
+        AudioManager.OpenUIAudio(0.8f);
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
     }
@@ -140,7 +141,7 @@ public class UpgradeSelectionManager : MonoBehaviour
             {
                 DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
                 CloseScreen();
-                //Audio
+                //Plays upgrade select sound effect
                 AudioManager.TryPlayOneShot("UpgradeSelect");
             });
         }
@@ -159,6 +160,8 @@ public class UpgradeSelectionManager : MonoBehaviour
     /// </summary>
     public void CloseScreen()
     {
+        //Fades in the rest of audio
+        AudioManager.CloseUIAudio(1f);
         this.gameObject.SetActive(false);
     }
 }
