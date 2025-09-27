@@ -90,6 +90,13 @@ public class GraphBuilder : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        StartCoroutine(HandleSearching()); //What was causing long start time
+    }
+    /// <summary>
+    /// Create an instance in awake since the awake function called before the start function
+    /// </summary>
+    void Awake()
+    {
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -97,10 +104,7 @@ public class GraphBuilder : MonoBehaviour
         }
 
         instance = this;
-
-        StartCoroutine(HandleSearching()); //What was causing long start time
     }
-
     // Update is called once per frame
     void Update()
     {

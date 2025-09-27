@@ -307,7 +307,7 @@ public class DropSystemTests
         dropSystem.SelectDropsOption(newDropData);
 
         Assert.IsTrue(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
-
+			
         newDropData.Deactivate();
 
         Assert.IsFalse(newGameObject.GetComponent<MockActivatableDrop>().wasActivated);
