@@ -7,6 +7,9 @@ using UnityEngine;
 // It will trigger the interaction event when the player is near the shop alter
 public class ShopAlter : MonoBehaviour, IInteract
 {
+    [Tooltip("The UI screen for shopping for upgrades.")]
+    public GameObject shopUI;
+
     /// <summary>
     /// It will set the object of the shop alter in the player controller, and show the interact UI
     /// </summary>
@@ -34,7 +37,7 @@ public class ShopAlter : MonoBehaviour, IInteract
     }
     /// <summary>
     /// This is called when the player interacts with the interactable object
-    /// It will trigger the interaction event
+    /// It will trigger the interaction event and shop UI.
     /// </summary>
     public void Interact()
     {
@@ -45,6 +48,10 @@ public class ShopAlter : MonoBehaviour, IInteract
             randomDrops.Add(DropSystem.Instance.GetRandomDrop(randomDrops));
         }
         DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
+        if(shopUI != null)
+        {
+            shopUI.SetActive(true);
+        }
     }
 
     public GameObject GetGameObject() => gameObject;

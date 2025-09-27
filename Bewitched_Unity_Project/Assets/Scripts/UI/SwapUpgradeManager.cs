@@ -24,8 +24,8 @@ public class SwapUpgradeManager : MonoBehaviour
     private List<DropData> playerUpgrades;
 
     [Header("Buttons")]
-    [Tooltip("List of buttons for the upgrades that can be swapped")]
-    private Button[] playerUpgradeButtons;
+    [Tooltip("List of placeholder buttons for the upgrades that can be swapped")]
+    private Button[] swapUpgradeButtons;
     [Tooltip("The first button to be selected when menu is opened.")]
     public GameObject firstButton;
 
@@ -35,6 +35,7 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        // Getting the player acquired upgrades
         if (DropSystem.Instance != null)
         {
             playerUpgrades = DropSystem.Instance.playerUpgrades;
@@ -44,9 +45,10 @@ public class SwapUpgradeManager : MonoBehaviour
             Debug.LogWarning("DropSystem.Instance not found.");
             playerUpgrades = new List<DropData>();
         }
-        // Get buttons
-        playerUpgradeButtons = SwapUpgradeUI.GetComponentsInChildren<Button>(true);
-        if (playerUpgradeButtons.Length == 5)
+
+        // Get swap upgrade placeholder buttons
+        swapUpgradeButtons = SwapUpgradeUI.GetComponentsInChildren<Button>(true);
+        if (swapUpgradeButtons.Length == 5)
         {
             UpdateSwappableUpgrades();
         }
@@ -84,10 +86,10 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void UpdateSwappableUpgrades()
     {
-        for (int i = 0; i < playerUpgradeButtons.Length; i++)
+        for (int i = 0; i < swapUpgradeButtons.Length; i++)
         {
             // Attach button text
-            TMP_Text buttonText = playerUpgradeButtons[i].GetComponentInChildren<TMP_Text>(true);
+            TMP_Text buttonText = swapUpgradeButtons[i].GetComponentInChildren<TMP_Text>(true);
             if (buttonText != null)
             {
                 buttonText.text = playerUpgrades[i].GetDropName();
@@ -98,7 +100,7 @@ public class SwapUpgradeManager : MonoBehaviour
             }
 
             // Attach button icon
-            Image buttonIcon = playerUpgradeButtons[i].GetComponent<Image>();
+            Image buttonIcon = swapUpgradeButtons[i].GetComponent<Image>();
             if (buttonIcon != null)
             {
                 buttonIcon.sprite = playerUpgrades[i].GetIcon();
@@ -108,9 +110,9 @@ public class SwapUpgradeManager : MonoBehaviour
                 Debug.LogWarning($"Cannot attach drop icon {playerUpgrades[i].GetDropName()} to button");
             }
 
-            playerUpgradeButtons[i].onClick.RemoveAllListeners();
+            swapUpgradeButtons[i].onClick.RemoveAllListeners();
             int capturedIndex = i;
-            playerUpgradeButtons[i].onClick.AddListener(() =>
+            swapUpgradeButtons[i].onClick.AddListener(() =>
             {
                 // Need to add in disabling the upgrade that got swapped
                 // This is the old upgrade that needs to be disabled
