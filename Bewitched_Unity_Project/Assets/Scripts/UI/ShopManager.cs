@@ -146,7 +146,6 @@ public class ShopManager : MonoBehaviour
             {
                 // Line below adds item automatically, but need to check souls
                 // DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
-                CloseScreen();
             });
         }
     }
@@ -154,65 +153,82 @@ public class ShopManager : MonoBehaviour
 
     private void UpdateSellOptions()
     {
-
-        for (int i = 0; i < sellUpgradeButtons.Length; i++)
+        if (HUDManager.Instance == null)
         {
-            if (i < playerUpgrades.Count)
+            Debug.LogWarning("HUDManager instance not found.");
+            return;
+        }
+        Transform parent = HUDManager.Instance.upgradeIconParent;
+        int i = 0;
+
+        foreach (Transform stack in parent)
+        {
+            if (i >= sellUpgradeButtons.Length - 1) break; // last button is a menu switch button
+
+            string upgradeName = stack.name.Replace("_Stack", "");
+            DropData upgrade = playerUpgrades.Find(u => u != null && u.GetDropName() == upgradeName);
+            if (upgrade == null) continue;
+
+            int stackCount = stack.childCount;
+            Button button = sellUpgradeButtons[i];
+            button.gameObject.SetActive(true);
+
+            // Attach button text for name and price
+            TMP_Text[] buttonText = button.GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in buttonText)
             {
-                sellUpgradeButtons[i].gameObject.SetActive(true);
-
-                // Attach button text for name and price
-                TMP_Text[] buttonText = sellUpgradeButtons[i].GetComponentsInChildren<TMP_Text>(true);
-                foreach (var t in buttonText)
+                if (t != null)
                 {
-                    if (t != null)
+                    if (t.name == "Name")
                     {
-                        if (t.name == "Name")
-                        {
-                            t.text = playerUpgrades[i].GetDropName();
-                        }
-                        else if (t.name == "SellPrice")
-                        {
-                            t.text = playerUpgrades[i].GetSellAmount().ToString();
-                        }
+                        t.text = $"{upgrade.GetDropName()} x{stackCount}";
                     }
-                    else
+                    else if (t.name == "SellPrice")
                     {
-                        Debug.LogWarning($"Cannot attach drop name {playerUpgrades[i].GetDropName()} and drop price {playerUpgrades[i].GetBuyAmount()} to button");
+                        t.text = (upgrade.GetSellAmount() * stackCount).ToString();
                     }
-                }
-
-
-                // Attach button icon
-                Image buttonIcon = sellUpgradeButtons[i].GetComponent<Image>();
-                if (buttonIcon != null)
-                {
-                    buttonIcon.sprite = playerUpgrades[i].GetIcon();
                 }
                 else
                 {
-                    Debug.LogWarning($"Cannot attach drop icon {playerUpgrades[i].GetDropName()} to button");
+                    Debug.LogWarning($"Cannot attach drop name {playerUpgrades[i].GetDropName()} and drop price {playerUpgrades[i].GetBuyAmount()} to button, text gameObject null.");
                 }
+            }
 
-                sellUpgradeButtons[i].onClick.RemoveAllListeners();
-                int capturedIndex = i;
-                sellUpgradeButtons[i].onClick.AddListener(() =>
-                {
-                    // Need to add in disabling the upgrade that got swapped
-                    // This is the old upgrade that needs to be disabled
-                    // DropSystem.Instance.SelectDropsOption(playerUpgrades[capturedIndex]); 
 
-                    // Add in enabling the new upgrade (not on the swappable screen)
-
-                    CloseScreen();
-                });
+            // Attach button icon
+            Image buttonIcon = button.GetComponent<Image>();
+            if (buttonIcon != null)
+            {
+                buttonIcon.sprite = upgrade.GetIcon();
             }
             else
             {
-                sellUpgradeButtons[i].gameObject.SetActive(false);
+                Debug.LogWarning($"Cannot attach drop icon {playerUpgrades[i].GetDropName()} to button");
             }
+
+            button.onClick.RemoveAllListeners();
+            DropData capturedUpgrade = upgrade;
+            button.onClick.AddListener(() =>
+            {
+                int slotIndex = playerUpgrades.FindIndex(u => u != null && u.GetID() == capturedUpgrade.GetID());
+
+                if (slotIndex >= 0 && DropSystem.Instance.SellUpgrade(slotIndex))
+                {
+                    UpdateSellOptions();
+                }
+
+            });
+
+            i++;
         }
-        sellUpgradeButtons[5].gameObject.SetActive(true);
+
+        for (int j = i; j < sellUpgradeButtons.Length - 1; j++)
+        {
+            sellUpgradeButtons[j].gameObject.SetActive(false);
+
+        }
+        sellUpgradeButtons[sellUpgradeButtons.Length - 1].gameObject.SetActive(true);
+
     }
 
 
