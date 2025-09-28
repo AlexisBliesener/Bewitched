@@ -21,6 +21,26 @@ public class DropData
     [SerializeField] private GameObject dropScript;
     [Tooltip("The IDrop script of the drop to avoid GetComponent<IDrop>() calls which is a little bit expensive")]
     private IDrop dropScriptComponent;
+    [SerializeField,Tooltip("The amount to buy this drop")]
+    private int buyAmount;
+    [SerializeField,Tooltip("The amount to sell this drop")]
+    private int sellAmount;
+    /// <summary>
+    /// Get the amount to buy this drop
+    /// </summary>
+    public int GetBuyAmount() => buyAmount;
+    /// <summary>
+    /// Get the amount to sell this drop
+    /// </summary>
+    public int GetSellAmount() => sellAmount;
+    /// <summary>
+    /// Set the amount to buy this drop
+    /// </summary>
+    public void SetBuyAmount(int val) => buyAmount = val;
+    /// <summary>
+    /// Set the amount to sell this drop
+    /// </summary>
+    public void SetSellAmount(int val) => sellAmount = val;
     // <summary> Get the name of the drop </summary>
     public string GetDropName() => dropName;
     // <summary> Get the description of the drop </summary>
@@ -82,7 +102,6 @@ public class DropData
     {
         GetDropScriptComponent().stackNum = 0;
     }
-
     /// Helper function to get the stack count of a drop
     /// </summary>
     /// <returns>The stack count of the drop</returns>
