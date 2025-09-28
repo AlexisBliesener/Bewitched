@@ -37,6 +37,8 @@ public class GrandFinale : MonoBehaviour, IDrop
     private Character eleth;
     [SerializeField, Tooltip("The RectTransform of the enemy's health bar.")]
     private RectTransform enemyHealthBar;
+    [SerializeField, Tooltip("The prefab of the explosion VFX")]
+    private GameObject explosionVFX;
 
     [Tooltip("Whether the effect is currently active.")]
     private bool active = false;
@@ -180,6 +182,8 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// </summary>
     private void ExplodeEnemy()
     {
+        Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
+
         float radius = Mathf.Lerp(
             explosionRadiusMax[stackNum],
             explosionRadiusMin[stackNum],
@@ -233,6 +237,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     private void ExplodePlayer()
     {
         if (diedInExplosion) return;
+        Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
         PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[stackNum]);
     }
 
