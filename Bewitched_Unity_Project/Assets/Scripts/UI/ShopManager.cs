@@ -12,6 +12,11 @@ public class ShopManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Shop Upgrade Screen")]
     public GameObject ShopUI;
+    [Tooltip("The Buy Upgrades Screen")]
+    public GameObject BuyUI;
+    [Tooltip("The Sell Upgrades Screen")]
+    public GameObject SellUI;
+
 
     [Header("Buttons")]
     [Tooltip("List of placeholder buttons for the upgrades that can be bought")]
@@ -35,6 +40,8 @@ public class ShopManager : MonoBehaviour
     private void OnEnable()
     {
         ShopUI.SetActive(true);
+        BuyUI.SetActive(true);
+        SellUI.SetActive(false);
 
         // Subscribing to the random upgrades
         if (DropSystem.Instance != null)
@@ -82,19 +89,29 @@ public class ShopManager : MonoBehaviour
         {
             DropData shopUpgrade = options[i];
 
-            // Attach button text
-            TMP_Text buttonText = shopUpgradeButtons[i].GetComponentInChildren<TMP_Text>(true);
-            if (buttonText != null)
+            // Attach button text for name and price
+            TMP_Text[] buttonText = shopUpgradeButtons[i].GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in buttonText)
             {
-                buttonText.text = options[i].GetDropName();
-            }
-            else
-            {
-                Debug.LogWarning($"Cannot attach drop name {options[i].GetDropName()} to button");
+                if (t != null)
+                {
+                    if (t.name == "Name")
+                    {
+                        t.text = options[i].GetDropName();
+                    }
+                    else if (t.name == "Price")
+                    {
+                        t.text = options[i].GetBuyAmount().ToString();
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"Cannot attach drop name {options[i].GetDropName()} and drop price {options[i].GetBuyAmount()} to button");
+                }
             }
 
             // Attach button icon
-            Image buttonIcon = shopUpgradeButtons[i].GetComponent<Image>();
+                Image buttonIcon = shopUpgradeButtons[i].GetComponent<Image>();
             if (buttonIcon != null)
             {
                 buttonIcon.sprite = options[i].GetIcon();
@@ -113,6 +130,17 @@ public class ShopManager : MonoBehaviour
                 CloseScreen();
             });
         }
+    }
+    public void BuyScreen()
+    {
+        SellUI.gameObject.SetActive(false);
+        BuyUI.gameObject.SetActive(true);
+    }
+
+    public void SellScreen()
+    {
+        BuyUI.gameObject.SetActive(false);
+        SellUI.gameObject.SetActive(true);
     }
     
     
