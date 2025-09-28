@@ -9,13 +9,9 @@ using UnityEngine;
 /// </summary>
 public class DeflectingHitbox : DefaultHitbox
 {
-    // Start is called before the first frame update
-    void Start()
-    {
+    [Tooltip("Bool determining if a collision deflecting has already been applied")]
+    private bool deflected = false;
 
-    }
-
-    // Update is called once per frame
     void Update()
     {
         if (user == null)
@@ -51,7 +47,7 @@ public class DeflectingHitbox : DefaultHitbox
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && character.teamID != user.teamID && !hitChars.Contains(character))
+                if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable())
                 {
                     character.health.SubHealth(damage);
                     AddStatusEffects(character);
@@ -103,7 +99,7 @@ public class DeflectingHitbox : DefaultHitbox
             if (other.gameObject.layer != 6)
             {
                 // Check if other hit is on a hitbox
-                if (other.TryGetComponent<DefaultHitbox>(out DefaultHitbox otherBox))
+                if (other.TryGetComponent(out DefaultHitbox otherBox))
                 {
                     Debug.Log("Hit other");
                     // If it is a projectile hitbox (future) only apply deflection to hitbox
@@ -118,9 +114,9 @@ public class DeflectingHitbox : DefaultHitbox
                     }
                 }
 
-                if (other.TryGetComponent<Character>(out Character charac))
+                if (user.TryGetComponent(out Goblin gob))
                 {
-                    Debug.Log("Deflecting off of: " + charac);
+                    gob.DeflectVelocity(other, this);
                 }
                 // Now deflect user's velocity away from hit if the collision was not with the floor
                 user.DeflectVelocity(user.transform.position - other.transform.position);

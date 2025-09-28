@@ -5,6 +5,7 @@ using UnityEngine;
 using System.IO;
 using Cinemachine;
 using UnityEngine.AI;
+using DG.Tweening;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -127,8 +128,10 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Bool determining if an attack has hit a character")]
     protected bool hitCharacter = false;
 
- //   protected bool dodgable = false;
-  //  protected bool attackDodged = false;
+    protected bool dodgable = false;
+    protected bool attackDodged = false;
+    protected bool dodging = false;
+    private bool invulnerable = false;
 
     protected Character attackingEnemy = null;
 
@@ -146,7 +149,8 @@ public abstract class Character : MonoBehaviour
         Approaching, // The run up before the attack begins to close distance
         Windup, // The windup stage of the attack - basic animation
         Attacking, // The attack itself
-        Neutral // Neutral state for enemies to be selected to begin attack
+        Neutral, // Neutral state for enemies to be selected to begin
+        Dodging  // Dodging an attack
     }
 
     [Tooltip("The attack state")]
@@ -641,20 +645,142 @@ public abstract class Character : MonoBehaviour
         return attackingEnemy;
     }
 
-    ///// <summary>
-    ///// Checks if a character is dodgable
-    ///// </summary>
-    ///// <returns> True if dodgable </returns>
-    //public bool Dodgable()
-    //{
-    //    return dodgable;
-    //}
+    /// <summary>
+    /// Checks if a character is dodgable
+    /// </summary>
+    /// <returns> True if dodgable </returns>
+    public bool Dodgable()
+    {
+        return dodgable;
+    }
 
-    ///// <summary>
-    ///// Sets dodged to true
-    ///// </summary>
-    //public void SetDodged()
-    //{
-    //    attackDodged = true;
-    //}
+    /// <summary>
+    /// Sets dodged to true
+    /// </summary>
+    public void SetDodged()
+    {
+        attackDodged = true;
+    }
+
+    /// <summary>
+    /// Gives the character invulnerability for a duration
+    /// </summary>
+    /// <param name="duration"> Duration to be invulnerable </param>
+    /// <returns> Time </returns>
+    public IEnumerator GiveInvulnerability(float duration)
+    {
+        invulnerable = true;
+        yield return new WaitForSeconds(duration);
+        invulnerable = false;
+    }
+
+    /// <summary>
+    /// Gets the invulnerability status
+    /// </summary>
+    /// <returns> Invulnerability status </returns>
+    public bool Invulnerable()
+    {
+        return invulnerable;
+    }
+
+    /// <summary>
+    /// Handles dodging for a character
+    /// </summary>
+    /// <param name="wellTimed"></param>
+    /// <param name="attacker"></param>
+    /// <param name="dodgeRange"></param>
+    /// <param name="inputTime"></param>
+    public IEnumerator Dodge(bool wellTimed, Character attacker, float dodgeRange, float inputTime)
+    {
+        dodging = true;
+        attackState = AttackState.Dodging;
+        Debug.Log("Start Dodge");
+        PlayerController.instance.SetAllowMovement(false);
+
+        if (wellTimed)
+        {
+            Debug.Log("Well timed dodge");
+            GiveInvulnerability(0.75f);
+            Time.timeScale = 0.25f;
+        }
+        int attackDirection;
+        Vector3 dodgeDirection;
+
+        if (attacker)
+        {
+
+            attacker.SetDodged();
+            Vector3 toAttacker = attacker.transform.position - transform.position;
+
+            Vector3 direction = PlayerController.instance.GetMovementDirection();
+
+            if (direction.magnitude < 0.01f) // If inputting in direction
+            {
+                attackDirection = 0; // Backwards
+            }
+            else
+            {
+                float angle = Vector3.SignedAngle(direction, toAttacker, Vector3.up);
+
+                if (angle <= 0 && angle > -135)
+                {
+                    attackDirection = -1; // Left
+                }
+                else if (angle > 0 && angle < 135)
+                {
+                    attackDirection = 1; // Right
+                }
+                else
+                {
+                    attackDirection = 0;
+                }
+            }
+
+            if (attackDirection == 0) // Dodge backwards
+            {
+                dodgeDirection = -toAttacker.normalized;
+            }
+            else if (attackDirection == -1)
+            {
+                dodgeDirection = Quaternion.AngleAxis(90f, Vector3.up) * toAttacker.normalized;
+            }
+            else
+            {
+                dodgeDirection = Quaternion.AngleAxis(-90f, Vector3.up) * toAttacker.normalized;
+            }
+        }
+        else
+        {
+            dodgeDirection = -transform.forward.normalized;
+        }
+
+
+        Vector3 targetPosition = transform.position + dodgeDirection * dodgeRange;
+        Vector3 lookBackDir = (targetPosition - transform.position).normalized;
+        lookBackDir.y = 0;
+
+        Debug.Log(transform.position);
+        Debug.Log(targetPosition);
+
+        bool moving = true;
+
+        GetComponent<CharacterController>().enabled = false;
+        transform.DOMove(targetPosition, 0.5f).OnComplete(() => moving = false);
+        while (moving)
+        {
+            yield return null;
+        }
+        transform.position = targetPosition;
+        GetComponent<CharacterController>().enabled = true;
+
+        velocity = Vector3.zero;
+        Time.timeScale = 1;
+        dodging = false; // Main dodge over
+
+        yield return new WaitForSeconds(inputTime); // Give time for input before ending and setting state back to neutral
+
+        PlayerController.instance.SetAllowMovement(true);
+        attackState = AttackState.Neutral;
+        Debug.Log("Dodge End");
+    }
 }
