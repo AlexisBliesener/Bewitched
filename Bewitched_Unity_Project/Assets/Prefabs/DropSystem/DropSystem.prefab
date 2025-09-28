@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0f653427f33694890e0a7081544a8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  percentHeal: 05000000
 --- !u!1 &7320499504665162705
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,6 +109,7 @@ MonoBehaviour:
     m_Bits: 256
   eleth: {fileID: 0}
   enemyHealthBar: {fileID: 0}
+  explosionVFX: {fileID: 4280964667820681873, guid: 30772a2e7df4139418b13f865d1339b9, type: 3}
 --- !u!1 &7516775768371684888
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,29 +157,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cee28a11f64134317adeb441121c08bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerUpgrades: []
   dropChance: 40
   salvageAmount: 10
   upgradeSelectionUI: {fileID: 0}
+  swapUpgradeUI: {fileID: 0}
   availableRarities:
   - displayName: Ultra Rare
-    dropChance: 15
+    dropChance: 100
   - displayName: Rare
-    dropChance: 30
+    dropChance: 100
   availableDrops:
   - dropName: Grand Finale
     description: Enemies now explode! Possess an enemy and get it to low health,
       then exit the enemy to trigger an explosion to damage all surrounding enemies!
       Be careful you don't let the enemy get to 0 health though, or you might explode
       with it.
+    dropID: 1
     icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
     rarityIndex: 0
     dropScript: {fileID: 7320499504665162705}
+    buyAmount: 0
+    sellAmount: 0
   - dropName: Vampirism
     description: Damaging an enemy while possessing an enemy will regain a small
       amount of health, scaling with damage done.
+    dropID: 2
     icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
+    buyAmount: 0
+    sellAmount: 0
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
   usePitySystem: 1
 --- !u!114 &4119633462003428908
