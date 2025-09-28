@@ -71,7 +71,7 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
-    public Material dodgeTimeMaterial;
+    public Material perfectCounterTimeMaterial;
     public Material defaultMaterial;
     //The sound effect for the spin attack
     EventInstance secondaryAudio;
@@ -162,8 +162,8 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         Debug.Log("Approaching");
-        attackDodged = false;
-        dodgable = false;
+       // attackDodged = false;
+       // dodgable = false;
 
         attackState = AttackState.Approaching;
 
@@ -178,28 +178,30 @@ public class Goblin : Enemy
             {
                 if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
-                    dodgable = false;
+                //   dodgable = false;
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
+                        PlayerController.instance.SetCounterAvaliable(null);
                     }
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                    dodgable = true;
+                //    dodgable = true;
                     if (attackIndicator != null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = dodgeTimeMaterial;
+                        attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
+                        PlayerController.instance.SetCounterAvaliable(this);
                     }
                 }
 
-                if (!attackDodged) // Only stay locked if not dodged
-                {
-                    Vector3 direc = lockedCharacter.transform.position - transform.position;
-                    direc.y = 0;
-                    Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-                }
+                //if (!attackDodged) // Only stay locked if not dodged
+                //{
+                //    Vector3 direc = lockedCharacter.transform.position - transform.position;
+                //    direc.y = 0;
+                //    Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                //    transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+                //}
                 yield return null;
             }
         }

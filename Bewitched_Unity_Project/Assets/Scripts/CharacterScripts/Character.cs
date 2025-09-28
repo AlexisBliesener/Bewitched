@@ -127,8 +127,8 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Bool determining if an attack has hit a character")]
     protected bool hitCharacter = false;
 
-    protected bool dodgable = false;
-    protected bool attackDodged = false;
+ //   protected bool dodgable = false;
+  //  protected bool attackDodged = false;
 
     protected Character attackingEnemy = null;
 
@@ -641,20 +641,20 @@ public abstract class Character : MonoBehaviour
         return attackingEnemy;
     }
 
-    /// <summary>
-    /// Checks if a character is dodgable
-    /// </summary>
-    /// <returns> True if dodgable </returns>
-    public bool Dodgable()
-    {
-        return dodgable;
-    }
+    ///// <summary>
+    ///// Checks if a character is dodgable
+    ///// </summary>
+    ///// <returns> True if dodgable </returns>
+    //public bool Dodgable()
+    //{
+    //    return dodgable;
+    //}
 
-    /// <summary>
-    /// Sets dodged to true
-    /// </summary>
-    public void SetDodged()
-    {
-        attackDodged = true;
-    }
+    ///// <summary>
+    ///// Sets dodged to true
+    ///// </summary>
+    //public void SetDodged()
+    //{
+    //    attackDodged = true;
+    //}
 }

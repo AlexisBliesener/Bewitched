@@ -71,18 +71,25 @@ public class PlayerController : MonoBehaviour
 
     private bool allowMovement = true;
 
-    private bool dodging = false;
+   // private bool dodging = false;
 
     [Tooltip("The y velocity the player is moving at")]
     private float yVelocity;
     [Tooltip("The jump speed of the player")]
     private float jumpSpeed;
+    [Tooltip("The window to counter this enemy is open")]
+    private Enemy enemyCounterable = null;
+
+    public void SetCounterAvaliable(Enemy enemy)
+    {
+        enemyCounterable = enemy;
+    }
 
     public void SeteCharacterController(CharacterController controller)
     {
         characterController = controller;
     }
-
+    
     [Tooltip("Player Modifier Volume")]
     [SerializeField] NavMeshModifierVolume playerZone;
 
@@ -298,15 +305,15 @@ public class PlayerController : MonoBehaviour
         if(characterController.isGrounded && context.started && currentCharacter.GetJumpSpeed() > 0)
         {
             Character attacker = currentCharacter.GetAttacker();
-            if (attacker != null && !dodging) // Do a dodge if being attacked
-            {
-                StartCoroutine(Dodge(attacker.Dodgable(), attacker));
-            }
-            else
-            {
+            //if (attacker != null && !dodging) // Do a dodge if being attacked
+            //{
+            //   // StartCoroutine(Dodge(attacker.Dodgable(), attacker));
+            //}
+            //else
+            //{
                 jumpSpeed = currentCharacter.GetJumpSpeed();
                 yVelocity = jumpSpeed;
-            }
+          //  }
             currentCharacter.Jump();
             StartCoroutine(JumpCoroutine());
         }
@@ -460,76 +467,76 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     /// <param name="wellTimed"></param>
     /// <returns></returns>
-    public IEnumerator Dodge(bool wellTimed, Character attacker)
-    {
-        dodging = true;
-        SetAllowMovement(false);
+    //public IEnumerator Dodge(bool wellTimed, Character attacker)
+    //{
+    //    dodging = true;
+    //    SetAllowMovement(false);
 
-        Debug.Log(attacker);
-        attacker.SetDodged();
-        if (wellTimed)
-        {
-            //Time.timeScale = 0.75f;
-        }
+    //    Debug.Log(attacker);
+    //    attacker.SetDodged();
+    //    if (wellTimed)
+    //    {
+    //        //Time.timeScale = 0.75f;
+    //    }
 
-        Vector3 toAttacker = attacker.transform.position - currentCharacter.transform.position;
-        int attackDirection;
+    //    Vector3 toAttacker = attacker.transform.position - currentCharacter.transform.position;
+    //    int attackDirection;
 
-        if (direction.magnitude < 0.01f) // If inputting in direction
-        {
-            attackDirection = 0; // Backwards
-        }
-        else
-        {
-            float angle = Vector3.SignedAngle(direction, toAttacker, Vector3.up);
+    //    if (direction.magnitude < 0.01f) // If inputting in direction
+    //    {
+    //        attackDirection = 0; // Backwards
+    //    }
+    //    else
+    //    {
+    //        float angle = Vector3.SignedAngle(direction, toAttacker, Vector3.up);
 
-            if (angle <= 0 && angle > -135)
-            {
-                attackDirection = -1; // Left
-            }
-            else if (angle > 0 && angle < 135)
-            {
-                attackDirection = 1; // Right
-            }
-            else
-            {
-                attackDirection = 0;
-            }
-        }
+    //        if (angle <= 0 && angle > -135)
+    //        {
+    //            attackDirection = -1; // Left
+    //        }
+    //        else if (angle > 0 && angle < 135)
+    //        {
+    //            attackDirection = 1; // Right
+    //        }
+    //        else
+    //        {
+    //            attackDirection = 0;
+    //        }
+    //    }
 
-        Vector3 dodgeDirection;
+    //    Vector3 dodgeDirection;
 
-        if (attackDirection == 0) // Dodge backwards
-        {
-            dodgeDirection = -toAttacker.normalized;
-        }
-        else if (attackDirection == -1)
-        {
-            dodgeDirection = Quaternion.AngleAxis(90f, Vector3.up) * toAttacker.normalized;
-        }
-        else
-        {
-            dodgeDirection = Quaternion.AngleAxis(-90f, Vector3.up) * toAttacker.normalized;
-        }
+    //    if (attackDirection == 0) // Dodge backwards
+    //    {
+    //        dodgeDirection = -toAttacker.normalized;
+    //    }
+    //    else if (attackDirection == -1)
+    //    {
+    //        dodgeDirection = Quaternion.AngleAxis(90f, Vector3.up) * toAttacker.normalized;
+    //    }
+    //    else
+    //    {
+    //        dodgeDirection = Quaternion.AngleAxis(-90f, Vector3.up) * toAttacker.normalized;
+    //    }
 
-        Vector3 targetPosition = currentCharacter.transform.position + dodgeDirection * 2;
-        Vector3 lookBackDir = (targetPosition - currentCharacter.transform.position).normalized;
-        lookBackDir.y = 0;
+    //    Vector3 targetPosition = currentCharacter.transform.position + dodgeDirection * 2;
+    //    Vector3 lookBackDir = (targetPosition - currentCharacter.transform.position).normalized;
+    //    lookBackDir.y = 0;
 
-        Time.timeScale = 1;
-        SetAllowMovement(true);
-        dodging = false;
-        characterController.enabled = true;
+    //    Time.timeScale = 1;
+    //    SetAllowMovement(true);
+    //    dodging = false;
+    //    characterController.enabled = true;
 
-        currentCharacter.transform.DOMove(targetPosition, 0.5f);
-        yield return new WaitForSeconds(0.5f);
+    //    currentCharacter.transform.DOMove(targetPosition, 0.5f);
+    //    yield return new WaitForSeconds(0.5f);
 
-        //Manually set position after
-        currentCharacter.transform.position = targetPosition;
+    //    //Manually set position after
+    //    currentCharacter.transform.position = targetPosition;
 
-        Time.timeScale = 1;
-        SetAllowMovement(true);
-        dodging = false;
-        Debug.Log("Dodge End");
-    }
+    //    Time.timeScale = 1;
+    //    SetAllowMovement(true);
+    //    dodging = false;
+    //    Debug.Log("Dodge End");
+    //}
 }
