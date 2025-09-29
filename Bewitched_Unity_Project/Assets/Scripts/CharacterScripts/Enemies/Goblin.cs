@@ -112,8 +112,6 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();
-
-        HandleHitStun();
     }
 
     public override IEnumerator BeginPrimary()

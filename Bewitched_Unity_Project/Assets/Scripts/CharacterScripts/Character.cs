@@ -325,7 +325,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        CreateHitStun();
+        
     }
 
     /// <summary>
@@ -442,7 +442,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual IEnumerator StartHitStun(float duration)
     {
-        hitStunActual = Instantiate(hitStunPrefab);
+        hitStunActual = Instantiate(hitStunPrefab, transform);
         stunned = true;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < duration)
@@ -462,14 +462,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual void HandleHitStun()
     {
-        if (hitStunActual != null)
-        {
-            if (Time.time - health.TimeLastHit > hitStunDuration)
-            {
-                Destroy(hitStunActual);
-                hitStunActual = null;
-            }
-        }
+        
     }
 
     public void SetPrimaryStatus(bool val)

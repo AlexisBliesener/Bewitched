@@ -424,7 +424,9 @@ public abstract class Enemy : Character
 
     public override IEnumerator StartHitStun(float duration)
     {
-        hitStunActual = Instantiate(hitStunPrefab);
+        if (stunned) yield break;
+        Debug.Log("Applying stun");
+        hitStunActual = Instantiate(hitStunPrefab, transform);
         stunned = true;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < duration)
@@ -436,6 +438,7 @@ public abstract class Enemy : Character
         if (playerControlling) PlayerController.instance.SetAllowMovement(true);
         else aiState = AIMovementState.Chasing;
         stunned = false;
+        Debug.Log(hitStunActual);
         Destroy(hitStunActual); hitStunActual = null;
     }
 
@@ -504,11 +507,6 @@ public abstract class Enemy : Character
 
     public override void CreateHitStun()
     {
-        if (!playerControlling)
-        {
-            if (hitStunActual == null) hitStunActual = Instantiate(hitStunPrefab, transform);
-            agent.enabled = false;
-        }
     }
 
     public override void HandleHitStun()
