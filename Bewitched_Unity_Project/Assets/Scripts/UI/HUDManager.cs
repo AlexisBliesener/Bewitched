@@ -19,6 +19,8 @@ public class HUDManager : MonoBehaviour
 
     [Tooltip("Number of unique upgrades / number of stacks")]
     public int uniqueUpgradesCount => upgradeDict.Count;
+    [Tooltip("List of acquired upgrades")]
+    public List<DropData> playerUpgrades;
     [Tooltip("See if upgrade is already acquired by the player")]
     public bool HasExactUpgrade(string id) => upgradeDict.ContainsKey(id);
 
@@ -89,5 +91,34 @@ public class HUDManager : MonoBehaviour
 
         rt.anchoredPosition = new Vector2(0, -count * overlap);
         upgradeObject.transform.SetAsFirstSibling();
+    }
+
+    public void RefreshHUD()
+    {
+        if (DropSystem.Instance != null)
+        {
+            playerUpgrades = DropSystem.Instance.playerUpgrades;
+        }
+        else
+        {
+            Debug.LogWarning("DropSystem.Instance not found.");
+            playerUpgrades = new List<DropData>();
+        }
+
+        // Clear panel
+        foreach (Transform stack in upgradeIconParent)
+        {
+            Destroy(stack.gameObject);
+        }
+        upgradeDict.Clear();
+        
+        // Rebuild with updated player upgrade list
+        foreach (var upgrade in playerUpgrades)
+        {
+            if (upgrade != null)
+            {
+                AddUpgrade(upgrade);
+            }
+        }
     }
 }

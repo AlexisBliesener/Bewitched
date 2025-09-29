@@ -138,7 +138,7 @@ public class DropSystem : MonoBehaviour
 
         OnDropRandomDrop?.Invoke(option1, option2, option3);
 
-        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
+        //Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
 
     }
     /// <summary>
@@ -261,12 +261,9 @@ public class DropSystem : MonoBehaviour
     /// If the slot number was not passed then it will add the drop in the first empty slot
     /// </summary>
     /// <param name="drop"> Drop to buy </param>
-    /// <param name="slotNumber"> Slot number to buy the drop in, if not passed it will add the drop in the first empty slot </param>
-    /// <returns> True if the upgrade was bought, false if the upgrade was not bought </returns>
-    public bool BuyUpgrade(DropData drop, int slotNumber = -1)
+    public bool BuyUpgrade(DropData drop)
     {
         if (drop == null) return false;
-        if (slotNumber >= playerUpgrades.Count) return false;
         if (SoulSystem.Instance == null) return false;
         // check the value of the souls 
         int currentSouls = SoulSystem.Instance.GetSoulCurrency();
@@ -276,77 +273,44 @@ public class DropSystem : MonoBehaviour
             // Not enough souls to buy this drop
             return false;
         }
+
         // Subtract souls from the player
         SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
-        if (slotNumber == -1)
-        {
-            // find the empty slot then set that slot number to the drop
-            for (int i = 0; i < playerUpgrades.Count; i++)
-            {
-                if (playerUpgrades[i] == null)
-                {
-                    slotNumber = i;
-                    break;
-                }
-            }
-
-            // if no empty slot was found, add the drop to the last slot
-            if (slotNumber == -1)
-            {
-                playerUpgrades.Add(drop);
-                return true;
-            }
-        }
-
-
-
-        // if the slot is not empty, check if the drop can stack with the current drops
-        // if not, replace the current drop with the new drop 
-        if (playerUpgrades[slotNumber] != null && playerUpgrades[slotNumber].CanStackWith(drop))
-        {
-            playerUpgrades[slotNumber].IncreaseStack();
-            return true;
-        }
-        if (playerUpgrades[slotNumber] == null)
-        {
-            // add the new drop to the slot if it was empty
-            playerUpgrades[slotNumber] = drop;
-            return true;
-        }
-        // if it can't stack with the current drop then swap it with the new drop
-        SwapDrop(drop, slotNumber);
+        SelectDropsOption(drop);
         return true;
     }
+
     /// <summary>
     /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
     /// if the slot han an item that has a stack count of more than 1, then remove 1 from the stack count
     /// if the stack count is 1, then remove it from the slot
     /// </summary>
     /// <returns> True if the upgrade was sold, false if the upgrade was not sold </returns>
-    public bool SellUpgrade(int slotNumber)
+    public bool SellUpgrade(DropData drop)
     {
-        if (slotNumber >= playerUpgrades.Count) return false;
-        if (SoulSystem.Instance == null) return false;
-        if (playerUpgrades[slotNumber] != null)
+        if (drop == null) return false;
+        List<DropData> toRemove = playerUpgrades.FindAll(u => u != null && u.GetID() == drop.GetID());
+        if (toRemove.Count == 0) return false;
+
+        if (!playerUpgrades.Contains(drop))
         {
-            // Add the souls to the player
-            SoulSystem.Instance.AddSouls(playerUpgrades[slotNumber].GetSellAmount());
-            // if the slot is not empty, and it has a stack, then remove 1 from the stack count
-            // if the stack count is 0, then remove it from the slot
-            if (playerUpgrades[slotNumber].GetStackCount() > 0)
-            {
-                playerUpgrades[slotNumber].DecreaseStack();
-            }
-            else
-            {
-                playerUpgrades[slotNumber].Deactivate();
-                playerUpgrades[slotNumber] = null;
-            }
-            return true;
+            // Upgrade does not exist in player's inventory
+            return false;
         }
 
-        return false;
+        int totalRefund = 0;
+        foreach (var upgrade in toRemove)
+        {
+            totalRefund += upgrade.GetSellAmount();
+            playerUpgrades.Remove(upgrade);
+        }
+        SoulSystem.Instance.AddSouls(totalRefund);
+
+        HUDManager.Instance.RefreshHUD();
+
+        return true;
     }
+
     /// <summary>
     /// Salvage a drop from the player.
     /// </summary>

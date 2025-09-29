@@ -144,8 +144,18 @@ public class ShopManager : MonoBehaviour
             int capturedIndex = i;
             buyUpgradeButtons[i].onClick.AddListener(() =>
             {
-                // Line below adds item automatically, but need to check souls
-                // DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
+                DropData chosenUpgrade = options[capturedIndex];
+
+                if (DropSystem.Instance.BuyUpgrade(chosenUpgrade))
+                {
+                    Debug.Log($"Bought {chosenUpgrade.GetDropName()} for {chosenUpgrade.GetBuyAmount()} souls.");
+                    buyUpgradeButtons[capturedIndex].gameObject.SetActive(false);
+                    UpdateSellOptions();
+                }
+                else
+                {
+                    Debug.Log($"Not enough souls to buy {chosenUpgrade.GetDropName()}");
+                }
             });
         }
     }
@@ -153,25 +163,63 @@ public class ShopManager : MonoBehaviour
 
     private void UpdateSellOptions()
     {
-        if (HUDManager.Instance == null)
+        if (DropSystem.Instance == null)
         {
-            Debug.LogWarning("HUDManager instance not found.");
+            Debug.LogWarning("DropSystem instance not found.");
             return;
         }
-        Transform parent = HUDManager.Instance.upgradeIconParent;
+
+        // refresh player upgrade list (necessary after selling)
+        playerUpgrades = DropSystem.Instance.playerUpgrades;
+        Dictionary<string, (DropData upgrade, int count)> groupedUpgrades = new();
+
+        foreach (var upgrade in playerUpgrades)
+        {
+            if (upgrade == null) continue;
+
+            string name = upgrade.GetDropName();
+            if (!groupedUpgrades.ContainsKey(name))
+            {
+                groupedUpgrades[name] = (upgrade, 1);
+            }
+            else
+            {
+                groupedUpgrades[name] = (groupedUpgrades[name].upgrade, groupedUpgrades[name].count + 1);
+            }
+        }
+
+        // clear buttons
+        foreach (var upgradeButton in sellUpgradeButtons)
+        {
+            upgradeButton.gameObject.SetActive(false);
+            upgradeButton.onClick.RemoveAllListeners();
+        }
+
         int i = 0;
 
-        foreach (Transform stack in parent)
+        foreach (var stack in groupedUpgrades)
         {
+            //if (stack.childCount == 0) continue;
+            //if (upgrade == null) continue;
             if (i >= sellUpgradeButtons.Length - 1) break; // last button is a menu switch button
 
+            DropData upgrade = stack.Value.upgrade;
+            int stackCount = stack.Value.count;
+
+            Button button = sellUpgradeButtons[i];
+            button.gameObject.SetActive(true);
+
+            /*
             string upgradeName = stack.name.Replace("_Stack", "");
-            DropData upgrade = playerUpgrades.Find(u => u != null && u.GetDropName() == upgradeName);
+            DropData upgrade = stack.GetChild(0).GetComponent<DropData>();
             if (upgrade == null) continue;
 
             int stackCount = stack.childCount;
             Button button = sellUpgradeButtons[i];
+            Debug.Log(i);
             button.gameObject.SetActive(true);
+            
+            */
 
             // Attach button text for name and price
             TMP_Text[] buttonText = button.GetComponentsInChildren<TMP_Text>(true);
@@ -181,7 +229,14 @@ public class ShopManager : MonoBehaviour
                 {
                     if (t.name == "Name")
                     {
-                        t.text = $"{upgrade.GetDropName()} x{stackCount}";
+                        if (stackCount > 1)
+                        {
+                            t.text = $"{upgrade.GetDropName()} x{stackCount}";
+                        }
+                        else
+                        {
+                            t.text = $"{upgrade.GetDropName()}";
+                        }
                     }
                     else if (t.name == "SellPrice")
                     {
@@ -210,10 +265,16 @@ public class ShopManager : MonoBehaviour
             DropData capturedUpgrade = upgrade;
             button.onClick.AddListener(() =>
             {
-                int slotIndex = playerUpgrades.FindIndex(u => u != null && u.GetID() == capturedUpgrade.GetID());
-
-                if (slotIndex >= 0 && DropSystem.Instance.SellUpgrade(slotIndex))
+                if (DropSystem.Instance.SellUpgrade(capturedUpgrade))
                 {
+                    Debug.Log($"Sold {capturedUpgrade.GetDropName()}");
+                    /*
+                    foreach (var b in sellUpgradeButtons)
+                    {
+                        b.onClick.RemoveAllListeners();
+                        b.gameObject.SetActive(false);
+                    }
+                    */
                     UpdateSellOptions();
                 }
 

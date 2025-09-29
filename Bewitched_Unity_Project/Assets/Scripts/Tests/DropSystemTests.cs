@@ -440,7 +440,7 @@ public class DropSystemTests
     {
         dropSystem.playerUpgrades.Add(null); // Create one empty slot
 
-        dropSystem.BuyUpgrade(mockDrop1, 0);
+        dropSystem.BuyUpgrade(mockDrop1);
 
         Assert.AreEqual(mockDrop1, dropSystem.playerUpgrades[0]);
     }
@@ -459,7 +459,7 @@ public class DropSystemTests
 
         dropSystem.playerUpgrades.Add(stackableDrop);
 
-        dropSystem.BuyUpgrade(stackableDrop, 0);
+        dropSystem.BuyUpgrade(stackableDrop);
 
         Assert.AreEqual(2, dropSystem.playerUpgrades[0].GetStackCount()); // 1+1
     }
@@ -472,7 +472,7 @@ public class DropSystemTests
     {
         dropSystem.playerUpgrades.Add(mockDrop1);
 
-        dropSystem.BuyUpgrade(mockDrop2, 0);
+        dropSystem.BuyUpgrade(mockDrop2);
 
         Assert.AreEqual(mockDrop2, dropSystem.playerUpgrades[0]);
     }
@@ -504,7 +504,7 @@ public class DropSystemTests
 
         dropSystem.playerUpgrades.Add(stackableDrop);
 
-        dropSystem.SellUpgrade(0);
+        dropSystem.SellUpgrade(stackableDrop);
 
         Assert.AreEqual(0, dropSystem.playerUpgrades[0].GetStackCount());
     }
@@ -517,7 +517,7 @@ public class DropSystemTests
     {
         dropSystem.playerUpgrades.Add(mockDrop1);
 
-        dropSystem.SellUpgrade(0);
+        dropSystem.SellUpgrade(mockDrop1);
 
         Assert.IsNull(dropSystem.playerUpgrades[0]);
     }
@@ -553,7 +553,7 @@ public class DropSystemTests
         SoulSystem.Instance.ResetSouls();
         mockDrop1.SetSellAmount(10);
         dropSystem.playerUpgrades.Add(mockDrop1);
-        Assert.IsTrue(dropSystem.SellUpgrade(0));
+        Assert.IsTrue(dropSystem.SellUpgrade(mockDrop1));
         Assert.AreEqual(10, SoulSystem.Instance.GetSoulCurrency());
     }
 }
