@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0f653427f33694890e0a7081544a8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  percentHeal: 05000000
+  percentHeal: 0300000005000000080000000b0000000f000000
 --- !u!1 &7320499504665162705
 GameObject:
   m_ObjectHideFlags: 0
@@ -91,15 +91,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   explosionRadiusMin:
   - 5
+  - 7
   explosionRadiusMax:
   - 20
+  - 25
   explosionMinDamage:
   - 15
+  - 20
   explosionMaxDamage:
-  - 60
+  - 75
+  - 100
   playerExplodeDamage:
   - 10
+  - 10
   enemyExplosionTime:
+  - 1
   - 1
   characters:
     serializedVersion: 2
@@ -177,8 +183,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
     rarityIndex: 0
     dropScript: {fileID: 7320499504665162705}
-    buyAmount: 0
-    sellAmount: 0
+    buyAmount: 200
+    sellAmount: 200
   - dropName: Vampirism
     description: Damaging an enemy while possessing an enemy will regain a small
       amount of health, scaling with damage done.
@@ -186,8 +192,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
-    buyAmount: 0
-    sellAmount: 0
+    buyAmount: 130
+    sellAmount: 130
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
   usePitySystem: 1
 --- !u!114 &4119633462003428908
