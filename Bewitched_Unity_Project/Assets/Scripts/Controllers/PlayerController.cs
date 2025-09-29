@@ -85,6 +85,11 @@ public class PlayerController : MonoBehaviour
         enemyCounterable = enemy;
     }
 
+    public Enemy GetCounterAvailable()
+    {
+        return enemyCounterable;
+    }
+
     public void SeteCharacterController(CharacterController controller)
     {
         characterController = controller;

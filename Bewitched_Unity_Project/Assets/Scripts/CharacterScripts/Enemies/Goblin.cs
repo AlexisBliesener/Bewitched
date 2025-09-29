@@ -196,6 +196,7 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
+                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -205,15 +206,13 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
+                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
 
-                //if (!attackDodged) // Only stay locked if not dodged
-                //{
-                //    Vector3 direc = lockedCharacter.transform.position - transform.position;
-                //    direc.y = 0;
-                //    Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                //    transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-                //}
+                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
                 yield return null;
             }
         }
@@ -246,8 +245,8 @@ public class Goblin : Enemy
                 direc.y = 0;
                 Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-                yield return null;
             }
+            yield return null;
         }
         attackStateCoroutine = StartCoroutine(KnifeApproach());
     }
@@ -306,33 +305,26 @@ public class Goblin : Enemy
 
     public override IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState("SecondaryAttack");
-        //audio
-        if (AudioManager.TryGetReference("GoblinSecondary", out EventReference evRef))
-        {
-            secondaryAudio = RuntimeManager.CreateInstance(evRef);
-            secondaryAudio.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            RuntimeManager.AttachInstanceToGameObject(secondaryAudio, gameObject);
-            secondaryAudio.start();
-            secondaryAudio.release();
-        }
-
-        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
+        
         if (gameObject)
         {
             SecondaryAttack();
 
         }
+        yield break;
     }
 
     public override void SecondaryAttack()
     {
         hitCharacter = false;
 
-        if (attackState == AttackState.Dodging)
+        if (inCounter)
         {
             // Do spin
+            inCounter = false;
             StopCoroutine(attackStateCoroutine);
+            transform.position = targetTweenPosition;
+            GetComponent<CharacterController>().enabled = true;
             attackStateCoroutine = StartCoroutine(SpinWindup());
         }
         else
@@ -340,10 +332,11 @@ public class Goblin : Enemy
             if (playerControlling)
             {
                 bool wellTimed = false;
-                if (GetAttacker() && GetAttacker().Dodgable()) wellTimed = true;
+                if (PlayerController.instance.GetCounterAvailable() != null) wellTimed = true;
 
                 PlayerController.instance.SetAllowMovement(false);
-                attackStateCoroutine = StartCoroutine(Dodge(wellTimed, GetAttacker(), spinDodgeDistance, spinDodgeInputTime));
+                attackStateCoroutine = StartCoroutine(Dodge(wellTimed, PlayerController.instance.GetCounterAvailable(), spinDodgeDistance, spinDodgeInputTime));
+                timeLastDodge = Time.time;
             }
             else
             {
@@ -357,7 +350,7 @@ public class Goblin : Enemy
         attackingSecondary = true;
         attackState = AttackState.Windup;
 
-        while (dodging) yield return null;
+        while (Time.time - timeLastDodge < 0.5f) yield return null; // while still in dodge motion
 
         float timeStarted = Time.time;
 

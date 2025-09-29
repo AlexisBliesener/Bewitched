@@ -159,6 +159,10 @@ MonoBehaviour:
   offSetForward: 0.5
   spinHitbox: {fileID: 2590818123613103327, guid: d403e190d57802d43b0d58d1bafbf7e5, type: 3}
   spinDamage: 30
+  spinDodgeDistance: 2
+  spinDodgeInputTime: 0.75
+  spinDistance: 15
+  spinDistanceDropoff: 4
   spinDuration: 2
   spinSpeed: 25
   spinRotationalSpeed: 2400
@@ -167,6 +171,7 @@ MonoBehaviour:
   lowHealthAngleRange: 80
   maxDriftSpeed: 4
   spinEffects: {fileID: 672220797181763766, guid: 4e3d6de762ba70147bc88da840bc4e9a, type: 3}
+  maxSpinDeflectAngle: 30
   minPatrolDistance: 3
   maxPatrolDistance: 5
   communicationRange: 30

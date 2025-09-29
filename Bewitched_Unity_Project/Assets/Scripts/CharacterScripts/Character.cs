@@ -6,6 +6,8 @@ using System.IO;
 using Cinemachine;
 using UnityEngine.AI;
 using DG.Tweening;
+using FMOD;
+using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -133,6 +135,8 @@ public abstract class Character : MonoBehaviour
     protected bool dodging = false;
     private bool invulnerable = false;
 
+    protected bool inCounter = false;
+
     protected Character attackingEnemy = null;
 
     [Tooltip("Attack indicator prefab")]
@@ -140,6 +144,11 @@ public abstract class Character : MonoBehaviour
 
     [Tooltip("Attack indicator")]
     protected GameObject attackIndicator = null;
+
+    [Tooltip("Target tween position")]
+    protected Vector3 targetTweenPosition;
+
+    protected float timeLastDodge = 0;
 
     /// <summary>
     /// The different attacking states a character can have
@@ -242,7 +251,7 @@ public abstract class Character : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Aim cam is not set!");
+            UnityEngine.Debug.LogWarning("Aim cam is not set!");
         }
         if (exploreCam != null)
         {
@@ -327,6 +336,7 @@ public abstract class Character : MonoBehaviour
     protected virtual void OnDeath()
     {
         DeactivateSurroundingPoints();
+        StopAllCoroutines();
         Die();
     }
 
@@ -546,10 +556,6 @@ public abstract class Character : MonoBehaviour
         {
             surroundingPoints.Init(numSurroundingPoints, minSurroundingRadius, maxSurroundingRadius);
         }
-        else
-        {
-            Debug.LogWarning("surround points not present");
-        }
     }
 
     /// <summary>
@@ -560,10 +566,6 @@ public abstract class Character : MonoBehaviour
         if(surroundingPoints != null)
         {
             surroundingPoints.DestroyPoints();
-        }
-        else
-        {
-            Debug.LogWarning("surround points not present");
         }
     }
 
@@ -694,12 +696,10 @@ public abstract class Character : MonoBehaviour
     {
         dodging = true;
         attackState = AttackState.Dodging;
-        Debug.Log("Start Dodge");
         PlayerController.instance.SetAllowMovement(false);
 
         if (wellTimed)
         {
-            Debug.Log("Well timed dodge");
             GiveInvulnerability(0.75f);
             Time.timeScale = 0.25f;
         }
@@ -755,32 +755,38 @@ public abstract class Character : MonoBehaviour
         }
 
 
-        Vector3 targetPosition = transform.position + dodgeDirection * dodgeRange;
-        Vector3 lookBackDir = (targetPosition - transform.position).normalized;
+        targetTweenPosition = transform.position + dodgeDirection * dodgeRange;
+        Vector3 lookBackDir = (targetTweenPosition - transform.position).normalized;
         lookBackDir.y = 0;
-
-        Debug.Log(transform.position);
-        Debug.Log(targetPosition);
 
         bool moving = true;
 
         GetComponent<CharacterController>().enabled = false;
-        transform.DOMove(targetPosition, 0.5f).OnComplete(() => moving = false);
+        transform.DOMove(targetTweenPosition, 0.5f).OnComplete(() => moving = false);
         while (moving)
         {
             yield return null;
         }
-        transform.position = targetPosition;
+        transform.position = targetTweenPosition;
         GetComponent<CharacterController>().enabled = true;
 
         velocity = Vector3.zero;
         Time.timeScale = 1;
         dodging = false; // Main dodge over
-
-        yield return new WaitForSeconds(inputTime); // Give time for input before ending and setting state back to neutral
-
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
-        Debug.Log("Dodge End");
+        inCounter = true;
+
+        StartCoroutine(HandleAfterDodge(inputTime));
+    }
+
+    public IEnumerator HandleAfterDodge(float inputTime)
+    {
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < inputTime && inCounter)
+        {
+            yield return null;
+        }
+        inCounter = false;
     }
 }
