@@ -58,6 +58,8 @@ public class PauseManager : MonoBehaviour
         OpenScreen(mainPauseScreen);
         EventSystem.current.SetSelectedGameObject(pauseButton);
         Cursor.lockState = CursorLockMode.None;
+        //Audio
+        AudioManager.OpenUIAudio();
     }
 
     /// <summary>
@@ -71,6 +73,8 @@ public class PauseManager : MonoBehaviour
         {
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
+            //Audio
+            AudioManager.CloseUIAudio();
         }
         else if (upgradeSelectionUI.activeInHierarchy)
         {
