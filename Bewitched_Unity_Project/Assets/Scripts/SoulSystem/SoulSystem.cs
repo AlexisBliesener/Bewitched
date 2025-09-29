@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using TMPro;
 
 /// <summary>
 /// This class handles the soul currency system in the game.
@@ -9,13 +10,15 @@ public class SoulSystem : MonoBehaviour
 {
 
     // Singleton instance
-    public static SoulSystem Instance { get; private set; }
+    public static SoulSystem Instance { get; set; }
     [SerializeField, Tooltip("The soul prefab to instantiate")]
     private GameObject soulPrefab;
     [SerializeField, Tooltip("Current soul count")]
     private int soulCount = 0;
     [SerializeField, Tooltip("How many souls to spawn per enemy as a range from 1 to x:"), Range(1, 10)]
     private int soulPerEnemy = 1;
+    [Tooltip("The soul UI HUD text to update as souls count gets updated.")]
+    public TMP_Text soulCountText;
     // <summary>
     /// Ensures that only one instance of SoulSystem exists and create it if it doesn't exist. It also makes sure that the system doesn't get destroyed when the game is reloaded.
     /// </summary>
@@ -48,8 +51,6 @@ public class SoulSystem : MonoBehaviour
     }
     // <summary> Get current soul currency </summary>
     public int GetSoulCurrency() => soulCount;
-    // <summary> Add souls to the current soul currency </summary>
-    public void AddSouls(int amount) => soulCount += amount;
     // <summary> Use souls from the current soul currency (amount is subtracted from the currency and it doesn't go below 0) </summary>
     public void UseSoulCurrency(int amount) => soulCount = Mathf.Max(0, soulCount - amount);
     // <summary> Reset souls to 0</summary>
@@ -58,5 +59,19 @@ public class SoulSystem : MonoBehaviour
     public void SetSoulPrefab(GameObject soulPrefab) => this.soulPrefab = soulPrefab;
     // <summary> Get the soul prefab to use for spawning (This is used for the test cases) </summary>
     public GameObject GetSoulPrefab() => this.soulPrefab;
+
+    // <summary> Add souls to the current soul currency </summary>
+    public void AddSouls(int amount)
+    {
+        soulCount += amount;
+        if (soulCountText != null)
+        {
+            soulCountText.text = soulCount.ToString();
+        }
+        else
+        {
+            Debug.LogWarning("There is no soul text assigned!");
+        }
+    }
 
 }

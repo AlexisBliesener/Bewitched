@@ -28,6 +28,8 @@ public class HealthController : MonoBehaviour
     public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
     public bool IsDead => CurrentHealth <= 0f;
+    [Tooltip("The Death UI screen.")]
+    public GameObject deathUI;
 
     /// <summary>
     /// Checks if a character is at low health
@@ -63,7 +65,10 @@ public class HealthController : MonoBehaviour
             if (CurrentHealth != old)
             {
                 NotifyHealthChanged();
-                if (IsDead) OnDeath?.Invoke();
+                if (IsDead)
+                {
+                    OnDeath?.Invoke();
+                }
             }
         }
     }

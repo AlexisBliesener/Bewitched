@@ -11,7 +11,7 @@ using UnityEngine;
 /// It has a box collider and a spin speed.
 /// It will be used to pick up drops from enemies.
 /// </summary>
-public class DropPickup : MonoBehaviour
+public class DropPickup : MonoBehaviour, IInteract
 {
     [Header("Pickup Settings")]
     [Tooltip("The speed of the spin of the drop")]
@@ -62,7 +62,7 @@ public class DropPickup : MonoBehaviour
             if (character == PlayerController.instance.currentCharacter && !isPlayerInRange)
             {
                 isPlayerInRange = true;
-                PlayerController.instance.nearbyDrop = this;
+                PlayerController.instance.nearbyInteractable = this;
                 PlayerController.instance.ShowInteractUI();
                 // Pickup();
             }
@@ -79,9 +79,9 @@ public class DropPickup : MonoBehaviour
             if (character == PlayerController.instance.currentCharacter && isPlayerInRange)
             {
                 isPlayerInRange = false;
-                if (PlayerController.instance.nearbyDrop == this)
+                if (PlayerController.instance.nearbyInteractable.GetGameObject() == this.GetGameObject())
                 {
-                    PlayerController.instance.nearbyDrop = null;
+                    PlayerController.instance.nearbyInteractable = null;
                     PlayerController.instance.HideInteractUI();
                 }
             }
@@ -97,14 +97,14 @@ public class DropPickup : MonoBehaviour
         {
             if (character == PlayerController.instance.currentCharacter)
             {
-                if (PlayerController.instance.nearbyDrop == this)
+                if (PlayerController.instance.nearbyInteractable.GetGameObject() == this.GetGameObject())
                 {
                     PlayerController.instance.ShowInteractUI();
                 }
-                else if (PlayerController.instance.nearbyDrop == null)
+                else if (PlayerController.instance.nearbyInteractable == null)
                 {
                     PlayerController.instance.ShowInteractUI();
-                    PlayerController.instance.nearbyDrop = this;
+                    PlayerController.instance.nearbyInteractable = this;
                 }
             }
         }
@@ -114,7 +114,7 @@ public class DropPickup : MonoBehaviour
     /// It will trigger the drop selection event
     /// Might add another functionallity for that later
     /// </summary>
-    public void Pickup()
+    public void Interact()
     {
         if (!isPlayerInRange) return;
         PlayerController.instance.HideInteractUI();
@@ -131,4 +131,5 @@ public class DropPickup : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, pickupRange);
     }
+    public GameObject GetGameObject() => gameObject;
 }
