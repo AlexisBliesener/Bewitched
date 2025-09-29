@@ -61,17 +61,19 @@ public abstract class Character : MonoBehaviour
     public float attackDelay = 1;
     [Tooltip("Cooldown After Primary Ability")]
     public float primaryCooldown = 5;
-    [Tooltip("Added Cooldown After Primary Combo")]
-    public float primaryComboExtraCooldown;
+    [Tooltip("Cooldown After Secondary Ability")]
+    public float secondaryCooldown = 5;
+    [Tooltip("Primary Attack Range")]
+    public float primaryAttackRange;
+
+
+    [Header("Primary Combo Stats")]
     [Tooltip("Primary Combo Steps")]
     public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
-    public float primaryComboResetTime;
-    [Tooltip("Cooldown After Secondary Ability")]
-    public float secondaryCooldown = 5;
-
-    [Tooltip("Primary Attack Range")]
-    public float primaryAttackRange;
+    public float[] primaryComboResetTime;
+    [Tooltip("Primary combo min time to wait to hit the next combo")]
+    public float[] primaryComboMinTime;
 
     [Header("Note: Health settings can be changed on the Health Controller component!")]
     [SerializeField] public HealthController health;
@@ -280,6 +282,9 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+    protected virtual void FixedUpdate()
+    {
+    }
 
     /// <summary>
     /// Returns the amount of time to wait before doing a jump
@@ -318,6 +323,21 @@ public abstract class Character : MonoBehaviour
         return exploreCam;
     }
 
+    public int GetCurrentPrimaryComboStep()
+    {
+        return currentPrimaryComboStep;
+    }
+
+    public float GetTimeLastPrimary()
+    {
+        return timeLastPrimary;
+    }
+
+    public float[] GetPrimaryComboResetTime()
+    {
+        return primaryComboResetTime;
+    }
+
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>
@@ -345,7 +365,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState("Death");
+        characterAnimator.SwitchState("Death", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
     public virtual void PrimaryAttack()
@@ -369,10 +389,6 @@ public abstract class Character : MonoBehaviour
 
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;
-        if (currentPrimaryComboStep >= primaryComboSteps)
-        {
-            cooldown += primaryComboExtraCooldown;
-        }
         return Time.time - timeLastPrimary >= cooldown && Time.time - timeLastAny >= attackDelay;
     }
 
@@ -425,7 +441,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void Jump()
     {
-        characterAnimator.SwitchState("Jump");
+        characterAnimator.SwitchState("Jump", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
     public IEnumerator StartTime(float stopTime)
@@ -486,20 +502,22 @@ public abstract class Character : MonoBehaviour
     {
         if (gameObject != null)
         {
-            if (Time.time - timeLastPrimary >= primaryComboResetTime)
+            if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
             {
                 currentPrimaryComboStep = 0;
+                characterAnimator.SetPrimaryComboEnded();
             }
 
             if (currentPrimaryComboStep >= primaryComboSteps)
             {
                 currentPrimaryComboStep = 0;
+                characterAnimator.SetPrimaryComboEnded();
             }
 
             currentPrimaryComboStep += 1;
 
-            characterAnimator.SwitchState("PrimaryAttack");
-            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
+            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
             PrimaryAttack();
         }
@@ -507,8 +525,8 @@ public abstract class Character : MonoBehaviour
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState("SecondaryAttack");
-        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
+        characterAnimator.SwitchState("SecondaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {
             SecondaryAttack();

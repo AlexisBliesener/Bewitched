@@ -10,11 +10,9 @@ public class CharacterAnimator : MonoBehaviour
 {
     [Header("Animation Timings")]
     [SerializeField, Tooltip("Time delay before completing the primary ability animation.")]
-    protected float primaryAnimationDelay = 0.5f;
+    protected float[] primaryAnimationDelay = { 0.5f };
     [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
     protected float secondaryAnimationDelay = 0.5f;
-    [SerializeField, Tooltip("Primary attack animation length.")]
-    protected float primaryAttackLength = 1f;
     [SerializeField, Tooltip("Secondary attack animation length.")]
     protected float secondaryAttackLength = 1f;
 
@@ -59,27 +57,46 @@ public class CharacterAnimator : MonoBehaviour
 
         // Track current animator state
         stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        UpdateCurrentStateFromAnimator();
+      //  UpdateCurrentStateFromAnimator();
 
         // Idle/run switching
-        if (canChange && characterController != null)
+        if (characterController != null)
         {
             if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
-                SwitchState("Idle");
+                SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
             else
-                SwitchState("Run");
+                SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
         }
     }
 
     /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>
+    public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
+    {
+        if (currentPrimaryComboStep != 0 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+        {
+            currentPrimaryComboStep = 0;
+            SetPrimaryComboEnded();
+        }
+
+        SwitchState(newState);
+    }
+    
+    /// <summary>
+    /// Switches the character's animation state and updates the Animator accordingly.
+    /// </summary>
     public virtual void SwitchState(string newState)
     {
-        if(!animationStates.Contains(newState))
+        if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
-        } 
+        }
+
+        if (!NotInPrimary() && newState == "PrimaryAttack")
+        {
+            animator.SetTrigger("PrimaryAttack");
+        }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
@@ -103,7 +120,6 @@ public class CharacterAnimator : MonoBehaviour
             case "PrimaryAttack":
                 animator.SetTrigger("PrimaryAttack");
                 canChange = false;
-                StartCoroutine(WaitForEndAnimation(primaryAttackLength));
                 break;
             case "SecondaryAttack":
                 animator.SetTrigger("SecondaryAttack");
@@ -168,17 +184,22 @@ public class CharacterAnimator : MonoBehaviour
     /// <summary>
     /// Waits for a delay corresponding to the current animation state.
     /// </summary>
-    public IEnumerator WaitForDelay(string animation)
+    public IEnumerator WaitForDelay(string animation, int comboNum)
     {
         switch (animation)
         {
             case "PrimaryAttack":
-                yield return new WaitForSeconds(primaryAnimationDelay);
+                yield return new WaitForSeconds(primaryAnimationDelay[comboNum]);
                 break;
             case "SecondaryAttack":
                 yield return new WaitForSeconds(secondaryAnimationDelay);
                 break;
         }
+    }
+
+    public void SetPrimaryComboEnded()
+    {
+        canChange = true;
     }
 
     /// <summary>

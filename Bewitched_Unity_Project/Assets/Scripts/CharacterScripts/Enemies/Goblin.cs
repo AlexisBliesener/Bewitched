@@ -13,13 +13,11 @@ public class Goblin : Enemy
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
     [Tooltip("Thrust Speed")]
-    [SerializeField] float thrustSpeed = 10;
+    [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
-    [SerializeField] float knifeDamage = 20;
-    [Tooltip("Knife Lunge Speed")]
-    [SerializeField] float knifeStabSpeed = 10;
+    [SerializeField] float[] knifeDamage = { 20 };
     [Tooltip("Knife Effects")]
-    [SerializeField] AttackStatusEffects knifeEffects;
+    [SerializeField] AttackStatusEffects[] knifeEffects;
     [Tooltip("Dash Hitbox")]
     [SerializeField] GameObject dashHitbox;
     [Tooltip("Dash Speed")]
@@ -107,8 +105,9 @@ public class Goblin : Enemy
         agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         currentPlayer = playerController.GetCurrentCharacter();
    
             SetBehavior();
@@ -120,22 +119,31 @@ public class Goblin : Enemy
     {
         if (gameObject != null)
         {
-            if (Time.time - timeLastPrimary >= primaryComboResetTime)
-            {
-                currentPrimaryComboStep = 0;
+            if (currentPrimaryComboStep == 0 || (Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] && currentPrimaryComboStep < primaryComboSteps))
+            { 
+                timeLastPrimary = Time.time;
+
+                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+
+                if(currentPrimaryComboStep == 0)
+                {
+                    Debug.Log("full attack");
+                    PrimaryAttack();
+                }
+                else
+                {
+                    Debug.Log("in combo attack");
+                    attackStateCoroutine = StartCoroutine(HandleStab());
+                }
+                currentPrimaryComboStep += 1;
             }
-
-            if (currentPrimaryComboStep >= primaryComboSteps)
+            else
             {
+                Debug.Log("reseting");
                 currentPrimaryComboStep = 0;
+                characterAnimator.SetPrimaryComboEnded();
             }
-
-            currentPrimaryComboStep += 1;
-
-            characterAnimator.SwitchState("PrimaryAttack");
-            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
-
-            PrimaryAttack();
         }
     }
 
@@ -265,7 +273,7 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage, forwardVelocity: thrustSpeed, status: knifeEffects, attackDuration: 0.25f);
+        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: 0.25f);
 
         yield return new WaitForSeconds(0.25f);
 
@@ -304,7 +312,6 @@ public class Goblin : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
-        timeLastPrimary = Time.time;
     }
 
     public override IEnumerator BeginSecondary()

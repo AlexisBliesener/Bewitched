@@ -152,8 +152,7 @@ public class CharacterTests
         testCharacter.primaryCooldown = 1f;
         testCharacter.secondaryCooldown = 2f;
         testCharacter.primaryComboSteps = 2;
-        testCharacter.primaryComboExtraCooldown = 1f;
-        testCharacter.primaryComboResetTime = 0.5f;
+        testCharacter.primaryComboResetTime[0] = 0.5f;
 
 
     }
