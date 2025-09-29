@@ -183,6 +183,7 @@ public class Goblin : Enemy
         {
             Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 2;
             targetPos.y = transform.position.y;
+            GetComponent<CharacterController>().enabled = false;
             transform.DOMove(targetPos, chaseTime);
 
             float timeStarted = Time.time;
@@ -215,7 +216,10 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
                 yield return null;
             }
+            transform.position = targetPos;
+            GetComponent<CharacterController>().enabled = false;
         }
+
         if (attackIndicator != null)
         {
             Destroy(attackIndicator);
