@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
+/// <summary>
+/// This has to be attached to the PauseUI gameObject,
+/// which contains sub-menus for Settings, the Compendium, and Upgrades.
+/// </summary>
 public class PauseManager : MonoBehaviour
 {
     [Header("Screens")]
@@ -16,18 +21,65 @@ public class PauseManager : MonoBehaviour
     [Tooltip("The Upgrade Log Screen")]
     public GameObject upgradeScreen;
 
+    [Header("First Selected Buttons")]
+    [Tooltip("The first button to be selected when Pause menu is opened.")]
+    public GameObject pauseButton;
+    [Tooltip("The first button to be selected when Compendium menu is opened.")]
+    public GameObject compendiumButton;
+    [Tooltip("The first button to be selected when Upgrade Log menu is opened.")]
+    public GameObject upgradeButton;
+    [Tooltip("The first button to be selected when Settings menu is opened.")]
+    public GameObject settingsButton;
+
+    [Header("Other Screens")]
+    [Tooltip("The Upgrade Selection Screen")]
+    public GameObject upgradeSelectionUI;
+    [Tooltip("The first button to be selected when upgrade menu is opened.")]
+    public GameObject upgradeMenuButton;
+    [Tooltip("The Swap Upgrade Screen")]
+    public GameObject swapUpgradeUI;
+    [Tooltip("The first button to be selected when swap menu is opened.")]
+    public GameObject swapButton;
+
+    /// <summary>
+    /// On enable, set first button to work (controller support),
+    /// brings up main screen, and allows player to use cursor.
+    /// </summary>
     private void OnEnable()
     {
         OpenScreen(mainPauseScreen);
+        EventSystem.current.SetSelectedGameObject(pauseButton);
         Cursor.lockState = CursorLockMode.None;
+        //Audio
+        AudioManager.OpenUIAudio();
     }
 
+    /// <summary>
+    /// On disable, if there's no other UI menu open, go back to gameplay.
+    /// If UI menus are open, set first selected button so that controller works.
+    /// </summary>
     private void OnDisable()
     {
-        Time.timeScale = 1.0f;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (!upgradeSelectionUI.activeInHierarchy && !swapUpgradeUI.activeInHierarchy)
+        {
+            Time.timeScale = 1.0f;
+            Cursor.lockState = CursorLockMode.Locked;
+            //Audio
+            AudioManager.CloseUIAudio();
+        }
+        else if (upgradeSelectionUI.activeInHierarchy)
+        {
+            EventSystem.current.SetSelectedGameObject(upgradeMenuButton);
+        }
+        else if (swapUpgradeUI.activeInHierarchy)
+        {
+            EventSystem.current.SetSelectedGameObject(swapButton);
+        }
     }
 
+    /// <summary>
+    /// Close all UI screens in the pause menu 
+    /// </summary>
     public void CloseAllScreens()
     {
         mainPauseScreen.SetActive(false);
@@ -36,12 +88,34 @@ public class PauseManager : MonoBehaviour
         upgradeScreen.SetActive(false);
     }
 
+    /// <summary>
+    /// Open sub-menus in the pause menu and set first button for controller support.
+    /// </summary>
     public void OpenScreen(GameObject screen)
     {
         CloseAllScreens();
         screen.SetActive(true);
+        if (screen.name == "PauseMain")
+        {
+            EventSystem.current.SetSelectedGameObject(pauseButton);
+        }
+        else if (screen.name == "Compendium")
+        {
+            EventSystem.current.SetSelectedGameObject(compendiumButton);
+        }
+        else if (screen.name == "UpgradeLog")
+        {
+            EventSystem.current.SetSelectedGameObject(upgradeButton);
+        }
+        else if (screen.name == "Settings")
+        {
+            EventSystem.current.SetSelectedGameObject(settingsButton);
+        }
     }
 
+    /// <summary>
+    /// Closes application.
+    /// </summary>
     public void QuitToDesktop()
     {
         #if UNITY_EDITOR
@@ -51,6 +125,9 @@ public class PauseManager : MonoBehaviour
         #endif
     }
 
+    /// <summary>
+    /// Loads level, which is a unity scene.
+    /// </summary>
     public void LoadLevel(string sceneName)
     {
         SceneManager.LoadScene(sceneName);

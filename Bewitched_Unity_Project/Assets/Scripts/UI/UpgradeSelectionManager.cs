@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// This has to be attached to the UpgradeSelectionUI gameObject,
@@ -15,12 +16,16 @@ public class UpgradeSelectionManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Upgrade Selection Screen")]
     public GameObject upgradeSelectionScreen;
+    [Tooltip("The Swap Upgrade Screen")]
     public GameObject swapUpgradeUI;
 
+    [Header("Buttons")]
     [Tooltip("List of buttons for the upgrade drops")]
     private Button[] upgradeOptionButtons;
     [Tooltip("Salvage Upgrade Button")]
     private Button salvageButton;
+    [Tooltip("The first button to be selected when menu is opened.")]
+    public GameObject firstButton;
 
     /// <summary>
     /// On awake, create list of buttons that are the children of the upgrade selection screen, 
@@ -53,9 +58,33 @@ public class UpgradeSelectionManager : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
-        upgradeSelectionScreen.SetActive(true);
+
+        if (upgradeSelectionScreen != null && upgradeSelectionScreen.activeInHierarchy == false)
+        {
+            upgradeSelectionScreen.SetActive(true);
+            Debug.Log("on");
+        }
+        
+        StartCoroutine(SetFirstButtonDelay());
+        //Plays UpgradeOpen and ducks audio
+        AudioManager.TryPlayOneShot("UpgradeOpen");
+        AudioManager.OpenUIAudio(0.8f);
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
+    }
+
+
+    /// <summary>
+    /// One frame delay so that the SetSelectedGameObject does not auto-submit (for controller)
+    /// </summary>
+    private IEnumerator SetFirstButtonDelay()
+    {
+        EventSystem.current.SetSelectedGameObject(null);
+        yield return null; //wait one frame to avoid double-press
+        if (firstButton != null)
+        {
+            EventSystem.current.SetSelectedGameObject(firstButton);
+        }
     }
 
     /// <summary>
@@ -65,6 +94,8 @@ public class UpgradeSelectionManager : MonoBehaviour
     {
         if (swapUpgradeUI == null || !swapUpgradeUI.activeSelf)
         {
+            EventSystem.current.SetSelectedGameObject(null);
+
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
         }
@@ -110,12 +141,16 @@ public class UpgradeSelectionManager : MonoBehaviour
             {
                 DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
                 CloseScreen();
+                //Plays upgrade select sound effect
+                AudioManager.TryPlayOneShot("UpgradeSelect");
             });
         }
+
         salvageButton.onClick.RemoveAllListeners();
         salvageButton.onClick.AddListener(() =>
         {
             DropSystem.Instance.SalvageDrop();
+            
             CloseScreen();
         });
     }
@@ -125,6 +160,8 @@ public class UpgradeSelectionManager : MonoBehaviour
     /// </summary>
     public void CloseScreen()
     {
+        //Fades in the rest of audio
+        AudioManager.CloseUIAudio(1f);
         this.gameObject.SetActive(false);
     }
 }
