@@ -75,8 +75,6 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
-    public Material perfectCounterTimeMaterial;
-    public Material defaultMaterial;
     //The sound effect for the spin attack
     EventInstance secondaryAudio;
     //FMOD Event for idle sound effects
@@ -155,7 +153,7 @@ public class Goblin : Enemy
                 enemy.SetTargeted(true);
             }
         }
-
+        attackingPrimary = true;
         attackStateCoroutine = StartCoroutine(KnifeWindup());
     }
 
@@ -166,8 +164,6 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         Debug.Log("Approaching");
-        // attackDodged = false;
-        // dodgable = false;
 
         attackState = AttackState.Approaching;
 
@@ -321,8 +317,6 @@ public class Goblin : Enemy
 
     public override void SecondaryAttack()
     {
-        hitCharacter = false;
-
         hitCharacter = false;
         if (playerControlling)
         {
@@ -614,6 +608,7 @@ public class Goblin : Enemy
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
+            Debug.Log(gameObject.ToString() + pathState);
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)

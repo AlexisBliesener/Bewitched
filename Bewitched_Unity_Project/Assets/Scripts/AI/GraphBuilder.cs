@@ -458,6 +458,11 @@ public class GraphBuilder : MonoBehaviour
         if (origin == null || targetNode == null)
         {
             searching = false;
+            enemy.SetUsingSearch(false);
+            enemy.SetPath(null);
+            enemy.ValidatePoint(); // Quick set path state to unset
+            StartCoroutine(RetryPath(enemy));
+            Debug.Log("PATHNOTFOUND");
             yield break;
         }
 
@@ -530,6 +535,10 @@ public class GraphBuilder : MonoBehaviour
 
         searching = false;
         enemy.SetUsingSearch(false);
+        enemy.SetPath(null);
+        enemy.ValidatePoint(); // Quick set path state to unset
+        StartCoroutine(RetryPath(enemy));
+        Debug.Log("PATHNOTFOUND");
         yield break;
 
     }

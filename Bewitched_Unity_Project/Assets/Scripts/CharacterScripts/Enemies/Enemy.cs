@@ -111,6 +111,9 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
+    public Material perfectCounterTimeMaterial;
+    public Material defaultMaterial;
+
     public enum PathState
     {
         Unset,

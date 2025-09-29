@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,25 +11,12 @@ public class Ogre : Enemy
     [Tooltip("Pivot Prefab")]
     [SerializeField] GameObject batPivot;
 
-    [Tooltip("Minimum Bat Swing Damage")]
-    [SerializeField] float minimumBatSwingDamage;
-    [Tooltip("Maximum Bat Swing Damage")]
-    [SerializeField] float maximumBatSwingDamage;
-
-    [Tooltip("Minimum Bat Swing Angle")]
-    [SerializeField] float minimumBatSwingAngle;
-    [Tooltip("Maximum Bat Swing Angle")]
-    [SerializeField] float maximumBatSwingAngle;
-
-    [Tooltip("Minimum Bat Swing Knockback")]
-    [SerializeField] float minimumBatSwingKnockback;
-    [Tooltip("Maximum Bat Swing Knockback")]
-    [SerializeField] float maximumBatSwingKnockback;
-
+    [Tooltip("Bat Swing Damage")]
+    [SerializeField] float batSwingDamage;
+    [Tooltip("Bat Swing Angle")]
+    [SerializeField] float batSwingAngle;
     [Tooltip("Bat Swing Duration")]
     [SerializeField] float batSwingDuration;
-    [Tooltip("Maximum Bat Swing Charge Time")]
-    [SerializeField] float batSwingChargeTime;
 
     [Tooltip("Bat Swing Status Effects")]
     [SerializeField] AttackStatusEffects batSwingEffects = new AttackStatusEffects();
@@ -60,15 +48,6 @@ public class Ogre : Enemy
     [SerializeField] float minSittingTime = 3;
     [Tooltip("Maximum time for ogre to sit")]
     [SerializeField] float maxSittingTime = 7;
-
-    bool isSwinging = false;
-    bool isCharging = false;
-
-    float currentBatSwingDamage;
-    float currentBatSwingAngle;
-    float currentBatSwingKnockback;
-
-    float timeSwingStarted;
 
     float jumpVelocity = 0;
 
@@ -102,17 +81,31 @@ public class Ogre : Enemy
 
     public override void PrimaryAttack()
     {
-        isCharging = true;
-        currentBatSwingKnockback = minimumBatSwingKnockback;
-        currentBatSwingDamage = minimumBatSwingDamage;
-        currentBatSwingAngle = minimumBatSwingAngle;
+        hitCharacter = false;
+        if (playerControlling)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+            aiState = AIMovementState.Blocked;
+            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
+            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+        }
 
-        timeSwingStarted = Time.time;
-        PlayerController.instance.SetAllowMovement(false);
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(this);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
+
         attackingPrimary = true;
-
-        //if (!playerControlling || releasePrimaryImm) ReleasePrimary();
-        //releasePrimaryImm = false;
+        attackStateCoroutine = StartCoroutine(BatWindup())
     }
 
     public override void SecondaryAttack()
@@ -151,24 +144,95 @@ public class Ogre : Enemy
     //    StartCoroutine(SwingBat(pivot));
     //}
 
-    public void ChargeBatSwing()
+    public IEnumerator BatWindup()
     {
-        if (isCharging)
+        inCounter = false;
+        attackState = AttackState.Windup;
+        float timeStarted = Time.time;
+        // For now wait 0.25 seconds, in future wait for animation trigger
+        while (Time.time - timeStarted < 0.25f)
         {
-            float timeVal = (Time.time - timeSwingStarted) / batSwingChargeTime;
-
-            if (timeVal < 1)
+            if (lockedCharacter)
             {
-                currentBatSwingAngle = Mathf.Lerp(minimumBatSwingAngle, maximumBatSwingAngle, timeVal);
-                currentBatSwingDamage = Mathf.Lerp(minimumBatSwingDamage, maximumBatSwingDamage, timeVal);
-                currentBatSwingKnockback = Mathf.Lerp(minimumBatSwingKnockback, maximumBatSwingKnockback, timeVal);
+                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
+            yield return null;
         }
+        attackStateCoroutine = StartCoroutine(BatApproach());
     }
 
-    private IEnumerator SwingBat(GameObject pivot)
+    public IEnumerator BatApproach()
     {
+        Debug.Log("Approaching");
+
+        attackState = AttackState.Approaching;
+
+        if (lockedCharacter)
+        {
+            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
+            targetPos.y = transform.position.y;
+            GetComponent<CharacterController>().enabled = false;
+            transform.DOMove(targetPos, chaseTime);
+            transform.DOLookAt(targetPos, chaseTime);
+
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < chaseTime)
+            {
+                if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
+                {
+                    //   dodgable = false;
+                    if (attackIndicator != null)
+                    {
+                        attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
+                        PlayerController.instance.SetCounterAvaliable(null);
+                    }
+                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
+                }
+                else // First 3 quarters, attack is dodgable
+                {
+                    //    dodgable = true;
+                    if (attackIndicator != null)
+                    {
+                        attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
+                        PlayerController.instance.SetCounterAvaliable(this);
+                    }
+                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
+                }
+                yield return null;
+            }
+            transform.position = targetPos;
+            GetComponent<CharacterController>().enabled = true;
+        }
+
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+
+        Debug.Log("Not Approaching");
+
+        attackStateCoroutine = StartCoroutine(SwingBat());
+        yield break;
+    }
+
+    private IEnumerator SwingBat()
+    {
+        attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
+
+        GameObject pivot = Instantiate(batPivot, transform);
+        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
+        pivot.SetActive(false);
+
+        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
+        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+
+        pivot.SetActive(true);
 
         while (timeSinceStarted < batSwingDuration)
         {
@@ -179,9 +243,10 @@ public class Ogre : Enemy
 
         Destroy(pivot);
 
+        yield return new WaitForSeconds(1); // Temporary cooldown time
+
         StartCoroutine(EnableMovement());
         SetPrimaryStatus(false);
-        isSwinging = false;
     }
 
     public void HandleJumpMovement()
@@ -226,10 +291,9 @@ public class Ogre : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
-        Debug.Log(aiState);
-
         if (aiState == AIMovementState.Patrolling)
         {
+            Debug.Log(gameObject.ToString() + pathState);
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
@@ -296,9 +360,6 @@ public class Ogre : Enemy
             return;
         }
 
-        AIMove();
-        //AIRotate();
-
         if (pathState == PathState.Set)
         {
             Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
@@ -316,6 +377,10 @@ public class Ogre : Enemy
             AIMove();
             //AIRotate();
         }
+        else // If no current path, mark as available
+        {
+            reachedWalkpoint = false;
+        }
     }
 
     /// <summary>
@@ -332,6 +397,7 @@ public class Ogre : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
+        Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
         {
             float randomX = Random.Range(-patrolRange, patrolRange);
@@ -368,7 +434,7 @@ public class Ogre : Enemy
             pathState = PathState.Unset;
             return false;
         }
-        Debug.DrawRay(transform.position, Vector3.up * 10, Color.green, 10);
+        Debug.DrawRay(transform.position, Vector3.up * 10, Color.green, 100);
         Debug.Log("Valid");
 
         pathState = PathState.Set;
@@ -400,6 +466,7 @@ public class Ogre : Enemy
     /// <returns> Waits for animation to be done and looks for player </returns>
     private IEnumerator LookAround()
     {
+        outGoing = !outGoing;
         if (debugging)
         {
             DestroyPath();
@@ -418,15 +485,13 @@ public class Ogre : Enemy
             timer += Time.deltaTime;
             yield return null;
         }
-        outGoing = !outGoing; // Flip outgoing
+        Debug.Log("Reached destination, looking around. " + pathState + outGoing);
 
         if (outGoing) // when done, determine if we sit or turn around
         {
-            outGoing = !outGoing;
             StartCoroutine(Sit());
             yield break;
         }
-        
 
         inProcess = false;
         if (debugging)
@@ -441,11 +506,13 @@ public class Ogre : Enemy
     /// <returns></returns>
     private IEnumerator Sit()
     {
+        Debug.Log("Start sit");
         inProcess = true;
 
         yield return new WaitForSeconds(Random.Range(minSittingTime, maxSittingTime));
 
         inProcess = false;
+        Debug.Log("End sit");
     }
 
     /// <summary>
