@@ -93,6 +93,9 @@ public class HUDManager : MonoBehaviour
         upgradeObject.transform.SetAsFirstSibling();
     }
 
+    /// <summary>
+    /// Refreshes HUD. Called when upgrades are bought or sold at the shop.
+    /// </summary>
     public void RefreshHUD()
     {
         if (DropSystem.Instance != null)

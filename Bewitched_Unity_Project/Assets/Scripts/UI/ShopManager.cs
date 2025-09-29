@@ -10,8 +10,6 @@ using UnityEngine.EventSystems;
 public class ShopManager : MonoBehaviour
 {
     [Header("Screens")]
-    [Tooltip("The Shop Upgrade Screen")]
-    public GameObject ShopUI;
     [Tooltip("The Buy Upgrades Screen")]
     public GameObject BuyUI;
     [Tooltip("The Sell Upgrades Screen")]
@@ -21,14 +19,17 @@ public class ShopManager : MonoBehaviour
     [Tooltip("List of upgrades that the player has acquired.")]
     private List<DropData> playerUpgrades;
 
-
     [Header("Buttons")]
+    [Tooltip("The first button to be selected when menu is opened.")]
+    public GameObject firstButton;
     [Tooltip("List of placeholder buttons for the upgrades that can be bought")]
     private Button[] buyUpgradeButtons;
     [Tooltip("List of placeholder buttons for the upgrades that can be sold")]
     private Button[] sellUpgradeButtons;
-    [Tooltip("The first button to be selected when menu is opened.")]
-    public GameObject firstButton;
+    
+    [Header("Pop-ups")]
+    [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
+    public GameObject NoSoulText;
 
     /// <summary>
     /// Shows the screen on enable, allows player to use cursor to navigate the screen
@@ -68,12 +69,18 @@ public class ShopManager : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Sets buy screen active. To be attached to a "Buy Menu" button.
+    /// </summary>
     public void BuyScreen()
     {
         SellUI.gameObject.SetActive(false);
         BuyUI.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// Sets sell screen active. To be attached to a "Sell Menu" button.
+    /// </summary>
     public void SellScreen()
     {
         BuyUI.gameObject.SetActive(false);
@@ -148,19 +155,24 @@ public class ShopManager : MonoBehaviour
 
                 if (DropSystem.Instance.BuyUpgrade(chosenUpgrade))
                 {
-                    Debug.Log($"Bought {chosenUpgrade.GetDropName()} for {chosenUpgrade.GetBuyAmount()} souls.");
+                    // Bought upgrade, gave souls
                     buyUpgradeButtons[capturedIndex].gameObject.SetActive(false);
                     UpdateSellOptions();
                 }
                 else
                 {
-                    Debug.Log($"Not enough souls to buy {chosenUpgrade.GetDropName()}");
+                    // Not enough souls to buy requested upgrade
+                    ShowPopup(NoSoulText, 3f);
                 }
             });
         }
     }
 
-
+    /// <summary>
+    /// Updates the upgrade buttons that appear on the sell screen of the shop altar.
+    /// Buttons are populated with the player's current upgrades and how much soul they will sell for.
+    /// Clears and refreshes every time because screen has to be refreshed when player sells an upgrade.
+    /// </summary>
     private void UpdateSellOptions()
     {
         if (DropSystem.Instance == null)
@@ -199,8 +211,6 @@ public class ShopManager : MonoBehaviour
 
         foreach (var stack in groupedUpgrades)
         {
-            //if (stack.childCount == 0) continue;
-            //if (upgrade == null) continue;
             if (i >= sellUpgradeButtons.Length - 1) break; // last button is a menu switch button
 
             DropData upgrade = stack.Value.upgrade;
@@ -208,18 +218,6 @@ public class ShopManager : MonoBehaviour
 
             Button button = sellUpgradeButtons[i];
             button.gameObject.SetActive(true);
-
-            /*
-            string upgradeName = stack.name.Replace("_Stack", "");
-            DropData upgrade = stack.GetChild(0).GetComponent<DropData>();
-            if (upgrade == null) continue;
-
-            int stackCount = stack.childCount;
-            Button button = sellUpgradeButtons[i];
-            Debug.Log(i);
-            button.gameObject.SetActive(true);
-            
-            */
 
             // Attach button text for name and price
             TMP_Text[] buttonText = button.GetComponentsInChildren<TMP_Text>(true);
@@ -267,14 +265,6 @@ public class ShopManager : MonoBehaviour
             {
                 if (DropSystem.Instance.SellUpgrade(capturedUpgrade))
                 {
-                    Debug.Log($"Sold {capturedUpgrade.GetDropName()}");
-                    /*
-                    foreach (var b in sellUpgradeButtons)
-                    {
-                        b.onClick.RemoveAllListeners();
-                        b.gameObject.SetActive(false);
-                    }
-                    */
                     UpdateSellOptions();
                 }
 
@@ -292,6 +282,24 @@ public class ShopManager : MonoBehaviour
 
     }
 
+
+    /// <summary>
+    /// Show pop up when player tries to buy an upgrade but does not have enough money.
+    /// </summary>
+    public void ShowPopup(GameObject popup, float seconds = 3f)
+    {
+        StartCoroutine(ShowPopupCorountine(popup, seconds));
+    }
+
+    /// <summary>
+    /// Corountine for popup
+    /// </summary>
+    private IEnumerator ShowPopupCorountine(GameObject popup, float seconds)
+    {
+        popup.SetActive(true);
+        yield return new WaitForSecondsRealtime(seconds);
+        popup.SetActive(false);
+    }
 
     /// <summary>
     /// Closes screen
