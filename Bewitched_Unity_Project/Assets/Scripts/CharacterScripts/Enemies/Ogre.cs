@@ -17,6 +17,8 @@ public class Ogre : Enemy
     [SerializeField] float batSwingAngle;
     [Tooltip("Bat Swing Duration")]
     [SerializeField] float batSwingDuration;
+    [Tooltip("Bat Windup Period")]
+    [SerializeField] float batWindupPeriod;
 
     [Tooltip("Bat Swing Status Effects")]
     [SerializeField] AttackStatusEffects batSwingEffects = new AttackStatusEffects();
@@ -50,9 +52,6 @@ public class Ogre : Enemy
     [SerializeField] float maxSittingTime = 7;
 
     float jumpVelocity = 0;
-
-    Quaternion minAngle;
-    Quaternion maxAngle;
 
     // Secondary stuff
 
@@ -144,21 +143,35 @@ public class Ogre : Enemy
     //    StartCoroutine(SwingBat(pivot));
     //}
 
+    /// <summary>
+    /// Handles the windup for the bat
+    /// This version looks to the right of the locked character (will alternate in the future)
+    /// </summary>
+    /// <returns></returns>
     public IEnumerator BatWindup()
     {
         inCounter = false;
         attackState = AttackState.Windup;
-        float timeStarted = Time.time;
+        float timeStarted = 0;
         // For now wait 0.25 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.25f)
+        while (timeStarted < batWindupPeriod)
         {
+            timeStarted += Time.deltaTime;
+            Vector3 rotationVal;
             if (lockedCharacter)
             {
                 Vector3 direc = lockedCharacter.transform.position - transform.position;
                 direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+                rotationVal = direc.normalized;
             }
+            else
+            {
+                rotationVal = transform.forward.normalized;
+            }
+
+            Quaternion rotationRight = Quaternion.AngleAxis(batSwingAngle / 4, Vector3.up); // Modifies rotation to be to the right, in the future make this depend on where more enemies are
+
+            transform.forward = Vector3.Lerp(transform.forward, rotationVal, timeStarted / batWindupPeriod);
             yield return null;
         }
         attackStateCoroutine = StartCoroutine(BatApproach());
@@ -232,11 +245,13 @@ public class Ogre : Enemy
         batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
 
+        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
+
         pivot.SetActive(true);
 
         while (timeSinceStarted < batSwingDuration)
         {
-            pivot.transform.rotation = Quaternion.Lerp(minAngle, maxAngle, timeSinceStarted / batSwingDuration);
+            pivot.transform.forward = Vector3.Lerp(transform.forward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
             yield return null;
         }
