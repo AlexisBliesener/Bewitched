@@ -47,6 +47,10 @@ public class AttackStatusEffects : MonoBehaviour
     [Tooltip("The Duration of the Time Stop")]
     [SerializeField] float timeStopDuration = 0;
 
+    [Header("Hitstun settings")]
+    [Tooltip("The duration of the hitstun")]
+    [SerializeField] float stunDuration = 0;
+
     #region Saving/Loading
 
     /// <summary>
@@ -165,6 +169,11 @@ public class AttackStatusEffects : MonoBehaviour
         user.StartCoroutine(user.StartTime(timeStopDuration));
     }
 
+    public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)
+    {
+        character.StartCoroutine(character.StartHitStun(stunDuration));
+    }
+
     /// <summary>
     /// Applies the status effects
     /// </summary>
@@ -175,5 +184,6 @@ public class AttackStatusEffects : MonoBehaviour
     {
         ApplyKnockback(user, character, hitbox);
         ApplyTimeStop(user, character, hitbox);
+        ApplyHitStun(user, character, hitbox);
     }
 }

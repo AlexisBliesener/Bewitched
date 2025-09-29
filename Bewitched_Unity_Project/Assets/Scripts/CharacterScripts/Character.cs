@@ -150,6 +150,8 @@ public abstract class Character : MonoBehaviour
 
     protected float timeLastDodge = 0;
 
+    protected bool stunned = false;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -383,7 +385,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary()) return false;
+        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
 
         return true;
     }
@@ -391,7 +393,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckSecondaryUsable()
     {
         if (!CheckSecondaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary) return false;
+        if (attackingPrimary || attackingSecondary || stunned) return false;
 
         return true;
     }
@@ -436,6 +438,21 @@ public abstract class Character : MonoBehaviour
         {
             Time.timeScale = 1;
         }
+    }
+
+    public virtual IEnumerator StartHitStun(float duration)
+    {
+        hitStunActual = Instantiate(hitStunPrefab);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            yield return null;
+        }
+        PlayerController.instance.SetAllowMovement(true);
+        stunned = false;
+        Destroy(hitStunActual); hitStunActual = null;
     }
 
     public virtual void CreateHitStun()

@@ -422,6 +422,23 @@ public abstract class Enemy : Character
         }
     }
 
+    public override IEnumerator StartHitStun(float duration)
+    {
+        hitStunActual = Instantiate(hitStunPrefab);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+            else aiState = AIMovementState.Blocked;
+            yield return null;
+        }
+        if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+        else aiState = AIMovementState.Chasing;
+        stunned = false;
+        Destroy(hitStunActual); hitStunActual = null;
+    }
+
     public virtual void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
