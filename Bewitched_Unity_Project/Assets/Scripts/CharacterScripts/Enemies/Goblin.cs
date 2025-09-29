@@ -110,9 +110,9 @@ public class Goblin : Enemy
     private void FixedUpdate()
     {
         currentPlayer = playerController.GetCurrentCharacter();
-   
-            SetBehavior();
-        
+
+        SetBehavior();
+
         HandleHitStun();
     }
 
@@ -174,8 +174,8 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         Debug.Log("Approaching");
-       // attackDodged = false;
-       // dodgable = false;
+        // attackDodged = false;
+        // dodgable = false;
 
         attackState = AttackState.Approaching;
 
@@ -191,7 +191,7 @@ public class Goblin : Enemy
             {
                 if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
-                //   dodgable = false;
+                    //   dodgable = false;
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
@@ -201,7 +201,7 @@ public class Goblin : Enemy
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                //    dodgable = true;
+                    //    dodgable = true;
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
@@ -238,6 +238,7 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeWindup()
     {
+        inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = Time.time;
         // For now wait 0.25 seconds, in future wait for animation trigger
@@ -309,13 +310,25 @@ public class Goblin : Enemy
 
     public override IEnumerator BeginSecondary()
     {
-        
+
         if (gameObject)
         {
             SecondaryAttack();
 
         }
         yield break;
+    }
+
+    public IEnumerator StartCounterAttack(string attackName)
+    {
+        while (dodging)
+        {
+            yield return null;
+        }
+        if (attackName == "Spin")
+        {
+            attackStateCoroutine = StartCoroutine(SpinWindup());
+        }
     }
 
     public override void SecondaryAttack()
@@ -345,16 +358,13 @@ public class Goblin : Enemy
             }
         }
 
-        if (inCounter)
+        if (dodging && !inCounter)
         {
             // Do spin
-            inCounter = false;
-            StopCoroutine(attackStateCoroutine);
-            transform.position = targetTweenPosition;
-            GetComponent<CharacterController>().enabled = true;
-            attackStateCoroutine = StartCoroutine(SpinWindup());
+            inCounter = true;
+            StartCoroutine(StartCounterAttack("Spin"));
         }
-        else
+        else if (!dodging)
         {
             if (playerControlling)
             {
@@ -374,10 +384,9 @@ public class Goblin : Enemy
 
     public IEnumerator SpinWindup()
     {
+        inCounter = false;
         attackingSecondary = true;
         attackState = AttackState.Windup;
-
-        while (Time.time - timeLastDodge < 0.5f) yield return null; // while still in dodge motion
 
         float timeStarted = Time.time;
 
@@ -459,7 +468,7 @@ public class Goblin : Enemy
 
             if (lockedCharacter)
             {
-                Debug.Log("Locked character position: " + (lockedCharacter.transform.position - transform.position).normalized);
+                Debug.Log(lockedCharacter);
                 desiredVelocity = (lockedCharacter.transform.position - transform.position).normalized;
             }
             else
@@ -983,8 +992,8 @@ public class Goblin : Enemy
         Vector3 closestPoint = other.ClosestPoint(transform.position);
         Vector3 contactDirection = (transform.position - closestPoint).normalized;
 
-        deflectDirection = Vector3.Reflect(velocity, contactDirection);
-        Debug.Log("Contact Direction: " + contactDirection + ". Deflect direction: " + deflectDirection);
+        deflectDirection = Vector3.Reflect(velocity.normalized, contactDirection);
+        Debug.Log("Contact Direction: " + other + ". Deflect direction: " + deflectDirection);
 
         int rotationMultiplier = 1;
         if (numDeflections % 2 != 0)

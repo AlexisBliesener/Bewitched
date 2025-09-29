@@ -772,10 +772,8 @@ public abstract class Character : MonoBehaviour
 
         velocity = Vector3.zero;
         Time.timeScale = 1;
-        dodging = false; // Main dodge over
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
-        inCounter = true;
 
         StartCoroutine(HandleAfterDodge(inputTime));
     }
@@ -787,6 +785,6 @@ public abstract class Character : MonoBehaviour
         {
             yield return null;
         }
-        inCounter = false;
+        dodging = false;
     }
 }

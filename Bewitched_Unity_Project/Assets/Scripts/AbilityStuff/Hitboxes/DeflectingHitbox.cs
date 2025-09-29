@@ -95,8 +95,8 @@ public class DeflectingHitbox : DefaultHitbox
                 hitWall = true;
             }
 
-            // If not colliding with the floor
-            if (other.gameObject.layer != 6)
+            // If not colliding with the floor or self
+            if (other.gameObject.layer != 6 && other.gameObject != user.gameObject && other.gameObject.layer != 9)
             {
                 // Check if other hit is on a hitbox
                 if (other.TryGetComponent(out DefaultHitbox otherBox))
