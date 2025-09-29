@@ -13,6 +13,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Tooltip("This scene's music")]
     EventReference levelMusicReference;
     EventInstance levelMusic;
+    [Tooltip("Dictionary with the snapshots active during runtime as the value and the snapshot name as the key.")]
     Dictionary<string, EventInstance> activeSnapshots;
 
     void Awake()
