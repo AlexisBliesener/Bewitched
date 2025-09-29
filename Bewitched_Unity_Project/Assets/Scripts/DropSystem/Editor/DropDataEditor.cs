@@ -47,10 +47,9 @@ public class DropDataDrawer : PropertyDrawer
 
         }
 
-
-
         EditorGUILayout.PropertyField(property.FindPropertyRelative("dropScript"));
-
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("buyAmount"));
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("sellAmount"));
 
         EditorGUILayout.EndVertical();
         EditorGUI.EndProperty();
