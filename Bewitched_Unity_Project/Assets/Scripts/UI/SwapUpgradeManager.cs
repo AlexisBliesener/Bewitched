@@ -18,6 +18,9 @@ public class SwapUpgradeManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Swap Upgrade Screen")]
     public GameObject SwapUpgradeUI;
+    [Tooltip("The Shop: Buy Upgrade Screen")]
+    public GameObject buyUpgradeUI;
+
 
     [Header("List of Upgrades Acquired")]
     [Tooltip("List of upgrades that the player has acquired.")]
@@ -28,6 +31,8 @@ public class SwapUpgradeManager : MonoBehaviour
     private Button[] swapUpgradeButtons;
     [Tooltip("The first button to be selected when menu is opened.")]
     public GameObject firstButton;
+    [Tooltip("The first button to be selected when the Shop: Buy Upgrade menu is opened.")]
+    public GameObject buyUpgradeButton;
 
     /// <summary>
     /// On awake, create list of buttons that are the children of the swap upgrades screen, 
@@ -75,9 +80,15 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
-        EventSystem.current.SetSelectedGameObject(null);
-        Time.timeScale = 1.0f;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (!buyUpgradeUI.activeInHierarchy)
+        {
+            Time.timeScale = 1.0f;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else if (buyUpgradeUI.activeInHierarchy)
+        {
+            EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
+        }
     }
 
     /// <summary>

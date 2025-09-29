@@ -31,7 +31,7 @@ public class PauseManager : MonoBehaviour
     [Tooltip("The first button to be selected when Settings menu is opened.")]
     public GameObject settingsButton;
 
-    [Header("Other Screens")]
+    [Header("Other Screens and their buttons")]
     [Tooltip("The Upgrade Selection Screen")]
     public GameObject upgradeSelectionUI;
     [Tooltip("The first button to be selected when upgrade menu is opened.")]
@@ -40,6 +40,14 @@ public class PauseManager : MonoBehaviour
     public GameObject swapUpgradeUI;
     [Tooltip("The first button to be selected when swap menu is opened.")]
     public GameObject swapButton;
+    [Tooltip("The Shop: Buy Upgrade Screen")]
+    public GameObject buyUpgradeUI;
+    [Tooltip("The first button to be selected when the Shop: Buy Upgrade menu is opened.")]
+    public GameObject buyUpgradeButton;
+    [Tooltip("The Shop: Sell Upgrade Screen")]
+    public GameObject sellUpgradeUI;
+    [Tooltip("The first button to be selected when the Shop: Sell Upgrade menu is opened.")]
+    public GameObject sellUpgradeButton;
 
     /// <summary>
     /// On enable, set first button to work (controller support),
@@ -58,7 +66,8 @@ public class PauseManager : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
-        if (!upgradeSelectionUI.activeInHierarchy && !swapUpgradeUI.activeInHierarchy)
+        if (!upgradeSelectionUI.activeInHierarchy && !swapUpgradeUI.activeInHierarchy
+            && !buyUpgradeUI.activeInHierarchy && !sellUpgradeUI.activeInHierarchy)
         {
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
@@ -70,6 +79,14 @@ public class PauseManager : MonoBehaviour
         else if (swapUpgradeUI.activeInHierarchy)
         {
             EventSystem.current.SetSelectedGameObject(swapButton);
+        }
+        else if (buyUpgradeUI.activeInHierarchy)
+        {
+            EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
+        }
+        else if (sellUpgradeUI.activeInHierarchy)
+        {
+            EventSystem.current.SetSelectedGameObject(sellUpgradeButton);
         }
     }
 
