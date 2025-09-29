@@ -1,0 +1,55 @@
+{
+    "playerUpgrades": [],
+    "dropChance": 20,
+    "salvageAmount": 10.0,
+    "upgradeSelectionUI": {
+        "instanceID": 55856
+    },
+    "swapUpgradeUI": {
+        "instanceID": 0
+    },
+    "availableRarities": [
+        {
+            "displayName": "Ultra Rare",
+            "dropChance": 100
+        },
+        {
+            "displayName": "Rare",
+            "dropChance": 100
+        }
+    ],
+    "availableDrops": [
+        {
+            "dropName": "Grand Finale",
+            "description": "Enemies now explode! Possess an enemy and get it to low health, then exit the enemy to trigger an explosion to damage all surrounding enemies! Be careful you don't let the enemy get to 0 health though, or you might explode with it.",
+            "dropID": "1",
+            "icon": {
+                "instanceID": 20262
+            },
+            "rarityIndex": 0,
+            "dropScript": {
+                "instanceID": -35788
+            },
+            "buyAmount": 0,
+            "sellAmount": 0
+        },
+        {
+            "dropName": "Vampirism",
+            "description": "Damaging an enemy while possessing an enemy will regain a small amount of health, scaling with damage done.",
+            "dropID": "2",
+            "icon": {
+                "instanceID": 20262
+            },
+            "rarityIndex": 1,
+            "dropScript": {
+                "instanceID": -35794
+            },
+            "buyAmount": 0,
+            "sellAmount": 0
+        }
+    ],
+    "dropPickupPrefab": {
+        "instanceID": 20870
+    },
+    "usePitySystem": true
+}
