@@ -4,7 +4,7 @@ using UnityEngine;
 
 
 // This is the event enemy for the event system
-public class EventEnemy1 : Goblin
+public class EventEnemy1 : Enemy
 {
     /// <summary>
     /// The enum for the enemy state

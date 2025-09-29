@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Playables;
 /// This is the event system room for the event system, it will handle the fight between the player and the event enemy
 public class EventSystemRoom1 : MonoBehaviour
 {
@@ -6,6 +7,14 @@ public class EventSystemRoom1 : MonoBehaviour
     private EventEnemy1 enemyEvent;
     [SerializeField, Tooltip("The enemy spawner prefab")]
     private EnemySpawner enemySpawner;
+    [SerializeField, Tooltip("The cut scene prefab")]
+    private GameObject cutScene;
+    // to check when the cut scene is finished
+    [SerializeField, Tooltip("The director for the cut scene")]
+    private PlayableDirector director;
+
+    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]  
+    private GameObject hud;
 
     /// <summary>
     /// The enum for the fight state
@@ -21,15 +30,15 @@ public class EventSystemRoom1 : MonoBehaviour
     private FightState fightState = FightState.Waiting;
 
     [SerializeField, Tooltip("Damage to activate the ability to possess the event enemy")]
-    private float damageToPossess = 5000f;
+    private float damageToPossess = 100f;
 
     [SerializeField, Tooltip("The duration of the event enemy to get from dizzy to fighting if not possessed (in seconds)")]
     private float dizzyDuration = 5f;
     [Tooltip("The time when the event enemy started to get dizzy")]
     private float timeDizzyStarted = 0f;
 
-    [SerializeField, Tooltip("The amount of health to add to the event enemy when it is possessed")]
-    private float healthToAdd = 1666f;
+    [SerializeField, Tooltip("The amount of health to add to the event enemy when it is not possessed during the dizzy period")]
+    private float healthToAdd = 50f;
 
     [SerializeField, Tooltip("The door to open when the event enemy is possessed")]
     private IDoor door;
@@ -40,22 +49,26 @@ public class EventSystemRoom1 : MonoBehaviour
     {
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject && fightState == FightState.Waiting)
         {
-            StartEvent();
+            StartCutScene();
         }
     }
-    /// <summary>
-    /// Starts the event, this is goign to start the cut scene for the event enemy and then start spawning enemies 
-    /// </summary>
-    private void StartEvent()
+    [ContextMenu("Start Cut Scene")]
+    private void StartCutScene()
     {
-        // Initialize the cut scene for the event enemy 
+        PlayerController.instance.SetAllowMovement(false);
+        // Start the cut scene, if it's already active, it will be stopped and then started again
+        if (cutScene != null)
+        {
+            if (cutScene.activeInHierarchy)
+            {
+                cutScene.SetActive(false);
+            }
 
-        // Activate the enemy spawner 
-
-        enemySpawner.Activate();
-        fightState = FightState.Fighting;
-        enemyEvent.canPossess = false;
-
+            cutScene.SetActive(true);
+        }
+        
+        director = cutScene.GetComponent<PlayableDirector>();
+        if (hud != null) {hud.SetActive(false);}
     }
     /// <summary>
     /// Handle the fight state changes
@@ -132,4 +145,36 @@ public class EventSystemRoom1 : MonoBehaviour
         PossessionAbility.CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
         currentPossessableEnemy.SetControlled(true);
     }
+    /// <summary>
+    /// Subscribe to the cut scene director stopped event
+    /// </summary>
+    void OnEnable()
+    {
+        if (director != null)
+            director.stopped += OnCutsceneFinished;
+    }
+    /// <summary>
+    /// Unsubscribe from the cut scene director stopped event
+    /// </summary>
+    void OnDisable()
+    {
+        if (director != null)
+            director.stopped -= OnCutsceneFinished;
+    }
+    /// <summary>
+    /// This is called when the cut scene is finished it will start the fight!!
+    /// </summary>
+    private void OnCutsceneFinished(PlayableDirector director)
+    {
+        PlayerController.instance.SetAllowMovement(true);
+        cutScene.SetActive(false);
+        fightState = FightState.Fighting;
+        enemyEvent.canPossess = false;
+        // Activate the enemy spawner
+        enemySpawner.Activate();
+        // show all the HUD
+        if (hud != null) { hud.SetActive(true); }
+    }
 }
+
+

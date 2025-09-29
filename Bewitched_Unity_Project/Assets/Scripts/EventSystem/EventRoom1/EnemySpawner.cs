@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 /// This is a spawner for enemies in the event system, it will spawn enemies from a list of spawn points
 public class EnemySpawner : MonoBehaviour
@@ -26,7 +24,7 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        timeLastSpawned = Time.time;
+        timeLastSpawned = Time.time + spawnInterval; // Add a little bit of time to make sure the first spawn is not instant
     }
     /// <summary>
     /// Updates the spawner, if the spawner is active and the time since the last spawn is greater than the spawn interval, it will spawn an enemy
