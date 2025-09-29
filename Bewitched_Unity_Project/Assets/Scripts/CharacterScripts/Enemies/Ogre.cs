@@ -264,6 +264,11 @@ public class Ogre : Enemy
         SetPrimaryStatus(false);
     }
 
+    public IEnumerator ScreamWindup()
+    {
+        attackState = AttackState.Windup;
+    }
+
     public void HandleJumpMovement()
     {
         if (attackingSecondary)
@@ -290,12 +295,6 @@ public class Ogre : Enemy
                 StartCoroutine(EnableMovement());
             }
         }
-    }
-
-    public override bool CheckPrimaryUsable()
-    {
-       // if (isCharging) return false;
-        return base.CheckPrimaryUsable();
     }
 
     /// <summary>
