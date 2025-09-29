@@ -376,8 +376,8 @@ public class PossessionAbility : MonoBehaviour
             PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
-                Vector3 playerForward = currentCharacter.transform.forward;
-                Vector3 toCharacter = character.transform.position - currentCharacter.transform.position;
+                Vector3 playerForward = new Vector3( currentCharacter.transform.forward.x, 0, currentCharacter.transform.forward.z);
+                Vector3 toCharacter = new Vector3( character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
 
                 playerForward = playerForward.normalized;
                 toCharacter = toCharacter.normalized;
