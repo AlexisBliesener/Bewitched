@@ -244,14 +244,13 @@ public class DropSystem : MonoBehaviour
                     Debug.LogWarning("The swap upgrade UI is null!");
                 }
             }
-            playerUpgrades.Add(drop);
             HUDManager.Instance.AddUpgrade(drop);
         }
         else
         {
             Debug.LogWarning("HUD Manager instance is not assigned!");
         }
-
+        playerUpgrades.Add(drop);
 
         // for now we will simple just activate the drop
         if (usePitySystem)

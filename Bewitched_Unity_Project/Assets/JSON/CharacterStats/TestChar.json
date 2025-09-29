@@ -1,12 +1,15 @@
 {
     "characterName": "TestChar",
     "movementSpeed": 10.0,
+    "jumpSpeed": 0.0,
+    "jumpDelay": 0.0,
+    "acceleration": 5.0,
+    "deceleration": 5.0,
     "weight": 10.0,
     "sizeRadius": 0.0,
+    "numSurroundingPoints": 8,
+    "surroundingRadius": 2.0,
     "teamID": 0,
-    "animator": {
-        "instanceID": 0
-    },
     "primaryFireIcon": {
         "instanceID": 0
     },
@@ -23,12 +26,10 @@
     "primaryComboExtraCooldown": 1.0,
     "primaryComboSteps": 2,
     "primaryComboResetTime": 0.5,
-    "primaryAnimationDelay": 0.5,
     "secondaryCooldown": 2.0,
-    "secondaryAnimationDelay": 0.0,
     "primaryAttackRange": 0.0,
     "health": {
-        "instanceID": -641978
+        "instanceID": -136684
     },
     "hitStunPrefab": {
         "instanceID": 0
@@ -37,6 +38,15 @@
     "characters": {
         "serializedVersion": "2",
         "m_Bits": 0
+    },
+    "combatCam": {
+        "instanceID": 0
+    },
+    "aimCam": {
+        "instanceID": 0
+    },
+    "exploreCam": {
+        "instanceID": 0
     },
     "attackEffects": [],
     "effectJSONs": [],
