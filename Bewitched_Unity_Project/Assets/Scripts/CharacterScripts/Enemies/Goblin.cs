@@ -217,7 +217,7 @@ public class Goblin : Enemy
                 yield return null;
             }
             transform.position = targetPos;
-            GetComponent<CharacterController>().enabled = false;
+            GetComponent<CharacterController>().enabled = true;
         }
 
         if (attackIndicator != null)
@@ -321,6 +321,29 @@ public class Goblin : Enemy
     public override void SecondaryAttack()
     {
         hitCharacter = false;
+
+        hitCharacter = false;
+        if (playerControlling)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+            aiState = AIMovementState.Blocked;
+            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
+            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+        }
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(this);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
 
         if (inCounter)
         {
