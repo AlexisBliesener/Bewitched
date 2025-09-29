@@ -72,12 +72,6 @@ public class Goblin : Enemy
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
 
-    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
-    private bool inProcess = false;
-
-    [Tooltip("The Goblin's Patrol Point Origin")]
-    private Vector3 patrolOrigin;
-
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
@@ -1046,7 +1040,7 @@ public class Goblin : Enemy
             return false;
         }
     }
-    
+
     public override void Die()
     {
         //Stopping any playing sound effects on death.
@@ -1061,7 +1055,7 @@ public class Goblin : Enemy
         //Play Goblin's Death sound effect
         if (AudioManager.TryPlayInstance("GoblinDeath", out EventInstance ev, true, gameObject))
         {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True": "False");
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
         }
         base.Die();
     }

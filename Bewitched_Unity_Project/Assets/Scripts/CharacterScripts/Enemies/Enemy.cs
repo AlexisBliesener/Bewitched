@@ -141,6 +141,12 @@ public abstract class Enemy : Character
     [Tooltip("Bool determining if enemy can be stopped perfectly")]
     protected bool inPerfectStopZone = false;
 
+    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
+    protected bool inProcess = false;
+
+    [Tooltip("The enemy's Patrol Point Origin")]
+    protected Vector3 patrolOrigin;
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
