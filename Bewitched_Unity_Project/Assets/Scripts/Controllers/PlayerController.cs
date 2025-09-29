@@ -444,20 +444,14 @@ public class PlayerController : MonoBehaviour
 
         RaycastHit info;
 
+        if (lockedCharacter == currentCharacter) lockedCharacter = null;
+
         if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 10, enemyLayerMask))
         {
             if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {
                 lockedCharacter = info.collider.transform.GetComponent<Enemy>();
             }
-            else
-            {
-                lockedCharacter = null;
-            }
-        }
-        else
-        {
-            lockedCharacter = null;
         }
 
         if (lockedCharacter)

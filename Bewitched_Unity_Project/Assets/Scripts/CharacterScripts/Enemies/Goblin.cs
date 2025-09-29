@@ -181,10 +181,11 @@ public class Goblin : Enemy
 
         if (lockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 2;
+            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
             targetPos.y = transform.position.y;
             GetComponent<CharacterController>().enabled = false;
             transform.DOMove(targetPos, chaseTime);
+            transform.DOLookAt(targetPos, chaseTime);
 
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime)
@@ -209,11 +210,6 @@ public class Goblin : Enemy
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
-
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
                 yield return null;
             }
             transform.position = targetPos;
@@ -408,7 +404,7 @@ public class Goblin : Enemy
         }
 
         // For now wait 0.5 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.5f)
+        while (Time.time - timeStarted < 0.125f)
         {
             if (lockedCharacter)
             {
