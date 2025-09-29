@@ -226,6 +226,8 @@ public class Ogre : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
+        Debug.Log(aiState);
+
         if (aiState == AIMovementState.Patrolling)
         {
             Patrol();
@@ -406,21 +408,7 @@ public class Ogre : Enemy
         inProcess = true;
         float timer = 0;
 
-        if (outGoing) // If we were going to the patrol point
-        {
-            while (timer < 1.5f) // Wait 1.5 seconds for now, will change this to be a bool checking the end of looking animation
-            {
-                if (LookForPlayer())
-                {
-                    StartCoroutine(SpotPlayer());
-                    yield break;
-                }
-                timer += Time.deltaTime;
-                yield return null;
-            }
-            outGoing = false;
-        }
-        else // If returning to origin
+        while (timer < 1) // Wait 1 second for now, will change this to be a bool checking the end of looking animation
         {
             if (LookForPlayer())
             {
@@ -429,11 +417,16 @@ public class Ogre : Enemy
             }
             timer += Time.deltaTime;
             yield return null;
+        }
+        outGoing = !outGoing; // Flip outgoing
 
-            outGoing = true;
+        if (outGoing) // when done, determine if we sit or turn around
+        {
+            outGoing = !outGoing;
             StartCoroutine(Sit());
             yield break;
         }
+        
 
         inProcess = false;
         if (debugging)
