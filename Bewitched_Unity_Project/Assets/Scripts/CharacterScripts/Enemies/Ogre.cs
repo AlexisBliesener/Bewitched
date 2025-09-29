@@ -105,7 +105,7 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
-        attackStateCoroutine = StartCoroutine(BatWindup())
+        attackStateCoroutine = StartCoroutine(BatWindup());
     }
 
     public override void SecondaryAttack()
@@ -279,7 +279,7 @@ public class Ogre : Enemy
 
     public override bool CheckPrimaryUsable()
     {
-        if (isCharging) return false;
+       // if (isCharging) return false;
         return base.CheckPrimaryUsable();
     }
 
