@@ -444,9 +444,11 @@ public class PlayerController : MonoBehaviour
 
         RaycastHit info;
 
+        if (lockedCharacter == currentCharacter) lockedCharacter = null;
+
         if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 10, enemyLayerMask))
         {
-            if(info.collider.transform.GetComponent<Enemy>())
+            if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {
                 lockedCharacter = info.collider.transform.GetComponent<Enemy>();
             }
@@ -454,7 +456,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter)
         {
-            Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.red);
+            Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
         }
     }
 

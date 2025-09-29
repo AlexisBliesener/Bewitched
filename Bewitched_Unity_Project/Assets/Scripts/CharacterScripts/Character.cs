@@ -152,6 +152,8 @@ public abstract class Character : MonoBehaviour
 
     protected float timeLastDodge = 0;
 
+    protected bool stunned = false;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -343,7 +345,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        CreateHitStun();
+        
     }
 
     /// <summary>
@@ -399,7 +401,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary()) return false;
+        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
 
         return true;
     }
@@ -407,7 +409,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckSecondaryUsable()
     {
         if (!CheckSecondaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary) return false;
+        if (attackingPrimary || attackingSecondary || stunned) return false;
 
         return true;
     }
@@ -454,6 +456,21 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    public virtual IEnumerator StartHitStun(float duration)
+    {
+        hitStunActual = Instantiate(hitStunPrefab, transform);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            yield return null;
+        }
+        PlayerController.instance.SetAllowMovement(true);
+        stunned = false;
+        Destroy(hitStunActual); hitStunActual = null;
+    }
+
     public virtual void CreateHitStun()
     {
 
@@ -461,14 +478,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual void HandleHitStun()
     {
-        if (hitStunActual != null)
-        {
-            if (Time.time - health.TimeLastHit > hitStunDuration)
-            {
-                Destroy(hitStunActual);
-                hitStunActual = null;
-            }
-        }
+        
     }
 
     public void SetPrimaryStatus(bool val)
@@ -790,10 +800,8 @@ public abstract class Character : MonoBehaviour
 
         velocity = Vector3.zero;
         Time.timeScale = 1;
-        dodging = false; // Main dodge over
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
-        inCounter = true;
 
         StartCoroutine(HandleAfterDodge(inputTime));
     }
@@ -805,6 +813,6 @@ public abstract class Character : MonoBehaviour
         {
             yield return null;
         }
-        inCounter = false;
+        dodging = false;
     }
 }

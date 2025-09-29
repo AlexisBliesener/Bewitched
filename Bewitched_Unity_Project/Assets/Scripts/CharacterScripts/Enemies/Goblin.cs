@@ -70,12 +70,6 @@ public class Goblin : Enemy
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
 
-    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
-    private bool inProcess = false;
-
-    [Tooltip("The Goblin's Patrol Point Origin")]
-    private Vector3 patrolOrigin;
-
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
@@ -109,10 +103,8 @@ public class Goblin : Enemy
     {
         base.FixedUpdate();
         currentPlayer = playerController.GetCurrentCharacter();
-   
-            SetBehavior();
-        
-        HandleHitStun();
+
+        SetBehavior();
     }
 
     public override IEnumerator BeginPrimary()
@@ -182,24 +174,25 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         Debug.Log("Approaching");
-       // attackDodged = false;
-       // dodgable = false;
+        // attackDodged = false;
+        // dodgable = false;
 
         attackState = AttackState.Approaching;
 
         if (lockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 2;
+            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
             targetPos.y = transform.position.y;
             GetComponent<CharacterController>().enabled = false;
             transform.DOMove(targetPos, chaseTime);
+            transform.DOLookAt(targetPos, chaseTime);
 
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime)
             {
                 if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
-                //   dodgable = false;
+                    //   dodgable = false;
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
@@ -209,7 +202,7 @@ public class Goblin : Enemy
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                //    dodgable = true;
+                    //    dodgable = true;
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
@@ -217,15 +210,10 @@ public class Goblin : Enemy
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
-
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
                 yield return null;
             }
             transform.position = targetPos;
-            GetComponent<CharacterController>().enabled = false;
+            GetComponent<CharacterController>().enabled = true;
         }
 
         if (attackIndicator != null)
@@ -246,6 +234,7 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeWindup()
     {
+        inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = Time.time;
         // For now wait 0.25 seconds, in future wait for animation trigger
@@ -316,7 +305,7 @@ public class Goblin : Enemy
 
     public override IEnumerator BeginSecondary()
     {
-        
+
         if (gameObject)
         {
             SecondaryAttack();
@@ -325,20 +314,52 @@ public class Goblin : Enemy
         yield break;
     }
 
+    public IEnumerator StartCounterAttack(string attackName)
+    {
+        while (dodging)
+        {
+            yield return null;
+        }
+        if (attackName == "Spin")
+        {
+            attackStateCoroutine = StartCoroutine(SpinWindup());
+        }
+    }
+
     public override void SecondaryAttack()
     {
         hitCharacter = false;
 
-        if (inCounter)
+        hitCharacter = false;
+        if (playerControlling)
         {
-            // Do spin
-            inCounter = false;
-            StopCoroutine(attackStateCoroutine);
-            transform.position = targetTweenPosition;
-            GetComponent<CharacterController>().enabled = true;
-            attackStateCoroutine = StartCoroutine(SpinWindup());
+            PlayerController.instance.SetAllowMovement(false);
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
+        {
+            lockedCharacter = currentPlayer;
+            aiState = AIMovementState.Blocked;
+            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
+            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+        }
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(this);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
+
+        if (dodging && !inCounter)
+        {
+            // Do spin
+            inCounter = true;
+            StartCoroutine(StartCounterAttack("Spin"));
+        }
+        else if (!dodging)
         {
             if (playerControlling)
             {
@@ -358,10 +379,9 @@ public class Goblin : Enemy
 
     public IEnumerator SpinWindup()
     {
+        inCounter = false;
         attackingSecondary = true;
         attackState = AttackState.Windup;
-
-        while (Time.time - timeLastDodge < 0.5f) yield return null; // while still in dodge motion
 
         float timeStarted = Time.time;
 
@@ -383,7 +403,7 @@ public class Goblin : Enemy
         }
 
         // For now wait 0.5 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.5f)
+        while (Time.time - timeStarted < 0.125f)
         {
             if (lockedCharacter)
             {
@@ -443,7 +463,7 @@ public class Goblin : Enemy
 
             if (lockedCharacter)
             {
-                Debug.Log("Locked character position: " + (lockedCharacter.transform.position - transform.position).normalized);
+                Debug.Log(lockedCharacter);
                 desiredVelocity = (lockedCharacter.transform.position - transform.position).normalized;
             }
             else
@@ -967,8 +987,8 @@ public class Goblin : Enemy
         Vector3 closestPoint = other.ClosestPoint(transform.position);
         Vector3 contactDirection = (transform.position - closestPoint).normalized;
 
-        deflectDirection = Vector3.Reflect(velocity, contactDirection);
-        Debug.Log("Contact Direction: " + contactDirection + ". Deflect direction: " + deflectDirection);
+        deflectDirection = Vector3.Reflect(velocity.normalized, contactDirection);
+        Debug.Log("Contact Direction: " + other + ". Deflect direction: " + deflectDirection);
 
         int rotationMultiplier = 1;
         if (numDeflections % 2 != 0)
@@ -1027,7 +1047,7 @@ public class Goblin : Enemy
             return false;
         }
     }
-    
+
     public override void Die()
     {
         //Stopping any playing sound effects on death.
@@ -1042,7 +1062,7 @@ public class Goblin : Enemy
         //Play Goblin's Death sound effect
         if (AudioManager.TryPlayInstance("GoblinDeath", out EventInstance ev, true, gameObject))
         {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True": "False");
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
         }
         base.Die();
     }

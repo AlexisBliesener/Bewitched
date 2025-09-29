@@ -141,6 +141,12 @@ public abstract class Enemy : Character
     [Tooltip("Bool determining if enemy can be stopped perfectly")]
     protected bool inPerfectStopZone = false;
 
+    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
+    protected bool inProcess = false;
+
+    [Tooltip("The enemy's Patrol Point Origin")]
+    protected Vector3 patrolOrigin;
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
@@ -422,6 +428,26 @@ public abstract class Enemy : Character
         }
     }
 
+    public override IEnumerator StartHitStun(float duration)
+    {
+        if (stunned) yield break;
+        Debug.Log("Applying stun");
+        hitStunActual = Instantiate(hitStunPrefab, transform);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+            else aiState = AIMovementState.Blocked;
+            yield return null;
+        }
+        if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+        else aiState = AIMovementState.Chasing;
+        stunned = false;
+        Debug.Log(hitStunActual);
+        Destroy(hitStunActual); hitStunActual = null;
+    }
+
     public virtual void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
@@ -487,11 +513,6 @@ public abstract class Enemy : Character
 
     public override void CreateHitStun()
     {
-        if (!playerControlling)
-        {
-            if (hitStunActual == null) hitStunActual = Instantiate(hitStunPrefab, transform);
-            agent.enabled = false;
-        }
     }
 
     public override void HandleHitStun()
