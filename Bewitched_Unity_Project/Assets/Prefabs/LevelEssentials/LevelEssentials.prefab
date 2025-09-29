@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 962c00d601d43da4da1959ad750da17b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possessionCooldown: 10
+  possessionCooldown: 2
   maxPossessionDistance: 10
   lifeDrainPercentage: 2
   possessionMask:
@@ -396,9 +396,9 @@ MonoBehaviour:
   possessionTrigger: {fileID: 3118486939061492975}
   possessionColliderScript: {fileID: 7629263566965475982}
   startingPossessionAngle: 90
-  endingPossesionAngle: 10
-  startingPossessionDistance: 2
-  endingPossesionDistance: 8
+  endingPossesionAngle: 25
+  startingPossessionDistance: 6
+  endingPossesionDistance: 12
   timeToFocus: 1.5
 --- !u!1 &6049376072004412199
 GameObject:
