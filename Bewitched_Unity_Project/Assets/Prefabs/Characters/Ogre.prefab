@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 732372681308907037}
   - component: {fileID: 6417695604396302911}
   - component: {fileID: -550221043697874190}
+  - component: {fileID: 4985444316756526280}
+  - component: {fileID: 8720534003032205823}
   m_Layer: 7
   m_Name: Ogre
   m_TagString: Untagged
@@ -38,7 +40,7 @@ Transform:
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3976235758957196285}
+  - {fileID: 3418162015862339562}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &85061892651481883
@@ -189,6 +191,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Ogre
   movementSpeed: 3
+  jumpSpeed: 0
+  jumpDelay: 0
   acceleration: 5
   deceleration: 5
   weight: 10
@@ -196,29 +200,31 @@ MonoBehaviour:
   numSurroundingPoints: 8
   surroundingRadius: 2
   teamID: 2
-  animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 2
   primaryCooldown: 3
   primaryComboExtraCooldown: 0
   primaryComboSteps: 0
   primaryComboResetTime: 0
-  primaryAnimationDelay: 0
   secondaryCooldown: 5
-  secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 240
+  health: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
-  obstacle: {fileID: 0}
+  combatCam: {fileID: 0}
+  aimCam: {fileID: 0}
+  exploreCam: {fileID: 0}
+  attackEffects: []
+  effectJSONs: []
   agent: {fileID: 8810894426884420593}
   minStopDistance: 0.5
-  highestPriority: 1
-  lowestPriority: 20
+  pathfindingPriority: 0
+  seenBuffer: 0.5
   ground:
     serializedVersion: 2
     m_Bits: 64
@@ -229,17 +235,17 @@ MonoBehaviour:
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 5
+  timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 1
-  leaveBodyExplosionRadius: 5
-  leaveBodyExplosionMinimumDamage: 10
-  leaveBodyExplosionMaximumDamage: 40
-  leaveBodyExplosionMinimumKnockback: 10
-  leaveBodyExplosionMaximumKnockback: 30
+  lowHealthThresholdPercentage: 30
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 0}
+  playerControlling: 0
+  tempDebugging: 0
   batHitboxPrefab: {fileID: 3839853102873102876, guid: 996153408a866c743a3495e5e940b1ee, type: 3}
+  batPivot: {fileID: 0}
   minimumBatSwingDamage: 20
   maximumBatSwingDamage: 60
   minimumBatSwingAngle: 45
@@ -248,6 +254,7 @@ MonoBehaviour:
   maximumBatSwingKnockback: 120
   batSwingDuration: 0.5
   batSwingChargeTime: 3
+  batSwingEffects: {fileID: 0}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
@@ -255,7 +262,9 @@ MonoBehaviour:
   ogreJumpSlamDamage: 20
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
-  ogreJumpKnockbackRange: 8
+  ogreJumpSlamImpactRange: 8
+  slamBatEffects: {fileID: 0}
+  slamImpactEffects: {fileID: 0}
 --- !u!120 &6417695604396302911
 LineRenderer:
   serializedVersion: 2
@@ -372,7 +381,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1001 &3505159671510209558
+  environment:
+    serializedVersion: 2
+    m_Bits: 0
+  debugging: 0
+  pointObjPrefab: {fileID: 0}
+  minAttackTime: 0
+  maxAttackTime: 2
+  resetCostlyAreaDistance: 1
+--- !u!114 &4985444316756526280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a6aeef76141464e8deb312572272c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  lowHealthCoefficient: 0.3
+  decayRate: 0
+  miniBarPrefab: {fileID: 0}
+  deathUI: {fileID: 0}
+--- !u!114 &8720534003032205823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  primaryAnimationDelay: 0.5
+  secondaryAnimationDelay: 0.5
+  primaryAttackLength: 1
+  secondaryAttackLength: 1
+  animator: {fileID: 0}
+  characterController: {fileID: 0}
+--- !u!1001 &2709176750103922837
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -380,73 +432,57 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5886931667424895826}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.3678727
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.3678727
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.3678727
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.933
+      value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.070427
+      value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
+    - target: {fileID: 5810869687557727233, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
       propertyPath: m_Name
-      value: ogreEnemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
-      propertyPath: m_Layer
-      value: 7
+      value: ogreBlockoutFullClub
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
---- !u!4 &3976235758957196285 stripped
+  m_SourcePrefab: {fileID: 100100000, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
+--- !u!4 &3418162015862339562 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 757053e91fc7b834993a6a4936e9f202, type: 3}
-  m_PrefabInstance: {fileID: 3505159671510209558}
+  m_CorrespondingSourceObject: {fileID: 790150666361519999, guid: 0ff28636d7d6c1941b772cc0cfa26849, type: 3}
+  m_PrefabInstance: {fileID: 2709176750103922837}
   m_PrefabAsset: {fileID: 0}
