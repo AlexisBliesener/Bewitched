@@ -30,7 +30,7 @@ public class SwapUpgradeManager : MonoBehaviour
     [Tooltip("List of placeholder buttons for the upgrades that can be swapped")]
     private Button[] swapUpgradeButtons;
     [Tooltip("The first button to be selected when menu is opened.")]
-    public GameObject firstButton;
+public GameObject firstButton;
     [Tooltip("The first button to be selected when the Shop: Buy Upgrade menu is opened.")]
     public GameObject buyUpgradeButton;
 
@@ -97,42 +97,101 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void UpdateSwappableUpgrades()
     {
-        for (int i = 0; i < swapUpgradeButtons.Length; i++)
+        if (DropSystem.Instance == null)
         {
-            // Attach button text
-            TMP_Text buttonText = swapUpgradeButtons[i].GetComponentInChildren<TMP_Text>(true);
-            if (buttonText != null)
+            Debug.LogWarning("DropSystem instance not found.");
+            return;
+        }
+
+        // refresh player upgrade list (necessary after selling)
+        playerUpgrades = DropSystem.Instance.playerUpgrades;
+        Dictionary<string, (DropData upgrade, int count)> groupedUpgrades = new();
+
+        foreach (var upgrade in playerUpgrades)
+        {
+            if (upgrade == null) continue;
+
+            string name = upgrade.GetDropName();
+            if (!groupedUpgrades.ContainsKey(name))
             {
-                buttonText.text = playerUpgrades[i].GetDropName();
+                groupedUpgrades[name] = (upgrade, 1);
             }
             else
             {
-                Debug.LogWarning($"Cannot attach drop name {playerUpgrades[i].GetDropName()} to button");
+                groupedUpgrades[name] = (groupedUpgrades[name].upgrade, groupedUpgrades[name].count + 1);
+            }
+        }
+
+        // clear buttons
+        foreach (var upgradeButton in swapUpgradeButtons)
+        {
+            upgradeButton.gameObject.SetActive(false);
+            upgradeButton.onClick.RemoveAllListeners();
+        }
+
+        int i = 0;
+
+        foreach (var stack in groupedUpgrades)
+        {
+            if (i >= swapUpgradeButtons.Length) break;
+
+            DropData upgrade = stack.Value.upgrade;
+            int stackCount = stack.Value.count;
+
+            Button button = swapUpgradeButtons[i];
+            button.gameObject.SetActive(true);
+
+            // Attach button text for name and price
+            TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>(true);
+            for (int index = 0; index < 5; index++)
+            {
+                if (stackCount > 1)
+                {
+                    buttonText.text = $"{upgrade.GetDropName()} x{stackCount}";
+                }
+                else
+                {
+                    buttonText.text = upgrade.GetDropName();
+                }
             }
 
+
             // Attach button icon
-            Image buttonIcon = swapUpgradeButtons[i].GetComponent<Image>();
+            Image buttonIcon = button.GetComponent<Image>();
             if (buttonIcon != null)
             {
-                buttonIcon.sprite = playerUpgrades[i].GetIcon();
+                buttonIcon.sprite = upgrade.GetIcon();
             }
             else
             {
                 Debug.LogWarning($"Cannot attach drop icon {playerUpgrades[i].GetDropName()} to button");
             }
 
-            swapUpgradeButtons[i].onClick.RemoveAllListeners();
-            int capturedIndex = i;
-            swapUpgradeButtons[i].onClick.AddListener(() =>
+            button.onClick.RemoveAllListeners();
+            DropData capturedUpgrade = upgrade;
+            button.onClick.AddListener(() =>
             {
-                // Need to add in disabling the upgrade that got swapped
-                // This is the old upgrade that needs to be disabled
-                // DropSystem.Instance.SelectDropsOption(playerUpgrades[capturedIndex]); 
+                DropData newUpgrade = DropSystem.Instance.pendingSwap;
 
-                // Add in enabling the new upgrade (not on the swappable screen)
+                if (buyUpgradeUI.activeInHierarchy)
+                {
+                    DropSystem.Instance.SellUpgrade(upgrade, true);
+                }
+                else
+                {
+                    DropSystem.Instance.SellUpgrade(upgrade, false);
+                }
 
+                DropSystem.Instance.playerUpgrades.Add(newUpgrade);
+                HUDManager.Instance.AddUpgrade(newUpgrade);
+                DropSystem.Instance.pendingSwap = null;
+                UpdateSwappableUpgrades();
                 CloseScreen();
+                ShopManager.Instance.UpdateSellOptions();
+
             });
+
+            i++;
         }
     }
 

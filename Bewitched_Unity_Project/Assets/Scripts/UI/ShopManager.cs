@@ -9,6 +9,8 @@ using UnityEngine.EventSystems;
 
 public class ShopManager : MonoBehaviour
 {
+    // Singleton instance
+    public static ShopManager Instance { get; private set; }
     [Header("Screens")]
     [Tooltip("The Buy Upgrades Screen")]
     public GameObject BuyUI;
@@ -34,6 +36,20 @@ public class ShopManager : MonoBehaviour
     [Header("Pop-ups")]
     [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
     public GameObject NoSoulText;
+
+    /// <summary>
+    /// It sets the instance of the ShopManager class. And allow only one instance of the class.
+    /// </summary>
+    private void Awake()
+    {
+        // Only one instance of ShopManager should be there
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     /// <summary>
     /// Shows the screen on enable, allows player to use cursor to navigate the screen
@@ -223,7 +239,7 @@ public class ShopManager : MonoBehaviour
     /// Buttons are populated with the player's current upgrades and how much soul they will sell for.
     /// Clears and refreshes every time because screen has to be refreshed when player sells an upgrade.
     /// </summary>
-    private void UpdateSellOptions()
+    public void UpdateSellOptions()
     {
         if (DropSystem.Instance == null)
         {
@@ -313,7 +329,7 @@ public class ShopManager : MonoBehaviour
             DropData capturedUpgrade = upgrade;
             button.onClick.AddListener(() =>
             {
-                if (DropSystem.Instance.SellUpgrade(capturedUpgrade))
+                if (DropSystem.Instance.SellUpgrade(capturedUpgrade, true))
                 {
                     UpdateSellOptions();
                     if (!EventSystem.current.currentSelectedGameObject.activeInHierarchy)

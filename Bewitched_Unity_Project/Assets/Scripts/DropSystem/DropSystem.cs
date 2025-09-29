@@ -26,6 +26,8 @@ public class DropSystem : MonoBehaviour
     public GameObject upgradeSelectionUI;
     [Tooltip("The UI screen for swapping upgrades when player hits limit of upgrades.")]
     public GameObject swapUpgradeUI;
+    [Tooltip("Chosen upgrade that will be added after swap is done")]
+    public DropData pendingSwap;
     [Tooltip("The list of the rarities in the game")]
     [SerializeField] public List<ItemRarity> availableRarities = new List<ItemRarity>();
     [Tooltip("The list of the drops in the game")]
@@ -232,8 +234,10 @@ public class DropSystem : MonoBehaviour
             {
                 if (swapUpgradeUI != null)
                 {
+                    pendingSwap = drop;
                     swapUpgradeUI.SetActive(true);
                     upgradeSelectionUI.SetActive(false);
+                    return;
                 }
                 else
                 {
@@ -281,12 +285,10 @@ public class DropSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Sell an upgrade and it takes one parameter: the slot number to sell the upgrade in
-    /// if the slot han an item that has a stack count of more than 1, then remove 1 from the stack count
-    /// if the stack count is 1, then remove it from the slot
+    /// Sell an upgrade and it takes two parameters: the drop to sell and if there is a refund (for swapping)
     /// </summary>
     /// <returns> True if the upgrade was sold, false if the upgrade was not sold </returns>
-    public bool SellUpgrade(DropData drop)
+    public bool SellUpgrade(DropData drop, bool refundSoul)
     {
         if (drop == null) return false;
         List<DropData> toRemove = playerUpgrades.FindAll(u => u != null && u.GetID() == drop.GetID());
@@ -298,15 +300,25 @@ public class DropSystem : MonoBehaviour
             return false;
         }
 
-        int totalRefund = 0;
-        foreach (var upgrade in toRemove)
+        if (refundSoul)
         {
-            totalRefund += upgrade.GetSellAmount();
-            playerUpgrades.Remove(upgrade);
+            int totalRefund = 0;
+            foreach (var upgrade in toRemove)
+            {
+                totalRefund += upgrade.GetSellAmount();
+            }
+            SoulSystem.Instance.AddSouls(totalRefund);
         }
-        SoulSystem.Instance.AddSouls(totalRefund);
+        playerUpgrades.RemoveAll(u => u != null && u.GetID() == drop.GetID());
 
-        HUDManager.Instance.RefreshHUD();
+        if (HUDManager.Instance != null)
+        {
+            HUDManager.Instance.RefreshHUD();
+        }
+        else
+        {
+            Debug.LogWarning("HUDManager not assigned.");
+        }
 
         return true;
     }
