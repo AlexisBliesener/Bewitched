@@ -15,13 +15,17 @@ public class ShopManager : MonoBehaviour
     [Tooltip("The Sell Upgrades Screen")]
     public GameObject SellUI;
 
-    [Header("List of Upgrades Acquired")]
+    [Header("Upgrades")]
     [Tooltip("List of upgrades that the player has acquired.")]
     private List<DropData> playerUpgrades;
+    [Tooltip("List of upgrades that the player can buy currently.")]
+    private List<DropData> currentShopOptions;
 
     [Header("Buttons")]
-    [Tooltip("The first button to be selected when menu is opened.")]
-    public GameObject firstButton;
+    [Tooltip("The first button to be selected when buy menu is opened.")]
+    public GameObject firstBuyButton;
+    [Tooltip("The first button to be selected when sell menu is opened.")]
+    public GameObject firstSellButton;
     [Tooltip("List of placeholder buttons for the upgrades that can be bought")]
     private Button[] buyUpgradeButtons;
     [Tooltip("List of placeholder buttons for the upgrades that can be sold")]
@@ -40,33 +44,67 @@ public class ShopManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         BuyUI.SetActive(true);
         SellUI.SetActive(false);
-        EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(firstButton);
+        StartCoroutine(SetFirstButtonDelay());
 
         // Subscribing to the random upgrades
-        if (DropSystem.Instance != null)
-        {
-            DropSystem.Instance.OnShopAlterInteract += UpdateBuyOptions;
-        }
-        else
-        {
-            Debug.LogWarning("DropSystem.Instance not found.");
-        }
-
         // Getting the upgrades the player already has
         if (DropSystem.Instance != null)
         {
+            DropSystem.Instance.OnShopAlterInteract += UpdateBuyOptions;
             playerUpgrades = DropSystem.Instance.playerUpgrades;
+
         }
         else
         {
             Debug.LogWarning("DropSystem.Instance not found.");
             playerUpgrades = new List<DropData>();
+
         }
+
         buyUpgradeButtons = BuyUI.GetComponentsInChildren<Button>(true);
         sellUpgradeButtons = SellUI.GetComponentsInChildren<Button>(true);
         UpdateSellOptions();
 
+    }
+
+    /// <summary>
+    /// One frame delay so that the SetSelectedGameObject does not auto-submit (for controller)
+    /// </summary>
+    private IEnumerator SetFirstButtonDelay()
+    {
+        EventSystem.current.SetSelectedGameObject(null);
+        yield return null; //wait one frame to avoid double-press
+        if (firstBuyButton != null && firstSellButton != null)
+        {
+            if (BuyUI.activeInHierarchy)
+            {
+                EventSystem.current.SetSelectedGameObject(firstBuyButton);
+
+            }
+            else if (SellUI.activeInHierarchy)
+            {
+                EventSystem.current.SetSelectedGameObject(firstSellButton);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("First buttons not assigned.");
+        }
+    }
+
+    /// <summary>
+    /// Select next active button, used after buying/selling something
+    /// </summary>
+    private void SelectNextActiveButton(Button[] buttons)
+    {
+        foreach (var button in buttons)
+        {
+            if (button.gameObject.activeInHierarchy)
+            {
+                EventSystem.current.SetSelectedGameObject(button.gameObject);
+                break;
+            }
+        }
     }
 
     /// <summary>
@@ -76,6 +114,7 @@ public class ShopManager : MonoBehaviour
     {
         SellUI.gameObject.SetActive(false);
         BuyUI.gameObject.SetActive(true);
+        StartCoroutine(SetFirstButtonDelay());
     }
 
     /// <summary>
@@ -85,6 +124,7 @@ public class ShopManager : MonoBehaviour
     {
         BuyUI.gameObject.SetActive(false);
         SellUI.gameObject.SetActive(true);
+        StartCoroutine(SetFirstButtonDelay());
     }
 
     /// <summary>
@@ -112,8 +152,14 @@ public class ShopManager : MonoBehaviour
             Debug.LogWarning("Not enough shop options.");
         }
 
+        if (currentShopOptions == null)
+        {
+            currentShopOptions = new List<DropData>(options);
+        }
+
         for (int i = 0; i < 5; i++) // only do 5 buttons in the list (does not include the buy/sell button)
         {
+            var option = currentShopOptions[i];
             // Attach button text for name and price
             TMP_Text[] buttonText = buyUpgradeButtons[i].GetComponentsInChildren<TMP_Text>(true);
             foreach (var t in buttonText)
@@ -122,11 +168,11 @@ public class ShopManager : MonoBehaviour
                 {
                     if (t.name == "Name")
                     {
-                        t.text = options[i].GetDropName();
+                        t.text = option.GetDropName();
                     }
                     else if (t.name == "BuyPrice")
                     {
-                        t.text = options[i].GetBuyAmount().ToString();
+                        t.text = option.GetBuyAmount().ToString();
                     }
 
                 }
@@ -137,10 +183,10 @@ public class ShopManager : MonoBehaviour
             }
 
             // Attach button icon
-                Image buttonIcon = buyUpgradeButtons[i].GetComponent<Image>();
+            Image buttonIcon = buyUpgradeButtons[i].GetComponent<Image>();
             if (buttonIcon != null)
             {
-                buttonIcon.sprite = options[i].GetIcon();
+                buttonIcon.sprite = option.GetIcon();
             }
             else
             {
@@ -151,13 +197,17 @@ public class ShopManager : MonoBehaviour
             int capturedIndex = i;
             buyUpgradeButtons[i].onClick.AddListener(() =>
             {
-                DropData chosenUpgrade = options[capturedIndex];
+                DropData chosenUpgrade = currentShopOptions[capturedIndex];
 
                 if (DropSystem.Instance.BuyUpgrade(chosenUpgrade))
                 {
                     // Bought upgrade, gave souls
                     buyUpgradeButtons[capturedIndex].gameObject.SetActive(false);
                     UpdateSellOptions();
+                    if (!EventSystem.current.currentSelectedGameObject.activeInHierarchy)
+                    {
+                        SelectNextActiveButton(buyUpgradeButtons);
+                    }
                 }
                 else
                 {
@@ -266,6 +316,10 @@ public class ShopManager : MonoBehaviour
                 if (DropSystem.Instance.SellUpgrade(capturedUpgrade))
                 {
                     UpdateSellOptions();
+                    if (!EventSystem.current.currentSelectedGameObject.activeInHierarchy)
+                    {
+                        SelectNextActiveButton(sellUpgradeButtons);
+                    }
                 }
 
             });
@@ -273,11 +327,8 @@ public class ShopManager : MonoBehaviour
             i++;
         }
 
-        for (int j = i; j < sellUpgradeButtons.Length - 1; j++)
-        {
-            sellUpgradeButtons[j].gameObject.SetActive(false);
-
-        }
+        // keep menu and exit button active
+        sellUpgradeButtons[sellUpgradeButtons.Length - 2].gameObject.SetActive(true);
         sellUpgradeButtons[sellUpgradeButtons.Length - 1].gameObject.SetActive(true);
 
     }
