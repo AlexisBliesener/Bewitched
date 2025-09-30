@@ -208,7 +208,7 @@ MonoBehaviour:
   sightRange: 10
   maxSightAngle: 70
   hearingRange: 2
-  patrolRange: 122
+  patrolRange: 12
   timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 1
@@ -228,7 +228,7 @@ MonoBehaviour:
   batSwingDamage: 30
   batSwingAngle: 60
   batSwingDuration: 0.5
-  batWindupPeriod: 0
+  batWindupPeriod: 0.5
   batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   ogreJumpGravity: 40
@@ -240,6 +240,9 @@ MonoBehaviour:
   ogreJumpSlamImpactRange: 8
   slamBatEffects: {fileID: 0}
   slamImpactEffects: {fileID: 0}
+  screamRange: 8
+  screamWindupDuration: 0.5
+  screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
   minSittingTime: 3
   maxSittingTime: 7
 --- !u!120 &6417695604396302911

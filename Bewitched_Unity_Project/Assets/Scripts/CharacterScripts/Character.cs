@@ -511,6 +511,7 @@ public abstract class Character : MonoBehaviour
             characterAnimator.SwitchState("PrimaryAttack");
             yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
 
+            Debug.Log("Starting Attack Function");
             PrimaryAttack();
         }
     }

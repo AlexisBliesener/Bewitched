@@ -21,7 +21,7 @@ public class Ogre : Enemy
     [SerializeField] float batWindupPeriod;
 
     [Tooltip("Bat Swing Status Effects")]
-    [SerializeField] AttackStatusEffects batSwingEffects = new AttackStatusEffects();
+    [SerializeField] AttackStatusEffects batSwingEffects;
 
     [Tooltip("Ogre Slam Bat Hitbox")]
     [SerializeField] GameObject slamHitboxPrefab;
@@ -113,6 +113,7 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
+        Debug.Log("Starting swing");
         attackStateCoroutine = StartCoroutine(BatWindup());
     }
 
@@ -162,24 +163,9 @@ public class Ogre : Enemy
         while (timeStarted < batWindupPeriod)
         {
             timeStarted += Time.deltaTime;
-            Vector3 rotationVal;
-            if (lockedCharacter)
-            {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                rotationVal = direc.normalized;
-            }
-            else
-            {
-                rotationVal = transform.forward.normalized;
-            }
-
-            Quaternion rotationRight = Quaternion.AngleAxis(batSwingAngle / 4, Vector3.up); // Modifies rotation to be to the right, in the future make this depend on where more enemies are
-            rotationVal = rotationRight * rotationVal;
-
-            transform.forward = Vector3.Lerp(transform.forward, rotationVal, timeStarted / batWindupPeriod);
             yield return null;
         }
+        Debug.Log("Approach started");
         attackStateCoroutine = StartCoroutine(BatApproach());
     }
 
@@ -252,20 +238,27 @@ public class Ogre : Enemy
         pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
 
         Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
+        Vector3 startFoward = transform.forward;
 
         pivot.SetActive(true);
 
+        Debug.Log("Check 0");
         while (timeSinceStarted < batSwingDuration)
         {
-            pivot.transform.forward = Vector3.Lerp(transform.forward, endForward, timeSinceStarted / batSwingDuration);
+            pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
+            Debug.Log(timeSinceStarted);
             yield return null;
         }
+        Debug.Log(timeSinceStarted);
 
         Destroy(pivot);
 
+        Debug.Log("Check 1");
+
         yield return new WaitForSeconds(1); // Temporary cooldown time
 
+        Debug.Log("Check 2");
         if (!playerControlling)
         {
             aiState = AIMovementState.Retreating;
@@ -273,6 +266,8 @@ public class Ogre : Enemy
             pathState = PathState.Unset;
         }
         else StartCoroutine(EnableMovement());
+
+        Debug.Log("Check 3");
 
         if (lockedCharacter)
         {
@@ -289,6 +284,14 @@ public class Ogre : Enemy
         timeLastPrimary = Time.time;
     }
 
+    public override bool CheckPrimaryUsable()
+    {
+        if (!CheckPrimaryCooldown()) return false;
+        if (attackingPrimary || attackingSecondary || stunned) return false;
+
+        return true;
+    }
+
     public IEnumerator ScreamWindup()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
@@ -302,12 +305,14 @@ public class Ogre : Enemy
 
     public IEnumerator HandleScream()
     {
+        Debug.Log("ROAR");
         attackState = AttackState.Attacking;
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
             if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
             {
+                Debug.Log("Scream hit character " + character);
                 screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
             }
         }
