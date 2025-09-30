@@ -551,6 +551,7 @@ public class GraphBuilder : MonoBehaviour
     /// <returns> Integer closest to target </returns>
     public int BinaryCoordinateSearch(int targetNum, List<int> values)
     {
+        values.Sort();
         int lower = values[0];
         int higher = values[values.Count - 1];
 
@@ -567,6 +568,7 @@ public class GraphBuilder : MonoBehaviour
             else
             {
                 higher = i;
+                break; // the list already sorted 
             }
         }
 
