@@ -65,6 +65,10 @@ public abstract class Character : MonoBehaviour
     [Header("Note: Health settings can be changed on the Health Controller component!")]
     [SerializeField] public HealthController health;
 
+    [Header("Possession Settings")]
+    [Tooltip("Can the player possess the character?")]
+    public bool canPossess = true;
+
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
     public GameObject hitStunPrefab;
@@ -109,6 +113,7 @@ public abstract class Character : MonoBehaviour
     [SerializeField] private List<string> effectJSONs = new List<string>();
 
     private SurroundingPoints surroundingPoints;
+
 
     #region Saving/Loading
 

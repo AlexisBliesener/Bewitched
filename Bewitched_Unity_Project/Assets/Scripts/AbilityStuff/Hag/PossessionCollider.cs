@@ -31,7 +31,8 @@ public class PossessionCollider : MonoBehaviour
         List<Character> characterToRemove = new List<Character>();
         foreach (Character character in charactersInPossession)
         {
-            if(character == null)
+            // If the character is null or can't possess then remove it
+            if (character == null || character.canPossess == false)
             {
                 characterToRemove.Add(character);
             }
