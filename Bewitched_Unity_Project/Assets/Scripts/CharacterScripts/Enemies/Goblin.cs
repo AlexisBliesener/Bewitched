@@ -73,8 +73,6 @@ public class Goblin : Enemy
     [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
     private Vector3 prevSpinVelocity = Vector3.zero;
 
-    public Material perfectCounterTimeMaterial;
-    public Material defaultMaterial;
     //The sound effect for the spin attack
     EventInstance secondaryAudio;
     //FMOD Event for idle sound effects
@@ -163,7 +161,7 @@ public class Goblin : Enemy
                 enemy.SetTargeted(true);
             }
         }
-
+        attackingPrimary = true;
         attackStateCoroutine = StartCoroutine(KnifeWindup());
     }
 
@@ -174,8 +172,6 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         Debug.Log("Approaching");
-        // attackDodged = false;
-        // dodgable = false;
 
         attackState = AttackState.Approaching;
 
@@ -320,6 +316,11 @@ public class Goblin : Enemy
         yield break;
     }
 
+    /// <summary>
+    /// Starts a counterattack from a certain attack name
+    /// </summary>
+    /// <param name="attackName"> Name of attack to activate </param>
+    /// <returns> Time </returns>
     public IEnumerator StartCounterAttack(string attackName)
     {
         while (dodging)
@@ -332,10 +333,11 @@ public class Goblin : Enemy
         }
     }
 
+    /// <summary>
+    /// Starts the secondary attack
+    /// </summary>
     public override void SecondaryAttack()
     {
-        hitCharacter = false;
-
         hitCharacter = false;
         if (playerControlling)
         {
@@ -383,6 +385,10 @@ public class Goblin : Enemy
         }
     }
 
+    /// <summary>
+    /// Handles the windup for the spin
+    /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator SpinWindup()
     {
         inCounter = false;
@@ -871,6 +877,7 @@ public class Goblin : Enemy
         {
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
             {
+                Debug.Log("Not close enough");
                 aiState = AIMovementState.Surrounding;
                 if (currentPlayer.TryGetComponent(out SurroundingPoints points))
                 {
@@ -1073,6 +1080,10 @@ public class Goblin : Enemy
         base.Die();
     }
 
+    /// <summary>
+    /// Set possessed to be true/false
+    /// </summary>
+    /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
 

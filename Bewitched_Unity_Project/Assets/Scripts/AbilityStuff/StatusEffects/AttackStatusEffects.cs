@@ -128,32 +128,35 @@ public class AttackStatusEffects : MonoBehaviour
     /// <param name="hitbox"> Hitbox the attack is using </param>
     public void ApplyKnockback(Character user, Character character, DefaultHitbox hitbox)
     {
-        if (knockbackType == KnockbackType.Bash)
+        if (hitbox != null)
         {
-            Vector3 knockbackDirection = user.GetCurrentSpeedVector() + (character.transform.position - hitbox.transform.position).normalized;
+            if (knockbackType == KnockbackType.Bash)
+            {
+                Vector3 knockbackDirection = user.GetCurrentSpeedVector() + (character.transform.position - hitbox.transform.position).normalized;
 
-            character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, knockbackAmount);
-        }
-        else if (knockbackType == KnockbackType.Swing)
-        {
-            float knockbackAngle = hitbox.transform.parent.rotation.eulerAngles.y - 90;
-            Vector3 knockbackDirection = new Vector3(Mathf.Sin(knockbackAngle * Mathf.Deg2Rad), 0, Mathf.Cos(knockbackAngle * Mathf.Deg2Rad));
+                character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, knockbackAmount);
+            }
+            else if (knockbackType == KnockbackType.Swing)
+            {
+                float knockbackAngle = hitbox.transform.parent.rotation.eulerAngles.y - 90;
+                Vector3 knockbackDirection = new Vector3(Mathf.Sin(knockbackAngle * Mathf.Deg2Rad), 0, Mathf.Cos(knockbackAngle * Mathf.Deg2Rad));
 
-            character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, knockbackAmount);
-        }
-        else if (knockbackType == KnockbackType.Impact)
-        {
-            Vector3 knockbackDirection = character.transform.position - hitbox.transform.position;
-            float distance = knockbackDirection.magnitude;
+                character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection, knockbackAmount);
+            }
+            else if (knockbackType == KnockbackType.Impact)
+            {
+                Vector3 knockbackDirection = character.transform.position - hitbox.transform.position;
+                float distance = knockbackDirection.magnitude;
 
-            float knockbackAmt = knockbackMaximum - Mathf.Lerp(knockbackMinimum, knockbackMaximum, distance / knockbackRange);
+                float knockbackAmt = knockbackMaximum - Mathf.Lerp(knockbackMinimum, knockbackMaximum, distance / knockbackRange);
 
 
-            character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection.normalized, knockbackAmt);
-        }
-        else
-        {
-            character.GetComponent<KnockbackControl>().AddImpact(hitbox.transform.forward.normalized, knockbackAmount);
+                character.GetComponent<KnockbackControl>().AddImpact(knockbackDirection.normalized, knockbackAmt);
+            }
+            else
+            {
+                character.GetComponent<KnockbackControl>().AddImpact(hitbox.transform.forward.normalized, knockbackAmount);
+            }
         }
     }
 

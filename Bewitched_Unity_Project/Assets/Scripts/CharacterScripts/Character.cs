@@ -510,6 +510,7 @@ public abstract class Character : MonoBehaviour
             characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
             yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
+            Debug.Log("Starting Attack Function");
             PrimaryAttack();
         }
     }
