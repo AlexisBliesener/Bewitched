@@ -608,7 +608,6 @@ public class Goblin : Enemy
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
-            Debug.Log(gameObject.ToString() + pathState);
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
@@ -853,6 +852,7 @@ public class Goblin : Enemy
         {
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
             {
+                Debug.Log("Not close enough");
                 aiState = AIMovementState.Surrounding;
                 if (currentPlayer.TryGetComponent(out SurroundingPoints points))
                 {

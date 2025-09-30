@@ -178,15 +178,12 @@ public class DefaultHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other);
         if (active)
         {
-            Debug.Log("Active");
             if (other.TryGetComponent(out Character character))
             {
                 if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable())
                 {
-                    Debug.Log("Hit character");
                     character.health.SubHealth(damage);
 
                     // Hit VFX

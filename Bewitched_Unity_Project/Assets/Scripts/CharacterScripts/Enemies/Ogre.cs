@@ -165,14 +165,11 @@ public class Ogre : Enemy
             timeStarted += Time.deltaTime;
             yield return null;
         }
-        Debug.Log("Approach started");
         attackStateCoroutine = StartCoroutine(BatApproach());
     }
 
     public IEnumerator BatApproach()
     {
-        Debug.Log("Approaching");
-
         attackState = AttackState.Approaching;
 
         if (lockedCharacter)
@@ -218,8 +215,6 @@ public class Ogre : Enemy
         }
         attackIndicator = null;
 
-        Debug.Log("Not Approaching");
-
         attackStateCoroutine = StartCoroutine(SwingBat());
         yield break;
     }
@@ -242,23 +237,17 @@ public class Ogre : Enemy
 
         pivot.SetActive(true);
 
-        Debug.Log("Check 0");
         while (timeSinceStarted < batSwingDuration)
         {
             pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
-            Debug.Log(timeSinceStarted);
             yield return null;
         }
-        Debug.Log(timeSinceStarted);
 
         Destroy(pivot);
 
-        Debug.Log("Check 1");
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
-
-        Debug.Log("Check 2");
         if (!playerControlling)
         {
             aiState = AIMovementState.Retreating;
@@ -266,8 +255,6 @@ public class Ogre : Enemy
             pathState = PathState.Unset;
         }
         else StartCoroutine(EnableMovement());
-
-        Debug.Log("Check 3");
 
         if (lockedCharacter)
         {
@@ -277,7 +264,6 @@ public class Ogre : Enemy
                 enemy.SetTargeted(false);
             }
         }
-        Debug.Log("End swing");
 
         lockedCharacter = null;
         attackingPrimary = false;
@@ -361,10 +347,10 @@ public class Ogre : Enemy
     {
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
+        Debug.Log(aiState);
 
         if (aiState == AIMovementState.Patrolling)
         {
-            Debug.Log(gameObject.ToString() + pathState);
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
@@ -427,6 +413,7 @@ public class Ogre : Enemy
     {
         if (LookForPlayer())
         {
+            Debug.Log("Spotted player");
             StartCoroutine(SpotPlayer());
             return;
         }
@@ -446,7 +433,7 @@ public class Ogre : Enemy
                 UpdatePath(false);
             }
             AIMove();
-            //AIRotate();
+            AILook();
         }
         else // If no current path, mark as available
         {
@@ -493,7 +480,6 @@ public class Ogre : Enemy
     /// <returns> True if reachable </returns>
     public override bool ValidatePoint()
     {
-        Debug.Log(walkPoint);
         if (currentPath == null)
         {
             pathState = PathState.Unset;
@@ -505,8 +491,6 @@ public class Ogre : Enemy
             pathState = PathState.Unset;
             return false;
         }
-        Debug.DrawRay(transform.position, Vector3.up * 10, Color.green, 100);
-        Debug.Log("Valid");
 
         pathState = PathState.Set;
         return true;
@@ -518,12 +502,12 @@ public class Ogre : Enemy
     /// <returns> Waits for animations/sounds </returns>
     private IEnumerator SpotPlayer()
     {
+        inProcess = true;
         aiState = AIMovementState.Chasing;
         if (debugging)
         {
             DestroyPath();
         }
-        inProcess = true;
 
         // Roar sound here
         yield return new WaitForSeconds(0.5f); // Half a second for now - ogre should roar at player and start chasing
@@ -556,7 +540,6 @@ public class Ogre : Enemy
             timer += Time.deltaTime;
             yield return null;
         }
-        Debug.Log("Reached destination, looking around. " + pathState + outGoing);
 
         if (outGoing) // when done, determine if we sit or turn around
         {
@@ -700,14 +683,15 @@ public class Ogre : Enemy
 
         if (totalOdds > 0)
         {
+            Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
-                PrimaryAttack();
+                StartCoroutine(BeginPrimary());
             }
             else
             {
-                SecondaryAttack();
+                StartCoroutine(BeginSecondary());
             }
             points.RemoveSurroundingEnemy(this);
             return true;

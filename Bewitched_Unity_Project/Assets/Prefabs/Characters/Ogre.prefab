@@ -192,10 +192,10 @@ MonoBehaviour:
   exploreCam: {fileID: 8961042778509443714}
   attackEffects: []
   effectJSONs: []
-  attackIndicatorPrefab: {fileID: 0}
+  attackIndicatorPrefab: {fileID: 5268847967852326968, guid: f9010be385ea18341b16aa0fb2416a56, type: 3}
   agent: {fileID: 8810894426884420593}
   minStopDistance: 2.25
-  pathfindingPriority: 0
+  pathfindingPriority: 1
   seenBuffer: 0.5
   ground:
     serializedVersion: 2
@@ -203,8 +203,8 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  surroundingToChaseRadius: 2
-  chaseToSurroundingRadius: 1
+  surroundingToChaseRadius: 6
+  chaseToSurroundingRadius: 4
   sightRange: 10
   maxSightAngle: 70
   hearingRange: 2
