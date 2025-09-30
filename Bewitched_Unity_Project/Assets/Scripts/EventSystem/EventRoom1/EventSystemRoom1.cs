@@ -42,6 +42,15 @@ public class EventSystemRoom1 : MonoBehaviour
 
     [SerializeField, Tooltip("The door to open when the event enemy is possessed")]
     private IDoor door;
+
+
+    private void Start()
+    {
+        if (enemyEvent != null)
+        {
+            enemyEvent.gameObject.SetActive(false);
+        }
+    }
     /// <summary>
     /// Handles when the event enemy is triggered by the player to activate the fight
     /// </summary>
@@ -49,6 +58,7 @@ public class EventSystemRoom1 : MonoBehaviour
     {
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject && fightState == FightState.Waiting)
         {
+            enemyEvent.gameObject.SetActive(true);
             StartCutScene();
         }
     }

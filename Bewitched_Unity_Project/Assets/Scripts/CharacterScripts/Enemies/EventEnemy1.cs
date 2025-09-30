@@ -31,4 +31,10 @@ public class EventEnemy1 : Enemy
     {
         return enemyState;
     }
+
+    public override void FindPath()
+    {
+        base.FindPath();
+        pathState = PathState.Set;
+    }
 }
