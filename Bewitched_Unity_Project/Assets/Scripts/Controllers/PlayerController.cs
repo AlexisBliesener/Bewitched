@@ -10,7 +10,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
-using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
