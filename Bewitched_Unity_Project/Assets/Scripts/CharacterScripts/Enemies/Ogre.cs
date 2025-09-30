@@ -124,36 +124,11 @@ public class Ogre : Enemy
         attackStateCoroutine = StartCoroutine(ScreamWindup());
     }
 
-    //public override void ReleasePrimary()
-    //{
-    //    base.ReleasePrimary();
-    //    if (!isCharging) return;
-
-    //    isCharging = false;
-    //    timeLastPrimary = Time.time;
-
-    //    minAngle = Quaternion.Euler(0, currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
-    //    maxAngle = Quaternion.Euler(0, -currentBatSwingAngle / 2, 0) * Quaternion.LookRotation(transform.forward);
-
-    //    GameObject pivot = Instantiate(batPivot, transform);
-    //    pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
-    //    pivot.SetActive(false);
-
-    //    GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-    //    batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentBatSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
-    //    pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
-
-    //    pivot.SetActive(true);
-    //    Debug.Log(batSwingDuration);
-
-    //    StartCoroutine(SwingBat(pivot));
-    //}
-
     /// <summary>
     /// Handles the windup for the bat
     /// This version looks to the right of the locked character (will alternate in the future)
     /// </summary>
-    /// <returns></returns>
+    /// <returns> Time </returns>
     public IEnumerator BatWindup()
     {
         inCounter = false;
@@ -168,6 +143,10 @@ public class Ogre : Enemy
         attackStateCoroutine = StartCoroutine(BatApproach());
     }
 
+    /// <summary>
+    /// Handles the approach for the bat swing
+    /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator BatApproach()
     {
         attackState = AttackState.Approaching;
@@ -219,6 +198,10 @@ public class Ogre : Enemy
         yield break;
     }
 
+    /// <summary>
+    /// Handles the swing for the bat
+    /// </summary>
+    /// <returns> Time </returns>
     private IEnumerator SwingBat()
     {
         attackState = AttackState.Attacking;
@@ -270,6 +253,10 @@ public class Ogre : Enemy
         timeLastPrimary = Time.time;
     }
 
+    /// <summary>
+    /// TEMPORARY override function until animator is set up
+    /// </summary>
+    /// <returns> True if usable, false otherwise </returns>
     public override bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
@@ -278,6 +265,10 @@ public class Ogre : Enemy
         return true;
     }
 
+    /// <summary>
+    /// Winds up for the scream
+    /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator ScreamWindup()
     {
         if (playerControlling) PlayerController.instance.SetAllowMovement(false);
@@ -289,6 +280,10 @@ public class Ogre : Enemy
         attackStateCoroutine = StartCoroutine(HandleScream());
     }
 
+    /// <summary>
+    /// Handles the scream attack for the ogre
+    /// </summary>
+    /// <returns> Time delays </returns>
     public IEnumerator HandleScream()
     {
         Debug.Log("ROAR");
@@ -310,34 +305,6 @@ public class Ogre : Enemy
 
         attackStateCoroutine = null;
         attackingSecondary = false;
-    }
-
-    public void HandleJumpMovement()
-    {
-        if (attackingSecondary)
-        {
-            jumpVelocity -= ogreJumpGravity * Time.deltaTime;
-
-            transform.position = new Vector3(transform.position.x, transform.position.y + jumpVelocity * Time.deltaTime, transform.position.z);
-
-            if (jumpVelocity <= 0 && jumping)
-            {
-                jumping = false;
-                // Instantiate bat hitbox
-                slamBatHitbox = Instantiate(slamHitboxPrefab, transform);
-                slamBatHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: ogreJumpBatDamage, slamDMG: ogreJumpSlamDamage, status: slamBatEffects, attackDuration: 10);
-            }
-
-            if (transform.position.y <= groundHeight) // Hit ground
-            {
-                transform.position = new Vector3(transform.position.x, groundHeight, transform.position.z);
-
-                slamBatHitbox.GetComponent<DefaultHitbox>().SlamImpact(slamImpactEffects);
-
-                attackingSecondary = false;
-                StartCoroutine(EnableMovement());
-            }
-        }
     }
 
     /// <summary>
@@ -367,6 +334,9 @@ public class Ogre : Enemy
         }
     }
 
+    /// <summary>
+    /// Finds a path and starts searching depending on the AI state
+    /// </summary>
     public override void FindPath()
     {
         if (aiState == AIMovementState.Patrolling)

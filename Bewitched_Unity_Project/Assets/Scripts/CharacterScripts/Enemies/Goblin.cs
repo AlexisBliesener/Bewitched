@@ -303,6 +303,11 @@ public class Goblin : Enemy
         yield break;
     }
 
+    /// <summary>
+    /// Starts a counterattack from a certain attack name
+    /// </summary>
+    /// <param name="attackName"> Name of attack to activate </param>
+    /// <returns> Time </returns>
     public IEnumerator StartCounterAttack(string attackName)
     {
         while (dodging)
@@ -315,6 +320,9 @@ public class Goblin : Enemy
         }
     }
 
+    /// <summary>
+    /// Starts the secondary attack
+    /// </summary>
     public override void SecondaryAttack()
     {
         hitCharacter = false;
@@ -364,6 +372,10 @@ public class Goblin : Enemy
         }
     }
 
+    /// <summary>
+    /// Handles the windup for the spin
+    /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator SpinWindup()
     {
         inCounter = false;
@@ -1055,6 +1067,10 @@ public class Goblin : Enemy
         base.Die();
     }
 
+    /// <summary>
+    /// Set possessed to be true/false
+    /// </summary>
+    /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
 
