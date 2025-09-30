@@ -74,8 +74,9 @@ public class CameraController : MonoBehaviour
         aiming = false;
         aimCamScript = aimCam.GetComponent<AimCam>();
         combatCamScript = combatCam.GetComponent<CombatCam>();
-        combatCam.Priority = 2;
+        combatCam.Priority = 0;
         aimCam.Priority = 1;
+        explorationCam.Priority = 3;
         if (inCombat)
         {
             aimCamScript.SetYaw(combatCam.m_XAxis.Value);

@@ -241,30 +241,6 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        if(combatCam != null)
-        {
-            combatCam.Priority = 0;
-        }
-        else
-        {
-            Debug.LogWarning("Combat cam is not set!");
-        }
-        if (aimCam != null)
-        {
-            aimCam.Priority = 1;
-        }
-        else
-        {
-            UnityEngine.Debug.LogWarning("Aim cam is not set!");
-        }
-        if (exploreCam != null)
-        {
-            exploreCam.Priority = 2;
-        }
-        else
-        {
-            Debug.LogWarning("Explore cam is not set!");
-        }
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
