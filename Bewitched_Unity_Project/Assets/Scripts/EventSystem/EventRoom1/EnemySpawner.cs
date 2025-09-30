@@ -3,13 +3,13 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [SerializeField, Tooltip("Spawn interval")]
-    private float spawnInterval = 1f;
+    private float spawnInterval = 10f;
     [SerializeField, Tooltip("Enemy prefab")]
     private GameObject enemyPrefab;
     [SerializeField, Tooltip("Max enemies to spawn")]
-    private int maxEnemies = 10;
-    [SerializeField, Tooltip("Min enemies to spawn")]
-    private int minEnemies = 1;
+    private int maxEnemiesLimit = 10;
+    [SerializeField, Tooltip("The range of enemies to spawn from 1 to ..."), Range(1, 30)]
+    private int enemiesPerSpawn = 5;
     [Tooltip("The number of enemies spawned")]
     private int enemiesSpawned = 0;
     [Tooltip("The time the last enemy was spawned")]
@@ -33,10 +33,18 @@ public class EnemySpawner : MonoBehaviour
     {
         if (isActive && Time.time - timeLastSpawned >= spawnInterval)
         {
-            if (enemiesSpawned < maxEnemies)
+            if (enemiesSpawned < maxEnemiesLimit)
             {
-                Instantiate(enemyPrefab, spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Length)].transform.position, transform.rotation);
-                enemiesSpawned++;
+                int enemiesThisWave = Random.Range(0, enemiesPerSpawn + 1);
+
+                for (int i = 0; i < enemiesThisWave; i++)
+                {
+                    if (enemiesSpawned >= maxEnemiesLimit)
+                        break;
+
+                    Instantiate(enemyPrefab, spawnPoints[Random.Range(0, spawnPoints.Length)].transform.position, transform.rotation);
+                    enemiesSpawned++;
+                }
             }
             timeLastSpawned = Time.time;
         }
