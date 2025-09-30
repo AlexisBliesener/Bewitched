@@ -175,6 +175,7 @@ public class Ogre : Enemy
             }
 
             Quaternion rotationRight = Quaternion.AngleAxis(batSwingAngle / 4, Vector3.up); // Modifies rotation to be to the right, in the future make this depend on where more enemies are
+            rotationVal = rotationRight * rotationVal;
 
             transform.forward = Vector3.Lerp(transform.forward, rotationVal, timeStarted / batWindupPeriod);
             yield return null;
@@ -281,6 +282,7 @@ public class Ogre : Enemy
                 enemy.SetTargeted(false);
             }
         }
+        Debug.Log("End swing");
 
         lockedCharacter = null;
         attackingPrimary = false;

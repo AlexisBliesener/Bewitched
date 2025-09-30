@@ -279,6 +279,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
+            Debug.Log("Primary used");
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
