@@ -458,10 +458,10 @@ public class PlayerController : MonoBehaviour
         if (lockedCharacter)
         {
             Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
-            if (Vector3.Distance(lockedCharacter.transform.position, currentCharacter.transform.position) > 4f) // if locked character is out of range
-            {
-                lockedCharacter = null;
-            }
+            //if (Vector3.Distance(lockedCharacter.transform.position, currentCharacter.transform.position) > 4f) // if locked character is out of range
+            //{
+            //    lockedCharacter = null;
+            //}
         }
     }
 
