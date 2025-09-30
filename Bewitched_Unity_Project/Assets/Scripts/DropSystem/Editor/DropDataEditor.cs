@@ -21,6 +21,9 @@ public class DropDataDrawer : PropertyDrawer
         EditorGUILayout.PropertyField(property.FindPropertyRelative("description"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("dropID"));
         EditorGUILayout.PropertyField(property.FindPropertyRelative("icon"));
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("buyAmount"));
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("sellAmount"));
+
 
         // create a rarity dropdown which convert the index to a string and that's only in the editor
         SerializedProperty rarityIndexProp = property.FindPropertyRelative("rarityIndex");
