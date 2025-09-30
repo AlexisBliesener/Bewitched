@@ -37,6 +37,7 @@ public abstract class Character : MonoBehaviour
     public float rotationalVelocity = 240;
     [Tooltip("Time chasing a character for an attack")]
     public float chaseTime = 3;
+    public float windupTime = 0.25f;
 
     [Tooltip("Weight of the character")]
     public float weight = 10;

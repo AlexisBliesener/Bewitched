@@ -367,6 +367,8 @@ MonoBehaviour:
     m_Bits: 128
   currentCharacter: {fileID: 1678128613887762981}
   oldHag: {fileID: 1678128613887762981}
+  targetingRange: 10
+  lockedCharacter: {fileID: 0}
   hagHealthBar: {fileID: 0}
   playerBuffs: {fileID: 3751507528405304438}
   primaryCooldownDisplay: {fileID: 0}
@@ -374,7 +376,7 @@ MonoBehaviour:
   pauseMenu: {fileID: 0}
   interactUI: {fileID: 0}
   exitDoor: {fileID: 0}
-  input: {x: 0, y: 0}
+  movementInput: {x: 0, y: 0}
   direction: {x: 0, y: 0, z: 0}
   playerZone: {fileID: 0}
   surface: {fileID: 0}
@@ -406,7 +408,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 962c00d601d43da4da1959ad750da17b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possessionCooldown: 2
+  possessionCooldown: 1
   maxPossessionDistance: 10
   lifeDrainPercentage: 2
   possessionMask:
@@ -415,7 +417,7 @@ MonoBehaviour:
   possessionCooldownDisplay: {fileID: 0}
   secondaryHealthBar: {fileID: 0}
   crossHair: {fileID: 0}
-  oldHag: {fileID: 1678128613887762981}
+  eleth: {fileID: 0}
   targetVFX: {fileID: 0}
   firingVFX: {fileID: 8793291929081330377, guid: 12de295a5fe62364280a0358439b33ef, type: 3}
   smokeCloudVFX: {fileID: 2559313966253667506, guid: f0ce394722376c94087b926531c2171b, type: 3}
@@ -794,7 +796,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1515034274812679110, guid: 47fe2244657b3c04281ce95f6fc43c68, type: 3}
   m_PrefabInstance: {fileID: 166512996165792227}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6615977690570987970}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 50ba220f001e4464ab81379ce6d53add, type: 3}
@@ -808,11 +810,6 @@ Transform:
 --- !u!1 &4951648303529364115 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5113937800638118768, guid: 47fe2244657b3c04281ce95f6fc43c68, type: 3}
-  m_PrefabInstance: {fileID: 166512996165792227}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6615977690570987970 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6457948663650330657, guid: 47fe2244657b3c04281ce95f6fc43c68, type: 3}
   m_PrefabInstance: {fileID: 166512996165792227}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2848102940621251006
@@ -934,7 +931,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10f3a66756f3ebe4694322747718ce36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eleth: {fileID: 6615977690570987970}
+  currentCharacter: {fileID: 0}
 --- !u!1001 &9084967370621878840
 PrefabInstance:
   m_ObjectHideFlags: 0

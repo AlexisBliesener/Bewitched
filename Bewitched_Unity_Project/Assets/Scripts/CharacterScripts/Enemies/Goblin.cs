@@ -243,7 +243,8 @@ public class Goblin : Enemy
         attackState = AttackState.Windup;
         float timeStarted = Time.time;
         // For now wait 0.25 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.25f)
+        // Strider 9/30/25: moved this to a variable, need to adjust
+        while (Time.time - timeStarted < windupTime)
         {
             if (lockedCharacter)
             {
