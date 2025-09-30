@@ -334,4 +334,5 @@ public class PlayerController : MonoBehaviour
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
     }
     
+    
 }

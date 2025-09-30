@@ -65,9 +65,9 @@ public class RoomSystemEditor : Editor
     private void DrawRoomItem(RoomData roomData, int index)
     {
         EditorGUILayout.BeginVertical("Box");
-        
+
         EditorGUILayout.BeginHorizontal();
-        
+
         // Room name it's editable
         EditorGUI.BeginChangeCheck();
         roomData.roomName = EditorGUILayout.TextField(roomData.roomName);
@@ -76,7 +76,7 @@ public class RoomSystemEditor : Editor
             roomData.roomController.gameObject.name = roomData.roomName;
             EditorUtility.SetDirty(roomSystem);
         }
-        
+
         // Select button
         GUI.backgroundColor = Color.cyan;
         if (GUILayout.Button("Select", GUILayout.Width(60)))
@@ -87,18 +87,19 @@ public class RoomSystemEditor : Editor
                 EditorGUIUtility.PingObject(roomData.roomController.gameObject);
             }
         }
-        
-        // Focus button
-        GUI.backgroundColor = Color.yellow;
-        if (GUILayout.Button("Focus", GUILayout.Width(60)))
+
+        // enabled the button only in the play mode and the room is active 
+        GUI.enabled = Application.isPlaying && roomSystem.GetRooms()[index].roomController.GetCurrentState() == RoomState.Active;
+        GUI.backgroundColor = Color.red;
+        // Kill button
+        if (GUILayout.Button("Kill All Enemies", GUILayout.Width(120)))
         {
-            if (roomData.roomController != null)
-            {
-                Selection.activeGameObject = roomData.roomController.gameObject;
-                SceneView.FrameLastActiveSceneView();
-            }
+            roomSystem.GetRooms()[index].roomController.roomEnemies.ForEach(enemy => enemy.GetComponent<Enemy>().Die());
+            EditorUtility.SetDirty(roomSystem);
+            return;
         }
-        
+        GUI.enabled = true;
+
         // Delete button
         GUI.backgroundColor = Color.red;
         if (GUILayout.Button("Delete", GUILayout.Width(60)))
