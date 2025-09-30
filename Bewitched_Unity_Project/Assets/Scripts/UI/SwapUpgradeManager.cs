@@ -129,11 +129,12 @@ public GameObject firstButton;
             upgradeButton.onClick.RemoveAllListeners();
         }
 
-        int i = 0;
+        var groupedList = new List<KeyValuePair<string, (DropData upgrade, int count)>>(groupedUpgrades);
 
-        foreach (var stack in groupedUpgrades)
+        for (int i = 0; i < groupedList.Count; i++)
         {
             if (i >= swapUpgradeButtons.Length) break;
+            var stack = groupedList[i];
 
             DropData upgrade = stack.Value.upgrade;
             int stackCount = stack.Value.count;
@@ -191,7 +192,6 @@ public GameObject firstButton;
 
             });
 
-            i++;
         }
     }
 

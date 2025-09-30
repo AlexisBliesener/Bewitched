@@ -273,11 +273,12 @@ public class ShopManager : MonoBehaviour
             upgradeButton.onClick.RemoveAllListeners();
         }
 
-        int i = 0;
+        var groupedList = new List<KeyValuePair<string, (DropData upgrade, int count)>>(groupedUpgrades);
 
-        foreach (var stack in groupedUpgrades)
+        for (int i = 0; i < groupedList.Count; i++)
         {
             if (i >= sellUpgradeButtons.Length - 1) break; // last button is a menu switch button
+            var stack = groupedList[i];
 
             DropData upgrade = stack.Value.upgrade;
             int stackCount = stack.Value.count;
@@ -340,7 +341,6 @@ public class ShopManager : MonoBehaviour
 
             });
 
-            i++;
         }
 
         // keep menu and exit button active
