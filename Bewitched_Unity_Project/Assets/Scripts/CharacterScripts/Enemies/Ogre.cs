@@ -40,11 +40,20 @@ public class Ogre : Enemy
     [Tooltip("Ogre Slam Knockback Range")]
     [SerializeField] float ogreJumpSlamImpactRange = 8;
 
+
     [Tooltip("Slam Bat Status Effects")]
     [SerializeField] AttackStatusEffects slamBatEffects;
 
     [Tooltip("Slam Impact Status Effects")]
     [SerializeField] AttackStatusEffects slamImpactEffects;
+
+    [Tooltip("Scream radius")]
+    [SerializeField] float screamRange = 5;
+    [Tooltip("Scream windup time")]
+    [SerializeField] float screamWindupDuration = 0.5f;
+
+    [Tooltip("Scream effects")]
+    [SerializeField] AttackStatusEffects screamEffects;
 
     [Tooltip("Minimum time for ogre to sit")]
     [SerializeField] float minSittingTime = 3;
@@ -111,11 +120,7 @@ public class Ogre : Enemy
     {
         attackingSecondary = true;
         timeLastSecondary = Time.time;
-        PlayerController.instance.SetAllowMovement(false);
-
-        groundHeight = transform.position.y;
-        jumping = true;
-        jumpVelocity = ogreJumpSpeed;
+        attackStateCoroutine = StartCoroutine(ScreamWindup());
     }
 
     //public override void ReleasePrimary()
@@ -260,13 +265,58 @@ public class Ogre : Enemy
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
 
-        StartCoroutine(EnableMovement());
-        SetPrimaryStatus(false);
+        if (!playerControlling)
+        {
+            aiState = AIMovementState.Retreating;
+            attackState = AttackState.Neutral;
+            pathState = PathState.Unset;
+        }
+        else StartCoroutine(EnableMovement());
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(null);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
+
+        lockedCharacter = null;
+        attackingPrimary = false;
+        timeLastPrimary = Time.time;
     }
 
     public IEnumerator ScreamWindup()
     {
+        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+        else aiState = AIMovementState.Blocked;
         attackState = AttackState.Windup;
+
+        yield return new WaitForSeconds(screamWindupDuration);
+
+        attackStateCoroutine = StartCoroutine(HandleScream());
+    }
+
+    public IEnumerator HandleScream()
+    {
+        attackState = AttackState.Attacking;
+        Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
+        foreach (Collider collider in colliders)
+        {
+            if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
+            {
+                screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
+            }
+        }
+
+        yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
+
+        if (playerControlling) StartCoroutine(EnableMovement());
+        else aiState = AIMovementState.Chasing;
+
+        attackStateCoroutine = null;
+        attackingSecondary = false;
     }
 
     public void HandleJumpMovement()
