@@ -527,6 +527,14 @@ public class GraphBuilder : MonoBehaviour
                 }
             }
 
+           if (openSet.Count == 0) {
+                searching = false;
+                enemy.SetUsingSearch(false);
+                enemy.SetPath(null);
+                enemy.ValidatePoint(); // Quick set path state to unset
+                StartCoroutine(RetryPath(enemy));
+                yield break;
+            }
             if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
             {
                 yield return null; // Go to next frame
@@ -551,6 +559,7 @@ public class GraphBuilder : MonoBehaviour
     /// <returns> Integer closest to target </returns>
     public int BinaryCoordinateSearch(int targetNum, List<int> values)
     {
+        values.Sort();
         int lower = values[0];
         int higher = values[values.Count - 1];
 
@@ -567,6 +576,7 @@ public class GraphBuilder : MonoBehaviour
             else
             {
                 higher = i;
+                break; // the list already sorted 
             }
         }
 
