@@ -309,6 +309,13 @@ public class DropSystem : MonoBehaviour
             SoulSystem.Instance.AddSouls(totalRefund);
         }
         playerUpgrades.RemoveAll(u => u != null && u.GetID() == drop.GetID());
+        for (int i = 0; i < playerUpgrades.Count; i++)
+        {
+            if (playerUpgrades[i].GetID() == drop.GetID())
+            {
+                playerUpgrades[i].Deactivate();
+            }
+        }    
 
         if (HUDManager.Instance != null)
         {
