@@ -21,7 +21,7 @@ public class ElethAnimator : CharacterAnimator
     /// Switches the character's animation state and updates the Animator accordingly.
     /// Specific to the eleth animator adds in the possession state
     /// </summary>
-    public override void SwitchState(string newState)
+    public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
         if (!animationStates.Contains(newState))
         {

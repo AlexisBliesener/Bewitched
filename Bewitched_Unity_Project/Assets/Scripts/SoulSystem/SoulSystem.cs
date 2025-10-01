@@ -52,7 +52,21 @@ public class SoulSystem : MonoBehaviour
     // <summary> Get current soul currency </summary>
     public int GetSoulCurrency() => soulCount;
     // <summary> Use souls from the current soul currency (amount is subtracted from the currency and it doesn't go below 0) </summary>
-    public void UseSoulCurrency(int amount) => soulCount = Mathf.Max(0, soulCount - amount);
+    public void UseSoulCurrency(int amount)
+    {
+        soulCount = Mathf.Max(0, soulCount - amount);   
+
+        //Update HUD Soul Count
+        if (soulCountText != null)
+        {
+            soulCountText.text = soulCount.ToString();
+        }
+        else
+        {
+            Debug.LogWarning("There is no soul text assigned!");
+        }
+    }
+
     // <summary> Reset souls to 0</summary>
     public void ResetSouls() => soulCount = 0;
     // <summary> Set the soul prefab to use for spawning (This is used for the test cases) </summary>

@@ -35,6 +35,8 @@ public class CameraController : MonoBehaviour
     private static bool aiming = false;
     [Tooltip("Reference to the AimCam component that manages aim-related camera logic.")]
     private AimCam aimCamScript;
+    [Tooltip("Reference to the CombatCam component that manages framing camera logic.")]
+    private CombatCam combatCamScript;
     [Tooltip("Flag to prevent camera priority switching during character transitions.")]
     private bool transitioning = false;
     [Tooltip("True if the player is locked in a room")]
@@ -48,6 +50,11 @@ public class CameraController : MonoBehaviour
     {
         inCombat = val;
         UpdateCam();
+    }
+
+    public CombatCam GetCombatCamScript()
+    {
+        return combatCamScript;
     }
 
     /// <summary>
@@ -66,8 +73,10 @@ public class CameraController : MonoBehaviour
         instance = this;
         aiming = false;
         aimCamScript = aimCam.GetComponent<AimCam>();
-        combatCam.Priority = 2;
+        combatCamScript = combatCam.GetComponent<CombatCam>();
+        combatCam.Priority = 0;
         aimCam.Priority = 1;
+        explorationCam.Priority = 3;
         if (inCombat)
         {
             aimCamScript.SetYaw(combatCam.m_XAxis.Value);
@@ -211,6 +220,15 @@ public class CameraController : MonoBehaviour
         catch
         {
             Debug.LogWarning("No aim cam component found!");
+        }
+
+        try
+        {
+            combatCamScript = combatCam.GetComponent<CombatCam>();
+        }
+        catch
+        {
+            Debug.LogWarning("No combat cam component found!");
         }
 
         combatCam.Priority = 2;

@@ -88,6 +88,7 @@ public class DefaultHitbox : MonoBehaviour
                 hitbox.AddToHit(character);
             }
         }
+        user.SetHitCharacter(true);
     }
 
     /// <summary>
@@ -181,7 +182,7 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && character.teamID != user.teamID && !hitChars.Contains(character))
+                if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable())
                 {
                     character.health.SubHealth(damage);
 
@@ -197,7 +198,7 @@ public class DefaultHitbox : MonoBehaviour
                         Debug.LogWarning("HitVFX is not assigned!");
                     }
 
-                        AddStatusEffects(character);
+                    AddStatusEffects(character);
                     AddToHit(character);
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead? "Death" : "Hit";

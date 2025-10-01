@@ -3449,9 +3449,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f028956485fecda47940bbee1f5a24cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryAnimationDelay: 0.5
+  primaryAnimationDelay: []
   secondaryAnimationDelay: 0
-  primaryAttackLength: 1
   secondaryAttackLength: 1
   animator: {fileID: 8043270076455531339}
   characterController: {fileID: 3937552589655486426}
@@ -3472,6 +3471,7 @@ MonoBehaviour:
   lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
+  deathUI: {fileID: 0}
 --- !u!114 &1515034274812679110
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3486,25 +3486,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Hag
   movementSpeed: 10
+  approachSpeed: 7
   jumpSpeed: 5
   jumpDelay: 0
-  acceleration: 5
+  acceleration: 10
   deceleration: 5
+  rotationalVelocity: 240
+  chaseTime: 3
+  windupTime: 0.25
   weight: 10
   sizeRadius: 1
   numSurroundingPoints: 8
-  surroundingRadius: 2
+  minSurroundingRadius: 2
+  maxSurroundingRadius: 5
   teamID: 1
   primaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1
-  primaryComboExtraCooldown: 0
-  primaryComboSteps: 0
-  primaryComboResetTime: 0
   secondaryCooldown: 1
   primaryAttackRange: 0
+  primaryComboSteps: 0
+  primaryComboResetTime: []
+  primaryComboMinTime: []
   health: {fileID: 5217174856955666005}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
@@ -3516,6 +3521,7 @@ MonoBehaviour:
   exploreCam: {fileID: 7837889319868284855}
   attackEffects: []
   effectJSONs: []
+  attackIndicatorPrefab: {fileID: 0}
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 2
@@ -3529,6 +3535,7 @@ MonoBehaviour:
   - {fileID: 919132149155446097}
   - {fileID: 5113937800638118768}
   - {fileID: 786770727767196835}
+  deathUI: {fileID: 0}
 --- !u!143 &3937552589655486426
 CharacterController:
   m_ObjectHideFlags: 0

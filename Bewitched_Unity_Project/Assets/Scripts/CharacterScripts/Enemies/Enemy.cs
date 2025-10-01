@@ -28,6 +28,12 @@ public abstract class Enemy : Character
     public LayerMask ground;
     public LayerMask environment;
 
+    [Tooltip("Distance from point an enemy can be before switching to chase")]
+    [SerializeField] protected float surroundingToChaseRadius = 2;
+
+    [Tooltip("Distance from point an enemy must reach before switching to surround")]
+    [SerializeField] protected float chaseToSurroundingRadius = 1;
+
     [Tooltip("Sight Range")]
     public float sightRange;
 
@@ -48,6 +54,12 @@ public abstract class Enemy : Character
 
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
+
+    [Tooltip("Chance for AI primary attack")]
+    public float primaryAttackChance = .5f;
+
+    [Tooltip("Chance for AI secondary attack")]
+    public float secondaryAttackChance = .5f;
 
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
     public float lowHealthThresholdPercentage = 30;
@@ -99,9 +111,10 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
-    public bool tempDebugging = false;
+    public Material perfectCounterTimeMaterial;
+    public Material defaultMaterial;
 
-    protected enum PathState
+    public enum PathState
     {
         Unset,
         Searching,
@@ -109,26 +122,44 @@ public abstract class Enemy : Character
     }
 
     [Tooltip("Current path state")]
-    protected PathState pathState = PathState.Unset;
+    public PathState pathState = PathState.Unset;
+
+    public enum AIMovementState
+    {
+        Patrolling, // Before spotting player
+        Chasing, // Reaching the player
+        Surrounding, // Staying in range of the player
+        Retreating, // Post attack, return to safe distance
+        Blocked, // For attacking, stun, etc. the character does not move or look
+        Targeted, // For now does nothing to keep enemy in place, in future allows for dodging/countering
+        PlayerControlled // For when the player is controlling this enemy, should not be AI controlled
+    }
+
+    [Tooltip("The Current AI State of the enemy")]
+    public AIMovementState aiState = AIMovementState.Patrolling;
+
+    [Tooltip("Point relative to player for enemy to navigate towards")]
+    protected Vector3 chasePoint;
+
+    [Tooltip("Bool determining if enemy can be stopped perfectly")]
+    protected bool inPerfectStopZone = false;
+
+    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
+    protected bool inProcess = false;
+
+    [Tooltip("The enemy's Patrol Point Origin")]
+    protected Vector3 patrolOrigin;
 
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
-        if (velocity.magnitude >= 0.01f)
-        {
-            //AnimateMove();
-        }
-        else
-        {
-          //  AnimateIdle();
-        }
+        if (aiState == AIMovementState.PlayerControlled) return;
 
         if (currentPath == null) // No path, decelerate to 0
         {
-            Vector3 direction = Vector3.zero;
-            velocity = Vector3.Lerp(velocity, direction, Time.deltaTime * deceleration);
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }
@@ -138,7 +169,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            velocity = Vector3.Lerp(velocity, Vector3.zero, Time.deltaTime * deceleration);
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }
@@ -170,11 +201,6 @@ public abstract class Enemy : Character
 
         if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
 
-        if (tempDebugging)
-        {
-            Debug.Log("X: " + xChange + " Z:" + zChange);
-        }
-
 
         if (velocity.magnitude > movementSpeed)
         {
@@ -187,7 +213,9 @@ public abstract class Enemy : Character
         }
 
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
-        GetComponent<CharacterController>().Move(Vector3.down);
+
+        if (!GetComponent<CharacterController>().isGrounded)
+            GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
     }
 
     /// <summary>
@@ -195,8 +223,10 @@ public abstract class Enemy : Character
     /// </summary>
     public void AILook()
     {
+        if (aiState == AIMovementState.PlayerControlled) return;
+
         Quaternion lookRotation;
-        if (lookAtPlayer)
+        if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
             lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
         }
@@ -264,16 +294,18 @@ public abstract class Enemy : Character
     {
         StopAllCoroutines();
         playerControlling = val;
-        SetPlayerControlledBuffs(val, PlayerController.instance.playerBuffs);
 
         if (val)
         {
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
+            aiState = AIMovementState.PlayerControlled;
+            pathState = PathState.Unset;
         }
         else
         {
             agent.enabled = true;
+            aiState = AIMovementState.Patrolling;
         }
     }
     public override void Die()
@@ -295,7 +327,7 @@ public abstract class Enemy : Character
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
-        //GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
+        GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
@@ -399,6 +431,26 @@ public abstract class Enemy : Character
         }
     }
 
+    public override IEnumerator StartHitStun(float duration)
+    {
+        if (stunned) yield break;
+        Debug.Log("Applying stun");
+        hitStunActual = Instantiate(hitStunPrefab, transform);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+            else aiState = AIMovementState.Blocked;
+            yield return null;
+        }
+        if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+        else aiState = AIMovementState.Chasing;
+        stunned = false;
+        Debug.Log(hitStunActual);
+        Destroy(hitStunActual); hitStunActual = null;
+    }
+
     public virtual void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
@@ -449,7 +501,6 @@ public abstract class Enemy : Character
                 walkPoint = hit.position;
                 walkPointSet = true;
                 agent.SetDestination(walkPoint);
-               // AnimateMove();
 
                 if (debugging)
                 {
@@ -465,11 +516,6 @@ public abstract class Enemy : Character
 
     public override void CreateHitStun()
     {
-        if (!playerControlling)
-        {
-            if (hitStunActual == null) hitStunActual = Instantiate(hitStunPrefab, transform);
-            agent.enabled = false;
-        }
     }
 
     public override void HandleHitStun()
@@ -782,5 +828,31 @@ public abstract class Enemy : Character
     public virtual int GetAttackingPriority()
     {
         return pathfindingPriority;
+    }
+    
+    /// <summary>
+    /// Checks if the enemy is surrounding
+    /// </summary>
+    /// <returns></returns>
+    public bool IsSurrounding()
+    {
+        if (aiState == AIMovementState.Surrounding) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Set enemy to be targeted or have them retreat
+    /// </summary>
+    /// <param name="val"> Val determining the actions to take </param>
+    public void SetTargeted(bool val)
+    {
+        if (val)
+        {
+            aiState = AIMovementState.Targeted;
+        }
+        else
+        {
+            aiState = AIMovementState.Retreating;
+        }
     }
 }
