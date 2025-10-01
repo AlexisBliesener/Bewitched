@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
 using UnityEngine.AI;
-using DG.Tweening;
+
 
 public class Goblin : Enemy
 {
