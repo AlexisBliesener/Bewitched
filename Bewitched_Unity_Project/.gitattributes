@@ -94,3 +94,7 @@ AkSoundEngine filter=lfs diff=lfs merge=lfs -text
 *.rns filter=lfs diff=lfs merge=lfs -text
 *.reason filter=lfs diff=lfs merge=lfs -text
 *.lxo filter=lfs diff=lfs merge=lfs -text
+
+
+# exclude Dotween dlls from lfs
+Assets/Plugins/Demigiant/DOTween/*.dll -filter -diff -merge
