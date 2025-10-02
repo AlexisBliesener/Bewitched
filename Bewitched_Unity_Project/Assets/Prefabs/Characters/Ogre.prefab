@@ -165,6 +165,7 @@ MonoBehaviour:
   deceleration: 11
   rotationalVelocity: 140
   chaseTime: 2
+  windupTime: 0.25
   weight: 10
   sizeRadius: 1.5
   numSurroundingPoints: 8
@@ -176,12 +177,13 @@ MonoBehaviour:
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 2
   primaryCooldown: 3
-  primaryComboExtraCooldown: 0
-  primaryComboSteps: 1
-  primaryComboResetTime: 0
   secondaryCooldown: 5
   primaryAttackRange: 4
+  primaryComboSteps: 1
+  primaryComboResetTime: []
+  primaryComboMinTime: []
   health: {fileID: 0}
+  canPossess: 1
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.5
   characters:
@@ -398,9 +400,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryAnimationDelay: 0.5
+  primaryAnimationDelay: []
   secondaryAnimationDelay: 0.5
-  primaryAttackLength: 1
   secondaryAttackLength: 1
   animator: {fileID: 0}
   characterController: {fileID: 0}
@@ -962,6 +963,14 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 781c33f11a84915499133d3002f00957, type: 3}
       propertyPath: m_Name
       value: ogreBlockoutFull
+      objectReference: {fileID: 0}
+    - target: {fileID: 1726922546764310325, guid: 781c33f11a84915499133d3002f00957, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4723943054971032345, guid: 781c33f11a84915499133d3002f00957, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
