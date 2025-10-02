@@ -499,6 +499,13 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
 
+        if(currentCharacter.GetComponent<CharacterController>() != null )
+        {
+            currentCharacter.GetComponent<CharacterController>().enabled = true;
+        }
+
+        PlayerController.instance.SetAllowMovement(true);
+
         if (possessionCollider != null)
         {
             possessionCollider.SetCurrentCharacter(currentCharacter);

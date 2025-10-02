@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0f653427f33694890e0a7081544a8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  percentHeal: 0300000005000000080000000b0000000f000000
+  percentHeal: 0500000005000000080000000b0000000f000000
 --- !u!1 &7320499504665162705
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,6 +168,15 @@ MonoBehaviour:
   salvageAmount: 10
   upgradeSelectionUI: {fileID: 0}
   swapUpgradeUI: {fileID: 0}
+  pendingSwap:
+    dropName: Vampirism
+    description: Vampire
+    dropID: 2
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 1689055857934838755}
+    buyAmount: 150
+    sellAmount: 150
   availableRarities:
   - displayName: Ultra Rare
     dropChance: 100
@@ -180,7 +189,7 @@ MonoBehaviour:
       Be careful you don't let the enemy get to 0 health though, or you might explode
       with it.
     dropID: 1
-    icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
     rarityIndex: 0
     dropScript: {fileID: 7320499504665162705}
     buyAmount: 200
@@ -189,7 +198,7 @@ MonoBehaviour:
     description: Damaging an enemy while possessing an enemy will regain a small
       amount of health, scaling with damage done.
     dropID: 2
-    icon: {fileID: 21300000, guid: ee9efa6fefa9a45dd8f243adfdfa9369, type: 3}
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
     buyAmount: 130
