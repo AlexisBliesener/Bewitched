@@ -788,6 +788,11 @@ public abstract class Character : MonoBehaviour
         StartCoroutine(HandleAfterDodge(inputTime));
     }
 
+    /// <summary>
+    /// Handles time to input abilities after the dodge
+    /// </summary>
+    /// <param name="inputTime"> Time range the player is able to input </param>
+    /// <returns> Time </returns>
     public IEnumerator HandleAfterDodge(float inputTime)
     {
         float timeStarted = Time.time;
