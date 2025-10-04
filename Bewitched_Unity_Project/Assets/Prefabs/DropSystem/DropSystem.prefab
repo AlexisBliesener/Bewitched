@@ -56,7 +56,7 @@ GameObject:
   - component: {fileID: 9162669460565787311}
   - component: {fileID: 639490620139695707}
   m_Layer: 0
-  m_Name: ClearFoucs
+  m_Name: ClearFocus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -229,6 +229,8 @@ MonoBehaviour:
     dropChance: 100
   - displayName: Rare
     dropChance: 100
+  - displayName: Common
+    dropChance: 100
   availableDrops:
   - dropName: Grand Finale
     description: Enemies now explode! Possess an enemy and get it to low health,
@@ -248,6 +250,15 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
+    buyAmount: 130
+    sellAmount: 130
+  - dropName: Clear Focus
+    description: Decreases the time taken to focus the possession cone to a specific
+      enemy to possess.
+    dropID: 3
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 2
+    dropScript: {fileID: 2447668901311447421}
     buyAmount: 130
     sellAmount: 130
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}

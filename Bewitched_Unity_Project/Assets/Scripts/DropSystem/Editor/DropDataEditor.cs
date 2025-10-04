@@ -55,15 +55,10 @@ public class DropDataDrawer : PropertyDrawer
 
             if (cachedDropSystem != null && cachedDropSystem.availableRarities.Count > 0)
             {
-                // only rebuild rarity names if the count changed of the cached drop system
-                if (cachedRarityNames == null || lastRarityCount != cachedDropSystem.availableRarities.Count)
+                cachedRarityNames = new string[cachedDropSystem.availableRarities.Count];
+                for (int i = 0; i < cachedDropSystem.availableRarities.Count; i++)
                 {
-                    cachedRarityNames = new string[cachedDropSystem.availableRarities.Count];
-                    for (int i = 0; i < cachedDropSystem.availableRarities.Count; i++)
-                    {
-                        cachedRarityNames[i] = $"{cachedDropSystem.availableRarities[i].displayName} ({cachedDropSystem.availableRarities[i].dropChance}%)";
-                    }
-                    lastRarityCount = cachedDropSystem.availableRarities.Count;
+                    cachedRarityNames[i] = $"{cachedDropSystem.availableRarities[i].displayName} ({cachedDropSystem.availableRarities[i].dropChance}%)";
                 }
 
                 if (rarityIndexProp.intValue >= cachedRarityNames.Length)
