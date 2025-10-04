@@ -8,10 +8,6 @@ using UnityEngine;
 public class BackupPlan : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
-
-    [Tooltip("Singleton instance of BackupPlan")]
-    public static BackupPlan instance;
-
     [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
 
@@ -79,12 +75,6 @@ public class BackupPlan : MonoBehaviour, IDrop
     }
 
     #endregion
-
-    private void Awake()
-    {
-        instance = this;
-    }
-
     private void Start()
     {
         if (PossessionAbility.instance == null) return;
@@ -101,11 +91,15 @@ public class BackupPlan : MonoBehaviour, IDrop
     }
 
     /// <summary>
-    /// Deactivates the Backup Plan upgrade.
+    /// Deactivates the Backup Plan upgrade, and resets the cool down time.
     /// </summary>
     public void Deactivate()
     {
         active = false;
+        if (PossessionAbility.instance != null)
+        {
+            PossessionAbility.instance.SetCooldown(baseCooldown);
+        }
     }
 
     /// <summary>
