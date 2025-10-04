@@ -104,7 +104,7 @@ public class AudioManager : MonoBehaviour
         inst.start();
         inst.release();
         manager.activeSnapshots["UIOpen"] = inst;
-        manager.pauseCoroutine=manager.StartCoroutine(manager.DelayedPause(transitionTime));
+        manager.pauseCoroutine = manager.StartCoroutine(manager.DelayedPause(transitionTime));
     }
 
     IEnumerator DelayedPause(float wait)
@@ -120,12 +120,21 @@ public class AudioManager : MonoBehaviour
     public static void CloseUIAudio(float transitionTime = 0.8f)
     {
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
-        if(manager.pauseCoroutine!=null)manager.StopCoroutine(manager.pauseCoroutine);
+        if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
         EventInstance inst = manager.activeSnapshots["UIOpen"];
         manager.activeSnapshots.Remove("UIOpen");
         inst.setParameterByName("UITransitionOut", transitionTime);
         inst.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(false);
+    }
+
+    public static void ChangeMusicParameter(string param, float value)
+    {
+        manager.levelMusic.setParameterByName(param, value);
+    }
+    public static void ChangeMusicParameter(string param, string value)
+    {
+        manager.levelMusic.setParameterByNameWithLabel(param, value);
     }
 }
 
