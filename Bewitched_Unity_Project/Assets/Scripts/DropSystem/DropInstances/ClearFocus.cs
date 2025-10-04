@@ -9,9 +9,6 @@ public class ClearFocus : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
 
-    [Tooltip("Singleton instance of ClearFocus")]
-    public static ClearFocus instance;
-
     [Tooltip("The amount of stacks this upgrade has.")]
     public int stackNum { get; set; }
 
@@ -79,11 +76,6 @@ public class ClearFocus : MonoBehaviour, IDrop
     }
 
     #endregion
-
-    private void Awake()
-    {
-        instance = this;
-    }
     private void Start()
     {
         if (PossessionAbility.instance == null) return;
@@ -105,6 +97,11 @@ public class ClearFocus : MonoBehaviour, IDrop
     public void Deactivate()
     {
         active = false;
+        if (PossessionAbility.instance != null)
+        {
+            PossessionAbility.instance.SetFocusTime(baseFocusTime);
+        }
+        
     }
 
     /// <summary>

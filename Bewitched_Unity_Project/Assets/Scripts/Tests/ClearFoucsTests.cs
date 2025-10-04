@@ -36,7 +36,6 @@ public class ClearFoucsTests
 
         // Reset singleton
         PossessionAbility.instance = mockPossession;
-        ClearFocus.instance = clearFocus;
 
         // call Start manually 
         typeof(ClearFocus).GetMethod("Start", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(clearFocus, null);
@@ -47,15 +46,6 @@ public class ClearFoucsTests
     {
         Object.DestroyImmediate(go);
         Object.DestroyImmediate(mockPossession.gameObject);
-    }
-
-    /// <summary>
-    /// Make sure that the singleton instance is set correctly.
-    /// </summary>
-    [Test]
-    public void Awake_SetsSingletonInstance()
-    {
-        Assert.AreEqual(clearFocus, ClearFocus.instance);
     }
     /// <summary>
     /// Make sure that activating the upgrade set the active field to true and applied the upgrade.
@@ -73,7 +63,7 @@ public class ClearFoucsTests
     }
 
     /// <summary>
-    /// Make sure that deactivating the upgrade set the active field to false.
+    /// Make sure that deactivating the upgrade set the active field to false, and resets the focus time.
     /// </summary>
     [Test]
     public void Deactivate_SetsActiveFalse()
@@ -84,7 +74,11 @@ public class ClearFoucsTests
         FieldInfo activeField = typeof(ClearFocus).GetField("active", BindingFlags.NonPublic | BindingFlags.Instance);
         bool isActive = (bool)activeField.GetValue(clearFocus);
 
+        FieldInfo baseFocusTimeField = typeof(ClearFocus).GetField("baseFocusTime", BindingFlags.NonPublic | BindingFlags.Instance);
+        float focusTime = (float)baseFocusTimeField.GetValue(clearFocus);
+
         Assert.IsFalse(isActive);
+        Assert.AreEqual(focusTime, PossessionAbility.instance.GetFocusTime());
     }
     /// <summary>
     /// Make sure that the focus time is reduced by the stack number.
