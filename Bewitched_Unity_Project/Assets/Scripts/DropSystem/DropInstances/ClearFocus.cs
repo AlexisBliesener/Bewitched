@@ -87,7 +87,6 @@ public class ClearFocus : MonoBehaviour, IDrop
     private void Start()
     {
         if (PossessionAbility.instance == null) return;
-        baseFocusTime = PossessionAbility.instance.GetocusTime();
         baseFocusTime = PossessionAbility.instance.GetFocusTime();
     }
 
@@ -122,8 +121,5 @@ public class ClearFocus : MonoBehaviour, IDrop
         }
 
         PossessionAbility.instance.SetFocusTime(baseFocusTime * reduction);
-        Debug.Log($"Focus time set to {PossessionAbility.instance.GetFocusTime()}");
-        Debug.Log($"Reduction: {reduction}");
-        Debug.Log($"Base focus time: {baseFocusTime}");
     }
 }
