@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
@@ -15,6 +16,7 @@ public class AudioManager : MonoBehaviour
     EventInstance levelMusic;
     [Tooltip("Dictionary with the snapshots active during runtime as the value and the snapshot name as the key.")]
     Dictionary<string, EventInstance> activeSnapshots;
+    Coroutine pauseCoroutine;
 
     void Awake()
     {
@@ -102,6 +104,13 @@ public class AudioManager : MonoBehaviour
         inst.start();
         inst.release();
         manager.activeSnapshots["UIOpen"] = inst;
+        manager.pauseCoroutine=manager.StartCoroutine(manager.DelayedPause(transitionTime));
+    }
+
+    IEnumerator DelayedPause(float wait)
+    {
+        Debug.LogError("TEST");
+        yield return new WaitForSecondsRealtime(wait);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(true);
     }
     /// <summary>
@@ -111,6 +120,7 @@ public class AudioManager : MonoBehaviour
     public static void CloseUIAudio(float transitionTime = 0.8f)
     {
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
+        if(manager.pauseCoroutine!=null)manager.StopCoroutine(manager.pauseCoroutine);
         EventInstance inst = manager.activeSnapshots["UIOpen"];
         manager.activeSnapshots.Remove("UIOpen");
         inst.setParameterByName("UITransitionOut", transitionTime);
