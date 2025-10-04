@@ -519,7 +519,7 @@ public class PossessionAbility : MonoBehaviour
     /// Gets the base focus time for possession
     /// </summary>
     /// <returns>The base focus time</returns>
-    public float GetocusTime()
+    public float GetFocusTime()
     {
         return timeToFocus;
     }
