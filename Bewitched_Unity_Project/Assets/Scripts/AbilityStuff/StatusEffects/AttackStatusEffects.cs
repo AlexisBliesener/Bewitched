@@ -174,6 +174,7 @@ public class AttackStatusEffects : MonoBehaviour
 
     public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)
     {
+        Debug.Log("Applying hitstun");
         character.StartCoroutine(character.StartHitStun(stunDuration));
     }
 
