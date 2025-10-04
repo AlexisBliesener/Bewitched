@@ -351,14 +351,6 @@ public abstract class Character : MonoBehaviour
         characterAnimator.SwitchState("Death", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
-    public virtual void PrimaryAttack()
-    {
-    }
-
-    public virtual void SecondaryAttack()
-    {
-    }
-
     public abstract void Die();
 
     /// <summary>
@@ -489,35 +481,51 @@ public abstract class Character : MonoBehaviour
         return secondaryCooldown - (Time.time - timeLastSecondary);
     }
 
+    public virtual void PrimaryAttack()
+    {
+    }
+
+    public virtual void SecondaryAttack()
+    {
+    }
+
+    public void ResetPrimaryComboStep()
+    {
+        currentPrimaryComboStep = 0;
+        characterAnimator.SetPrimaryComboEnded();
+    }
+
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
         {
-            if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+            if(currentPrimaryComboStep == 0 || (  Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep]))
             {
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
+                if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+                {
+                    ResetPrimaryComboStep();
+                }
+
+                if (currentPrimaryComboStep >= primaryComboSteps)
+                {
+                    ResetPrimaryComboStep();
+                }
+                timeLastPrimary = Time.time;
+                currentPrimaryComboStep += 1;
+
+                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+
+                Debug.Log("Starting Attack Function");
+                PrimaryAttack();
             }
 
-            if (currentPrimaryComboStep >= primaryComboSteps)
-            {
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
-            }
-
-            currentPrimaryComboStep += 1;
-
-            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-
-            Debug.Log("Starting Attack Function");
-            PrimaryAttack();
         }
     }
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState("SecondaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+        characterAnimator.SwitchState("SecondaryAttack");
         yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {

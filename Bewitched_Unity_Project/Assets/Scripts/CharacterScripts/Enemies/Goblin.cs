@@ -106,37 +106,42 @@ public class Goblin : Enemy
         SetBehavior();
     }
 
-    public override IEnumerator BeginPrimary()
-    {
-        if (gameObject != null)
-        {
-            if (currentPrimaryComboStep == 0 || (Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] && currentPrimaryComboStep < primaryComboSteps))
-            { 
-                timeLastPrimary = Time.time;
+    //public override IEnumerator BeginPrimary()
+    //{
+    //    if (gameObject != null)
+    //    {
+    //        //if (currentPrimaryComboStep == 0 || (Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] && currentPrimaryComboStep < primaryComboSteps))
+    //        //{ 
+    //            timeLastPrimary = Time.time;
 
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+    //        if(currentPrimaryComboStep > primaryComboSteps)
+    //        {
+    //            currentPrimaryComboStep = 0;
+    //        }
 
-                if(currentPrimaryComboStep == 0)
-                {
-                    Debug.Log("full attack");
-                    PrimaryAttack();
-                }
-                else
-                {
-                    Debug.Log("in combo attack");
-                    attackStateCoroutine = StartCoroutine(HandleStab());
-                }
-                currentPrimaryComboStep += 1;
-            }
-            else
-            {
-                Debug.Log("reseting");
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
-            }
-        }
-    }
+    //            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+    //            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+
+    //            if(currentPrimaryComboStep == 0)
+    //            {
+    //                Debug.Log("full attack");
+    //                PrimaryAttack();
+    //            }
+    //            else
+    //            {
+    //                Debug.Log("in combo attack");
+    //                attackStateCoroutine = StartCoroutine(HandleStab());
+    //            }
+    //            currentPrimaryComboStep += 1;
+    //        //}
+    //        //else
+    //        //{
+    //        //    Debug.Log("reseting");
+    //        //    currentPrimaryComboStep = 0;
+    //        //    characterAnimator.SetPrimaryComboEnded();
+    //        //}
+    //    }
+    //}
 
     public override void PrimaryAttack()
     {
@@ -163,7 +168,41 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
-        attackStateCoroutine = StartCoroutine(KnifeWindup());
+
+        if(currentPrimaryComboStep == 0)
+        {
+            attackStateCoroutine = StartCoroutine(KnifeWindup());
+        }
+        else
+        {
+            attackStateCoroutine = StartCoroutine(HandleStab());
+        }
+        
+    }
+
+    /// <summary>
+    /// Starts the windup for the knife
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator KnifeWindup()
+    {
+        inCounter = false;
+        attackState = AttackState.Windup;
+        float timeStarted = Time.time;
+        // For now wait 0.25 seconds, in future wait for animation trigger
+        // Strider 9/30/25: moved this to a variable, need to adjust
+        while (Time.time - timeStarted < windupTime)
+        {
+            if (lockedCharacter)
+            {
+                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+            }
+            yield return null;
+        }
+        attackStateCoroutine = StartCoroutine(KnifeApproach());
     }
 
     /// <summary>
@@ -231,31 +270,6 @@ public class Goblin : Enemy
     }
 
     /// <summary>
-    /// Starts the windup for the knife
-    /// </summary>
-    /// <returns> Time </returns>
-    public IEnumerator KnifeWindup()
-    {
-        inCounter = false;
-        attackState = AttackState.Windup;
-        float timeStarted = Time.time;
-        // For now wait 0.25 seconds, in future wait for animation trigger
-        // Strider 9/30/25: moved this to a variable, need to adjust
-        while (Time.time - timeStarted < windupTime)
-        {
-            if (lockedCharacter)
-            {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-            }
-            yield return null;
-        }
-        attackStateCoroutine = StartCoroutine(KnifeApproach());
-    }
-
-    /// <summary>
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
     /// <returns> Time breaks </returns>
@@ -306,16 +320,16 @@ public class Goblin : Enemy
         attackingPrimary = false;
     }
 
-    public override IEnumerator BeginSecondary()
-    {
+    //public override IEnumerator BeginSecondary()
+    //{
 
-        if (gameObject)
-        {
-            SecondaryAttack();
+    //    if (gameObject)
+    //    {
+    //        SecondaryAttack();
 
-        }
-        yield break;
-    }
+    //    }
+    //    yield break;
+    //}
 
     /// <summary>
     /// Starts a counterattack from a certain attack name

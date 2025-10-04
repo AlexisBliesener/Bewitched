@@ -23,7 +23,8 @@ public class GoblinAnimator : CharacterAnimator
     {
         if (stateInfo.IsName("Run")) currentAnimationState = "Run";
         else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("PrimaryAttack")) currentAnimationState = "PrimaryAttack";
+        else if (stateInfo.IsName("GoblinPrimary")) currentAnimationState = "PrimaryAttack";
+        else if (stateInfo.IsName("GoblinPrimary_2")) currentAnimationState = "PrimaryAttack";
         else if (stateInfo.IsName("GoblinSecondaryStart")) currentAnimationState = "SecondaryAttack";
         else if (stateInfo.IsName("GoblinSecondaryLoop")) currentAnimationState = "SecondaryAttack";
         else if (stateInfo.IsName("GoblinSecondaryEnd")) currentAnimationState = "SecondaryAttack";

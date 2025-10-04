@@ -29,7 +29,7 @@ public class CharacterAnimator : MonoBehaviour
     };
 
     [Tooltip("The current animation state of the character")]
-    protected string currentAnimationState = "Idle";
+    public string currentAnimationState = "Idle";
     [Tooltip("Whether the animation state can change right now")]
     protected bool canChange = true;
     [Tooltip("Holds the current animator state info")]
@@ -74,10 +74,9 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentPrimaryComboStep != 0 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != 0 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
         {
-            currentPrimaryComboStep = 0;
-            SetPrimaryComboEnded();
+            character.ResetPrimaryComboStep();
         }
 
         SwitchState(newState);
@@ -93,7 +92,7 @@ public class CharacterAnimator : MonoBehaviour
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
 
-        if (!NotInPrimary() && newState == "PrimaryAttack")
+        if (newState == "PrimaryAttack")
         {
             animator.SetTrigger("PrimaryAttack");
         }
@@ -122,6 +121,7 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 break;
             case "SecondaryAttack":
+                Debug.Log("SETTING SECONDARY");
                 animator.SetTrigger("SecondaryAttack");
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(secondaryAttackLength));

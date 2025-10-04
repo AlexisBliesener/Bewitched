@@ -277,8 +277,7 @@ public class PlayerController : MonoBehaviour
     public void PrimaryFire(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            Debug.Log("Primary used");
+        { 
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
