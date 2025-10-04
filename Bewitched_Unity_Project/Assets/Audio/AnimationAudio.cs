@@ -4,7 +4,7 @@ using FMODUnity;
 using FMOD.Studio;
 using System;
 using System.Runtime.InteropServices;
-using UnityEditor.EditorTools;
+
 
 /// <summary>
 /// This class is used to play any audio that needs to be called via Animation Events
@@ -33,12 +33,22 @@ public class AnimationAudio : MonoBehaviour
         destroyCallback = new EVENT_CALLBACK(AnimationEventDestroyCallback);
         animEvents = new();
         eventsPlaying = new();
-        if (!character) {
+        if (!character)
+        {
             if (!transform.parent.TryGetComponent(out character))
             {
                 Debug.LogError("Animation audio could not find this character's character script");
             }
         }
+        else
+        {
+            character.health.OnDeath += OnDeath;
+        }
+    }
+
+    void OnDestroy()
+    {
+        character.health.OnDeath -= OnDeath;
     }
 
     /// <summary>
@@ -74,6 +84,7 @@ public class AnimationAudio : MonoBehaviour
         {
             RegisterDestroyCallback(ev, clipName);
             if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+            if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
             eventsPlaying.Add(GetPath(ev));
@@ -84,7 +95,7 @@ public class AnimationAudio : MonoBehaviour
     /// <summary>
     /// Prepares, starts, and releases an event.
     /// </summary>
-    /// <param name="anim">The animation event that called this. STRING: Name of the event to start</param>
+    /// <param name="anim">The animation event that called this. STRING: Name of the event to start. INT: Spatialized or not (0 is false)</param>
     public void StartEvent(AnimationEvent anim)
     {
         string clipName = anim.animatorClipInfo.clip.name;
@@ -97,6 +108,7 @@ public class AnimationAudio : MonoBehaviour
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             eventsPlaying.Add(GetPath(ev));
             if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+            if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
             animEvents[clipName] = ev;
@@ -125,11 +137,21 @@ public class AnimationAudio : MonoBehaviour
     /// <summary>
     /// Starts an fmod event of the given name that doesn't need to be tracked.
     /// </summary>
-    /// <param name="clipName">The name of the event to play.</param>
-    public void StartOneShot(string clipName)
+    /// <param name="anim">Animation Event. STRING: Event name. INT: Attatched or not</param>
+    public void StartOneShot(AnimationEvent anim)
     {
-        AudioManager.TryPlayInstance(clipName, out EventInstance ev);
+        AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev,true,(anim.intParameter==1)?character.gameObject:null);
         if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+    }
+
+    /// <summary>
+    /// Plays a one shot only when the character is possessed
+    /// </summary>
+    /// <param name="anim">Animation Event. STRING: Event name. INT: Attatched or not</param>
+    public void StartOneShotOnPossess(AnimationEvent anim)
+    {
+        if (!possessed) return;
+        StartOneShot(anim);
     }
     /// <summary>
     /// Stops a playing 
@@ -207,6 +229,17 @@ public class AnimationAudio : MonoBehaviour
         //If no user data, the event has been prepared but not started, don't set user data yet
         animEvents[clipName] = ev;
         animEvents.Remove(key);
+    }
+    /// <summary>
+    /// Function used to stop all animation audio sound effects when the character dies
+    /// </summary>
+    void OnDeath()
+    {
+        foreach (var ev in animEvents.Values)
+        {
+            ev.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //When death animations are implemented, exclude death sound effects.
     }
 
     /// <summary>
