@@ -516,4 +516,19 @@ public class PossessionAbility : MonoBehaviour
         }
     }
     /// <summary>
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetocusTime()
+    {
+        return timeToFocus;
+    }
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
+    }
 }
