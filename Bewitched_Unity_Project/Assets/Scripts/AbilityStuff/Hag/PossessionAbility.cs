@@ -515,4 +515,5 @@ public class PossessionAbility : MonoBehaviour
             Debug.LogWarning("The possession collider is not found!");
         }
     }
+    /// <summary>
 }
