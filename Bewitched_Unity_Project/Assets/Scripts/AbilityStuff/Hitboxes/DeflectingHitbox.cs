@@ -10,7 +10,10 @@ using UnityEngine;
 public class DeflectingHitbox : DefaultHitbox
 {
     [Tooltip("Bool determining if a collision deflecting has already been applied")]
-    private bool deflected = false;
+    private bool canDeflect = false;
+
+    [Tooltip("Time range before this hitbox can deflect")]
+    private float timeBeforeDeflect = 0.25f;
 
     void Update()
     {
@@ -31,6 +34,11 @@ public class DeflectingHitbox : DefaultHitbox
             Destroy(gameObject);
         }
 
+        if (!canDeflect && Time.time - timeAlive > timeBeforeDeflect)
+        {
+            canDeflect = true;
+        }
+
         currentSpeed = Mathf.Lerp(currentSpeed, thrustSpeed, 1);
         currentRotationalSpeed = Mathf.Lerp(currentRotationalSpeed, rotationalSpeed, 1);
 
@@ -39,6 +47,15 @@ public class DeflectingHitbox : DefaultHitbox
 
         transform.position = transform.position + velocity * Time.deltaTime;
         transform.rotation = transform.rotation;
+    }
+
+    /// <summary>
+    /// Sets the deflect time
+    /// </summary>
+    /// <param name="time"> Time before this can deflect </param>
+    public void SetDeflectTime(float time)
+    {
+        timeBeforeDeflect = time;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -96,7 +113,7 @@ public class DeflectingHitbox : DefaultHitbox
             }
 
             // If not colliding with the floor or self
-            if (other.gameObject.layer != 6 && other.gameObject != user.gameObject && other.gameObject.layer != 9)
+            if (other.gameObject.layer != 6 && other.gameObject != user.gameObject && other.gameObject.layer != 9 && canDeflect)
             {
                 // Check if other hit is on a hitbox
                 if (other.TryGetComponent(out DefaultHitbox otherBox))

@@ -297,6 +297,10 @@ public abstract class Enemy : Character
 
         if (val)
         {
+            if (attackIndicator) Destroy(attackIndicator);
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
@@ -431,24 +435,42 @@ public abstract class Enemy : Character
         }
     }
 
+    /// <summary>
+    /// Handles the hitstun actions for enemies
+    /// </summary>
+    /// <param name="duration"> Duration to stun for </param>
+    /// <returns> Time </returns>
     public override IEnumerator StartHitStun(float duration)
     {
-        if (stunned) yield break;
-        Debug.Log("Applying stun");
-        hitStunActual = Instantiate(hitStunPrefab, transform);
-        stunned = true;
-        float timeStarted = Time.time;
-        while (Time.time - timeStarted < duration)
+        if (duration > 0)
         {
-            if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-            else aiState = AIMovementState.Blocked;
-            yield return null;
+            if (stunned) yield break;
+            Debug.Log("Applying stun");
+            hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+                else aiState = AIMovementState.Blocked;
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+            }
+            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+            else aiState = AIMovementState.Chasing;
+            stunned = false;
+            Debug.Log(hitStunActual);
+            Destroy(hitStunActual); hitStunActual = null;
         }
-        if (playerControlling) PlayerController.instance.SetAllowMovement(true);
-        else aiState = AIMovementState.Chasing;
-        stunned = false;
-        Debug.Log(hitStunActual);
-        Destroy(hitStunActual); hitStunActual = null;
     }
 
     public virtual void Chase()
