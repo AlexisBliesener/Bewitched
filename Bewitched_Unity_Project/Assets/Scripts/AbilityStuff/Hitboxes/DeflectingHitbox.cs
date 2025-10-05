@@ -118,8 +118,6 @@ public class DeflectingHitbox : DefaultHitbox
                 {
                     gob.DeflectVelocity(other, this);
                 }
-                // Now deflect user's velocity away from hit if the collision was not with the floor
-                user.DeflectVelocity(user.transform.position - other.transform.position);
             }
         }
     }

@@ -71,9 +71,6 @@ public class Goblin : Enemy
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
 
-    [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
-    private Vector3 prevSpinVelocity = Vector3.zero;
-
     //The sound effect for the spin attack
     EventInstance secondaryAudio;
     //FMOD Event for idle sound effects
@@ -318,23 +315,6 @@ public class Goblin : Enemy
     }
 
     /// <summary>
-    /// Starts a counterattack from a certain attack name
-    /// </summary>
-    /// <param name="attackName"> Name of attack to activate </param>
-    /// <returns> Time </returns>
-    public IEnumerator StartCounterAttack(string attackName)
-    {
-        while (dodging)
-        {
-            yield return null;
-        }
-        if (attackName == "Spin")
-        {
-            attackStateCoroutine = StartCoroutine(SpinWindup());
-        }
-    }
-
-    /// <summary>
     /// Starts the secondary attack
     /// </summary>
     public override void SecondaryAttack()
@@ -362,28 +342,7 @@ public class Goblin : Enemy
             }
         }
 
-        if (dodging && !inCounter)
-        {
-            // Do spin
-            inCounter = true;
-            StartCoroutine(StartCounterAttack("Spin"));
-        }
-        else if (!dodging)
-        {
-            if (playerControlling)
-            {
-                bool wellTimed = false;
-                if (PlayerController.instance.GetCounterAvailable() != null) wellTimed = true;
-
-                PlayerController.instance.SetAllowMovement(false);
-                attackStateCoroutine = StartCoroutine(Dodge(wellTimed, PlayerController.instance.GetCounterAvailable(), spinDodgeDistance, spinDodgeInputTime));
-                timeLastDodge = Time.time;
-            }
-            else
-            {
-                attackStateCoroutine = StartCoroutine(SpinWindup());
-            }
-        }
+        attackStateCoroutine = StartCoroutine(SpinWindup());
     }
 
     /// <summary>
@@ -430,6 +389,7 @@ public class Goblin : Enemy
             yield return null;
         }
         numDeflections = 0;
+        Debug.Log(spinDamage);
         attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance, spinRotationalSpeed));
     }
 
@@ -546,7 +506,7 @@ public class Goblin : Enemy
             }
             else
             {
-                if (hitbox == null) // If reached top speed create hitbox
+                if (hitbox == null) // If reached top speed and no hitbox create hitbox
                 {
                     hitbox = Instantiate(spinHitbox, transform);
                     hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: 10);
