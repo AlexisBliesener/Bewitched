@@ -22,6 +22,7 @@ public class EnemyHealth : HealthController
             ShowMiniHealthBar(true, GetCharacter());
         }
     }
+    //This is used to force an enemy to die when toggling the kill bool in the inspector
     void OnValidate()
     {
         if (kill == true)

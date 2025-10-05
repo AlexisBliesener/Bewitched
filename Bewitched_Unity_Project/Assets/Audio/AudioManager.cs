@@ -109,7 +109,7 @@ public class AudioManager : MonoBehaviour
 
     IEnumerator DelayedPause(float wait)
     {
-        Debug.LogError("TEST");
+        //Debug.LogError("TEST");
         yield return new WaitForSecondsRealtime(wait);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(true);
     }
@@ -127,11 +127,20 @@ public class AudioManager : MonoBehaviour
         inst.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(false);
     }
-
+    /// <summary>
+    /// Changes a float parameter in this level's music event
+    /// </summary>
+    /// <param name="param">The name of the parameter</param>
+    /// <param name="value">The value to change the parameter to</param>
     public static void ChangeMusicParameter(string param, float value)
     {
         manager.levelMusic.setParameterByName(param, value);
     }
+    /// <summary>
+    /// Changed a label parameter in this level's music event
+    /// </summary>
+    /// <param name="param">The name of the parameter</param>
+    /// <param name="value">The value to change the parameter to</param>
     public static void ChangeMusicParameter(string param, string value)
     {
         manager.levelMusic.setParameterByNameWithLabel(param, value);

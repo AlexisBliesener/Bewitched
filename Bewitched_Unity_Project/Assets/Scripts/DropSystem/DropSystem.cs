@@ -360,7 +360,7 @@ public class DropSystem : MonoBehaviour
         drop.Activate();
     }
 
-    //Using this for a very simple way to force upgrade drops since the game's buggy as hell rn
+    //Used to force an upgrade drop to spawn when the dropUpgrade is toggled in the inspector
     void OnValidate()
     {
         if (dropUpgrade)
