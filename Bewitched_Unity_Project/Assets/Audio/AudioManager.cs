@@ -106,7 +106,10 @@ public class AudioManager : MonoBehaviour
         manager.activeSnapshots["UIOpen"] = inst;
         manager.pauseCoroutine = manager.StartCoroutine(manager.DelayedPause(transitionTime));
     }
-
+    /// <summary>
+    /// Coroutine that waits the given amount of time before pausing all in-game sound effects
+    /// </summary>
+    /// <param name="wait">The time to wait</param>
     IEnumerator DelayedPause(float wait)
     {
         //Debug.LogError("TEST");
