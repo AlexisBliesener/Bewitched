@@ -105,43 +105,6 @@ public class Goblin : Enemy
         SetBehavior();
     }
 
-    //public override IEnumerator BeginPrimary()
-    //{
-    //    if (gameObject != null)
-    //    {
-    //        //if (currentPrimaryComboStep == 0 || (Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] && currentPrimaryComboStep < primaryComboSteps))
-    //        //{ 
-    //            timeLastPrimary = Time.time;
-
-    //        if(currentPrimaryComboStep > primaryComboSteps)
-    //        {
-    //            currentPrimaryComboStep = 0;
-    //        }
-
-    //            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-    //            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-
-    //            if(currentPrimaryComboStep == 0)
-    //            {
-    //                Debug.Log("full attack");
-    //                PrimaryAttack();
-    //            }
-    //            else
-    //            {
-    //                Debug.Log("in combo attack");
-    //                attackStateCoroutine = StartCoroutine(HandleStab());
-    //            }
-    //            currentPrimaryComboStep += 1;
-    //        //}
-    //        //else
-    //        //{
-    //        //    Debug.Log("reseting");
-    //        //    currentPrimaryComboStep = 0;
-    //        //    characterAnimator.SetPrimaryComboEnded();
-    //        //}
-    //    }
-    //}
-
     public override void PrimaryAttack()
     {
         hitCharacter = false;
@@ -307,17 +270,6 @@ public class Goblin : Enemy
         lockedCharacter = null;
         attackingPrimary = false;
     }
-
-    //public override IEnumerator BeginSecondary()
-    //{
-
-    //    if (gameObject)
-    //    {
-    //        SecondaryAttack();
-
-    //    }
-    //    yield break;
-    //}
 
     /// <summary>
     /// Starts a counterattack from a certain attack name

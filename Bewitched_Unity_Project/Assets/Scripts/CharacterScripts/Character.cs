@@ -493,6 +493,8 @@ public abstract class Character : MonoBehaviour
     {
         currentPrimaryComboStep = 0;
         characterAnimator.SetPrimaryComboEnded();
+
+       // primaryCoolDownStart = Time.time;
     }
 
     public virtual IEnumerator BeginPrimary()
@@ -511,10 +513,11 @@ public abstract class Character : MonoBehaviour
                     ResetPrimaryComboStep();
                 }
                 timeLastPrimary = Time.time;
-                currentPrimaryComboStep += 1;
 
                 characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+
+                currentPrimaryComboStep += 1;
 
                 Debug.Log("Starting Attack Function");
                 PrimaryAttack();

@@ -57,7 +57,6 @@ public class CharacterAnimator : MonoBehaviour
 
         // Track current animator state
         stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-      //  UpdateCurrentStateFromAnimator();
 
         // Idle/run switching
         if (characterController != null)
@@ -121,7 +120,6 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 break;
             case "SecondaryAttack":
-                Debug.Log("SETTING SECONDARY");
                 animator.SetTrigger("SecondaryAttack");
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
@@ -136,19 +134,6 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 break;
         }
-    }
-
-    /// <summary>
-    /// Updates currentAnimationState based on the animator’s active state.
-    /// </summary>
-    protected virtual void UpdateCurrentStateFromAnimator()
-    {
-        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
-        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("PrimaryAttack")) currentAnimationState = "PrimaryAttack";
-        else if (stateInfo.IsName("SecondaryAttack")) currentAnimationState = "SecondaryAttack";
-        else if (stateInfo.IsName("Jump")) currentAnimationState = "Jump";
-        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
     }
 
     /// <summary>

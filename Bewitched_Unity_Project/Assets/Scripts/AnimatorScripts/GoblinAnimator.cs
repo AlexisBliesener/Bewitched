@@ -17,22 +17,6 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
-    /// Updates currentAnimationState based on the animator’s active state.
-    /// </summary>
-    protected override void UpdateCurrentStateFromAnimator()
-    {
-        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
-        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("GoblinPrimary")) currentAnimationState = "PrimaryAttack";
-        else if (stateInfo.IsName("GoblinPrimary_2")) currentAnimationState = "PrimaryAttack";
-        else if (stateInfo.IsName("GoblinSecondaryStart")) currentAnimationState = "SecondaryAttack";
-        else if (stateInfo.IsName("GoblinSecondaryLoop")) currentAnimationState = "SecondaryAttack";
-        else if (stateInfo.IsName("GoblinSecondaryEnd")) currentAnimationState = "SecondaryAttack";
-        else if (stateInfo.IsName("Jump")) currentAnimationState = "Jump";
-        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
-    }
-
-    /// <summary>
     /// Waits for the end of an animation before allowing new state changes.
     /// </summary>
     protected override IEnumerator WaitForEndAnimation(float sec)
