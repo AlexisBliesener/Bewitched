@@ -107,14 +107,14 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
         {
             StopCoroutine(shieldCoroutine);
             shieldCoroutine = null;
-            if (shieldSlider != null)
-            {
-                shieldSlider.gameObject.SetActive(false);
-            }
-            if (lastPossessedCharacter != null)
-            {
-                lastPossessedCharacter.health.SetMaxHealth(lastMaxHealth);
-            }
+        }
+        if (shieldSlider != null)
+        {
+            shieldSlider.gameObject.SetActive(false);
+        }
+        if (lastPossessedCharacter != null)
+        {
+            lastPossessedCharacter.health.SetMaxHealth(lastMaxHealth);
         }
     }
 
@@ -145,8 +145,11 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
         // Don't apply shield if returning to Hag
         if (newCharacter == PlayerController.instance.oldHag)
         {
-            StopCoroutine(shieldCoroutine);
-            shieldCoroutine = null;
+            if (shieldCoroutine != null)
+            {
+                StopCoroutine(shieldCoroutine);
+                shieldCoroutine = null;
+            }
             if (shieldSlider != null)
             {
                 shieldSlider.gameObject.SetActive(false);
