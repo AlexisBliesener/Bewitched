@@ -75,7 +75,6 @@ public class Goblin : Enemy
     private Vector3 prevSpinVelocity = Vector3.zero;
 
     //The sound effect for the spin attack
-    EventInstance secondaryAudio;
     //FMOD Event for idle sound effects
     EventInstance idleAudio;
 
@@ -282,17 +281,6 @@ public class Goblin : Enemy
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: 0.25f);
 
         yield return new WaitForSeconds(0.25f);
-
-        //Sound Effect
-        if (AudioManager.TryGetReference("GoblinPrimary", out EventReference evRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            if (currentPrimaryComboStep == 3) ev.setParameterByNameWithLabel("FinalHit", "True");
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.start();
-            ev.release();
-        }
 
         if (!hitCharacter) // If missed, vulnerable for half a second
         {
@@ -1085,10 +1073,6 @@ public class Goblin : Enemy
     public override void Die()
     {
         //Stopping any playing sound effects on death.
-        if (secondaryAudio.isValid())
-        {
-            secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        }
         if (idleAudio.isValid())
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
@@ -1107,11 +1091,6 @@ public class Goblin : Enemy
     /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
-
-        if (secondaryAudio.isValid())
-        {
-            secondaryAudio.setParameterByNameWithLabel("End", "True");
-        }
         base.SetControlled(val);
     }
 
