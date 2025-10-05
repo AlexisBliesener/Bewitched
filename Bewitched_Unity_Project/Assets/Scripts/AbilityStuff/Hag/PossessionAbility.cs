@@ -296,11 +296,6 @@ public class PossessionAbility : MonoBehaviour
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
 
-            // Apply Smarter Control upgrade if it is active
-            if (SmarterControl.instance != null)
-            {
-                SmarterControl.instance.ApplyDecayReduction(currentPossessableEnemy);
-            }
         }
         else
         {

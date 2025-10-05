@@ -20,6 +20,11 @@ public class SmarterControl : MonoBehaviour, IDrop
 
     [Tooltip("Whether the upgrade is currently active.")]
     private bool active = false;
+    [Tooltip("The last enemy possessed by the player")]
+    private Character lastPossessedEnemy;
+
+    [Tooltip("The base decay rate of the last enemy possessed by the player")]
+    private float lastPossessedEnemyDecayRate;
     #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
@@ -94,7 +99,27 @@ public class SmarterControl : MonoBehaviour, IDrop
     public void Deactivate()
     {
         active = false;
+        if (lastPossessedEnemy != null)
+        {
+            HealthController health = lastPossessedEnemy.GetComponent<HealthController>();
+            if (health != null)
+            {
+                health.SetDecay(lastPossessedEnemyDecayRate);
+            }
+        }
+        lastPossessedEnemy = null;
     }
+
+    public void OnEnable()
+    {
+        PossessionAbility.CharacterControlChangeEvent += ApplyDecayReduction;
+    }
+
+    public void OnDisable()
+    {
+        PossessionAbility.CharacterControlChangeEvent -= ApplyDecayReduction;
+    }
+
 
     /// <summary>
     /// Applies the slower health decay rate to the given enemy
@@ -103,13 +128,13 @@ public class SmarterControl : MonoBehaviour, IDrop
     /// <param name="enemy">The possessed enemy character.</param>
     public void ApplyDecayReduction(Character enemy)
     {
-        if (!active || enemy == null) return;
-
+        if (!active || enemy == null || enemy == PlayerController.instance.oldHag) return;
+        lastPossessedEnemy = enemy;
         HealthController health = enemy.GetComponent<HealthController>();
         if (health == null) return;
 
         float currentDecay = health.GetDecayRate();
-
+        lastPossessedEnemyDecayRate = currentDecay;
         for (int i = 0; i <= stackNum; i++)
         {
             currentDecay *= 0.5f;
