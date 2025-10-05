@@ -212,7 +212,10 @@ public class PlayerController : MonoBehaviour
             else
             {
                 velocity = new Vector3(0, 0, 0);
-                characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
+                if(characterController.enabled)
+                {
+                    characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
+                }
             }
             currentCharacter.SetVelocity(velocity);
         }
@@ -446,7 +449,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 10, enemyLayerMask))
+        if(Physics.SphereCast(currentCharacter.transform.position, 10f, inputDirection, out info, 10, enemyLayerMask))
         {
             if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {

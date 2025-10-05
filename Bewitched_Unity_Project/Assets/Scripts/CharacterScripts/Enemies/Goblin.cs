@@ -82,6 +82,7 @@ public class Goblin : Enemy
 
     private void Start()
     {
+        primaryComboSteps = 3;
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
@@ -97,9 +98,8 @@ public class Goblin : Enemy
         agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
-    protected override void FixedUpdate()
+    protected void FixedUpdate()
     {
-        base.FixedUpdate();
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();
@@ -131,6 +131,7 @@ public class Goblin : Enemy
         }
         attackingPrimary = true;
 
+        Debug.Log("combo step num  " + currentPrimaryComboStep);
         if(currentPrimaryComboStep == 0)
         {
             attackStateCoroutine = StartCoroutine(KnifeWindup());
@@ -173,8 +174,6 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeApproach()
     {
-        Debug.Log("Approaching");
-
         attackState = AttackState.Approaching;
 
         if (lockedCharacter)
@@ -219,13 +218,7 @@ public class Goblin : Enemy
             GetComponent<CharacterController>().enabled = true;
         }
 
-        if (attackIndicator != null)
-        {
-            Destroy(attackIndicator);
-        }
-        attackIndicator = null;
-
-        Debug.Log("Not Approaching");
+        DestoryAttackIndicator();
 
         attackStateCoroutine = StartCoroutine(HandleStab());
         yield break;
@@ -435,7 +428,6 @@ public class Goblin : Enemy
             }
             else
             {
-                Debug.Log("Not locked: " + transform.forward.normalized);
                 desiredVelocity = transform.forward.normalized;
             }
             hitbox = Instantiate(spinHitbox, transform);
@@ -528,7 +520,6 @@ public class Goblin : Enemy
 
         // If reached this point (no deflects) slow down, destroy hitbox halfway through, and end
         float timeSinceSlowBegan = 0;
-        Debug.Log("Starting Slow");
         Destroy(hitbox);
         while (timeSinceSlowBegan < 0.5f)
         {
@@ -820,7 +811,6 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
-
         StopIdleAudio();
         lookAtPlayer = false;
 
@@ -838,7 +828,6 @@ public class Goblin : Enemy
         {
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
             {
-                Debug.Log("Not close enough");
                 aiState = AIMovementState.Surrounding;
                 if (currentPlayer.TryGetComponent(out SurroundingPoints points))
                 {
@@ -962,7 +951,6 @@ public class Goblin : Enemy
         Vector3 contactDirection = (transform.position - closestPoint).normalized;
 
         deflectDirection = Vector3.Reflect(velocity.normalized, contactDirection);
-        Debug.Log("Contact Direction: " + other + ". Deflect direction: " + deflectDirection);
 
         int rotationMultiplier = 1;
         if (numDeflections % 2 != 0)

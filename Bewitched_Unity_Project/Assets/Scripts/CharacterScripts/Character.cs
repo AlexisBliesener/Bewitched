@@ -69,8 +69,6 @@ public abstract class Character : MonoBehaviour
 
 
     [Header("Primary Combo Stats")]
-    [Tooltip("Primary Combo Steps")]
-    public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
     public float[] primaryComboResetTime;
     [Tooltip("Primary combo min time to wait to hit the next combo")]
@@ -111,7 +109,10 @@ public abstract class Character : MonoBehaviour
     protected Vector3 velocity = Vector3.zero;
     protected Vector3 velocityToMove = Vector3.zero;
 
-    protected int currentPrimaryComboStep = 0;
+    [Tooltip("The step that the character is in there primary combo, -1 to indicate the character is currently not attacking with primary")]
+    protected int currentPrimaryComboStep = -1;
+    [Tooltip("The amount of combo steps that this character has on their primary attack")]
+    protected int primaryComboSteps;
 
     [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
     private CinemachineFreeLook combatCam;
@@ -265,10 +266,6 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
-    protected virtual void FixedUpdate()
-    {
-    }
-
     /// <summary>
     /// Returns the amount of time to wait before doing a jump
     /// For animation purposes
@@ -348,7 +345,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState("Death", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+        characterAnimator.SwitchState("Death");
     }
 
     public abstract void Die();
@@ -373,8 +370,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
-        if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
+        if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
     }
@@ -465,7 +461,7 @@ public abstract class Character : MonoBehaviour
     }
 
     public void SetBaseStats()
-    {
+    { 
         baseMovementSpeed = movementSpeed;
         basePrimaryCooldown = primaryCooldown;
         baseSecondaryCooldown = secondaryCooldown;
@@ -491,35 +487,29 @@ public abstract class Character : MonoBehaviour
 
     public void ResetPrimaryComboStep()
     {
-        currentPrimaryComboStep = 0;
+        Debug.Log("Resting the combo step");
+        currentPrimaryComboStep = -1;
         characterAnimator.SetPrimaryComboEnded();
 
-       // primaryCoolDownStart = Time.time;
+        // primaryCoolDownStart = Time.time;
     }
 
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
         {
-            if(currentPrimaryComboStep == 0 || (  Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep]))
+            if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
-                if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
-                {
-                    ResetPrimaryComboStep();
-                }
+                currentPrimaryComboStep += 1;
+                timeLastPrimary = Time.time;
 
                 if (currentPrimaryComboStep >= primaryComboSteps)
                 {
-                    ResetPrimaryComboStep();
+                    currentPrimaryComboStep = 0;
                 }
-                timeLastPrimary = Time.time;
-
                 characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
-                currentPrimaryComboStep += 1;
-
-                Debug.Log("Starting Attack Function");
                 PrimaryAttack();
             }
 

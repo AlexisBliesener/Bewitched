@@ -149,6 +149,19 @@ public abstract class Enemy : Character
 
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
+    
+    /// <summary>
+    /// Destorys the enemies attack indicator if it is active
+    /// </summary>
+    public void DestoryAttackIndicator()
+    {
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+    }
+
 
     /// <summary>
     /// Function for handling movement
@@ -297,6 +310,10 @@ public abstract class Enemy : Character
 
         if (val)
         {
+            DestoryAttackIndicator();
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
@@ -434,7 +451,6 @@ public abstract class Enemy : Character
     public override IEnumerator StartHitStun(float duration)
     {
         if (stunned) yield break;
-        Debug.Log("Applying stun");
         hitStunActual = Instantiate(hitStunPrefab, transform);
         stunned = true;
         float timeStarted = Time.time;

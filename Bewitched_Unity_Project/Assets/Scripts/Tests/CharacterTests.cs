@@ -151,7 +151,6 @@ public class CharacterTests
         testCharacter.movementSpeed = 10;
         testCharacter.primaryCooldown = 1f;
         testCharacter.secondaryCooldown = 2f;
-        testCharacter.primaryComboSteps = 2;
     }
 
     /// <summary>

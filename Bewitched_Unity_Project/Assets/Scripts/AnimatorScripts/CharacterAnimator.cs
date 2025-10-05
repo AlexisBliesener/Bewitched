@@ -73,10 +73,12 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != 0 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
         {
             character.ResetPrimaryComboStep();
         }
+
+        animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
     }
