@@ -99,14 +99,7 @@ public class SmarterControl : MonoBehaviour, IDrop
     public void Deactivate()
     {
         active = false;
-        if (lastPossessedEnemy != null)
-        {
-            HealthController health = lastPossessedEnemy.GetComponent<HealthController>();
-            if (health != null)
-            {
-                health.SetDecay(lastPossessedEnemyDecayRate);
-            }
-        }
+        ResetLastEnemyDecay();
         lastPossessedEnemy = null;
     }
 
@@ -129,6 +122,10 @@ public class SmarterControl : MonoBehaviour, IDrop
     public void ApplyDecayReduction(Character enemy)
     {
         if (!active || enemy == null || enemy == PlayerController.instance.oldHag) return;
+        if (lastPossessedEnemy != enemy)
+        {
+            ResetLastEnemyDecay();
+        }
         lastPossessedEnemy = enemy;
         HealthController health = enemy.GetComponent<HealthController>();
         if (health == null) return;
@@ -144,5 +141,19 @@ public class SmarterControl : MonoBehaviour, IDrop
         currentDecay = Mathf.Max(currentDecay, minDecayRate);
 
         health.SetDecay(currentDecay);
+    }
+    /// <summary>
+    /// Reset last enemny decay rate to the original value
+    /// </summary>
+    private void ResetLastEnemyDecay()
+    {
+        if (lastPossessedEnemy != null)
+        {
+            HealthController health = lastPossessedEnemy.GetComponent<HealthController>();
+            if (health != null)
+            {
+                health.SetDecay(lastPossessedEnemyDecayRate);
+            }
+        }
     }
 }

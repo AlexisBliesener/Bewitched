@@ -15,7 +15,20 @@ public class SmarterControlTests
     private HealthController health;
     private Character dummyChar;
     private float minDecayRate;
+    private GameObject mockPlayer;
+    /// <summary>
+    /// Mock PlayerController that skips FixedUpdate during tests.
+    /// </summary>
+    public class MockPlayerController : PlayerController
+    {
+        void Start() { } // skip Start in tests
+        void Update() { } // skip updating in tests
+        void Awake() // skip Awake in tests
+        {
 
+        }
+        void FixedUpdate() { } // skip updating in tests
+    }
     [SetUp]
     public void SetUp()
     {
@@ -29,6 +42,18 @@ public class SmarterControlTests
         minDecayRate = (float)minDecayRateField.GetValue(smarterControl);
         smarterControl.stackNum = 1;
         smarterControl.Activate();
+
+        mockPlayer = new GameObject("MockPlayer");
+        mockPlayer.AddComponent<CharacterController>();
+
+        // Mock PlayerController singleton
+        MockPlayerController mockPlayerController = mockPlayer.AddComponent<MockPlayerController>();
+        PropertyInfo instanceProperty = typeof(PlayerController).GetProperty("instance", BindingFlags.Static | BindingFlags.Public);
+        instanceProperty.SetValue(null, mockPlayerController);
+
+        Character character = mockPlayer.AddComponent<MockCharacter>();
+
+        PlayerController.instance.currentCharacter = character;
     }
 
     [TearDown]
