@@ -38,12 +38,10 @@ public class AnimationAudio : MonoBehaviour
             if (!transform.parent.TryGetComponent(out character))
             {
                 Debug.LogError("Animation audio could not find this character's character script");
+                return;
             }
-        }
-        else
-        {
-            character.health.OnDeath += OnDeath;
-        }
+        } 
+        character.health.OnDeath += OnDeath;
     }
 
     void OnDestroy()
