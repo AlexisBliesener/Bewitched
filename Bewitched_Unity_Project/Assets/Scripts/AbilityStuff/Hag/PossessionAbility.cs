@@ -515,6 +515,7 @@ public class PossessionAbility : MonoBehaviour
             Debug.LogWarning("The possession collider is not found!");
         }
     }
+    
     /// <summary>
     /// Gets the base cool down time for possession
     /// </summary>
@@ -522,6 +523,7 @@ public class PossessionAbility : MonoBehaviour
     {
         return possessionCooldown;
     }
+    
     /// <summary>
     /// Sets the time for the cool down in seconds
     /// </summary>
@@ -529,5 +531,22 @@ public class PossessionAbility : MonoBehaviour
     public void SetCooldown(float newTime)
     {
         possessionCooldown =  Mathf.Max(0.1f, newTime); // never negative or zero;
+    }
+    
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetFocusTime()
+    {
+        return timeToFocus;
+    }
+    
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 }
