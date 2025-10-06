@@ -72,6 +72,8 @@ public class Guard : Enemy
     [Tooltip("Editor gameobjects for visually moving points")]
     private List<GameObject> patrolObjs = new List<GameObject>();
 
+    #region Menu Functions
+
     /// <summary>
     /// Creates the patrol objects either from scratch or from current positions
     /// </summary>
@@ -147,6 +149,8 @@ public class Guard : Enemy
         DeletePatrolObjects();
         patrolPoints = new List<Vector3>();
     }
+
+    #endregion
 
     // Start is called before the first frame update
     void Start()
