@@ -150,7 +150,11 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
                 StopCoroutine(shieldCoroutine);
                 shieldCoroutine = null;
             }
-            if (shieldSlider != null)
+            if (shieldSlider == null)
+            {
+                Debug.LogWarning("Shield slider UI prefab is null on Shielding Spirits upgrade!");
+            }
+            else
             {
                 shieldSlider.gameObject.SetActive(false);
             }
