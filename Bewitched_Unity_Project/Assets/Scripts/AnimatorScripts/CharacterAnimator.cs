@@ -68,6 +68,11 @@ public class CharacterAnimator : MonoBehaviour
         }
     }
 
+    public void SetPrimaryMovementNeeded(bool val)
+    {
+        animator.SetBool("PrimaryMovementNeeded", val);
+    }
+
     /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>

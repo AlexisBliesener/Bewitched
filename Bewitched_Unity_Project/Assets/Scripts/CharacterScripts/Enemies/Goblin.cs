@@ -80,8 +80,11 @@ public class Goblin : Enemy
 
     private int numDeflections = 0;
 
+    private GoblinAnimator animator;
+
     private void Start()
     {
+        animator = GetComponentInChildren<GoblinAnimator>();
         primaryComboSteps = 3;
         SetPlayerInfo();
         health.SetHealthToMax();
@@ -103,6 +106,24 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();
+
+        if(playerControlling)
+        {
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+        }
+
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        {
+            animator.SetPrimaryMovementNeeded(true);
+        }
+        else
+        {
+            animator.SetPrimaryMovementNeeded(false);
+        }
     }
 
     public override void PrimaryAttack()
@@ -111,11 +132,9 @@ public class Goblin : Enemy
         if (playerControlling)
         {
             PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
         {
-            lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
             attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -132,7 +151,7 @@ public class Goblin : Enemy
         attackingPrimary = true;
 
         Debug.Log("combo step num  " + currentPrimaryComboStep);
-        if(currentPrimaryComboStep == 0)
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
         {
             attackStateCoroutine = StartCoroutine(KnifeWindup());
         }

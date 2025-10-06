@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour
     private LayerMask enemyLayerMask;
 
     [Header("Character Settings")]
-
     [Tooltip("The character being controlled currently")]
     public Character currentCharacter;
     [Tooltip("The main character body (possessor)")]
@@ -32,7 +31,6 @@ public class PlayerController : MonoBehaviour
     public Enemy lockedCharacter = null;
 
     [Header("UI Settings")]
-
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
 
