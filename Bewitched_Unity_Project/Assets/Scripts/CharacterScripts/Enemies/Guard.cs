@@ -58,6 +58,96 @@ public class Guard : Enemy
 
     float timeStartedBash;
 
+    [Header("Guard AI Settings")]
+
+    [Tooltip("Number of patrol points")]
+    [SerializeField] int numPatrolPoints = 3;
+
+    [Tooltip("Sphere prefab representing a patrol point")]
+    [SerializeField] GameObject patrolPointPrefab;
+
+    [Tooltip("Patrol points to move through")]
+    private List<Vector3> patrolPoints = new List<Vector3>();
+
+    [Tooltip("Editor gameobjects for visually moving points")]
+    private List<GameObject> patrolObjs = new List<GameObject>();
+
+    /// <summary>
+    /// Creates the patrol objects either from scratch or from current positions
+    /// </summary>
+    [ContextMenu("Create Patrol Objects")]
+    public void CreatePatrolObjects()
+    {
+        if (numPatrolPoints > 0)
+        {
+            if (patrolPoints.Count != numPatrolPoints) // If mismatching number of points create new objects and points
+            {
+                DeletePatrolObjects();
+                patrolPoints = new List<Vector3>();
+                for (int i = 0; i < numPatrolPoints; i++)
+                {
+                    GameObject point = Instantiate(patrolPointPrefab);
+                    point.transform.position = new Vector3(transform.position.x + i * 2, transform.position.y + 1, transform.position.z);
+
+                    // Update color of sphere too so that it is a gradient from black towards white
+                    patrolObjs.Add(point);
+                    patrolPoints.Add(new Vector3(transform.position.x + i * 2, transform.position.y, transform.position.z));
+                }
+            }
+            else if (patrolObjs.Count != patrolPoints.Count) // If object and position counts are mismatched (needs updating)
+            {
+                DeletePatrolObjects();
+                for (int i = 0; i < numPatrolPoints; i++)
+                {
+                    Debug.Log(patrolPoints[i]);
+                    GameObject point = Instantiate(patrolPointPrefab);
+                    point.transform.position = new Vector3(patrolPoints[i].x, patrolPoints[i].y + 1, patrolPoints[i].z);
+                    Debug.Log(point.transform.position);
+                    // Update color of sphere too so that it is a gradient from black towards white
+                    patrolObjs.Add(point);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets the patrol points based on position of objects
+    /// </summary>
+    [ContextMenu("Set Patrol Points")]
+    public void SetPatrolPoints()
+    {
+        patrolPoints = new List<Vector3>();
+        for (int i = 0; i < patrolObjs.Count; i++)
+        {
+            Vector3 point = patrolObjs[i].transform.position;
+            point.y -= 1;
+            patrolPoints.Add(point);
+        }
+    }
+
+    /// <summary>
+    /// Deletes all patrol objects in the scene
+    /// </summary>
+    [ContextMenu("Delete Patrol Objects")]
+    public void DeletePatrolObjects()
+    {
+        foreach (GameObject obj in patrolObjs)
+        {
+            DestroyImmediate(obj);
+        }
+        patrolObjs = new List<GameObject>();
+    }
+
+    /// <summary>
+    /// Removes all the patrol point positions
+    /// </summary>
+    [ContextMenu("Destroy all patrol points")]
+    public void RemoveAllPoints()
+    {
+        DeletePatrolObjects();
+        patrolPoints = new List<Vector3>();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
