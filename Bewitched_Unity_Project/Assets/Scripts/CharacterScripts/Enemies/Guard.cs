@@ -63,6 +63,12 @@ public class Guard : Enemy
     [Tooltip("Number of patrol points")]
     [SerializeField] int numPatrolPoints = 3;
 
+    [Tooltip("Index of current patrol point")]
+    private int targetPointIndex = 0;
+
+    [Tooltip("Bool determining if the guard is moving away from its origin")]
+    private bool outGoing = false;
+
     [Tooltip("Sphere prefab representing a patrol point")]
     [SerializeField] GameObject patrolPointPrefab;
 
@@ -279,5 +285,216 @@ public class Guard : Enemy
     {
         if (chargingShieldBash) return false;
         return base.CheckSecondaryUsable();
+    }
+
+    /// <summary>
+    /// Function that follows the flow chart to set behavior for the goblin
+    /// </summary>
+    public override void SetBehavior()
+    {
+        target = playerController.currentCharacter; // Always update this
+        if (playerControlling || inProcess) return;
+
+        if (aiState == AIMovementState.Patrolling) // If patrolling
+        {
+            Patrol();
+        }
+        else if (aiState == AIMovementState.Chasing)
+        {
+            //Chase();
+        }
+        else if (aiState == AIMovementState.Surrounding)
+        {
+            //Surround();
+        }
+        else if (aiState == AIMovementState.Retreating)
+        {
+            //Retreat();
+        }
+    }
+
+    /// <summary>
+    /// Handles finding a path in the graph based on the state
+    /// </summary>
+    public override void FindPath()
+    {
+        if (aiState == AIMovementState.Patrolling)
+        {
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                SetPatrollingPoint();
+            }
+
+        }
+        else if (aiState == AIMovementState.Chasing)
+        {
+            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            if (surroundPoint)
+            {
+                pathState = PathState.Searching;
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+        }
+        else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
+        {
+            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            if (surroundPoint)
+            {
+                pathState = PathState.Searching;
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+        }
+        else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
+        {
+            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            if (surroundPoint)
+            {
+                pathState = PathState.Searching;
+                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Override function handling patrol functionality for the Goblin
+    /// This patrol method sets a point before the first frame and the goblin will patrol
+    /// randomly within a circle of that point
+    /// </summary>
+    public override void Patrol()
+    {
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
+
+        // Check if player is visible
+        if (LookForPlayer())
+        {
+            StartCoroutine(SpotPlayer());
+            return;
+        }
+
+        AIMove();
+        AILook();
+
+        if (pathState == PathState.Set)
+        {
+            if (currentPath.ReachedDestination(this)) // If we are within stopping range
+            {
+                pathState = PathState.Unset;
+                StartCoroutine(LookAround()); // Look around
+            }
+
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
+        }
+        else // If no current path, mark as available
+        {
+            reachedWalkpoint = false;
+        }
+    }
+
+    /// <summary>
+    /// Override function for setting a patrol point
+    /// This version uses a pre-made list of points and selects points in sequence for a route
+    /// </summary>
+    public void SetPatrollingPoint()
+    {
+        walkPoint = patrolPoints[targetPointIndex];
+
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+    }
+
+    /// <summary>
+    /// Validates a walkpoint
+    /// </summary>
+    /// <returns> True if reachable </returns>
+    public override bool ValidatePoint()
+    {
+        if (currentPath == null)
+        {
+            pathState = PathState.Unset;
+            return false;
+        }
+
+        if (!currentPath.PathComplete())
+        {
+            pathState = PathState.Unset;
+            return false;
+        }
+
+        pathState = PathState.Set;
+        return true;
+    }
+
+    /// <summary>
+    /// Coroutine to handle the goblin when it reaches it's patrol destination
+    /// </summary>
+    /// <returns> Waits for animation to be done and looks for player </returns>
+    private IEnumerator LookAround()
+    {
+        if (debugging)
+        {
+            DestroyPath();
+        }
+
+        inProcess = true;
+        // AnimateIdle(); // Play animation (temporarily idle)
+        float timer = 0;
+
+        // If we are at 0 or end of points, flip outgoing
+        if (targetPointIndex == 0 || targetPointIndex == patrolPoints.Count - 1) outGoing = !outGoing;
+
+        if (outGoing) targetPointIndex++; // If outgoing increase index
+        else targetPointIndex--; // Otherwise decrease index
+
+        while (timer < 1) // Wait 1 second for now, will change this to be a bool checking the end of looking animation
+        {
+            if (LookForPlayer())
+            {
+                StartCoroutine(SpotPlayer());
+                yield break;
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        inProcess = false;
+        if (debugging)
+        {
+            StartPath(false);
+        }
+    }
+
+    /// <summary>
+    /// Coroutine that plays when the player is spotted
+    /// </summary>
+    /// <param name="fromGoblin"> Whether the goblin was told where the player is </param>
+    /// <returns> Waits for animation to be done </returns>
+    private IEnumerator SpotPlayer(bool fromGoblin = false)
+    {
+        aiState = AIMovementState.Chasing;
+        if (debugging)
+        {
+            DestroyPath();
+        }
+
+        inProcess = true;
+
+        timePlayerLastSeen = Time.time;
+
+        // Play animation/noise that the player has been seen
+        if (!fromGoblin)
+        {
+            yield return new WaitForSeconds(0.25f);
+        }
+
+        // Alert nearby Goblins of player
+
+        inProcess = false;
     }
 }
