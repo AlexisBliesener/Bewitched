@@ -295,6 +295,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+
         }
         else
         {
@@ -514,5 +515,21 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("The possession collider is not found!");
         }
+    }
+    /// <summary>
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetFocusTime()
+    {
+        return timeToFocus;
+    }
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 }
