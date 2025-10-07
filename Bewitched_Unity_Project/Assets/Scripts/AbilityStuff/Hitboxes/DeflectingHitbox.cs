@@ -113,7 +113,7 @@ public class DeflectingHitbox : DefaultHitbox
             }
 
             // If not colliding with the floor or self
-            if (other.gameObject.layer != 6 && other.gameObject != user.gameObject && other.gameObject.layer != 9 && canDeflect)
+            if (other.gameObject.layer != LayerMask.NameToLayer("Ground") && other.gameObject != user.gameObject && other.gameObject.layer != LayerMask.NameToLayer("Possession") && canDeflect)
             {
                 // Check if other hit is on a hitbox
                 if (other.TryGetComponent(out DefaultHitbox otherBox))

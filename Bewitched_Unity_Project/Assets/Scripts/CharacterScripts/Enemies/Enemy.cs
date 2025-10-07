@@ -445,7 +445,6 @@ public abstract class Enemy : Character
         if (duration > 0)
         {
             if (stunned) yield break;
-            Debug.Log("Applying stun");
             hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
@@ -468,8 +467,8 @@ public abstract class Enemy : Character
             if (playerControlling) PlayerController.instance.SetAllowMovement(true);
             else aiState = AIMovementState.Chasing;
             stunned = false;
-            Debug.Log(hitStunActual);
-            Destroy(hitStunActual); hitStunActual = null;
+            Destroy(hitStunActual); 
+            hitStunActual = null;
         }
     }
 
@@ -876,5 +875,20 @@ public abstract class Enemy : Character
         {
             aiState = AIMovementState.Retreating;
         }
+    }
+
+    /// <summary>
+    /// Function to simplify setting movement values in attack coroutines
+    /// </summary>
+    /// <param name="val"> Value to set movement to </param>
+    public void SetMovementValues(bool val)
+    {
+        if (playerControlling)
+        {
+            if (val) StartCoroutine(EnableMovement());
+            else PlayerController.instance.SetAllowMovement(false);
+        }
+        if (val) aiState = AIMovementState.Retreating;
+        else aiState = AIMovementState.Blocked;
     }
 }

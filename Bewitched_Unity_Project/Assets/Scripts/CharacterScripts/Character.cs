@@ -385,10 +385,6 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        Debug.Log(attackingPrimary);
-        Debug.Log(attackingSecondary);
-        Debug.Log(!characterAnimator.NotInPrimary());
-        Debug.Log(stunned);
         if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
 
         return true;

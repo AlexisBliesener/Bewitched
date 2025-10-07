@@ -22,7 +22,7 @@ public class EnemyHealth : HealthController
                 finalDamage = Adrenaline.instance.GetModifiedDamage(amt);
             }
             base.SubHealth(finalDamage);
-            Debug.Log("Damage: " + finalDamage + " Buff: " + Adrenaline.instance.IsBuffActive() + " Stack: " + Adrenaline.instance.stackNum + " Damage was: " + amt);
+            //Debug.Log("Damage: " + finalDamage + " Buff: " + Adrenaline.instance.IsBuffActive() + " Stack: " + Adrenaline.instance.stackNum + " Damage was: " + amt);
             ShowMiniHealthBar(true, GetCharacter());
         }
     }
