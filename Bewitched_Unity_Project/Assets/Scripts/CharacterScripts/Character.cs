@@ -341,6 +341,9 @@ public abstract class Character : MonoBehaviour
         DeactivateSurroundingPoints();
         StopAllCoroutines();
         Die();
+        // Stop all coroutines destroy all objects too
+        if (hitStunActual != null) Destroy(hitStunActual);
+        if (attackIndicator != null) Destroy(attackIndicator);
     }
 
     /// <summary>
@@ -437,19 +440,38 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the hitstun actions for characters
+    /// </summary>
+    /// <param name="duration"> Duration to stun for </param>
+    /// <returns> Time </returns>
     public virtual IEnumerator StartHitStun(float duration)
     {
-        hitStunActual = Instantiate(hitStunPrefab, transform);
-        stunned = true;
-        float timeStarted = Time.time;
-        while (Time.time - timeStarted < duration)
+        if (duration > 0)
         {
-            PlayerController.instance.SetAllowMovement(false);
-            yield return null;
+            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                PlayerController.instance.SetAllowMovement(false);
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+            }
+            PlayerController.instance.SetAllowMovement(true);
+            stunned = false;
+            Destroy(hitStunActual);
+            hitStunActual = null;
         }
-        PlayerController.instance.SetAllowMovement(true);
-        stunned = false;
-        Destroy(hitStunActual); hitStunActual = null;
     }
 
     public virtual void CreateHitStun()
@@ -788,6 +810,11 @@ public abstract class Character : MonoBehaviour
         StartCoroutine(HandleAfterDodge(inputTime));
     }
 
+    /// <summary>
+    /// Handles time to input abilities after the dodge
+    /// </summary>
+    /// <param name="inputTime"> Time range the player is able to input </param>
+    /// <returns> Time </returns>
     public IEnumerator HandleAfterDodge(float inputTime)
     {
         float timeStarted = Time.time;
