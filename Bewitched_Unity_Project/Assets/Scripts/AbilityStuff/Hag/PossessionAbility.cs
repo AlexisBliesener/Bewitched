@@ -394,7 +394,6 @@ public class PossessionAbility : MonoBehaviour
                     RaycastHit hitInfo;
                     if (Physics.Raycast(possessionRay, out hitInfo, currentPossesionDistance, possessionMask))
                     {
-                        Debug.Log("hitinfor " + hitInfo.collider.name);
                         if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
                         {
                             distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));

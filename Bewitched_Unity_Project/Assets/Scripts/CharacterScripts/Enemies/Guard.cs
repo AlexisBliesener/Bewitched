@@ -73,10 +73,10 @@ public class Guard : Enemy
     [SerializeField] GameObject patrolPointPrefab;
 
     [Tooltip("Patrol points to move through")]
-    private List<Vector3> patrolPoints = new List<Vector3>();
+    [SerializeField] List<Vector3> patrolPoints = new List<Vector3>();
 
     [Tooltip("Editor gameobjects for visually moving points")]
-    [SerializeField] List<GameObject> patrolObjs = new List<GameObject>();
+    private List<GameObject> patrolObjs = new List<GameObject>();
 
     #region Menu Functions
 
@@ -109,7 +109,7 @@ public class Guard : Enemy
                 {
                     Debug.Log(patrolPoints[i]);
                     GameObject point = Instantiate(patrolPointPrefab);
-                    point.transform.position = new Vector3(patrolPoints[i].x, patrolPoints[i].y + 1, patrolPoints[i].z);
+                    point.transform.position = patrolPoints[i];
                     Debug.Log(point.transform.position);
                     // Update color of sphere too so that it is a gradient from black towards white
                     patrolObjs.Add(point);
@@ -128,7 +128,6 @@ public class Guard : Enemy
         for (int i = 0; i < patrolObjs.Count; i++)
         {
             Vector3 point = patrolObjs[i].transform.position;
-            point.y -= 1;
             patrolPoints.Add(point);
             Debug.Log(point);
         }
@@ -355,6 +354,7 @@ public class Guard : Enemy
     /// </summary>
     public override void Patrol()
     {
+        Debug.Log("Patrolling");
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
@@ -373,6 +373,7 @@ public class Guard : Enemy
 
         if (pathState == PathState.Set)
         {
+            Debug.Log(currentPath.GetDestinationPosition(gameObject));
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
                 pathState = PathState.Unset;
@@ -396,9 +397,9 @@ public class Guard : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
-        Debug.Log(patrolPoints.Count);
         walkPoint = patrolPoints[targetPointIndex];
 
+        Debug.Log(walkPoint);
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
 
@@ -408,18 +409,22 @@ public class Guard : Enemy
     /// <returns> True if reachable </returns>
     public override bool ValidatePoint()
     {
+        Debug.Log("Validate point");
         if (currentPath == null)
         {
+            Debug.Log("No path");
             pathState = PathState.Unset;
             return false;
         }
 
         if (!currentPath.PathComplete())
         {
+            Debug.Log("Path incomplete");
             pathState = PathState.Unset;
             return false;
         }
 
+        Debug.Log("Valid");
         pathState = PathState.Set;
         return true;
     }
@@ -444,6 +449,8 @@ public class Guard : Enemy
 
         if (outGoing) targetPointIndex++; // If outgoing increase index
         else targetPointIndex--; // Otherwise decrease index
+
+        Debug.Log("Reached point, new index: " + targetPointIndex);
 
         while (timer < 1) // Wait 1 second for now, will change this to be a bool checking the end of looking animation
         {
