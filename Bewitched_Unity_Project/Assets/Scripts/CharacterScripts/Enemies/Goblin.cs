@@ -47,7 +47,7 @@ public class Goblin : Enemy
     [Tooltip("Distance dropoff per bounce")]
     [SerializeField] float spinDistanceDropoff = 2.5f;
     [Tooltip("Spin Duration")]
-    [SerializeField] float spinDuration = 5;
+    [SerializeField] float spinDuration = 10;
     [Tooltip("Spin Speed")]
     [SerializeField] float spinSpeed = 15;
     [Tooltip("Spin Rotational Speed")]
@@ -428,7 +428,7 @@ public class Goblin : Enemy
         bool slowTime = false;
 
         GameObject hitbox = Instantiate(spinHitbox, transform);
-        hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: 10);
+        hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: spinDuration);
 
         if (direction == Vector3.zero) // If first use, set desiredVelocity alone and have AI pause
         {
