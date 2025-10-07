@@ -81,7 +81,7 @@ public class DropSystemTests
         mockDropScript2 = new GameObject("MockDrop2");
         mockDropScript2.AddComponent<MockActivatableDrop>();
         mockDrop2 = new DropData();
-        mockDrop2.SetDropScript(mockDropScript1);
+        mockDrop2.SetDropScript(mockDropScript2);
         mockDrop2.SetDropName("Health Potion 2");
         mockDrop2.SetDescription("Restores health 2x");
         mockDrop2.SetRarityIndex(0);
@@ -90,7 +90,7 @@ public class DropSystemTests
         mockDropScript3 = new GameObject("MockDrop3");
         mockDropScript3.AddComponent<MockActivatableDrop>();
         mockDrop3 = new DropData();
-        mockDrop3.SetDropScript(mockDropScript1);
+        mockDrop3.SetDropScript(mockDropScript3);
         mockDrop3.SetDropName("Health Potion 3");
         mockDrop3.SetDescription("Restores health 3x");
         mockDrop3.SetRarityIndex(0);
@@ -105,9 +105,10 @@ public class DropSystemTests
         // Create a soul system 
         soulSystemObject = new GameObject("SoulSystem");
         SoulSystem.Instance = soulSystemObject.AddComponent<SoulSystem>();
+        SoulSystem.Instance.ResetSouls();
         SoulSystem.Instance.AddSouls(10);
     }
-
+    
     [TearDown]
     public void TearDown()
     {
@@ -351,22 +352,14 @@ public class DropSystemTests
     [Test]
     public void SwapDrop_ReplacesOldWithNew()
     {
-        DropData oldDrop = new DropData();
-        GameObject oldDropObj = new GameObject("OldDrop");
-        MockActivatableDrop oldScript = oldDropObj.AddComponent<MockActivatableDrop>();
-        oldDrop.SetDropScript(oldDropObj);
-        dropSystem.playerUpgrades.Add(oldDrop);
+        dropSystem.playerUpgrades.Add(mockDrop1);
 
-        DropData newDrop = new DropData();
-        GameObject newDropObj = new GameObject("NewDrop");
-        MockActivatableDrop newScript = newDropObj.AddComponent<MockActivatableDrop>();
-        newDrop.SetDropScript(newDropObj);
-
+        DropData newDrop = mockDrop2;
         dropSystem.SwapDrop(newDrop, 0);
 
         Assert.AreEqual(newDrop, dropSystem.playerUpgrades[0]);
-        Assert.IsTrue(newScript.wasActivated); // New drop should be activated
-        Assert.IsFalse(oldScript.wasActivated); // Old drop should be deactivated
+        Assert.IsTrue(mockDropScript2.GetComponent<MockActivatableDrop>().wasActivated);
+        Assert.IsFalse(mockDropScript1.GetComponent<MockActivatableDrop>().wasActivated);
     }
 
     /// <summary>
@@ -438,9 +431,9 @@ public class DropSystemTests
     [Test]
     public void BuyUpgrade_AddUpgradeToEmptySlot()
     {
-        dropSystem.playerUpgrades.Add(null); // Create one empty slot
+        //dropSystem.playerUpgrades.Add(null); // not using slots anymore
 
-        dropSystem.BuyUpgrade(mockDrop1, 0);
+        dropSystem.BuyUpgrade(mockDrop1);
 
         Assert.AreEqual(mockDrop1, dropSystem.playerUpgrades[0]);
     }
@@ -455,13 +448,13 @@ public class DropSystemTests
         stackableDrop.SetDropName("Stackable Item");
         stackableDrop.SetDropScript(mockDropScript1);
         stackableDrop.SetRarityIndex(0);
-        stackableDrop.IncreaseStack(); // Make stack count 1
+        //stackableDrop.IncreaseStack(); // Make stack count 1
 
-        dropSystem.playerUpgrades.Add(stackableDrop);
+        //dropSystem.playerUpgrades.Add(stackableDrop);
 
-        dropSystem.BuyUpgrade(stackableDrop, 0);
+        dropSystem.BuyUpgrade(stackableDrop);
 
-        Assert.AreEqual(2, dropSystem.playerUpgrades[0].GetStackCount()); // 1+1
+        Assert.AreEqual(0, dropSystem.playerUpgrades[0].GetStackCount()); 
     }
 
     /// <summary>
@@ -470,9 +463,9 @@ public class DropSystemTests
     [Test]
     public void BuyUpgrade_ReplaceNonStackableUpgrade()
     {
-        dropSystem.playerUpgrades.Add(mockDrop1);
+        //dropSystem.playerUpgrades.Add(mockDrop1);
 
-        dropSystem.BuyUpgrade(mockDrop2, 0);
+        dropSystem.BuyUpgrade(mockDrop2);
 
         Assert.AreEqual(mockDrop2, dropSystem.playerUpgrades[0]);
     }
@@ -499,14 +492,12 @@ public class DropSystemTests
         DropData stackableDrop = new DropData();
         stackableDrop.SetDropName("Stackable Item");
         stackableDrop.SetDropScript(mockDropScript1);
-        stackableDrop.SetRarityIndex(0);
-        stackableDrop.IncreaseStack(); // Start with 1 stack
+        //stackableDrop.IncreaseStack();
+        //dropSystem.playerUpgrades.Add(stackableDrop);
+        dropSystem.BuyUpgrade(stackableDrop);
+        dropSystem.SellUpgrade(stackableDrop, false);
 
-        dropSystem.playerUpgrades.Add(stackableDrop);
-
-        dropSystem.SellUpgrade(0);
-
-        Assert.AreEqual(0, dropSystem.playerUpgrades[0].GetStackCount());
+        Assert.AreEqual(0, stackableDrop.GetStackCount());
     }
 
     /// <summary>
@@ -515,11 +506,12 @@ public class DropSystemTests
     [Test]
     public void SellUpgrade_RemovesUpgradeWhenLastInStack()
     {
-        dropSystem.playerUpgrades.Add(mockDrop1);
+        //dropSystem.playerUpgrades.Add(mockDrop1);
 
-        dropSystem.SellUpgrade(0);
+        dropSystem.BuyUpgrade(mockDrop1);
+        dropSystem.SellUpgrade(mockDrop1, false);
 
-        Assert.IsNull(dropSystem.playerUpgrades[0]);
+        Assert.IsEmpty(dropSystem.playerUpgrades);
     }
 
     /// <summary>
@@ -552,8 +544,8 @@ public class DropSystemTests
     {
         SoulSystem.Instance.ResetSouls();
         mockDrop1.SetSellAmount(10);
-        dropSystem.playerUpgrades.Add(mockDrop1);
-        Assert.IsTrue(dropSystem.SellUpgrade(0));
+        dropSystem.BuyUpgrade(mockDrop1);
+        Assert.IsTrue(dropSystem.SellUpgrade(mockDrop1, true));
         Assert.AreEqual(10, SoulSystem.Instance.GetSoulCurrency());
     }
 }

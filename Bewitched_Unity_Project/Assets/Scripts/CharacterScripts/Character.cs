@@ -5,6 +5,9 @@ using UnityEngine;
 using System.IO;
 using Cinemachine;
 using UnityEngine.AI;
+using DG.Tweening;
+using FMOD;
+using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -20,6 +23,8 @@ public abstract class Character : MonoBehaviour
     [Header("Movement Settings")]
     [Tooltip("Speed the Character Can Move While Chasing")]
     public float movementSpeed = 5;
+    [Tooltip("Speed the character can move while approaching for an attack")]
+    public float approachSpeed = 7;
     [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
     private float jumpSpeed;
     [SerializeField, Tooltip("How long to wait before doing a jump")]
@@ -28,6 +33,11 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
     public float deceleration = 5;
+    [Tooltip("Rotational velocity of the character")]
+    public float rotationalVelocity = 240;
+    [Tooltip("Time chasing a character for an attack")]
+    public float chaseTime = 3;
+    public float windupTime = 0.25f;
 
     [Tooltip("Weight of the character")]
     public float weight = 10;
@@ -35,8 +45,10 @@ public abstract class Character : MonoBehaviour
     public float sizeRadius;
     [Tooltip("Number of Points to Surround")]
     public int numSurroundingPoints = 8;
-    [Tooltip("Radius of Surrounding Points (For AI Navigation)")]
-    public float surroundingRadius = 2;
+    [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
+    public float minSurroundingRadius = 2;
+    [Tooltip("Maximum Radius of Surrounding Points (For AI Navigation)")]
+    public float maxSurroundingRadius = 5;
     [Tooltip("Team of the character")]
     public int teamID;
     [Tooltip("Primary Fire Image")]
@@ -50,20 +62,26 @@ public abstract class Character : MonoBehaviour
     public float attackDelay = 1;
     [Tooltip("Cooldown After Primary Ability")]
     public float primaryCooldown = 5;
-    [Tooltip("Added Cooldown After Primary Combo")]
-    public float primaryComboExtraCooldown;
-    [Tooltip("Primary Combo Steps")]
-    public int primaryComboSteps;
-    [Tooltip("Primary Cooldown Reset Time")]
-    public float primaryComboResetTime;
     [Tooltip("Cooldown After Secondary Ability")]
     public float secondaryCooldown = 5;
-
     [Tooltip("Primary Attack Range")]
     public float primaryAttackRange;
 
+
+    [Header("Primary Combo Stats")]
+    [Tooltip("Primary Combo Steps")]
+    public int primaryComboSteps;
+    [Tooltip("Primary Cooldown Reset Time")]
+    public float[] primaryComboResetTime;
+    [Tooltip("Primary combo min time to wait to hit the next combo")]
+    public float[] primaryComboMinTime;
+
     [Header("Note: Health settings can be changed on the Health Controller component!")]
     [SerializeField] public HealthController health;
+
+    [Header("Possession Settings")]
+    [Tooltip("Can the player possess the character?")]
+    public bool canPossess = true;
 
     [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Prefab")]
@@ -109,6 +127,52 @@ public abstract class Character : MonoBehaviour
     [SerializeField] private List<string> effectJSONs = new List<string>();
 
     private SurroundingPoints surroundingPoints;
+
+    [Tooltip("Character to lock onto")]
+    protected Character lockedCharacter = null;
+
+    [Tooltip("The coroutine handling attacking actions")]
+    protected Coroutine attackStateCoroutine = null;
+
+    [Tooltip("Bool determining if an attack has hit a character")]
+    protected bool hitCharacter = false;
+
+    protected bool dodgable = false;
+    protected bool attackDodged = false;
+    protected bool dodging = false;
+    private bool invulnerable = false;
+
+    protected bool inCounter = false;
+
+    protected Character attackingEnemy = null;
+
+    [Tooltip("Attack indicator prefab")]
+    public GameObject attackIndicatorPrefab;
+
+    [Tooltip("Attack indicator")]
+    protected GameObject attackIndicator = null;
+
+    [Tooltip("Target tween position")]
+    protected Vector3 targetTweenPosition;
+
+    protected float timeLastDodge = 0;
+
+    protected bool stunned = false;
+
+    /// <summary>
+    /// The different attacking states a character can have
+    /// </summary>
+    public enum AttackState
+    {
+        Approaching, // The run up before the attack begins to close distance
+        Windup, // The windup stage of the attack - basic animation
+        Attacking, // The attack itself
+        Neutral, // Neutral state for enemies to be selected to begin
+        Dodging  // Dodging an attack
+    }
+
+    [Tooltip("The attack state")]
+    protected AttackState attackState;
 
     #region Saving/Loading
 
@@ -182,30 +246,6 @@ public abstract class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        if(combatCam != null)
-        {
-            combatCam.Priority = 0;
-        }
-        else
-        {
-            Debug.LogWarning("Combat cam is not set!");
-        }
-        if (aimCam != null)
-        {
-            aimCam.Priority = 1;
-        }
-        else
-        {
-            Debug.LogWarning("Aim cam is not set!");
-        }
-        if (exploreCam != null)
-        {
-            exploreCam.Priority = 2;
-        }
-        else
-        {
-            Debug.LogWarning("Explore cam is not set!");
-        }
         characterAnimator = GetComponent<CharacterAnimator>();
         if (health == null)
         {
@@ -216,6 +256,7 @@ public abstract class Character : MonoBehaviour
         health.OnDeath += OnDeath;
 
         SetBaseStats();
+        attackState = AttackState.Neutral;
     }
     protected virtual void OnDestroy()
     {
@@ -224,6 +265,9 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+    protected virtual void FixedUpdate()
+    {
+    }
 
     /// <summary>
     /// Returns the amount of time to wait before doing a jump
@@ -262,12 +306,27 @@ public abstract class Character : MonoBehaviour
         return exploreCam;
     }
 
+    public int GetCurrentPrimaryComboStep()
+    {
+        return currentPrimaryComboStep;
+    }
+
+    public float GetTimeLastPrimary()
+    {
+        return timeLastPrimary;
+    }
+
+    public float[] GetPrimaryComboResetTime()
+    {
+        return primaryComboResetTime;
+    }
+
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        CreateHitStun();
+        
     }
 
     /// <summary>
@@ -280,6 +339,7 @@ public abstract class Character : MonoBehaviour
     protected virtual void OnDeath()
     {
         DeactivateSurroundingPoints();
+        StopAllCoroutines();
         Die();
     }
 
@@ -288,7 +348,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState("Death");
+        characterAnimator.SwitchState("Death", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
     public virtual void PrimaryAttack()
@@ -312,10 +372,6 @@ public abstract class Character : MonoBehaviour
 
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;
-        if (currentPrimaryComboStep >= primaryComboSteps)
-        {
-            cooldown += primaryComboExtraCooldown;
-        }
         return Time.time - timeLastPrimary >= cooldown && Time.time - timeLastAny >= attackDelay;
     }
 
@@ -326,7 +382,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckPrimaryUsable()
     {
         if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary()) return false;
+        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
 
         return true;
     }
@@ -334,7 +390,7 @@ public abstract class Character : MonoBehaviour
     public virtual bool CheckSecondaryUsable()
     {
         if (!CheckSecondaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary) return false;
+        if (attackingPrimary || attackingSecondary || stunned) return false;
 
         return true;
     }
@@ -368,7 +424,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void Jump()
     {
-        characterAnimator.SwitchState("Jump");
+        characterAnimator.SwitchState("Jump", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
     public IEnumerator StartTime(float stopTime)
@@ -381,6 +437,21 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    public virtual IEnumerator StartHitStun(float duration)
+    {
+        hitStunActual = Instantiate(hitStunPrefab, transform);
+        stunned = true;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < duration)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+            yield return null;
+        }
+        PlayerController.instance.SetAllowMovement(true);
+        stunned = false;
+        Destroy(hitStunActual); hitStunActual = null;
+    }
+
     public virtual void CreateHitStun()
     {
 
@@ -388,14 +459,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual void HandleHitStun()
     {
-        if (hitStunActual != null)
-        {
-            if (Time.time - health.TimeLastHit > hitStunDuration)
-            {
-                Destroy(hitStunActual);
-                hitStunActual = null;
-            }
-        }
+        
     }
 
     public void SetPrimaryStatus(bool val)
@@ -429,29 +493,32 @@ public abstract class Character : MonoBehaviour
     {
         if (gameObject != null)
         {
-            if (Time.time - timeLastPrimary >= primaryComboResetTime)
+            if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
             {
                 currentPrimaryComboStep = 0;
+                characterAnimator.SetPrimaryComboEnded();
             }
 
             if (currentPrimaryComboStep >= primaryComboSteps)
             {
                 currentPrimaryComboStep = 0;
+                characterAnimator.SetPrimaryComboEnded();
             }
 
             currentPrimaryComboStep += 1;
 
-            characterAnimator.SwitchState("PrimaryAttack");
-            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack"));
+            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
+            Debug.Log("Starting Attack Function");
             PrimaryAttack();
         }
     }
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState("SecondaryAttack");
-        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack"));
+        characterAnimator.SwitchState("SecondaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {
             SecondaryAttack();
@@ -497,11 +564,7 @@ public abstract class Character : MonoBehaviour
 
         if (surroundingPoints != null)
         {
-            surroundingPoints.Init(numSurroundingPoints, surroundingRadius);
-        }
-        else
-        {
-            Debug.LogWarning("surround points not present");
+            surroundingPoints.Init(numSurroundingPoints, minSurroundingRadius, maxSurroundingRadius);
         }
     }
 
@@ -513,10 +576,6 @@ public abstract class Character : MonoBehaviour
         if(surroundingPoints != null)
         {
             surroundingPoints.DestroyPoints();
-        }
-        else
-        {
-            Debug.LogWarning("surround points not present");
         }
     }
 
@@ -562,56 +621,180 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes the direction the character is facing towards the enemy it is facing closest to
+    /// Checks the attack state to see if able to start an attack
     /// </summary>
-    /// <param name="range"> Range of sweep </param>
-    /// <param name="angle"> Angle of arc it is sweeping </param>
-    /// <param name="time"> Time to change the look </param>
-    /// <returns> Time </returns>
-    public IEnumerator MagnetizeLook(float range, float angle, float time)
+    /// <returns></returns>
+    public bool IsNeutral()
     {
-        Collider[] collisions = Physics.OverlapSphere(transform.position, range, characters);
+        if (attackState == AttackState.Neutral) return true;
+        return false;
+    }
 
-        GameObject closest = null;
-        float mostDirectValue = Mathf.Infinity;
+    /// <summary>
+    /// Sets the hitcharacter value
+    /// </summary>
+    /// <param name="val"></param>
+    public void SetHitCharacter(bool val)
+    {
+        hitCharacter = val;
+    }
 
-        foreach (Collider other in collisions)
+    /// <summary>
+    /// Sets the attacking enemy
+    /// </summary>
+    /// <param name="attacker"> Enemy to set </param>
+    public void SetAttacker(Character attacker)
+    {
+        attackingEnemy = attacker;
+    }
+
+    /// <summary>
+    /// Gets the attacker
+    /// </summary>
+    /// <returns> Attacker </returns>
+    public Character GetAttacker()
+    {
+        return attackingEnemy;
+    }
+
+    /// <summary>
+    /// Checks if a character is dodgable
+    /// </summary>
+    /// <returns> True if dodgable </returns>
+    public bool Dodgable()
+    {
+        return dodgable;
+    }
+
+    /// <summary>
+    /// Sets dodged to true
+    /// </summary>
+    public void SetDodged()
+    {
+        attackDodged = true;
+    }
+
+    /// <summary>
+    /// Gives the character invulnerability for a duration
+    /// </summary>
+    /// <param name="duration"> Duration to be invulnerable </param>
+    /// <returns> Time </returns>
+    public IEnumerator GiveInvulnerability(float duration)
+    {
+        invulnerable = true;
+        yield return new WaitForSeconds(duration);
+        invulnerable = false;
+    }
+
+    /// <summary>
+    /// Gets the invulnerability status
+    /// </summary>
+    /// <returns> Invulnerability status </returns>
+    public bool Invulnerable()
+    {
+        return invulnerable;
+    }
+
+    /// <summary>
+    /// Handles dodging for a character
+    /// </summary>
+    /// <param name="wellTimed"></param>
+    /// <param name="attacker"></param>
+    /// <param name="dodgeRange"></param>
+    /// <param name="inputTime"></param>
+    public IEnumerator Dodge(bool wellTimed, Character attacker, float dodgeRange, float inputTime)
+    {
+        dodging = true;
+        attackState = AttackState.Dodging;
+        PlayerController.instance.SetAllowMovement(false);
+
+        if (wellTimed)
         {
-            if (!other.gameObject == gameObject && other.TryGetComponent<Character>(out Character character))
+            GiveInvulnerability(0.75f);
+            Time.timeScale = 0.25f;
+        }
+        int attackDirection;
+        Vector3 dodgeDirection;
+
+        if (attacker)
+        {
+
+            attacker.SetDodged();
+            Vector3 toAttacker = attacker.transform.position - transform.position;
+
+            Vector3 direction = PlayerController.instance.GetMovementDirection();
+
+            if (direction.magnitude < 0.01f) // If inputting in direction
             {
-                Debug.Log(character);
-                Vector3 direction = other.transform.position - transform.position;
-                float angleToTarget = Vector3.Angle(transform.forward, direction);
+                attackDirection = 0; // Backwards
+            }
+            else
+            {
+                float angle = Vector3.SignedAngle(direction, toAttacker, Vector3.up);
 
-                if (angleToTarget <= angle) // If in valid range
+                if (angle <= 0 && angle > -135)
                 {
-                    float modifier = 1 + angleToTarget / angle;
-                    float score = direction.magnitude * modifier;
-
-                    if (score < mostDirectValue)
-                    {
-                        mostDirectValue = score;
-                        closest = other.gameObject;
-                    }
+                    attackDirection = -1; // Left
+                }
+                else if (angle > 0 && angle < 135)
+                {
+                    attackDirection = 1; // Right
+                }
+                else
+                {
+                    attackDirection = 0;
                 }
             }
+
+            if (attackDirection == 0) // Dodge backwards
+            {
+                dodgeDirection = -toAttacker.normalized;
+            }
+            else if (attackDirection == -1)
+            {
+                dodgeDirection = Quaternion.AngleAxis(90f, Vector3.up) * toAttacker.normalized;
+            }
+            else
+            {
+                dodgeDirection = Quaternion.AngleAxis(-90f, Vector3.up) * toAttacker.normalized;
+            }
+        }
+        else
+        {
+            dodgeDirection = -transform.forward.normalized;
         }
 
-        if (closest == null)
-        {
-            yield return new WaitForSeconds(time);
-            yield break;
-        }
 
-        float timeBegan = Time.time;
-        Vector3 turnDirection = closest.transform.position - transform.position;
-        turnDirection.y = 0;
-        turnDirection = turnDirection.normalized;
+        targetTweenPosition = transform.position + dodgeDirection * dodgeRange;
+        Vector3 lookBackDir = (targetTweenPosition - transform.position).normalized;
+        lookBackDir.y = 0;
 
-        while (Time.time - timeBegan <= time)
+        bool moving = true;
+
+        GetComponent<CharacterController>().enabled = false;
+        transform.DOMove(targetTweenPosition, 0.5f).OnComplete(() => moving = false);
+        while (moving)
         {
-            transform.forward = Vector3.Lerp(transform.forward, turnDirection, Time.deltaTime / time);
             yield return null;
         }
+        transform.position = targetTweenPosition;
+        GetComponent<CharacterController>().enabled = true;
+
+        velocity = Vector3.zero;
+        Time.timeScale = 1;
+        PlayerController.instance.SetAllowMovement(true);
+        attackState = AttackState.Neutral;
+
+        StartCoroutine(HandleAfterDodge(inputTime));
+    }
+
+    public IEnumerator HandleAfterDodge(float inputTime)
+    {
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < inputTime && inCounter)
+        {
+            yield return null;
+        }
+        dodging = false;
     }
 }

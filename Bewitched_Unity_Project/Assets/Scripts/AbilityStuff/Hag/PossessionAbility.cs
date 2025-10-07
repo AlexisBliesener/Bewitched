@@ -278,8 +278,8 @@ public class PossessionAbility : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         if (target)
         {
-            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
             currentPossessableEnemy.SetControlled(true);
+            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
 
             // Possession smoke VFX
             if(smokeCloudVFX != null)
@@ -295,6 +295,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+
         }
         else
         {
@@ -376,8 +377,8 @@ public class PossessionAbility : MonoBehaviour
             PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
-                Vector3 playerForward = currentCharacter.transform.forward;
-                Vector3 toCharacter = character.transform.position - currentCharacter.transform.position;
+                Vector3 playerForward = new Vector3( currentCharacter.transform.forward.x, 0, currentCharacter.transform.forward.z);
+                Vector3 toCharacter = new Vector3( character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
 
                 playerForward = playerForward.normalized;
                 toCharacter = toCharacter.normalized;
@@ -499,6 +500,13 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
 
+        if(currentCharacter.GetComponent<CharacterController>() != null )
+        {
+            currentCharacter.GetComponent<CharacterController>().enabled = true;
+        }
+
+        PlayerController.instance.SetAllowMovement(true);
+
         if (possessionCollider != null)
         {
             possessionCollider.SetCurrentCharacter(currentCharacter);
@@ -507,5 +515,39 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("The possession collider is not found!");
         }
+    }
+    
+    /// <summary>
+    /// Gets the base cool down time for possession
+    /// </summary>
+    public float GetCooldown()
+    {
+        return possessionCooldown;
+    }
+    
+    /// <summary>
+    /// Sets the time for the cool down in seconds
+    /// </summary>
+    /// <param name="newTime">The new cool down time</param>
+    public void SetCooldown(float newTime)
+    {
+        possessionCooldown =  Mathf.Max(0.1f, newTime); // never negative or zero;
+    }
+    
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetFocusTime()
+    {
+        return timeToFocus;
+    }
+    
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 }
