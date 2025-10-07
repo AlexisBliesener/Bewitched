@@ -172,8 +172,6 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeApproach()
     {
-        Debug.Log("Approaching");
-
         attackState = AttackState.Approaching;
 
         if (lockedCharacter)
@@ -223,8 +221,6 @@ public class Goblin : Enemy
             Destroy(attackIndicator);
         }
         attackIndicator = null;
-
-        Debug.Log("Not Approaching");
 
         attackStateCoroutine = StartCoroutine(HandleStab());
         yield break;
@@ -884,7 +880,6 @@ public class Goblin : Enemy
         {
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
             {
-                Debug.Log("Not close enough");
                 aiState = AIMovementState.Surrounding;
                 if (currentPlayer.TryGetComponent(out SurroundingPoints points))
                 {
