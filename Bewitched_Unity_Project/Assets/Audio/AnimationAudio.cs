@@ -28,7 +28,7 @@ public class AnimationAudio : MonoBehaviour
     bool possessed{get{ return (character is Enemy) && (character as Enemy).IsPlayerControlling(); }}
     EVENT_CALLBACK destroyCallback;
 
-    void Awake()
+    void Start()
     {
         destroyCallback = new EVENT_CALLBACK(AnimationEventDestroyCallback);
         animEvents = new();
