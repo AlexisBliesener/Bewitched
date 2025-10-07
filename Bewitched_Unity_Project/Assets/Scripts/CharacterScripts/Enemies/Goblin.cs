@@ -73,13 +73,14 @@ public class Goblin : Enemy
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
 
+    [Tooltip("Goblin animator script that controls the goblin animations")]
+    private GoblinAnimator animator;
+
     //The sound effect for the spin attack
     //FMOD Event for idle sound effects
     EventInstance idleAudio;
 
     private int numDeflections = 0;
-
-    private GoblinAnimator animator;
 
     private void Start()
     {

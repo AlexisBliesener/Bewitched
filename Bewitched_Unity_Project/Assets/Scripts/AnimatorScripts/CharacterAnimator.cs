@@ -29,7 +29,7 @@ public class CharacterAnimator : MonoBehaviour
     };
 
     [Tooltip("The current animation state of the character")]
-    public string currentAnimationState = "Idle";
+    protected string currentAnimationState = "Idle";
     [Tooltip("Whether the animation state can change right now")]
     protected bool canChange = true;
     [Tooltip("Holds the current animator state info")]
@@ -68,6 +68,11 @@ public class CharacterAnimator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets if the character needs to move to start the primary attack
+    /// Sets bool that activtes the windup state of the primary attack animation
+    /// </summary>
+    /// <param name="val">The value to set if primary attack movement is needed</param>
     public void SetPrimaryMovementNeeded(bool val)
     {
         animator.SetBool("PrimaryMovementNeeded", val);

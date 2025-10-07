@@ -173,7 +173,7 @@ public abstract class Character : MonoBehaviour
     }
 
     [Tooltip("The attack state")]
-    public AttackState attackState;
+    protected AttackState attackState;
 
     #region Saving/Loading
 
@@ -303,16 +303,30 @@ public abstract class Character : MonoBehaviour
         return exploreCam;
     }
 
+    /// <summary>
+    /// Gets the current step this character is in in their primary attack combo
+    /// -1 represents not in combo
+    /// </summary>
+    /// <returns>Step in combo</returns>
     public int GetCurrentPrimaryComboStep()
     {
         return currentPrimaryComboStep;
     }
 
+    /// <summary>
+    /// Returns the time that this character last used their primary attack
+    /// </summary>
+    /// <returns>Last time primary attack was used</returns>
     public float GetTimeLastPrimary()
     {
         return timeLastPrimary;
     }
 
+    /// <summary>
+    /// Returns an array of floats representing the time the combo will wait till reseting
+    /// Each value in the array corresponds to a step in the combo attack
+    /// </summary>
+    /// <returns>This characters time till reset on each primary combo step</returns>
     public float[] GetPrimaryComboResetTime()
     {
         return primaryComboResetTime;
@@ -499,21 +513,27 @@ public abstract class Character : MonoBehaviour
         return secondaryCooldown - (Time.time - timeLastSecondary);
     }
 
+    /// <summary>
+    /// Virtual function that is called on any characters primary attack started
+    /// </summary>
     public virtual void PrimaryAttack()
     {
     }
-
+    
+    /// <summary>
+    /// Virutal function that is called on any characters secondary attack started
+    /// </summary>
     public virtual void SecondaryAttack()
     {
     }
 
+    /// <summary>
+    /// Resets the primary combo of this character back to in an inactive state (-1)
+    /// </summary>
     public void ResetPrimaryComboStep()
-    {
-        Debug.Log("Resting the combo step");
+    { 
         currentPrimaryComboStep = -1;
         characterAnimator.SetPrimaryComboEnded();
-
-        // primaryCoolDownStart = Time.time;
     }
 
     public virtual IEnumerator BeginPrimary()
