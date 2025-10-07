@@ -73,8 +73,10 @@ public class Goblin : Enemy
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
 
+    [Tooltip("Goblin animator script that controls the goblin animations")]
+    private GoblinAnimator animator;
+
     //The sound effect for the spin attack
-    EventInstance secondaryAudio;
     //FMOD Event for idle sound effects
     EventInstance idleAudio;
 
@@ -82,6 +84,8 @@ public class Goblin : Enemy
 
     private void Start()
     {
+        animator = GetComponentInChildren<GoblinAnimator>();
+        primaryComboSteps = 3;
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
@@ -97,43 +101,28 @@ public class Goblin : Enemy
         agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
-    protected override void FixedUpdate()
+    protected void FixedUpdate()
     {
-        base.FixedUpdate();
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();
-    }
 
-    public override IEnumerator BeginPrimary()
-    {
-        if (gameObject != null)
+        if(playerControlling)
         {
-            if (currentPrimaryComboStep == 0 || (Time.time - timeLastPrimary <= primaryComboResetTime[currentPrimaryComboStep] && Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] && currentPrimaryComboStep < primaryComboSteps))
-            { 
-                timeLastPrimary = Time.time;
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+        }
 
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-
-                if(currentPrimaryComboStep == 0)
-                {
-                    Debug.Log("full attack");
-                    PrimaryAttack();
-                }
-                else
-                {
-                    Debug.Log("in combo attack");
-                    attackStateCoroutine = StartCoroutine(HandleStab());
-                }
-                currentPrimaryComboStep += 1;
-            }
-            else
-            {
-                Debug.Log("reseting");
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
-            }
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        {
+            animator.SetPrimaryMovementNeeded(true);
+        }
+        else
+        {
+            animator.SetPrimaryMovementNeeded(false);
         }
     }
 
@@ -143,11 +132,9 @@ public class Goblin : Enemy
         if (playerControlling)
         {
             PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
         {
-            lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
             attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -162,7 +149,41 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
-        attackStateCoroutine = StartCoroutine(KnifeWindup());
+
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        {
+            attackStateCoroutine = StartCoroutine(KnifeWindup());
+        }
+        else
+        {
+            attackStateCoroutine = StartCoroutine(HandleStab());
+        }
+        
+    }
+
+    /// <summary>
+    /// Starts the windup for the knife
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator KnifeWindup()
+    {
+        inCounter = false;
+        attackState = AttackState.Windup;
+        float timeStarted = Time.time;
+        // For now wait 0.25 seconds, in future wait for animation trigger
+        // Strider 9/30/25: moved this to a variable, need to adjust
+        while (Time.time - timeStarted < windupTime)
+        {
+            if (lockedCharacter)
+            {
+                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+            }
+            yield return null;
+        }
+        attackStateCoroutine = StartCoroutine(KnifeApproach());
     }
 
     /// <summary>
@@ -217,40 +238,10 @@ public class Goblin : Enemy
             GetComponent<CharacterController>().enabled = true;
         }
 
-        if (attackIndicator != null)
-        {
-            Destroy(attackIndicator);
-        }
-        attackIndicator = null;
+        DestoryAttackIndicator();
 
         attackStateCoroutine = StartCoroutine(HandleStab());
         yield break;
-    }
-
-    /// <summary>
-    /// Starts the windup for the knife
-    /// </summary>
-    /// <returns> Time </returns>
-    public IEnumerator KnifeWindup()
-    {
-        inCounter = false;
-        attackState = AttackState.Windup;
-        float timeStarted = Time.time;
-        // For now wait 0.25 seconds, in future wait for animation trigger
-        // Strider 9/30/25: moved this to a variable, need to adjust
-        while (Time.time - timeStarted < windupTime)
-        {
-            if (lockedCharacter)
-            {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
-                direc.y = 0;
-                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
-            }
-            SetMovementValues(false);
-            yield return null;
-        }
-        attackStateCoroutine = StartCoroutine(KnifeApproach());
     }
 
     /// <summary>
@@ -263,6 +254,7 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        if(!playerControlling) { currentPrimaryComboStep = 0; }
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: knifeDuration);
 
         float hitboxStartTime = Time.time;
@@ -270,17 +262,6 @@ public class Goblin : Enemy
         {
             SetMovementValues(false);
             yield return null;
-        }
-
-        //Sound Effect
-        if (AudioManager.TryGetReference("GoblinPrimary", out EventReference evRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            if (currentPrimaryComboStep == 3) ev.setParameterByNameWithLabel("FinalHit", "True");
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.start();
-            ev.release();
         }
 
         if (!hitCharacter) // If missed, vulnerable for half a second
@@ -304,17 +285,6 @@ public class Goblin : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
-    }
-
-    public override IEnumerator BeginSecondary()
-    {
-
-        if (gameObject)
-        {
-            SecondaryAttack();
-
-        }
-        yield break;
     }
 
     /// <summary>
@@ -814,7 +784,6 @@ public class Goblin : Enemy
     /// </summary>
     public override void Chase()
     {
-
         StopIdleAudio();
         lookAtPlayer = false;
 
@@ -832,7 +801,6 @@ public class Goblin : Enemy
         {
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
             {
-                Debug.Log("Not close enough");
                 aiState = AIMovementState.Surrounding;
                 if (currentPlayer.TryGetComponent(out SurroundingPoints points))
                 {
@@ -1021,10 +989,6 @@ public class Goblin : Enemy
     public override void Die()
     {
         //Stopping any playing sound effects on death.
-        if (secondaryAudio.isValid())
-        {
-            secondaryAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        }
         if (idleAudio.isValid())
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
@@ -1043,11 +1007,6 @@ public class Goblin : Enemy
     /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
-
-        if (secondaryAudio.isValid())
-        {
-            secondaryAudio.setParameterByNameWithLabel("End", "True");
-        }
         base.SetControlled(val);
     }
 

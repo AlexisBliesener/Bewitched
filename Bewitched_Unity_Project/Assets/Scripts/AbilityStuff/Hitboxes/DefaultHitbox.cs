@@ -198,8 +198,7 @@ public class DefaultHitbox : MonoBehaviour
                         Debug.LogWarning("HitVFX is not assigned!");
                     }
 
-                    AddStatusEffects(character);
-                    AddToHit(character);
+                    
                     //Hit sound effect implementation. Implement unique hit type later
                     string soundEffectKey = character.health.IsDead? "Death" : "Hit";
                     if (AudioManager.TryGetReference(soundEffectKey, out EventReference evRef))
@@ -210,6 +209,9 @@ public class DefaultHitbox : MonoBehaviour
                         inst.release();
                     }
                     else Debug.LogError("Could not find a valid hit/death event. Is it assigned in the refSheet?");
+
+                    AddStatusEffects(character);
+                    AddToHit(character);
 
                     foreach (DefaultHitbox hitbox in children)
                     {

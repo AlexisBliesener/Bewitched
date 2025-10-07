@@ -5,7 +5,10 @@ using System;
 /// This has to be attached to an enemy 
 /// </summary>
 public class EnemyHealth : HealthController
-{   
+{
+    [Header("Debug")]
+    [SerializeField, Tooltip("Immediately kill this enemy")]
+    bool kill;
     /// <summary>
     /// Override to show mini health bar when damaged by player
     /// </summary>
@@ -26,5 +29,13 @@ public class EnemyHealth : HealthController
             ShowMiniHealthBar(true, GetCharacter());
         }
     }
-
+    //This is used to force an enemy to die when toggling the kill bool in the inspector
+    void OnValidate()
+    {
+        if (kill == true)
+        {
+            kill = false;
+            SetCurrentHealth(0);
+        }
+    }
 }

@@ -395,7 +395,6 @@ public class PossessionAbility : MonoBehaviour
                     RaycastHit hitInfo;
                     if (Physics.Raycast(possessionRay, out hitInfo, currentPossesionDistance, possessionMask))
                     {
-                        Debug.Log("hitinfor " + hitInfo.collider.name);
                         if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
                         {
                             distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));
@@ -495,6 +494,7 @@ public class PossessionAbility : MonoBehaviour
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;
         }
+
         timePossessionLastLeft = Time.time;
         currentCharacter = newCharacter;
         currentCharacter.ActivateSurroundingPoints();

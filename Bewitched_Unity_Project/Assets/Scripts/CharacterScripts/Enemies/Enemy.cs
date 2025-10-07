@@ -34,6 +34,9 @@ public abstract class Enemy : Character
     [Tooltip("Distance from point an enemy must reach before switching to surround")]
     [SerializeField] protected float chaseToSurroundingRadius = 1;
 
+    [SerializeField, Tooltip("If the player is further than distance away from the target the player will move towards it before attacking")]
+    protected float moveToTargetDistance;
+
     [Tooltip("Sight Range")]
     public float sightRange;
 
@@ -149,6 +152,19 @@ public abstract class Enemy : Character
 
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
+    
+    /// <summary>
+    /// Destorys the enemies attack indicator if it is active
+    /// </summary>
+    public void DestoryAttackIndicator()
+    {
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+    }
+
 
     /// <summary>
     /// Function for handling movement
@@ -297,7 +313,7 @@ public abstract class Enemy : Character
 
         if (val)
         {
-            if (attackIndicator) Destroy(attackIndicator);
+            DestoryAttackIndicator();
             lockedCharacter = null;
             attackingPrimary = false;
             attackingSecondary = false;

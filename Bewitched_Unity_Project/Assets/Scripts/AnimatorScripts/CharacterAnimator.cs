@@ -57,7 +57,6 @@ public class CharacterAnimator : MonoBehaviour
 
         // Track current animator state
         stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-      //  UpdateCurrentStateFromAnimator();
 
         // Idle/run switching
         if (characterController != null)
@@ -70,15 +69,26 @@ public class CharacterAnimator : MonoBehaviour
     }
 
     /// <summary>
+    /// Sets if the character needs to move to start the primary attack
+    /// Sets bool that activtes the windup state of the primary attack animation
+    /// </summary>
+    /// <param name="val">The value to set if primary attack movement is needed</param>
+    public void SetPrimaryMovementNeeded(bool val)
+    {
+        animator.SetBool("PrimaryMovementNeeded", val);
+    }
+
+    /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentPrimaryComboStep != 0 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
         {
-            currentPrimaryComboStep = 0;
-            SetPrimaryComboEnded();
+            character.ResetPrimaryComboStep();
         }
+
+        animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
     }
@@ -93,7 +103,7 @@ public class CharacterAnimator : MonoBehaviour
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
 
-        if (!NotInPrimary() && newState == "PrimaryAttack")
+        if (newState == "PrimaryAttack")
         {
             animator.SetTrigger("PrimaryAttack");
         }
@@ -136,19 +146,6 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 break;
         }
-    }
-
-    /// <summary>
-    /// Updates currentAnimationState based on the animator’s active state.
-    /// </summary>
-    protected virtual void UpdateCurrentStateFromAnimator()
-    {
-        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
-        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("PrimaryAttack")) currentAnimationState = "PrimaryAttack";
-        else if (stateInfo.IsName("SecondaryAttack")) currentAnimationState = "SecondaryAttack";
-        else if (stateInfo.IsName("Jump")) currentAnimationState = "Jump";
-        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
     }
 
     /// <summary>
