@@ -125,6 +125,7 @@ MonoBehaviour:
   attackEffects: []
   effectJSONs: []
   attackIndicatorPrefab: {fileID: 5268847967852326968, guid: f9010be385ea18341b16aa0fb2416a56, type: 3}
+  attackState: 0
   agent: {fileID: 5347660582151986861}
   minStopDistance: 1.5
   pathfindingPriority: 3
@@ -165,6 +166,7 @@ MonoBehaviour:
   - 20
   - 23
   - 25
+  knifeDuration: 0.25
   knifeEffects:
   - {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
   - {fileID: 672220797181763766, guid: 5433252113d5dd542bdc29cc7db78541, type: 3}
@@ -508,19 +510,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3793303663069982804, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.47636318
+      value: 0.48051006
       objectReference: {fileID: 0}
     - target: {fileID: 3793303663069982804, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.0473534
+      value: 0.047765628
       objectReference: {fileID: 0}
     - target: {fileID: 3793303663069982804, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.833195
+      value: -0.84044814
       objectReference: {fileID: 0}
     - target: {fileID: 3793303663069982804, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.2437952
+      value: 0.24591751
       objectReference: {fileID: 0}
     - target: {fileID: 4552255023300113830, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_Lens.FieldOfView
@@ -1888,7 +1890,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eventsPlaying: []
-  character: {fileID: 0}
+  character: {fileID: 6169657856336344411}
 --- !u!4 &7881905517430963790 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
