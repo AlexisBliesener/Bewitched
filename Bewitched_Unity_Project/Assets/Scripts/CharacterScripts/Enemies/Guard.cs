@@ -71,16 +71,6 @@ public class Guard : Enemy
     {
         currentPlayer = playerController.GetCurrentCharacter();
         HandleHitStun();
-        if (!playerControlling)
-        {
-            SetRangeChecks();
-            SetBehavior();
-            agent.speed = movementSpeed;
-        }
-        else
-        {
-            ChargeShieldBash();
-        }
     }
 
     public override void PrimaryAttack()

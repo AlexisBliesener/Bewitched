@@ -135,6 +135,8 @@ public class Hag : Character
         PlayerController.instance.gameObject.SetActive(false);
         //Wait until the sound effect is over before returning to the main menu
         Invoke("Die", 12f);
+        if (hitStunActual != null) Destroy(hitStunActual);
+        if (attackIndicator != null) Destroy(attackIndicator);
     }
 
     public override void Die()

@@ -14,7 +14,7 @@ using Unity.AI.Navigation;
 public class PlayerController : MonoBehaviour
 {
     public delegate void PlayerControlHandler(Character character);
-    public static PlayerController instance { get; private set; }
+    public static PlayerController instance { get; protected set; }
 
     [Header("Layer Masks")]
     [SerializeField, Tooltip("A layer mask that contains only the enemy layer")]
@@ -404,7 +404,7 @@ public class PlayerController : MonoBehaviour
         return currentCharacter;
     }
 
-    public void SetAllowMovement(bool val)
+    public virtual void SetAllowMovement(bool val)
     {
         allowMovement = val;
     }

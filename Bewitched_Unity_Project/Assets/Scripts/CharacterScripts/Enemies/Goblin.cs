@@ -17,6 +17,8 @@ public class Goblin : Enemy
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };
+    [Tooltip("Knife duration")]
+    [SerializeField] float knifeDuration = 0.25f;
     [Tooltip("Knife Effects")]
     [SerializeField] AttackStatusEffects[] knifeEffects;
     [Tooltip("Dash Hitbox")]
@@ -45,7 +47,7 @@ public class Goblin : Enemy
     [Tooltip("Distance dropoff per bounce")]
     [SerializeField] float spinDistanceDropoff = 2.5f;
     [Tooltip("Spin Duration")]
-    [SerializeField] float spinDuration = 5;
+    [SerializeField] float spinDuration = 10;
     [Tooltip("Spin Speed")]
     [SerializeField] float spinSpeed = 15;
     [Tooltip("Spin Rotational Speed")]
@@ -70,9 +72,6 @@ public class Goblin : Enemy
     [SerializeField] float maxPatrolDistance = 5;
     [Tooltip("Range the Goblin can communicate with other Goblins")]
     [SerializeField] float communicationRange = 8;
-
-    [Tooltip("Previous spinning velocity (used for determining if we have deflected when speeding up")]
-    private Vector3 prevSpinVelocity = Vector3.zero;
 
     //The sound effect for the spin attack
     //FMOD Event for idle sound effects
@@ -231,6 +230,8 @@ public class Goblin : Enemy
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
+                SetMovementValues(false);
+                GetComponent<CharacterController>().enabled = false;
                 yield return null;
             }
             transform.position = targetPos;
@@ -253,22 +254,24 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: 0.25f);
+        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: knifeDuration);
 
-        yield return new WaitForSeconds(0.25f);
+        float hitboxStartTime = Time.time;
+        while (Time.time - hitboxStartTime < 0.25f)
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
 
         if (!hitCharacter) // If missed, vulnerable for half a second
         {
             yield return new WaitForSeconds(0.5f);
         }
 
-        if (!playerControlling)
-        {
-            aiState = AIMovementState.Retreating;
-            attackState = AttackState.Neutral;
-            pathState = PathState.Unset;
-        }
-        else PlayerController.instance.SetAllowMovement(true);
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
 
         if (lockedCharacter)
         {
@@ -281,23 +284,6 @@ public class Goblin : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
-    }
-
-    /// <summary>
-    /// Starts a counterattack from a certain attack name
-    /// </summary>
-    /// <param name="attackName"> Name of attack to activate </param>
-    /// <returns> Time </returns>
-    public IEnumerator StartCounterAttack(string attackName)
-    {
-        while (dodging)
-        {
-            yield return null;
-        }
-        if (attackName == "Spin")
-        {
-            attackStateCoroutine = StartCoroutine(SpinWindup());
-        }
     }
 
     /// <summary>
@@ -328,28 +314,7 @@ public class Goblin : Enemy
             }
         }
 
-        if (dodging && !inCounter)
-        {
-            // Do spin
-            inCounter = true;
-            StartCoroutine(StartCounterAttack("Spin"));
-        }
-        else if (!dodging)
-        {
-            if (playerControlling)
-            {
-                bool wellTimed = false;
-                if (PlayerController.instance.GetCounterAvailable() != null) wellTimed = true;
-
-                PlayerController.instance.SetAllowMovement(false);
-                attackStateCoroutine = StartCoroutine(Dodge(wellTimed, PlayerController.instance.GetCounterAvailable(), spinDodgeDistance, spinDodgeInputTime));
-                timeLastDodge = Time.time;
-            }
-            else
-            {
-                attackStateCoroutine = StartCoroutine(SpinWindup());
-            }
-        }
+        attackStateCoroutine = StartCoroutine(SpinWindup());
     }
 
     /// <summary>
@@ -399,8 +364,6 @@ public class Goblin : Enemy
         attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance, spinRotationalSpeed));
     }
 
-
-
     /// <summary>
     /// Handles the spinning attack itself
     /// </summary>
@@ -419,14 +382,13 @@ public class Goblin : Enemy
             attackingSecondary = false;
             timeLastSecondary = Time.time;
 
-            if (!playerControlling) aiState = AIMovementState.Chasing;
-            else PlayerController.instance.SetAllowMovement(true);
+            SetMovementValues(true);
 
             attackStateCoroutine = null;
             yield break;
         }
 
-        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+        SetMovementValues(false);
 
         float rotationalSpeed = 0;
         Vector3 desiredVelocity;
@@ -434,7 +396,8 @@ public class Goblin : Enemy
         Debug.Log(direction);
         bool slowTime = false;
 
-        GameObject hitbox = null;
+        GameObject hitbox = Instantiate(spinHitbox, transform);
+        hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: spinDuration);
 
         if (direction == Vector3.zero) // If first use, set desiredVelocity alone and have AI pause
         {
@@ -442,15 +405,12 @@ public class Goblin : Enemy
 
             if (lockedCharacter)
             {
-                Debug.Log(lockedCharacter);
                 desiredVelocity = (lockedCharacter.transform.position - transform.position).normalized;
             }
             else
             {
                 desiredVelocity = transform.forward.normalized;
             }
-            hitbox = Instantiate(spinHitbox, transform);
-            hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: 10);
         }
         else // If deflecting slow time for a period to give reaction time
         {
@@ -502,20 +462,12 @@ public class Goblin : Enemy
             }
 
             timeSinceBegan += Time.deltaTime;
-            if (playerControlling) PlayerController.instance.SetAllowMovement(false); // Helps if player possesses enemy mid-attack
+            SetMovementValues(false); // Helps if player possesses enemy mid-attack
 
             if (velocity.magnitude < spinSpeed) // If still accelerating
             {
                 velocity = Vector3.Lerp(velocity, desiredVelocity, timeSinceBegan / accelerationTime);
                 rotationalVelocity = Mathf.Lerp(rotationalVelocity, desiredRotation, timeSinceBegan / accelerationTime);
-            }
-            else
-            {
-                if (hitbox == null) // If reached top speed create hitbox
-                {
-                    hitbox = Instantiate(spinHitbox, transform);
-                    hitbox.GetComponent<DeflectingHitbox>().Init(this, dmg: spinDamage, status: spinEffects, attackDuration: 10);
-                }
             }
 
             float currentMagnitude = velocity.magnitude; // Set magnitude before adding drift
@@ -582,8 +534,7 @@ public class Goblin : Enemy
         attackingSecondary = false;
         timeLastSecondary = Time.time;
 
-        if (!playerControlling) aiState = AIMovementState.Chasing;
-        else PlayerController.instance.SetAllowMovement(true);
+        SetMovementValues(true);
         attackStateCoroutine = null;
     }
 
@@ -595,6 +546,8 @@ public class Goblin : Enemy
     {
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
+
+        Debug.Log(aiState);
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
@@ -896,9 +849,11 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-
+        Debug.Log(pathState);
+        Debug.Log(currentPath);
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
+            Debug.Log("Moving: " + gameObject);
             AIMove();
             if (debugging)
             {
@@ -984,6 +939,7 @@ public class Goblin : Enemy
             Destroy(caller.gameObject);
         }
         velocity = Vector3.zero; // Zero out velocity to instantly change directions
+        Destroy(caller.gameObject);
     }
 
     /// <summary>
