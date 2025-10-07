@@ -76,7 +76,7 @@ public class Guard : Enemy
     private List<Vector3> patrolPoints = new List<Vector3>();
 
     [Tooltip("Editor gameobjects for visually moving points")]
-    private List<GameObject> patrolObjs = new List<GameObject>();
+    [SerializeField] List<GameObject> patrolObjs = new List<GameObject>();
 
     #region Menu Functions
 
@@ -130,6 +130,7 @@ public class Guard : Enemy
             Vector3 point = patrolObjs[i].transform.position;
             point.y -= 1;
             patrolPoints.Add(point);
+            Debug.Log(point);
         }
     }
 
@@ -395,6 +396,7 @@ public class Guard : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
+        Debug.Log(patrolPoints.Count);
         walkPoint = patrolPoints[targetPointIndex];
 
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
