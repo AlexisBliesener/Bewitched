@@ -397,8 +397,8 @@ public class Guard : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
+        Debug.Log(targetPointIndex);
         walkPoint = patrolPoints[targetPointIndex];
-
         Debug.Log(walkPoint);
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
@@ -496,5 +496,98 @@ public class Guard : Enemy
         // Alert nearby Goblins of player
 
         inProcess = false;
+    }
+
+    /// <summary>
+    /// Chase function for the Guard - should set paths that focus on surrounding the player
+    /// </summary>
+    public override void Chase()
+    {
+        lookAtPlayer = false;
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
+        }
+        AILook();
+
+        if (currentPath != null)
+        {
+            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
+            {
+                aiState = AIMovementState.Surrounding;
+                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
+                {
+                    points.AddSurroundingEnemy(this);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Function handling tasks when surrounding
+    /// </summary>
+    public void Surround()
+    {
+        lookAtPlayer = true;
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            {
+                AIMove();
+                if (debugging)
+                {
+                    UpdatePath(false);
+                }
+            }
+        }
+        AILook();
+
+        if (currentPath != null)
+        {
+            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) > surroundingToChaseRadius) // If within a meter and a half of surrounding radius
+            {
+                aiState = AIMovementState.Chasing;
+                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
+                {
+                    points.RemoveSurroundingEnemy(this);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Retreat from close distance, get back to surrounding
+    /// </summary>
+    public void Retreat()
+    {
+        lookAtPlayer = true;
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            AIMove();
+            if (debugging)
+            {
+                UpdatePath(false);
+            }
+        }
+        AILook();
+
+        if (currentPath != null)
+        {
+            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
+            {
+                aiState = AIMovementState.Surrounding;
+                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
+                {
+                    points.AddSurroundingEnemy(this);
+                }
+            }
+        }
     }
 }
