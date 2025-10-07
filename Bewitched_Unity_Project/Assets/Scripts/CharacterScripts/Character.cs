@@ -449,7 +449,7 @@ public abstract class Character : MonoBehaviour
     {
         if (duration > 0)
         {
-            hitStunActual = Instantiate(hitStunPrefab, transform);
+            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
@@ -469,7 +469,8 @@ public abstract class Character : MonoBehaviour
             }
             PlayerController.instance.SetAllowMovement(true);
             stunned = false;
-            Destroy(hitStunActual); hitStunActual = null;
+            Destroy(hitStunActual);
+            hitStunActual = null;
         }
     }
 
