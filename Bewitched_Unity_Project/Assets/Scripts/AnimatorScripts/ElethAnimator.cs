@@ -68,16 +68,7 @@ public class ElethAnimator : CharacterAnimator
         base.Update();
     }
 
-    /// <summary>
-    /// Updates currentAnimationState based on the animator’s active state.
-    /// </summary>
-    protected override void UpdateCurrentStateFromAnimator()
-    {
-        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
-        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("Possession")) currentAnimationState = "Possession";
-        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
-    }
+
 
     /// <summary>
     /// Resets all animator triggers
