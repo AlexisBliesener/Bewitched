@@ -164,6 +164,9 @@ public class Guard : Enemy
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
+
+        targetPointIndex = 0;
+        outGoing = false;
     }
 
     // Update is called once per frame
@@ -354,7 +357,6 @@ public class Guard : Enemy
     /// </summary>
     public override void Patrol()
     {
-        Debug.Log("Patrolling");
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
@@ -373,7 +375,6 @@ public class Guard : Enemy
 
         if (pathState == PathState.Set)
         {
-            Debug.Log(currentPath.GetDestinationPosition(gameObject));
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
                 pathState = PathState.Unset;
@@ -409,22 +410,18 @@ public class Guard : Enemy
     /// <returns> True if reachable </returns>
     public override bool ValidatePoint()
     {
-        Debug.Log("Validate point");
         if (currentPath == null)
         {
-            Debug.Log("No path");
             pathState = PathState.Unset;
             return false;
         }
 
         if (!currentPath.PathComplete())
         {
-            Debug.Log("Path incomplete");
             pathState = PathState.Unset;
             return false;
         }
 
-        Debug.Log("Valid");
         pathState = PathState.Set;
         return true;
     }
@@ -445,10 +442,13 @@ public class Guard : Enemy
         float timer = 0;
 
         // If we are at 0 or end of points, flip outgoing
-        if (targetPointIndex == 0 || targetPointIndex == patrolPoints.Count - 1) outGoing = !outGoing;
+        if (targetPointIndex == 0) outGoing = true;
+        else if (targetPointIndex == patrolPoints.Count - 1) outGoing = false;
 
         if (outGoing) targetPointIndex++; // If outgoing increase index
         else targetPointIndex--; // Otherwise decrease index
+
+        targetPointIndex = Mathf.Clamp(targetPointIndex, 0, patrolPoints.Count - 1);
 
         Debug.Log("Reached point, new index: " + targetPointIndex);
 
