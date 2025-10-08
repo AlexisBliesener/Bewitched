@@ -596,16 +596,7 @@ public class Guard : Enemy
 
         if (totalOdds > 0)
         {
-            float choice = Random.Range(0, totalOdds);
-            if (choice <= primaryAttackChance) // Primary attack selected
-            {
-                PrimaryAttack();
-            }
-            else
-            {
-                SecondaryAttack();
-                // Coordinate other goblin attack here
-            }
+            PrimaryAttack();
             points.RemoveSurroundingEnemy(this);
             return true;
         }

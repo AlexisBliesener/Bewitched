@@ -152,6 +152,40 @@ public abstract class Enemy : Character
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
 
+    private float lastPrimaryChance = 0;
+    private float lastSecondaryChance = 0;
+
+    /// <summary>
+    /// Handles editor validation - at the moment it normalizes attack chances
+    /// </summary>
+    private void OnValidate()
+    {
+        bool primaryChanged = !Mathf.Approximately(primaryAttackChance, lastPrimaryChance);
+        bool secondaryChanged = !Mathf.Approximately(secondaryAttackChance, lastSecondaryChance);
+
+        if (primaryChanged && !secondaryChanged)
+        {
+            primaryAttackChance = Mathf.Clamp01(primaryAttackChance);
+            secondaryAttackChance = 1f - primaryAttackChance;
+        }
+        else if (secondaryChanged && !primaryChanged)
+        {
+            secondaryAttackChance = Mathf.Clamp01(secondaryAttackChance);
+            primaryAttackChance = 1f - secondaryAttackChance;
+        }
+        else
+        {
+            float total = primaryAttackChance + secondaryAttackChance;
+            if (total == 0f) total = 1f;
+            primaryAttackChance /= total;
+            secondaryAttackChance /= total;
+        }
+
+        // Store for next frame
+        lastPrimaryChance = primaryAttackChance;
+        lastSecondaryChance = secondaryAttackChance;
+    }
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
