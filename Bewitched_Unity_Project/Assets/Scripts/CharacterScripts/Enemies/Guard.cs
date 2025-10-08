@@ -295,15 +295,15 @@ public class Guard : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            //Chase();
+            Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
-            //Surround();
+            Surround();
         }
         else if (aiState == AIMovementState.Retreating)
         {
-            //Retreat();
+            Retreat();
         }
     }
 
@@ -398,9 +398,7 @@ public class Guard : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
-        Debug.Log(targetPointIndex);
         walkPoint = patrolPoints[targetPointIndex];
-        Debug.Log(walkPoint);
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
     }
 
@@ -450,8 +448,6 @@ public class Guard : Enemy
 
         targetPointIndex = Mathf.Clamp(targetPointIndex, 0, patrolPoints.Count - 1);
 
-        Debug.Log("Reached point, new index: " + targetPointIndex);
-
         while (timer < 1) // Wait 1 second for now, will change this to be a bool checking the end of looking animation
         {
             if (LookForPlayer())
@@ -473,9 +469,8 @@ public class Guard : Enemy
     /// <summary>
     /// Coroutine that plays when the player is spotted
     /// </summary>
-    /// <param name="fromGoblin"> Whether the goblin was told where the player is </param>
     /// <returns> Waits for animation to be done </returns>
-    private IEnumerator SpotPlayer(bool fromGoblin = false)
+    private IEnumerator SpotPlayer()
     {
         aiState = AIMovementState.Chasing;
         if (debugging)
@@ -487,15 +482,8 @@ public class Guard : Enemy
 
         timePlayerLastSeen = Time.time;
 
-        // Play animation/noise that the player has been seen
-        if (!fromGoblin)
-        {
-            yield return new WaitForSeconds(0.25f);
-        }
-
-        // Alert nearby Goblins of player
-
         inProcess = false;
+        yield break;
     }
 
     /// <summary>
@@ -588,6 +576,42 @@ public class Guard : Enemy
                     points.AddSurroundingEnemy(this);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles Guard attacking chance and triggering
+    /// </summary>
+    /// <param name="points"> The points calling this function </param>
+    /// <returns> True if attacking, false otherwise </returns>
+    public override bool AttackFromSurrounding(SurroundingPoints points)
+    {
+        float totalOdds = 0;
+
+        // For now keep as just primary, once more combat is done then if being attacked it will block
+        if (CheckPrimaryUsable())
+        {
+            totalOdds += primaryAttackChance;
+        }
+
+        if (totalOdds > 0)
+        {
+            float choice = Random.Range(0, totalOdds);
+            if (choice <= primaryAttackChance) // Primary attack selected
+            {
+                PrimaryAttack();
+            }
+            else
+            {
+                SecondaryAttack();
+                // Coordinate other goblin attack here
+            }
+            points.RemoveSurroundingEnemy(this);
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }

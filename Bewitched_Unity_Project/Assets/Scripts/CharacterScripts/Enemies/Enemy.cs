@@ -55,9 +55,11 @@ public abstract class Enemy : Character
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
 
+    [Range(0f, 1f)]
     [Tooltip("Chance for AI primary attack")]
     public float primaryAttackChance = .5f;
 
+    [Range(0f, 1f)]
     [Tooltip("Chance for AI secondary attack")]
     public float secondaryAttackChance = .5f;
 
@@ -169,7 +171,8 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            velocity -= velocity.normalized * deceleration * Time.deltaTime;
+            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
+            else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
             return;
         }

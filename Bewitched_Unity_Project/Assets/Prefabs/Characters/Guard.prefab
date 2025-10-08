@@ -190,12 +190,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Guard
-  movementSpeed: 3
+  movementSpeed: 5
   approachSpeed: 7
   jumpSpeed: 0
   jumpDelay: 0
-  acceleration: 5
-  deceleration: 5
+  acceleration: 6
+  deceleration: 10
   rotationalVelocity: 240
   chaseTime: 3
   windupTime: 0.25
@@ -229,8 +229,8 @@ MonoBehaviour:
   effectJSONs: []
   attackIndicatorPrefab: {fileID: 0}
   agent: {fileID: 297698976383686993}
-  minStopDistance: 0.5
-  pathfindingPriority: 0
+  minStopDistance: 2
+  pathfindingPriority: 2
   seenBuffer: 0.5
   ground:
     serializedVersion: 2
@@ -238,9 +238,9 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  surroundingToChaseRadius: 2
-  chaseToSurroundingRadius: 1
-  sightRange: 10
+  surroundingToChaseRadius: 4
+  chaseToSurroundingRadius: 3
+  sightRange: 15
   maxSightAngle: 40
   hearingRange: 2
   patrolRange: 5
@@ -254,12 +254,12 @@ MonoBehaviour:
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: -4642130304282130039}
   playerControlling: 0
-  perfectCounterTimeMaterial: {fileID: 0}
-  defaultMaterial: {fileID: 0}
+  perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
   pathState: 0
   aiState: 0
-  lanceHandlePrefab: {fileID: 0}
-  lanceTipPrefab: {fileID: 0}
+  lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
+  lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6
   lanceHandleDamage: 20
   lanceTipDamage: 5
@@ -279,6 +279,7 @@ MonoBehaviour:
   chargingMovementSpeed: 2
   numPatrolPoints: 3
   patrolPointPrefab: {fileID: 459476383034558125, guid: 4951c2ee7e63db54fb82efb35ebd9595, type: 3}
+  patrolPoints: []
 --- !u!120 &-4642130304282130039
 LineRenderer:
   serializedVersion: 2
