@@ -312,6 +312,7 @@ public class Guard : Enemy
     /// </summary>
     public override void FindPath()
     {
+        Debug.Log("Finding path");
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
@@ -357,12 +358,6 @@ public class Guard : Enemy
     /// </summary>
     public override void Patrol()
     {
-        // Set path if there is none
-        if (pathState == PathState.Unset)
-        {
-            FindPath();
-        }
-
         // Check if player is visible
         if (LookForPlayer())
         {

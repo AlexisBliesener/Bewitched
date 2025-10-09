@@ -87,6 +87,18 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Found destination material")]
     [SerializeField] Material greenMat;
 
+    [Tooltip("Point of costly area")]
+    [SerializeField] GameObject costlyOrigin;
+
+    [Tooltip("Radius of costly area")]
+    [SerializeField] float costlyRadius = 4;
+
+    [Tooltip("Cost of costly area")]
+    [SerializeField] int costlyAreaCost = 500;
+
+    [Tooltip("Line renderer for path debugging")]
+    [SerializeField] LineRenderer lineRenderer;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -655,6 +667,18 @@ public class GraphBuilder : MonoBehaviour
     public void TestAStarSearch()
     {
         createdObjects = new List<GameObject>();
+
+        if (costlyOrigin)
+        {
+            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
+            foreach (List<int> positions in costlyNodes)
+            {
+                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(costlyAreaCost);
+            }
+        }
+
+        lineRenderer.positionCount = 0;
+
         StartCoroutine(SequentialAStar(testingEnemy, testDestinationObj.transform.position));
     }
 
@@ -697,7 +721,17 @@ public class GraphBuilder : MonoBehaviour
             numSearched++;
 
             GameObject testNode = Instantiate(testSearchedNode);
-            testNode.transform.position = current.GetPosition();
+            testNode.transform.position = current.GetPosition(enemy.gameObject);
+            testNode.transform.position = new Vector3(testNode.transform.position.x, testNode.transform.position.y + 1, testNode.transform.position.z);
+
+            float costMagnitude = current.GetCost() / 1000;
+            Renderer objRenderer = testNode.GetComponent<Renderer>();
+            objRenderer.material.color = new Color(costMagnitude, costMagnitude, costMagnitude);
+
+            Debug.Log(current.GetPosition(testingEnemy.gameObject));
+            Debug.Log(current.GetCost());
+            Debug.Log(current.GetHashCode());
+
             createdObjects.Add(testNode);
 
             if (targetNode == current) // If in range, add node to path and end
@@ -708,6 +742,15 @@ public class GraphBuilder : MonoBehaviour
                 testNode.GetComponent<MeshRenderer>().material = greenMat;
                 Debug.Log("Path found in: " + numSearched.ToString() + " nodes");
                 enemy.StartPath(false);
+
+                lineRenderer.positionCount = path.GetCornerNodes().Count;
+                lineRenderer.SetPosition(0, enemy.transform.position);
+
+                for (int i = 1; i < path.GetCornerNodes().Count; i++)
+                {
+                    lineRenderer.SetPosition(i, new Vector3(path.GetCornerNodes()[i].GetPosition().x, transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
+                }
+
                 yield return new WaitForSeconds(5);
                 enemy.DestroyPath();
                 CleanupTestWaste();
@@ -737,6 +780,7 @@ public class GraphBuilder : MonoBehaviour
                     openSet.Enqueue(neighbor, (int)fscore[neighbor.GetPosition()]);
                 }
             }
+            yield return new WaitForSecondsRealtime(0.05f);
         }
 
         CleanupTestWaste();
@@ -752,6 +796,16 @@ public class GraphBuilder : MonoBehaviour
         {
             Destroy(obj);
         }
+
+        if (costlyOrigin)
+        {
+            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
+            foreach (List<int> positions in costlyNodes)
+            {
+                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(-costlyAreaCost);
+            }
+        }
+        lineRenderer.positionCount = 0;
     }
 
     /// <summary>
@@ -771,9 +825,9 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="position"> Center of circle </param>
     /// <param name="radius"> Radius of circle </param>
     /// <returns> All nodes in the circle </returns>
-    public List<Node> GetNodesInRadius(GameObject user, float radius)
+    public List<List<int>> GetNodesInRadius(GameObject user, float radius)
     {
-        List<Node> includedNodes = new List<Node>();
+        List<List<int>> includedNodes = new List<List<int>>();
 
         int xPos = (int)(user.transform.position.x * 10);
         int zPos = (int)(user.transform.position.z * 10);
@@ -794,7 +848,11 @@ public class GraphBuilder : MonoBehaviour
 
                             if (dist.sqrMagnitude < radius)
                             {
-                                includedNodes.Add(nodeDictionary[x][z][y]);
+                                List<int> positions = new List<int>();
+                                positions.Add(x);
+                                positions.Add(z);
+                                positions.Add(y);
+                                includedNodes.Add(positions);
                             }
                         }
                     }
@@ -802,5 +860,33 @@ public class GraphBuilder : MonoBehaviour
             }
         }
         return includedNodes;
+    }
+
+    /// <summary>
+    /// Adds a cost to a node based on the node position
+    /// </summary>
+    /// <param name="position"> Position values of node </param>
+    /// <param name="cost"> Cost to add to node </param>
+    public void AddNodeCost(List<int> position, int cost)
+    {
+        nodeDictionary[position[0]][position[1]][position[2]].AddCost(cost);
+    }
+
+    /// <summary>
+    /// Resets all node costs
+    /// </summary>
+    [ContextMenu("Reset Node Costs")]
+    public void ResetAllNodes()
+    {
+        foreach (SerializableDictionary<int, SerializableDictionary<int, Node>> val1 in nodeDictionary.Values)
+        {
+            foreach (SerializableDictionary<int, Node> val2 in val1.Values)
+            {
+                foreach (Node node in val2.Values)
+                {
+                    node.ResetCost();
+                }
+            }
+        }
     }
 }

@@ -29,6 +29,13 @@ public class Node
     [Tooltip("Node separation")]
     [SerializeField] private int nodeSeparation;
 
+    /// <summary>
+    /// Sets the values for the node
+    /// </summary>
+    /// <param name="x"> X position </param>
+    /// <param name="z"> Z position </param>
+    /// <param name="nodeDistance"> Distance between other nodes </param>
+    /// <param name="y"> Y position </param>
     public void SetValues(int x, int z, int nodeDistance, int y)
     {
         xPos = x;
@@ -184,5 +191,13 @@ public class Node
     public void AddCost(int cost)
     {
         nodeCost += cost;
+    }
+
+    /// <summary>
+    /// Resets the node cost
+    /// </summary>
+    public void ResetCost()
+    {
+        nodeCost = 0;
     }
 }
