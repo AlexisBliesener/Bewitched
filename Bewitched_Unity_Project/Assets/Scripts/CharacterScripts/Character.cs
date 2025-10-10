@@ -69,8 +69,6 @@ public abstract class Character : MonoBehaviour
 
 
     [Header("Primary Combo Stats")]
-    [Tooltip("Primary Combo Steps")]
-    public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
     public float[] primaryComboResetTime;
     [Tooltip("Primary combo min time to wait to hit the next combo")]
@@ -111,7 +109,10 @@ public abstract class Character : MonoBehaviour
     protected Vector3 velocity = Vector3.zero;
     protected Vector3 velocityToMove = Vector3.zero;
 
-    protected int currentPrimaryComboStep = 0;
+    [Tooltip("The step that the character is in there primary combo, -1 to indicate the character is currently not attacking with primary")]
+    protected int currentPrimaryComboStep = -1;
+    [Tooltip("The amount of combo steps that this character has on their primary attack")]
+    protected int primaryComboSteps;
 
     [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
     private CinemachineFreeLook combatCam;
@@ -265,10 +266,6 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
-    protected virtual void FixedUpdate()
-    {
-    }
-
     /// <summary>
     /// Returns the amount of time to wait before doing a jump
     /// For animation purposes
@@ -306,16 +303,30 @@ public abstract class Character : MonoBehaviour
         return exploreCam;
     }
 
+    /// <summary>
+    /// Gets the current step this character is in in their primary attack combo
+    /// -1 represents not in combo
+    /// </summary>
+    /// <returns>Step in combo</returns>
     public int GetCurrentPrimaryComboStep()
     {
         return currentPrimaryComboStep;
     }
 
+    /// <summary>
+    /// Returns the time that this character last used their primary attack
+    /// </summary>
+    /// <returns>Last time primary attack was used</returns>
     public float GetTimeLastPrimary()
     {
         return timeLastPrimary;
     }
 
+    /// <summary>
+    /// Returns an array of floats representing the time the combo will wait till reseting
+    /// Each value in the array corresponds to a step in the combo attack
+    /// </summary>
+    /// <returns>This characters time till reset on each primary combo step</returns>
     public float[] GetPrimaryComboResetTime()
     {
         return primaryComboResetTime;
@@ -341,6 +352,9 @@ public abstract class Character : MonoBehaviour
         DeactivateSurroundingPoints();
         StopAllCoroutines();
         Die();
+        // Stop all coroutines destroy all objects too
+        if (hitStunActual != null) Destroy(hitStunActual);
+        if (attackIndicator != null) Destroy(attackIndicator);
     }
 
     /// <summary>
@@ -348,15 +362,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void AnimateDeath()
     {
-        characterAnimator.SwitchState("Death", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-    }
-
-    public virtual void PrimaryAttack()
-    {
-    }
-
-    public virtual void SecondaryAttack()
-    {
+        characterAnimator.SwitchState("Death");
     }
 
     public abstract void Die();
@@ -381,8 +387,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
-        if (!CheckPrimaryCooldown()) return false;
-        if (attackingPrimary || attackingSecondary || !characterAnimator.NotInPrimary() || stunned) return false;
+        if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
     }
@@ -437,19 +442,38 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the hitstun actions for characters
+    /// </summary>
+    /// <param name="duration"> Duration to stun for </param>
+    /// <returns> Time </returns>
     public virtual IEnumerator StartHitStun(float duration)
     {
-        hitStunActual = Instantiate(hitStunPrefab, transform);
-        stunned = true;
-        float timeStarted = Time.time;
-        while (Time.time - timeStarted < duration)
+        if (duration > 0)
         {
-            PlayerController.instance.SetAllowMovement(false);
-            yield return null;
+            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                PlayerController.instance.SetAllowMovement(false);
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+            }
+            PlayerController.instance.SetAllowMovement(true);
+            stunned = false;
+            Destroy(hitStunActual);
+            hitStunActual = null;
         }
-        PlayerController.instance.SetAllowMovement(true);
-        stunned = false;
-        Destroy(hitStunActual); hitStunActual = null;
     }
 
     public virtual void CreateHitStun()
@@ -473,7 +497,7 @@ public abstract class Character : MonoBehaviour
     }
 
     public void SetBaseStats()
-    {
+    { 
         baseMovementSpeed = movementSpeed;
         basePrimaryCooldown = primaryCooldown;
         baseSecondaryCooldown = secondaryCooldown;
@@ -489,35 +513,54 @@ public abstract class Character : MonoBehaviour
         return secondaryCooldown - (Time.time - timeLastSecondary);
     }
 
+    /// <summary>
+    /// Virtual function that is called on any characters primary attack started
+    /// </summary>
+    public virtual void PrimaryAttack()
+    {
+    }
+    
+    /// <summary>
+    /// Virutal function that is called on any characters secondary attack started
+    /// </summary>
+    public virtual void SecondaryAttack()
+    {
+    }
+
+    /// <summary>
+    /// Resets the primary combo of this character back to in an inactive state (-1)
+    /// </summary>
+    public void ResetPrimaryComboStep()
+    { 
+        currentPrimaryComboStep = -1;
+        characterAnimator.SetPrimaryComboEnded();
+    }
+
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
         {
-            if (Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
+            if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
+                currentPrimaryComboStep += 1;
+                timeLastPrimary = Time.time;
+
+                if (currentPrimaryComboStep >= primaryComboSteps)
+                {
+                    currentPrimaryComboStep = 0;
+                }
+                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+
+                PrimaryAttack();
             }
 
-            if (currentPrimaryComboStep >= primaryComboSteps)
-            {
-                currentPrimaryComboStep = 0;
-                characterAnimator.SetPrimaryComboEnded();
-            }
-
-            currentPrimaryComboStep += 1;
-
-            characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
-            yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-
-            Debug.Log("Starting Attack Function");
-            PrimaryAttack();
         }
     }
 
     public virtual IEnumerator BeginSecondary()
     {
-        characterAnimator.SwitchState("SecondaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+        characterAnimator.SwitchState("SecondaryAttack");
         yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {
@@ -788,6 +831,11 @@ public abstract class Character : MonoBehaviour
         StartCoroutine(HandleAfterDodge(inputTime));
     }
 
+    /// <summary>
+    /// Handles time to input abilities after the dodge
+    /// </summary>
+    /// <param name="inputTime"> Time range the player is able to input </param>
+    /// <returns> Time </returns>
     public IEnumerator HandleAfterDodge(float inputTime)
     {
         float timeStarted = Time.time;

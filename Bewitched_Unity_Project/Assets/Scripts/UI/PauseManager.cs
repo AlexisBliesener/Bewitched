@@ -74,7 +74,7 @@ public class PauseManager : MonoBehaviour
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
             //Audio
-            AudioManager.CloseUIAudio();
+            if(AudioManager.manager)AudioManager.CloseUIAudio();
         }
         else if (upgradeSelectionUI.activeInHierarchy)
         {

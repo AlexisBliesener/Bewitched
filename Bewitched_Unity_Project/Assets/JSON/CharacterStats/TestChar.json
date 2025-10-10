@@ -1,14 +1,19 @@
 {
     "characterName": "TestChar",
     "movementSpeed": 10.0,
+    "approachSpeed": 7.0,
     "jumpSpeed": 0.0,
     "jumpDelay": 0.0,
     "acceleration": 5.0,
     "deceleration": 5.0,
+    "rotationalVelocity": 240.0,
+    "chaseTime": 3.0,
+    "windupTime": 0.25,
     "weight": 10.0,
     "sizeRadius": 0.0,
     "numSurroundingPoints": 8,
-    "surroundingRadius": 2.0,
+    "minSurroundingRadius": 2.0,
+    "maxSurroundingRadius": 5.0,
     "teamID": 0,
     "primaryFireIcon": {
         "instanceID": 0
@@ -23,13 +28,13 @@
     },
     "attackDelay": 1.0,
     "primaryCooldown": 1.0,
-    "primaryComboExtraCooldown": 1.0,
-    "primaryComboSteps": 2,
-    "primaryComboResetTime": 0.5,
     "secondaryCooldown": 2.0,
     "primaryAttackRange": 0.0,
+    "primaryComboSteps": 2,
+    "primaryComboResetTime": [],
+    "primaryComboMinTime": [],
     "health": {
-        "instanceID": -16638
+        "instanceID": -2734448
     },
     "canPossess": true,
     "hitStunPrefab": {
@@ -51,6 +56,9 @@
     },
     "attackEffects": [],
     "effectJSONs": [],
+    "attackIndicatorPrefab": {
+        "instanceID": 0
+    },
     "dieCalled": false,
     "primaryCalled": false,
     "secondaryCalled": false,

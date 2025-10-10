@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
@@ -15,6 +16,7 @@ public class AudioManager : MonoBehaviour
     EventInstance levelMusic;
     [Tooltip("Dictionary with the snapshots active during runtime as the value and the snapshot name as the key.")]
     Dictionary<string, EventInstance> activeSnapshots;
+    Coroutine pauseCoroutine;
 
     void Awake()
     {
@@ -102,6 +104,16 @@ public class AudioManager : MonoBehaviour
         inst.start();
         inst.release();
         manager.activeSnapshots["UIOpen"] = inst;
+        manager.pauseCoroutine = manager.StartCoroutine(manager.DelayedPause(transitionTime));
+    }
+    /// <summary>
+    /// Coroutine that waits the given amount of time before pausing all in-game sound effects
+    /// </summary>
+    /// <param name="wait">The time to wait</param>
+    IEnumerator DelayedPause(float wait)
+    {
+        //Debug.LogError("TEST");
+        yield return new WaitForSecondsRealtime(wait);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(true);
     }
     /// <summary>
@@ -111,11 +123,30 @@ public class AudioManager : MonoBehaviour
     public static void CloseUIAudio(float transitionTime = 0.8f)
     {
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
+        if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
         EventInstance inst = manager.activeSnapshots["UIOpen"];
         manager.activeSnapshots.Remove("UIOpen");
         inst.setParameterByName("UITransitionOut", transitionTime);
         inst.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(false);
+    }
+    /// <summary>
+    /// Changes a float parameter in this level's music event
+    /// </summary>
+    /// <param name="param">The name of the parameter</param>
+    /// <param name="value">The value to change the parameter to</param>
+    public static void ChangeMusicParameter(string param, float value)
+    {
+        manager.levelMusic.setParameterByName(param, value);
+    }
+    /// <summary>
+    /// Changed a label parameter in this level's music event
+    /// </summary>
+    /// <param name="param">The name of the parameter</param>
+    /// <param name="value">The value to change the parameter to</param>
+    public static void ChangeMusicParameter(string param, string value)
+    {
+        manager.levelMusic.setParameterByNameWithLabel(param, value);
     }
 }
 

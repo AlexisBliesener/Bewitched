@@ -14,14 +14,13 @@ using Unity.AI.Navigation;
 public class PlayerController : MonoBehaviour
 {
     public delegate void PlayerControlHandler(Character character);
-    public static PlayerController instance { get; private set; }
+    public static PlayerController instance { get; protected set; }
 
     [Header("Layer Masks")]
     [SerializeField, Tooltip("A layer mask that contains only the enemy layer")]
     private LayerMask enemyLayerMask;
 
     [Header("Character Settings")]
-
     [Tooltip("The character being controlled currently")]
     public Character currentCharacter;
     [Tooltip("The main character body (possessor)")]
@@ -32,7 +31,6 @@ public class PlayerController : MonoBehaviour
     public Enemy lockedCharacter = null;
 
     [Header("UI Settings")]
-
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
 
@@ -212,7 +210,10 @@ public class PlayerController : MonoBehaviour
             else
             {
                 velocity = new Vector3(0, 0, 0);
-                characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
+                if(characterController.enabled)
+                {
+                    characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
+                }
             }
             currentCharacter.SetVelocity(velocity);
         }
@@ -277,8 +278,7 @@ public class PlayerController : MonoBehaviour
     public void PrimaryFire(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            Debug.Log("Primary used");
+        { 
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
@@ -404,7 +404,7 @@ public class PlayerController : MonoBehaviour
         return currentCharacter;
     }
 
-    public void SetAllowMovement(bool val)
+    public virtual void SetAllowMovement(bool val)
     {
         allowMovement = val;
     }
@@ -447,7 +447,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 10, enemyLayerMask))
+        if(Physics.SphereCast(currentCharacter.transform.position, 10f, inputDirection, out info, 10, enemyLayerMask))
         {
             if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {

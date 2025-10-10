@@ -161,7 +161,7 @@ public class UpgradeSelectionManager : MonoBehaviour
     public void CloseScreen()
     {
         //Fades in the rest of audio
-        AudioManager.CloseUIAudio(1f);
+        AudioManager.CloseUIAudio(0.8f);
         this.gameObject.SetActive(false);
     }
 }
