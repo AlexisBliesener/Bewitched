@@ -270,6 +270,7 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private IEnumerator FirePossession()
     {
+        Debug.Log( PlayerController.instance.GetCounterAvailable());
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
         if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
         {

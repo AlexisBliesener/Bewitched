@@ -548,8 +548,6 @@ public class Goblin : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
-        Debug.Log(aiState);
-
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
             Patrol();
