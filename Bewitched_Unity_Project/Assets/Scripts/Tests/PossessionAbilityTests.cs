@@ -30,7 +30,6 @@ public class PossessionAbilityTests
     GameObject possessionObj;
     MockPossssionAbility possessionAbility;
     MockHag hag;
-    CinemachineVirtualCamera cam;
 
     [UnitySetUp]
     public IEnumerator UnitySetUp()
@@ -39,12 +38,9 @@ public class PossessionAbilityTests
         possessionAbility = possessionObj.AddComponent<MockPossssionAbility>();
 
         hag = new GameObject("Hag").AddComponent<MockHag>();
-        SetPrivate(possessionAbility, "oldHag", hag);
+        SetPrivate(possessionAbility, "eleth", hag);
         SetPrivate(possessionAbility, "currentCharacter", hag);
 
-        var camObj = new GameObject("VCam");
-        cam = camObj.AddComponent<CinemachineVirtualCamera>();
-        SetPrivate(possessionAbility, "virtualCam", cam);
 
         yield return null; // let Unity finish Awake
     }
@@ -54,7 +50,6 @@ public class PossessionAbilityTests
     {
         Object.DestroyImmediate(possessionObj);
         Object.DestroyImmediate(hag.gameObject);
-        Object.DestroyImmediate(cam.gameObject);
     }
 
     [Test]

@@ -10,6 +10,15 @@ public abstract class Enemy : Character
     [Tooltip("Navmesh Agent on this character")]
     public NavMeshAgent agent;
 
+    [Tooltip("Minimum Stopping Distance")]
+    public float minStopDistance = 0.5f;
+
+    [Tooltip("Pathfinding Priority")]
+    public int pathfindingPriority;
+
+    [Tooltip("Last seen time buffer")]
+    public float seenBuffer = 0.5f;
+
     protected PlayerController playerController;
 
     protected Hag hag;
@@ -19,45 +28,274 @@ public abstract class Enemy : Character
     public LayerMask ground;
     public LayerMask environment;
 
+    [Tooltip("Distance from point an enemy can be before switching to chase")]
+    [SerializeField] protected float surroundingToChaseRadius = 2;
+
+    [Tooltip("Distance from point an enemy must reach before switching to surround")]
+    [SerializeField] protected float chaseToSurroundingRadius = 1;
+
+    [SerializeField, Tooltip("If the player is further than distance away from the target the player will move towards it before attacking")]
+    protected float moveToTargetDistance;
+
     [Tooltip("Sight Range")]
     public float sightRange;
+
+    [Tooltip("Maximum Sight Angle")]
+    public float maxSightAngle;
+
+    [Tooltip("Hearing Range")]
+    public float hearingRange;
 
     [Tooltip("Walk Point Range")]
     public float patrolRange;
 
+    [Tooltip("Time before searching")]
+    public float timeBeforeSearch = 5;
+
+    [Tooltip("Mini Health Bar Prefab")]
+    public GameObject miniBarPrefab;
+
     [Tooltip("AI Attack Delay")]
     public float attackDelayAI = 0.5f;
 
-    [Tooltip("Leave Body Explosion Range")]
-    public float leaveBodyExplosionRadius = 5;
+    [Tooltip("Chance for AI primary attack")]
+    public float primaryAttackChance = .5f;
 
-    [Tooltip("Leave Body Explosion Minimum Damage")]
-    public float leaveBodyExplosionMinimumDamage = 10;
-    [Tooltip("Leave Body Explosion Maximum Damage")]
-    public float leaveBodyExplosionMaximumDamage = 40;
+    [Tooltip("Chance for AI secondary attack")]
+    public float secondaryAttackChance = .5f;
 
-    [Tooltip("Leave Body Explosion Minimum Knockback")]
-    public float leaveBodyExplosionMinimumKnockback = 10;
-    [Tooltip("Leave Body Explosion Maximum Knockback")]
-    public float leaveBodyExplosionMaximumKnockback = 30;
+    [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
+    public float lowHealthThresholdPercentage = 30;
+    
+    [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
+    protected GameObject surroundPoint;
+
+    [Header("Debug Options")]
+    [Tooltip("Show Paths, Destinations, etc")]
+    public bool debugging = false;
+    [Tooltip("Destination Marker Prefab")]
+    public GameObject destinationMarkerPrefab;
+    [Tooltip("Line Renderer for Path")]
+    public LineRenderer pathVisualizer;
+
+    protected GameObject destinationMarker;
 
     protected bool walkPointSet = false;
     protected bool playerInSightRange, currentInSightRange, targetInSightRange = false;
     protected bool targetInPrimaryRange = false;
 
-    protected bool playerControlling = false; // flag for determining actions (player or AI)
+    [SerializeField,NaughtyAttributes.ReadOnly]protected bool playerControlling = false; // flag for determining actions (player or AI)
 
-    private Vector3 walkPoint;
+    protected Vector3 walkPoint;
 
-    private Character target;
+    protected Character target;
 
-    private Vector3 lastTargetLocation;
+    protected Vector3 lastTargetLocation;
 
-    private bool seenTarget = false;
+    protected bool seenTarget = false;
+
+    protected GameObject minibar;
 
     protected bool isStunned = false;
 
-    private bool inAttackDelay = false;
+    protected bool inAttackDelay = false;
+
+    protected float timePlayerLastSeen;
+
+    protected NavPath currentPath;
+
+    protected bool reachedWalkpoint = true;
+
+    protected bool lookAtPlayer = false;
+
+    [Tooltip("Bool determining if this enemy is using the A* search")]
+    protected bool usingAStar = false;
+
+    [Tooltip("Corner node index we are currently on in our path")]
+    protected int currentCornerIndex = 0;
+
+    public Material perfectCounterTimeMaterial;
+    public Material defaultMaterial;
+
+    public enum PathState
+    {
+        Unset,
+        Searching,
+        Set
+    }
+
+    [Tooltip("Current path state")]
+    public PathState pathState = PathState.Unset;
+
+    public enum AIMovementState
+    {
+        Patrolling, // Before spotting player
+        Chasing, // Reaching the player
+        Surrounding, // Staying in range of the player
+        Retreating, // Post attack, return to safe distance
+        Blocked, // For attacking, stun, etc. the character does not move or look
+        Targeted, // For now does nothing to keep enemy in place, in future allows for dodging/countering
+        PlayerControlled // For when the player is controlling this enemy, should not be AI controlled
+    }
+
+    [Tooltip("The Current AI State of the enemy")]
+    public AIMovementState aiState = AIMovementState.Patrolling;
+
+    [Tooltip("Point relative to player for enemy to navigate towards")]
+    protected Vector3 chasePoint;
+
+    [Tooltip("Bool determining if enemy can be stopped perfectly")]
+    protected bool inPerfectStopZone = false;
+
+    [Tooltip("Bool Determining if we are in a process that blocks AI (like looking around, attacking, etc")]
+    protected bool inProcess = false;
+
+    [Tooltip("The enemy's Patrol Point Origin")]
+    protected Vector3 patrolOrigin;
+    
+    /// <summary>
+    /// Destorys the enemies attack indicator if it is active
+    /// </summary>
+    public void DestoryAttackIndicator()
+    {
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+    }
+
+
+    /// <summary>
+    /// Function for handling movement
+    /// </summary>
+    public void AIMove()
+    {
+        if (aiState == AIMovementState.PlayerControlled) return;
+
+        if (currentPath == null) // No path, decelerate to 0
+        {
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            return;
+        }
+
+        float currentSpeed = velocity.magnitude;
+        float stoppingDistance = (currentSpeed * currentSpeed) / (2f * deceleration);
+
+        if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
+        {
+            velocity -= velocity.normalized * deceleration * Time.deltaTime;
+            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            return;
+        }
+
+        if (currentCornerIndex < currentPath.GetCornerNodes().Count - 1)
+        {
+            if (Vector3.Distance(currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject), transform.position) <= minStopDistance)
+            {
+                currentCornerIndex++;
+            }
+        }
+        else
+        {
+            currentCornerIndex = Mathf.Min(currentCornerIndex, currentPath.GetCornerNodes().Count - 1);
+        }
+
+        Vector3 desiredVelocity;
+
+
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
+
+        float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
+        velocity.x += xChange;
+
+        if (Mathf.Abs(velocity.x) >= movementSpeed) velocity.x = movementSpeed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+        float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.deltaTime;
+        velocity.z += zChange;
+
+        if (Mathf.Abs(velocity.z) >= movementSpeed) velocity.z = movementSpeed * Mathf.Sign(velocity.z);
+
+
+        if (velocity.magnitude > movementSpeed)
+        {
+            velocity = velocity.normalized * movementSpeed;
+        }
+
+        if (velocity.magnitude < 0.01f)
+        {
+            velocity = Vector3.zero;
+        }
+
+        GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+
+        if (!GetComponent<CharacterController>().isGrounded)
+            GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Function to handle the rotation of an AI controller
+    /// </summary>
+    public void AILook()
+    {
+        if (aiState == AIMovementState.PlayerControlled) return;
+
+        Quaternion lookRotation;
+        if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+        }
+        else
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+        }
+        transform.rotation = lookRotation;
+    }
+
+    /// <summary>
+    /// Determines what acceleration/deceleration value should be used for x and z values
+    /// </summary>
+    /// <param name="currentVelocity"> Current velocity in direction </param>
+    /// <param name="desired"> Desired velocity (at top speed in direction) </param>
+    /// <returns> Acceleration or deceleraton value </returns>
+    public float GetAccelerationValue(float currentVelocity, float desired)
+    {
+        float currentSign = Mathf.Sign(currentVelocity);
+        float desiredSign = Mathf.Sign(desired);
+
+        if (Mathf.Abs(currentVelocity) <= 0.01f) return acceleration * desiredSign;
+
+        if (currentSign == desiredSign) // If moving in same direction
+        {
+            if (Mathf.Abs(currentVelocity) > Mathf.Abs(desired)) // If going faster than desired in direction
+            {
+                return deceleration * -currentSign; // Reverse direction so adding substracts from magnitude
+            }
+            else // Otherwise accelerate
+            {
+                return acceleration * Mathf.Sign(desired);
+            }
+        }
+        else // If needing to move in a different direction, move in desired direction
+        {
+            return deceleration * desired;
+        }
+    }
+
+    public void SetAgentValues()
+    {
+        agent.stoppingDistance = minStopDistance;
+        agent.speed = movementSpeed;
+        agent.acceleration = acceleration;
+    }
+
+    public void SetDebuggingValues()
+    {
+        pathVisualizer.startWidth = .15f;
+        pathVisualizer.endWidth = .15f;
+        pathVisualizer.positionCount = 0;
+    }
 
     public void SetPlayerInfo()
     {
@@ -72,22 +310,32 @@ public abstract class Enemy : Character
     {
         StopAllCoroutines();
         playerControlling = val;
-        SetPlayerControlledBuffs(val, PlayerController.instance.playerBuffs);
 
         if (val)
         {
+            DestoryAttackIndicator();
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
+            aiState = AIMovementState.PlayerControlled;
+            pathState = PathState.Unset;
         }
         else
         {
             agent.enabled = true;
+            aiState = AIMovementState.Patrolling;
         }
     }
     public override void Die()
     {
         if (playerControlling)
         {
+            if(GrandFinale.instance.GetActive())
+            {
+                GrandFinale.instance.Explode(0f, true);
+            }
             playerControlling = false;
             PossessionAbility.CharacterControlChangeEvent?.Invoke(hag);
         }
@@ -95,6 +343,8 @@ public abstract class Enemy : Character
         {
             // Drop the upgrade only if the enemy is dead and the player is not controlling it
             DropSystem.Instance.TryDropItem(transform.position);
+            // Spawn soul on death
+            SoulSystem.Instance.SpawnSoul(transform.position);
         }
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
@@ -106,17 +356,9 @@ public abstract class Enemy : Character
 
     public void SetRangeChecks()
     {
-        playerInSightRange = (hag.transform.position - transform.position).magnitude < sightRange;
-        float distToHag = (hag.transform.position - transform.position).magnitude;
-        if (playerInSightRange)
-        {
-            if (Physics.Raycast(transform.position, hag.transform.position-transform.position, distToHag, environment))
-            {
-                playerInSightRange = false;
-            }
-        }
+        if (!hag.isActiveAndEnabled) return;
 
-        currentInSightRange = (currentPlayer.transform.position - transform.position).magnitude < sightRange;
+        currentInSightRange = (target.transform.position - transform.position).magnitude < sightRange;
         float distToChar = (currentPlayer.transform.position - transform.position).magnitude;
         if (currentInSightRange)
         {
@@ -125,47 +367,53 @@ public abstract class Enemy : Character
                 currentInSightRange = false;
             }
         }
-
-        if (playerInSightRange && currentInSightRange)
-        {
-            targetInSightRange = true;
-
-            if (distToHag < distToChar)
-            {
-                target = hag;
-            }
-            else
-            {
-                target = currentPlayer;
-            }
-        }
-        else if (playerInSightRange)
-        {
-            target = hag;
-            targetInSightRange = true;
-        }
-        else if (currentInSightRange)
-        {
-            target = currentPlayer;
-            targetInSightRange = true;
-        }
-        else
-        {
-            targetInSightRange = false;
-            target = hag;
-        }
-
-        if ((target.transform.position - transform.position).magnitude - target.sizeRadius < primaryAttackRange)
-        {
-            targetInPrimaryRange = true;
-        }
-        else
-        {
-            targetInPrimaryRange = false;
-        }
     }
 
-    public void SetBehavior()
+    /// <summary>
+    /// Checks if the target is visible to the enemy with distance
+    /// </summary>
+    /// <param name="location"> Transform of the character </param>
+    /// <returns> True if in range </returns>
+    public bool CheckTargetInRange(Transform location)
+    {
+        if ((location.position - transform.position).magnitude < sightRange)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the target can "hear" the player
+    /// We can make this more interesting (have it depend on player weight/speed as well) later
+    /// </summary>
+    /// <param name="location"> Location of target </param>
+    /// <returns> True if it can hear the target </returns>
+    public bool CanHearTarget(Transform location)
+    {
+        if ((location.position - transform.position).magnitude < hearingRange)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Searches for the player, handling variables if it can see them
+    /// </summary>
+    /// <returns> True if player is visible to enemy </returns>
+    public bool LookForPlayer()
+    {
+        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
+        {
+            seenTarget = true;
+            lastTargetLocation = target.transform.position;
+            return true;
+        }
+        return false;
+    }
+
+    public virtual void SetBehavior()
     {
         if(!agent.enabled) return;
         if (inAttackDelay) return;
@@ -203,21 +451,58 @@ public abstract class Enemy : Character
         }
     }
 
-    public void Chase()
+    /// <summary>
+    /// Handles the hitstun actions for enemies
+    /// </summary>
+    /// <param name="duration"> Duration to stun for </param>
+    /// <returns> Time </returns>
+    public override IEnumerator StartHitStun(float duration)
+    {
+        if (duration > 0)
+        {
+            if (stunned) yield break;
+            hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+                else aiState = AIMovementState.Blocked;
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+            }
+            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+            else aiState = AIMovementState.Chasing;
+            stunned = false;
+            Destroy(hitStunActual); 
+            hitStunActual = null;
+        }
+    }
+
+    public virtual void Chase()
     {
         if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
         {
-            agent.stoppingDistance = target.sizeRadius;
+            agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(transform.position);
         }
         else
         {
-            agent.stoppingDistance = target.sizeRadius;
+            agent.stoppingDistance = target.sizeRadius + minStopDistance;
             agent.SetDestination(target.transform.position);
         }
     }
 
-    public void Patrol()
+    public virtual void Patrol()
     {
         if(!agent.enabled) return;
         if (!walkPointSet)
@@ -227,6 +512,7 @@ public abstract class Enemy : Character
 
         if (walkPointSet)
         {
+            agent.stoppingDistance = minStopDistance;
             agent.SetDestination(walkPoint);
         }
 
@@ -238,7 +524,7 @@ public abstract class Enemy : Character
         }
     }
 
-    public void SetWalkPoint()
+    public virtual bool SetWalkPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
         float randomZ = Random.Range(-patrolRange, patrolRange);
@@ -251,18 +537,22 @@ public abstract class Enemy : Character
             {
                 walkPoint = hit.position;
                 walkPointSet = true;
-                return;
+                agent.SetDestination(walkPoint);
+
+                if (debugging)
+                {
+                    destinationMarker = Instantiate(destinationMarkerPrefab);
+                    destinationMarker.transform.position = walkPoint;
+                }
+
+                return true;
             }
         }
+        return false;
     }
 
     public override void CreateHitStun()
     {
-        if (!playerControlling)
-        {
-            if (hitStunActual == null) hitStunActual = Instantiate(hitStunPrefab, transform);
-            agent.enabled = false;
-        }
     }
 
     public override void HandleHitStun()
@@ -331,32 +621,290 @@ public abstract class Enemy : Character
         return base.BeginPrimary();
     }
 
-    public override void Explode()
+
+    public void StartPath(bool usingAgent = true)
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, leaveBodyExplosionRadius, characters);
+        if (usingAgent == false && currentPath == null) return;
 
-        foreach (Collider hit in hits)
+        if (destinationMarker)
         {
-            Character hitChar = hit.GetComponent<Character>();
-            if (hitChar != null)
+            if (usingAgent)
             {
-                if (CheckCharacterBehindEnvironment(hitChar.transform) && hitChar.teamID != teamID)
+                destinationMarker.transform.position = agent.destination;
+            }
+            else
+            {
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+            }
+        }
+        else
+        {
+            if (!usingAgent)
+            {
+                destinationMarker = Instantiate(destinationMarkerPrefab);
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+            }
+        }
+
+        pathVisualizer.positionCount = 0;
+
+        if (usingAgent)
+        {
+            pathVisualizer.positionCount = agent.path.corners.Length;
+        }
+        else
+        {
+            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count;
+        }
+
+        if (pathVisualizer.positionCount < 1) return;
+
+        pathVisualizer.SetPosition(0, transform.position);
+
+        if (usingAgent)
+        {
+            for (int i = 1; i < agent.path.corners.Length; i++)
+            {
+                pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            }
+        }
+        else
+        {
+            for (int i = 1; i < currentPath.GetCornerNodes().Count; i++)
+            {
+                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Draws a path the agent follows
+    /// </summary>
+    public void UpdatePath(bool usingAgent = true)
+    {
+        if (destinationMarker)
+        {
+            if (usingAgent)
+            {
+                destinationMarker.transform.position = agent.destination;
+            }
+            else
+            {
+                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+            }
+        }
+        else
+        {
+            destinationMarker = Instantiate(destinationMarkerPrefab);
+            destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+            destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
+        }
+
+        pathVisualizer.positionCount = 0;
+
+        if (usingAgent)
+        {
+            pathVisualizer.positionCount = agent.path.corners.Length;
+        }
+        else
+        {
+            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count - currentCornerIndex;
+        }
+
+        if (pathVisualizer.positionCount == 0) return;
+
+        pathVisualizer.SetPosition(0, transform.position);
+
+        if (usingAgent)
+        {
+            for (int i = 1; i < agent.path.corners.Length; i++)
+            {
+                pathVisualizer.SetPosition(i, agent.path.corners[i]);
+            }
+        }
+        else
+        {
+            for (int i = currentCornerIndex-1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
+            {
+                if (i >= 0)
                 {
-                    float dist = (hitChar.transform.position - transform.position).magnitude;
-                    Vector3 direction = (hitChar.transform.position - transform.position).normalized;
-
-                    float dmg = Mathf.Lerp(leaveBodyExplosionMinimumDamage, leaveBodyExplosionMaximumDamage, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-                    float knockback = Mathf.Lerp(leaveBodyExplosionMinimumKnockback, leaveBodyExplosionMaximumKnockback, (leaveBodyExplosionRadius - dist) / leaveBodyExplosionRadius);
-
-                    hitChar.health.SubHealth(dmg);
-                    if (!playerControlling) {health.ShowMiniHealthBar(true, hitChar);}
-                    hitChar.GetComponent<KnockbackControl>().AddImpact(direction, knockback);
+                    pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Destroys the visualized path
+    /// </summary>
+    public void DestroyPath()
+    {
+        if (destinationMarker != null)
+        {
+            Destroy(destinationMarker);
+            destinationMarker = null;
+        }
+        pathVisualizer.positionCount = 0;
+    }
+
+    /// <summary>
+    /// Removes the enemy's target point
+    /// </summary>
+    public void RemoveTargetPoint()
+    {
+        surroundPoint = null;
+    }
+
+    /// <summary>
+    /// Virtual function to find a path based on current state
+    /// </summary>
+    public virtual void FindPath()
+    {
+
+    }
+
+    /// <summary>
+    /// Sets the path for the AI
+    /// </summary>
+    /// <param name="path"> Path to set </param>
+    public void SetPath(NavPath path)
+    {
+        currentPath = path;
+        SetNextCorner();
+    }
+
+    /// <summary>
+    /// When setting a new path, it sets the character to the corner after the closest one
+    /// This stops jittery back and forth when chasing
+    /// </summary>
+    public void SetNextCorner()
+    {
+        if (currentPath == null || currentPath.GetCornerNodes().Count == 0)
+        {
+            currentCornerIndex = 0;
+            return;
+        }
+
+        float shortestDist = Mathf.Infinity;
+        int closestIndex = 0;
+        int currentIndex = 0;
+
+        foreach (Node node in currentPath.GetCornerNodes())
+        {
+            if (shortestDist > (node.GetPosition(gameObject) - transform.position).magnitude)
+            {
+                shortestDist = (node.GetPosition(gameObject) - transform.position).magnitude;
+                closestIndex = currentIndex;
+            }
+            currentIndex++;
+        }
+
+        if (closestIndex >= currentPath.GetCornerNodes().Count - 1)
+        {
+            currentCornerIndex = closestIndex;
+            return;
+        }
+        currentCornerIndex = closestIndex + 1; // If not the last node, go to the one past this
+    }
+
+    /// <summary>
+    /// Set if the enemy is using A* or not
+    /// </summary>
+    /// <param name="val"> Value to set true/false </param>
+    public void SetUsingSearch(bool val)
+    {
+        usingAStar = val;
+    }
+
+    public virtual bool ValidatePoint()
+    {
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the path state is set
+    /// </summary>
+    /// <returns> True if set, false otherwise </returns>
+    public bool HasSetPath()
+    {
+        if (pathState == PathState.Set) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the path state is searching
+    /// </summary>
+    /// <returns> True if searching, false otherwise </returns>
+    public bool IsFindingPath()
+    {
+        if (pathState == PathState.Searching) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// A function called by the surrounding points to make an enemy attack
+    /// </summary>
+    /// <param name="points"> Points the request came from </param>
+    /// <returns> True if attack is done, false otherwise </returns>
+    public virtual bool AttackFromSurrounding(SurroundingPoints points)
+    {
+        return false;
     }
     /// <summary>
     ///  Returns whether the player is currently controlling this enemy.
     /// </summary>
     public bool IsPlayerControlling() => playerControlling;
+
+    /// <summary>
+    /// Gets the priority of an enemy to be added for attacking
+    /// </summary>
+    /// <returns> Enemy priority </returns>
+    public virtual int GetAttackingPriority()
+    {
+        return pathfindingPriority;
+    }
+    
+    /// <summary>
+    /// Checks if the enemy is surrounding
+    /// </summary>
+    /// <returns></returns>
+    public bool IsSurrounding()
+    {
+        if (aiState == AIMovementState.Surrounding) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Set enemy to be targeted or have them retreat
+    /// </summary>
+    /// <param name="val"> Val determining the actions to take </param>
+    public void SetTargeted(bool val)
+    {
+        if (val)
+        {
+            aiState = AIMovementState.Targeted;
+        }
+        else
+        {
+            aiState = AIMovementState.Retreating;
+        }
+    }
+
+    /// <summary>
+    /// Function to simplify setting movement values in attack coroutines
+    /// </summary>
+    /// <param name="val"> Value to set movement to </param>
+    public void SetMovementValues(bool val)
+    {
+        if (playerControlling)
+        {
+            if (val) StartCoroutine(EnableMovement());
+            else PlayerController.instance.SetAllowMovement(false);
+        }
+        if (val) aiState = AIMovementState.Retreating;
+        else aiState = AIMovementState.Blocked;
+    }
 }

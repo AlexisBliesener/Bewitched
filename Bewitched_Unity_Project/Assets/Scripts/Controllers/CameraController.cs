@@ -1,180 +1,248 @@
 using Cinemachine;
 using FMODUnity;
-using System.Collections.Generic;
-using System.IO;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
+/// <summary>
+/// Manages third-person and aiming camera behavior using Cinemachine.
+/// Handles switching between free-look and aiming cameras, crosshair visibility,
+/// player input for camera rotation/aiming, and updates FMOD audio listener settings
+/// when switching controlled characters.
+/// </summary>
 public class CameraController : MonoBehaviour
 {
-    const string FILE_ENDING = ".json";
+    public static CameraController instance;
 
-    [Tooltip("Singleton of the CameraController")]
-    public static CameraController instance { get; private set; }
+    [SerializeField, Tooltip("Duration in seconds to prevent camera switching during transitions.")]
+    private const float TRANSITION_TIME = 2;
 
-    [SerializeField, Tooltip("Character that the camera is following")]
-    private Character characterToFollow;
-    [SerializeField, Tooltip("Sensitiviy multiplier of the camera x-axis movement")]
-    private float xSensitivity = 0.5f;
-    [SerializeField, Tooltip("Sensitivity multiplier of the camera y-axis movement")]
-    private float ySensitivity = 0.5f;
-    [SerializeField, Tooltip("Layermask the only holds objects that are in the environment")]
-    private LayerMask environmentMask;
-    [SerializeField, Tooltip("Speed multiplier applied to camera side to side switch movement")] 
-    private float switchSpeed = 0.5f;
-    [SerializeField, Tooltip("the main camera with the cinemachine brain")]
-    private Camera mainCam;
+    [SerializeField, Tooltip("The free-look Cinemachine camera used for combat view.")]
+    private CinemachineFreeLook combatCam;
+    [SerializeField, Tooltip("The Cinemachine virtual camera used for aiming (shoulder view).")]
+    private CinemachineVirtualCamera aimCam;
+    [SerializeField, Tooltip("The Cinemachine virtual camera used for exploration view")]
+    private CinemachineFreeLook explorationCam;
+    [SerializeField, Tooltip("The currently controlled character whose perspective the camera follows.")]
+    private Character currentCharacter;
+    [SerializeField, Tooltip("Crosshair image displayed on screen while aiming.")]
+    private Image crossHair;
 
-    [Tooltip("The FMOD studio listener that is attached to the camera")]
+    [Tooltip("The FMOD studio listener attached to the camera for 3D audio spatialization.")]
     private StudioListener listener;
-    [Tooltip("The virtual camera that is following the player")]
-    [SerializeField]private CinemachineVirtualCamera virtualCamera;
-    [Tooltip("The POV component of the virtual camera")]
-    private CinemachinePOV cameraPOVComponent;
-    [Tooltip("The y-axis rotation applied to the player based on mouse movement")]
-    private float yaw = 0;
-    [Tooltip("The side of the player the camera is currently targeting to be on, 1 = right side, 0 = middle, -1 = left side")]
-    private float targetCamSide = 1f;
+    [Tooltip("Whether the player is currently aiming.")]
+    private static bool aiming = false;
+    [Tooltip("Reference to the AimCam component that manages aim-related camera logic.")]
+    private AimCam aimCamScript;
+    [Tooltip("Reference to the CombatCam component that manages framing camera logic.")]
+    private CombatCam combatCamScript;
+    [Tooltip("Flag to prevent camera priority switching during character transitions.")]
+    private bool transitioning = false;
+    [Tooltip("True if the player is locked in a room")]
+    private bool inCombat = false;
 
-    #region Saving/Loading
-
-    [ContextMenu("Save to JSON")]
-    public void SaveToJson()
+    /// <summary>
+    /// Sets whether the player is in combat or not.
+    /// </summary>
+    /// <param name="val">Whether the player is in combat or not.</param>
+    public void SetInCombat(bool val)
     {
-        string cameraStatsStr = JsonUtility.ToJson(this, true);
+        inCombat = val;
+        UpdateCam();
+    }
 
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        SeeFilePath();
-        if (!Directory.Exists(folderPath))
+    public CombatCam GetCombatCamScript()
+    {
+        return combatCamScript;
+    }
+
+    /// <summary>
+    /// Returns whether the player is currently aiming.
+    /// </summary>
+    public static bool GetIsAiming()
+    {
+        return aiming;
+    }
+
+    /// <summary>
+    /// Initializes references and sets up camera priorities and FMOD listener.
+    /// </summary>
+    private void Awake()
+    {
+        instance = this;
+        aiming = false;
+        aimCamScript = aimCam.GetComponent<AimCam>();
+        combatCamScript = combatCam.GetComponent<CombatCam>();
+        combatCam.Priority = 0;
+        aimCam.Priority = 1;
+        explorationCam.Priority = 3;
+        if (inCombat)
         {
-            Directory.CreateDirectory(folderPath);
+            aimCamScript.SetYaw(combatCam.m_XAxis.Value);
+        }
+        else
+        {
+            aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
         }
 
-        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
-        File.WriteAllText(filePath, cameraStatsStr);
-
-
-#if UNITY_EDITOR
-        UnityEditor.AssetDatabase.Refresh();
-#endif
+        // FMOD set up
+        if (!listener) listener = GetComponent<StudioListener>();
+        if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
     }
 
-    [ContextMenu("See File Path")]
-    public void SeeFilePath()
+    /// <summary>
+    /// Updates camera priorities based on whether the player is aiming.
+    /// Prevents switching while in a transition.
+    /// </summary>
+    private void UpdateCam()
     {
-        string folderPath = Path.Combine(Application.persistentDataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        Debug.Log("Path To JSON File:");
-        Debug.Log(folderPath);
+        if (transitioning) return;
+
+        if(inCombat)
+        {
+            if (aiming)
+            {
+                currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
+                aimCam.Priority = 2;
+                combatCam.Priority = 1;
+                explorationCam.Priority = 0;
+            }
+            else
+            {
+                combatCam.Priority = 2;
+                aimCam.Priority = 1;
+                explorationCam.Priority = 0;
+            }
+        }
+        else
+        {
+            if (aiming)
+            {
+                currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
+                aimCam.Priority = 2;
+                explorationCam.Priority = 1;
+                combatCam.Priority = 0;
+            }
+            else
+            {
+                explorationCam.Priority = 2;
+                aimCam.Priority = 1;
+                combatCam.Priority = 0;
+            }
+        }
     }
-
-    [ContextMenu("Load From JSON")]
-    public void LoadFromJson()
-    {
-
-        string folderPath = Path.Combine(Application.dataPath, "JSON");
-        folderPath = Path.Combine(folderPath, "CameraStats");
-        string filePath = Path.Combine(folderPath, "camera" + FILE_ENDING);
-
-        string jsonStr = File.ReadAllText(filePath);
-
-        string[] jsons = jsonStr.Split("|");
-
-        JsonUtility.FromJsonOverwrite(jsons[0], this);
-
-#if UNITY_EDITOR
-        UnityEditor.AssetDatabase.Refresh();
-#endif
-    }
-
-    #endregion
 
     /// <summary>
     /// Handles camera rotation based on player input.
-    /// Updates the player's yaw (y-axis rotation) using mouse/gamepad look input.
+    /// Updates the yaw using mouse/gamepad look input.
     /// </summary>
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        Vector2 lookInput = context.ReadValue<Vector2>();
-
-        cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
-
-        if (context.action.activeControl.device.description.deviceClass != "Mouse")
+        if(aiming)
         {
-            lookInput.x *= 20;
+            aimCamScript.Look(context);
         }
-
-        // scale input
-        yaw += lookInput.x * xSensitivity;
-
-        // apply rotations
-        characterToFollow.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
     }
 
+    /// <summary>
+    /// Toggles aiming mode and updates the camera/crosshair state.
+    /// </summary>
+    /// <param name="context">The input action context (started/canceled).</param>
+    public void Aim(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            PossessionAbility.instance.SetStartedHoldTime(Time.time);
+            if (inCombat)
+            {
+                aimCamScript.SetYaw(combatCam.m_XAxis.Value);
+            }
+            else
+            {
+                aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
+            }
+
+            crossHair.gameObject.SetActive(true);
+            aiming = true;
+        }
+        else if (context.canceled)
+        {
+            PossessionAbility.instance.SetStartedHoldTime(-1);
+            crossHair.gameObject.SetActive(false);
+            aiming = false;
+        }
+        UpdateCam();
+    }
+
+    /// <summary>
+    /// Unsubscribes from character control change events when disabled.
+    /// </summary>
     private void OnDisable()
     {
         PossessionAbility.CharacterControlChangeEvent -= SwitchCharacter;
     }
 
+    /// <summary>
+    /// Subscribes to character control change events when enabled.
+    /// </summary>
     private void OnEnable()
     {
         PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
     }
 
-    private void Awake()
-    {
-        instance = this;
-        virtualCamera = GetComponent<CinemachineVirtualCamera>();
-        cameraPOVComponent = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
-        //PossessionAbility.CharacterControlChangeEvent += SwitchCharacter;
-
-        // FMOD set up
-        if (!listener) listener = GetComponent<StudioListener>();
-        if (!listener.attenuationObject) listener.attenuationObject = characterToFollow.gameObject;
-    }
-
-    private void Update()
-    {
-        SwitchCameraSide();
-    }
-
-    /// <summary>
-    /// Determines if the camera should switch sides based on environment collisions.
-    /// Smoothly interpolates the Cinemachine camera side between left and right.
-    /// </summary>
-    private void SwitchCameraSide()
-    {
-        Ray ray = new Ray(characterToFollow.transform.position, transform.right);
-        bool hitRight = Physics.Raycast(ray, 4f, environmentMask);
-
-        // Decide target side
-        if (hitRight)
-            targetCamSide = -1f;   // force to left side
-        else
-            targetCamSide = 1f;  // force to right side (or default)
-
-        // Smoothly move toward target side
-        var tpf = virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>();
-        tpf.CameraSide = Mathf.Lerp(tpf.CameraSide, targetCamSide, Time.deltaTime * switchSpeed);
-    }
-
     /// <summary>
     /// Switches the camera to follow a new character.
-    /// Updates FMOD listener, Cinemachine follow/look targets, and shoulder offset.
+    /// Updates FMOD listener, Cinemachine follow/look targets, and AimCam reference.
     /// </summary>
     /// <param name="character">The new character to follow.</param>
     private void SwitchCharacter(Character character)
     {
-        characterToFollow = character;
-        listener.attenuationObject = character.gameObject;
+        transitioning = true;
+        StartCoroutine(WaitTransitionTime());
 
-        // Virtual camera follows new character
-        virtualCamera.gameObject.transform.SetParent(character.transform);
-        mainCam.gameObject.transform.SetParent(character.transform);
-        virtualCamera.Follow = characterToFollow.gameObject.transform;
-        virtualCamera.LookAt = characterToFollow.gameObject.transform;
-        virtualCamera.GetCinemachineComponent<Cinemachine3rdPersonFollow>().ShoulderOffset = characterToFollow.GetShoulderOffset();
+        aimCam.Priority = 0;
+        combatCam.Priority = 0;
+        explorationCam.Priority = 0;
+
+        currentCharacter = character;
+        if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
+
+        aimCam = character.GetAimCam();
+        combatCam = character.GetCombatCam();
+        explorationCam = character.GetExploreCam();
+
+        try
+        {
+            aimCamScript = aimCam.GetComponent<AimCam>();
+        }
+        catch
+        {
+            Debug.LogWarning("No aim cam component found!");
+        }
+
+        try
+        {
+            combatCamScript = combatCam.GetComponent<CombatCam>();
+        }
+        catch
+        {
+            Debug.LogWarning("No combat cam component found!");
+        }
+
+        combatCam.Priority = 2;
+        aimCam.Priority = 1;
+
+        UpdateCam();
+    }
+
+    /// <summary>
+    /// Waits for the defined transition time before allowing camera switching again.
+    /// </summary>
+    private IEnumerator WaitTransitionTime()
+    {
+        yield return new WaitForSeconds(TRANSITION_TIME);
+        transitioning = false;
     }
 }

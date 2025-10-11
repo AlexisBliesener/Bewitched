@@ -37,6 +37,8 @@ public class CharacterTests
         public bool ReleaseSecondaryImmFlag => releaseSecondaryImm;
         [Tooltip("Gets the character's current health.")]
         public float CurrentHealth => health.GetHealth();
+        [Tooltip("Gets the stunned status of the character")]
+        public bool Stunned => stunned;
 
         /// <summary>
         /// Overrides Character.Die() for testing; marks that Die() was called.
@@ -125,12 +127,59 @@ public class CharacterTests
         public override void CreateHitStun() { hitStunActual = new GameObject("HitStun"); }
     }
 
+    /// <summary>
+    /// Simulates a player controller for this test
+    /// </summary>
+    private class TestPlayerController : PlayerController
+    {
+        [Tooltip("Movement variable")]
+        public bool movementAllowed = true;
+
+        /// <summary>
+        /// Sets instance
+        /// </summary>
+        private void Start()
+        {
+            instance = this;
+        }
+
+        /// <summary>
+        /// Overrides to do nothing
+        /// </summary>
+        private void FixedUpdate()
+        {
+            
+        }
+
+        /// <summary>
+        /// Overrides to do nothing
+        /// </summary>
+        private void Awake()
+        {
+            
+        }
+
+        /// <summary>
+        /// Checks to ensure a function is called
+        /// </summary>
+        /// <param name="val"> Value to set </param>
+        public override void SetAllowMovement(bool val)
+        {
+            movementAllowed = val;
+        }
+    }
+
     [Tooltip("Reference to the GameObject that holds the TestCharacter component.")]
     private GameObject testCharacterGameObject;
 
     [Tooltip("Reference to the TestCharacter instance used in tests.")]
     private TestCharacter testCharacter;
 
+    [Tooltip("Reference to the GameObject that holds the TestPlayerController component")]
+    private GameObject testPlayerGameObject;
+
+    [Tooltip("Player controller tester")]
+    private TestPlayerController testPlayer;
 
     /// <summary>
     /// Initializes a fresh TestCharacter before each test.
@@ -151,11 +200,9 @@ public class CharacterTests
         testCharacter.movementSpeed = 10;
         testCharacter.primaryCooldown = 1f;
         testCharacter.secondaryCooldown = 2f;
-        testCharacter.primaryComboSteps = 2;
-        testCharacter.primaryComboExtraCooldown = 1f;
-        testCharacter.primaryComboResetTime = 0.5f;
 
-
+        testPlayerGameObject = new GameObject("TestPlayer");
+        testPlayer = testPlayerGameObject.AddComponent<TestPlayerController>();
     }
 
     /// <summary>
@@ -166,6 +213,7 @@ public class CharacterTests
     {
         testCharacter.UnsubscribeHealth(testCharacter.health);
         Object.Destroy(testCharacterGameObject);
+        Object.Destroy(testPlayerGameObject);
     }
 
     #region Health 
@@ -255,6 +303,18 @@ public class CharacterTests
         Assert.IsTrue(testCharacter.secondaryCalled);
     }
 
+    /// <summary>Tests the hitstun to ensure values are set correctly
+    [UnityTest]
+    public IEnumerator StartHitStun_StunsCharacterForDuration()
+    {
+        float duration = 0.5f;
+        yield return testCharacter.StartCoroutine(testCharacter.StartHitStun(duration));
+        Assert.IsNull(testCharacter.HitStun);
+
+        Assert.IsFalse(testCharacter.Stunned);
+
+        Assert.IsTrue(testPlayer.movementAllowed);
+    }
 
     #endregion
     #region Status setters 

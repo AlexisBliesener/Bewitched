@@ -1,5 +1,314 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1689055857934838755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3614257658211710805}
+  - component: {fileID: 8349303601957871000}
+  m_Layer: 0
+  m_Name: Vampirism
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3614257658211710805
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689055857934838755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8349303601957871000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689055857934838755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0f653427f33694890e0a7081544a8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  percentHeal: 0500000005000000080000000b0000000f000000
+--- !u!1 &2447668901311447421
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9162669460565787311}
+  - component: {fileID: 639490620139695707}
+  m_Layer: 0
+  m_Name: ClearFocus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9162669460565787311
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2447668901311447421}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &639490620139695707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2447668901311447421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c6b3694a992748d799d4bd90e21684e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  focusTimeReduction:
+  - 0.1
+--- !u!1 &5725360512968179944
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5346027843200522454}
+  - component: {fileID: 5928859201731560360}
+  m_Layer: 0
+  m_Name: SmarterControl
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5346027843200522454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5725360512968179944}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5928859201731560360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5725360512968179944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a863ca9ea14624509991bd005517287d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minDecayRate: 0.1
+--- !u!1 &5780072744232477134
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8585249326004575427}
+  - component: {fileID: 7455445191468345431}
+  m_Layer: 0
+  m_Name: ShieldingSpirits
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8585249326004575427
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5780072744232477134}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7455445191468345431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5780072744232477134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5904d1394cee42a0b30fa57e62d81a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shieldMultipliers:
+  - 1
+  - 1.25
+  - 1.5
+  - 2
+  shieldDurations:
+  - 5
+  - 6
+  - 7
+  - 8
+  shieldSlider: {fileID: 0}
+--- !u!1 &6538570816644836317
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4761561958198899982}
+  - component: {fileID: 3576764035917128986}
+  m_Layer: 0
+  m_Name: Adrenaline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4761561958198899982
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6538570816644836317}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3576764035917128986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6538570816644836317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4c23a2f316944deea77594ec79d475e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageMultiplier:
+  - 1.25
+  buffDuration: 5
+--- !u!1 &7320499504665162705
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1020175994940520333}
+  - component: {fileID: 5916699585025004677}
+  m_Layer: 0
+  m_Name: GrandFinale
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1020175994940520333
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7320499504665162705}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5916699585025004677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7320499504665162705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246ef8466c495f040b1536ece8b3c1b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  explosionRadiusMin:
+  - 5
+  - 7
+  explosionRadiusMax:
+  - 20
+  - 25
+  explosionMinDamage:
+  - 15
+  - 20
+  explosionMaxDamage:
+  - 75
+  - 100
+  playerExplodeDamage:
+  - 10
+  - 10
+  enemyExplosionTime:
+  - 1
+  - 1
+  characters:
+    serializedVersion: 2
+    m_Bits: 128
+  environment:
+    serializedVersion: 2
+    m_Bits: 256
+  eleth: {fileID: 0}
+  enemyHealthBar: {fileID: 0}
+  explosionVFX: {fileID: 4280964667820681873, guid: 30772a2e7df4139418b13f865d1339b9, type: 3}
 --- !u!1 &7516775768371684888
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,6 +319,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5730874076301672956}
   - component: {fileID: 960958994120514185}
+  - component: {fileID: 4119633462003428908}
   m_Layer: 0
   m_Name: DropSystem
   m_TagString: Untagged
@@ -29,7 +339,14 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1020175994940520333}
+  - {fileID: 3614257658211710805}
+  - {fileID: 9162669460565787311}
+  - {fileID: 8585249326004575427}
+  - {fileID: 8652705406772565308}
+  - {fileID: 4761561958198899982}
+  - {fileID: 5346027843200522454}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &960958994120514185
@@ -44,6 +361,150 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cee28a11f64134317adeb441121c08bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dropChance: 100
-  availableDrops: []
+  playerUpgrades: []
+  dropChance: 20
+  salvageAmount: 10
+  upgradeSelectionUI: {fileID: 0}
+  swapUpgradeUI: {fileID: 0}
+  pendingSwap:
+    dropName: Vampirism
+    description: Vampire
+    dropID: 2
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 1689055857934838755}
+    buyAmount: 150
+    sellAmount: 150
+  availableRarities:
+  - displayName: Ultra Rare
+    dropChance: 5
+  - displayName: Rare
+    dropChance: 15
+  - displayName: Common
+    dropChance: 50
+  availableDrops:
+  - dropName: Grand Finale
+    description: Enemies now explode! Possess an enemy and get it to low health,
+      then exit the enemy to trigger an explosion to damage all surrounding enemies!
+      Be careful you don't let the enemy get to 0 health though, or you might explode
+      with it.
+    dropID: 1
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 0
+    dropScript: {fileID: 7320499504665162705}
+    buyAmount: 200
+    sellAmount: 200
+  - dropName: Vampirism
+    description: Damaging an enemy while possessing an enemy will regain a small
+      amount of health, scaling with damage done.
+    dropID: 2
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 1689055857934838755}
+    buyAmount: 130
+    sellAmount: 130
+  - dropName: Clear Focus
+    description: Decreases the time taken to focus the possession cone to a specific
+      enemy to possess.
+    dropID: 3
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 2
+    dropScript: {fileID: 2447668901311447421}
+    buyAmount: 50
+    sellAmount: 50
+  - dropName: Smarter Control
+    description: 'Lowers the rate at which enemies'' health depletes. '
+    dropID: 4
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 5725360512968179944}
+    buyAmount: 130
+    sellAmount: 130
+  - dropName: Adrenaline
+    description: Increase the damage buff granted from swapping to a new enemy.
+    dropID: 5
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 6538570816644836317}
+    buyAmount: 130
+    sellAmount: 130
+  - dropName: Shielding Spirits
+    description: When possessing an enemy, grant a temporary shield. Lasts for 5
+      seconds.
+    dropID: 6
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 5780072744232477134}
+    buyAmount: 130
+    sellAmount: 130
+  - dropName: Backup Plan
+    description: Decrease the time it takes for the possession ability to recharge
+      when knocked out of an enemy.
+    dropID: 7
+    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    rarityIndex: 2
+    dropScript: {fileID: 8637887266863425160}
+    buyAmount: 50
+    sellAmount: 50
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
+  usePitySystem: 1
+--- !u!114 &4119633462003428908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516775768371684888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4703dd2a2f094aa0b4a56f3e1943326, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pityIncrement: 5
+  maxPityBonus: 75
+--- !u!1 &8637887266863425160
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8652705406772565308}
+  - component: {fileID: 4365634282821537724}
+  m_Layer: 0
+  m_Name: BackupPlan
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8652705406772565308
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8637887266863425160}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4365634282821537724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8637887266863425160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e8151a7d8b3740f7af08eefaabb7b64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cooldownReduction:
+  - 0.9

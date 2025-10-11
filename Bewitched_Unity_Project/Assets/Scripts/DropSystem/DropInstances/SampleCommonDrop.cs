@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class SampleCommonDrop : MonoBehaviour, IDrop
 {
+    public int stackNum { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
     public void Activate()
     {
 
     }
+    public void Deactivate()
+    {
+        
+    }
     // Start is called before the first frame update
-    void Start()
+        void Start()
     {
         
     }

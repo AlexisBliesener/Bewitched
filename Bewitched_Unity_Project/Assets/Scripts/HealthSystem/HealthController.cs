@@ -11,6 +11,9 @@ public class HealthController : MonoBehaviour
     const string FILE_ENDING = ".json";
     [Tooltip("Maximum health for this character.")]
     [SerializeField] private float maxHealth = 100f;
+    [Tooltip("Coefficient value of max health to classify as low health")]
+    [Range(0f, 1f)]
+    [SerializeField] private float lowHealthCoefficient = 0.3f;
     [Tooltip("Health decay percentage per second."), Range(0,100)]
     [SerializeField] private float decayRate = 0f;
     [Tooltip("Enable automatic health decay each frame.")]
@@ -25,6 +28,13 @@ public class HealthController : MonoBehaviour
     public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
     public bool IsDead => CurrentHealth <= 0f;
+    [Tooltip("The Death UI screen.")]
+    public GameObject deathUI;
+
+    /// <summary>
+    /// Checks if a character is at low health
+    /// </summary>
+    public bool IsLowHealth => CurrentHealth <= maxHealth * lowHealthCoefficient;
 
     // <summary> Get current character.</summary>
     private Character currentCharacter;
@@ -55,7 +65,10 @@ public class HealthController : MonoBehaviour
             if (CurrentHealth != old)
             {
                 NotifyHealthChanged();
-                if (IsDead) OnDeath?.Invoke();
+                if (IsDead)
+                {
+                    OnDeath?.Invoke();
+                }
             }
         }
     }
@@ -94,6 +107,19 @@ public class HealthController : MonoBehaviour
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
+
+        // Apply vampirism upgrade
+        if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetComponent<Character>())
+        {
+            if (Vampirism.instance != null)
+            {
+                Vampirism.instance.stealHealth(amt);
+            }
+            else
+            {
+                Debug.LogWarning("Vamprism upgrade instance is not set!");
+            }
+        }
 
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke();
@@ -156,7 +182,6 @@ public class HealthController : MonoBehaviour
             return;
         }
         if (minibar != null) Destroy(minibar);
-        Debug.Log("Showing mini health bar");
         minibar = Instantiate(miniBarPrefab);
         minibar.GetComponent<MiniHealthBar>().SetCharacter(character);
         minibar.GetComponent<MiniHealthBar>().Subscribe(this);

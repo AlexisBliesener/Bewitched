@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -15,11 +14,20 @@ public class DropSystem : MonoBehaviour
 {
     // Singleton instance
     public static DropSystem Instance { get; private set; }
+    [Header("Player Upgrades")]
+    [Tooltip("List of upgrades that the player has acquired.")]
+    public List<DropData> playerUpgrades = new List<DropData>();
     [Header("Drop Settings")]
     [Tooltip("The chance of dropping an item from enemies")]
     [SerializeField] public int dropChance = 50;
     [Tooltip("The amount of health restored to the player when salvaging a drop.")]
     [SerializeField] public float salvageAmount = 10;
+    [Tooltip("The UI screen for selecting upgrades.")]
+    public GameObject upgradeSelectionUI;
+    [Tooltip("The UI screen for swapping upgrades when player hits limit of upgrades.")]
+    public GameObject swapUpgradeUI;
+    [Tooltip("Chosen upgrade that will be added after swap is done")]
+    public DropData pendingSwap;
     [Tooltip("The list of the rarities in the game")]
     [SerializeField] public List<ItemRarity> availableRarities = new List<ItemRarity>();
     [Tooltip("The list of the drops in the game")]
@@ -30,10 +38,13 @@ public class DropSystem : MonoBehaviour
     [Tooltip("Do you want to use the pity system?")]
     [SerializeField] private bool usePitySystem = true;
     [Tooltip("The action that is triggered when a drop is picked up")]
-    public Action<DropData, DropData> OnDropRandomDrop;
+    public Action<DropData, DropData, DropData> OnDropRandomDrop;
+    [Tooltip("The action that is triggered when the player interacts with the shop alter. This is will be called on PlayerController")]
+    public Action<List<DropData>>  OnShopAlterInteract;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
+
     private PitySystem pitySystem;
     /// <summary> Get the number of items dropped this run </summary>
     public int GetDroppedItemThisRun() => droppedItemThisRun;
@@ -45,6 +56,9 @@ public class DropSystem : MonoBehaviour
     public bool GetUsePitySystem() => usePitySystem;
     // <summary> Set whether to use the pity system </summary>
     public void SetUsePitySystem(bool val) => usePitySystem = val;
+    [Header("Debug")]
+    [SerializeField, Tooltip("Drops an upgrade where the player is")]
+    bool dropUpgrade;
 
     /// <summary>
     /// It sets the instance of the DropSystem class. And allow only one instance of the class.
@@ -103,33 +117,41 @@ public class DropSystem : MonoBehaviour
 
         Vector3 spawnPos = position + Vector3.up * 0.5f;
         Instantiate(dropPickupPrefab, spawnPos, Quaternion.identity);
-
         droppedItemThisRun++;
     }
     /// <summary>
     /// it selects a random drop from the available drops and shows it to the player.
-    /// It will trigger the OnDropRandomDrop action with the random drop and the second random drop.
+    /// It will trigger the OnDropRandomDrop action with the three random drops
     /// This is called from DropPickup.cs when the player picks up the drop.
     /// </summary>
     public void ShowDropSelection(Vector3 pickupPosition)
     {
-        // Get two random drops
+        // Get three random drops
         DropData option1 = GetRandomDrop();
-        DropData option2 = GetRandomDrop();
-        if (option1 == null || option2 == null) return;
+        DropData option2 = GetRandomDrop(new List<DropData>() { option1 });
+        DropData option3 = GetRandomDrop(new List<DropData>() { option1, option2 });
+        if (option1 == null || option2 == null || option3 == null) return;
 
-        OnDropRandomDrop?.Invoke(option1, option2);
+        if(upgradeSelectionUI != null)
+        {
+            upgradeSelectionUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("The upgrade selection UI is null!");
+        }
 
-        Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()}");
-        Debug.Log($"At this point, the ui should react to this event and then call the function DropSystem.Instance.SelectDropsOption(option); to activate the drops or salvage the drops by calling DropSystem.Instance.SalvageDrop();");
+        OnDropRandomDrop?.Invoke(option1, option2, option3);
 
+        //Debug.Log($"Drop picked up! {option1.GetDropName()} vs {option2.GetDropName()} vs {option3.GetDropName()}");
 
     }
     /// <summary>
     /// This is a helper function to get a random drop from the available drops.
     /// It will return null if there are no drops in the available drops list.
     /// </summary>
-    private DropData GetRandomDrop()
+    /// <param name="previousDrops">A list of drops that have already been picked up</param>
+    public DropData GetRandomDrop(List<DropData> previousDrops = null)
     {
         if (availableDrops.Count == 0)
             return null;
@@ -146,12 +168,44 @@ public class DropSystem : MonoBehaviour
             possibleDrops = availableDrops.Where(drop => 
                 availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
         }
+        // exclude drops that are already in the previous drops
+        if (previousDrops != null)
+        {
+            foreach (DropData drop in previousDrops)
+            {
+                possibleDrops.Remove(drop);
+            }
+        }
         if (possibleDrops.Count == 0)
         {
-            // if for some reason we don't have any drops with the chance we want,return null as we don't have a drop 
-            Debug.Log("No drops with the chance we want found!");
-            return null;
+            // if for some reason we don't have any drops with the chance we want, it will fallback to the highest chance drop so it gurantees this returns a drop 
+            List<DropData> fallbackList = new List<DropData>(availableDrops);
+            if (previousDrops != null){
+                foreach (DropData drop in previousDrops)
+                {
+                    fallbackList.Remove(drop);
+                }
+
+                if (fallbackList.Count == 0)
+                {
+                    // return a dupliacte drop since all previous drops are in the fallback list
+                    return availableDrops[UnityEngine.Random.Range(0, availableDrops.Count)];
+                }
+            }
+            DropData fallbackDrop;
+            if (usePitySystem)
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => pitySystem.GetModifiedDropChance(availableRarities[drop.GetRarityIndex()])).First();
+            }
+            else
+            {
+                fallbackDrop = fallbackList.OrderByDescending(drop => availableRarities[drop.GetRarityIndex()].dropChance).First();
+            }
+
+            return fallbackDrop;
         }
+
+        
 
         // if we have drops with the chance we want, return a random from the possible drops
         return possibleDrops[UnityEngine.Random.Range(0, possibleDrops.Count)];
@@ -173,14 +227,111 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
             return;
         }
+
+        if(HUDManager.Instance != null)
+        {
+            bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
+
+            // If player already has 5 upgrades, activate the swap screen.
+            if (isNewUnique && HUDManager.Instance.uniqueUpgradesCount == 5)
+            {
+                if (swapUpgradeUI != null)
+                {
+                    pendingSwap = drop;
+                    swapUpgradeUI.SetActive(true);
+                    upgradeSelectionUI.SetActive(false);
+                    return;
+                }
+                else
+                {
+                    Debug.LogWarning("The swap upgrade UI is null!");
+                }
+            }
+            HUDManager.Instance.AddUpgrade(drop);
+        }
+        else
+        {
+            Debug.LogWarning("HUD Manager instance is not assigned!");
+        }
+        playerUpgrades.Add(drop);
+
         // for now we will simple just activate the drop
         if (usePitySystem)
         {
             pitySystem.OnUpgradesOffered(availableRarities[drop.GetRarityIndex()]);
         }
-        IDrop dropScript = drop.GetDropScript().GetComponent<IDrop>();
-        dropScript.Activate();
+        drop.Activate();
     }
+    /// <summary>
+    /// Buy an upgrade and it takes two parameters: the drop to buy and the slot number to buy it in
+    /// If the slot number was not passed then it will add the drop in the first empty slot
+    /// </summary>
+    /// <param name="drop"> Drop to buy </param>
+    public bool BuyUpgrade(DropData drop)
+    {
+        if (drop == null) return false;
+        if (SoulSystem.Instance == null) return false;
+        // check the value of the souls 
+        int currentSouls = SoulSystem.Instance.GetSoulCurrency();
+
+        if (currentSouls < drop.GetBuyAmount())
+        {
+            // Not enough souls to buy this drop
+            return false;
+        }
+
+        // Subtract souls from the player
+        SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
+        SelectDropsOption(drop);
+        return true;
+    }
+
+    /// <summary>
+    /// Sell an upgrade and it takes two parameters: the drop to sell and if there is a refund (for swapping)
+    /// </summary>
+    /// <returns> True if the upgrade was sold, false if the upgrade was not sold </returns>
+    public bool SellUpgrade(DropData drop, bool refundSoul)
+    {
+        if (drop == null) return false;
+        List<DropData> toRemove = playerUpgrades.FindAll(u => u != null && u.GetID() == drop.GetID());
+        if (toRemove.Count == 0) return false;
+
+        if (!playerUpgrades.Contains(drop))
+        {
+            // Upgrade does not exist in player's inventory
+            return false;
+        }
+
+        if (refundSoul)
+        {
+            int totalRefund = 0;
+            foreach (var upgrade in toRemove)
+            {
+                totalRefund += upgrade.GetSellAmount();
+            }
+            SoulSystem.Instance.AddSouls(totalRefund);
+        }
+        playerUpgrades.RemoveAll(u => u != null && u.GetID() == drop.GetID());
+        for (int i = 0; i < playerUpgrades.Count; i++)
+        {
+            if (playerUpgrades[i].GetID() == drop.GetID())
+            {
+                playerUpgrades[i].Deactivate();
+            }
+        }    
+
+        if (HUDManager.Instance != null)
+        {
+            HUDManager.Instance.RefreshHUD();
+        }
+        else
+        {
+            Debug.LogWarning("HUDManager not assigned.");
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Salvage a drop from the player.
     /// </summary>
@@ -190,8 +341,37 @@ public class DropSystem : MonoBehaviour
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
     }
+    /// <summary>
+    /// This function will deactives the whole stack and activates the new upgrade
+    /// </summary>
+    /// <param name="drop">The new drop to swap</param>
+    /// <param name="slotNumber">The slot number to swap the drop in</param>
+    public void SwapDrop(DropData drop, int slotNumber)
+    {
+        if (drop == null) return;
+        // Swap only if there is a real upgrade in the slot
+        if (playerUpgrades[slotNumber] == null) return;
+        // Deactivate the current upgrade
+        playerUpgrades[slotNumber].Deactivate();
+        // Reset the stack count of the current upgrade
+        playerUpgrades[slotNumber].ResetStack();
+        // Activate the new upgrade
+        playerUpgrades[slotNumber] = drop;
+        drop.Activate();
+    }
 
-        #region Saving/Loading
+    //Used to force an upgrade drop to spawn when the dropUpgrade is toggled in the inspector
+    void OnValidate()
+    {
+        if (dropUpgrade)
+        {
+            SpawnDropPickup(PlayerController.instance.currentCharacter.transform.position);
+            dropUpgrade = false;
+        }
+    }
+
+
+    #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
     /// <summary>
