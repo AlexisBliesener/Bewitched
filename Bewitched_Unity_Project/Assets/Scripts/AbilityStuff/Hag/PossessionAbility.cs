@@ -295,6 +295,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+
         }
         else
         {
@@ -394,7 +395,6 @@ public class PossessionAbility : MonoBehaviour
                     RaycastHit hitInfo;
                     if (Physics.Raycast(possessionRay, out hitInfo, currentPossesionDistance, possessionMask))
                     {
-                        Debug.Log("hitinfor " + hitInfo.collider.name);
                         if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
                         {
                             distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));
@@ -494,6 +494,7 @@ public class PossessionAbility : MonoBehaviour
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;
         }
+
         timePossessionLastLeft = Time.time;
         currentCharacter = newCharacter;
         currentCharacter.ActivateSurroundingPoints();
@@ -514,5 +515,39 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("The possession collider is not found!");
         }
+    }
+    
+    /// <summary>
+    /// Gets the base cool down time for possession
+    /// </summary>
+    public float GetCooldown()
+    {
+        return possessionCooldown;
+    }
+    
+    /// <summary>
+    /// Sets the time for the cool down in seconds
+    /// </summary>
+    /// <param name="newTime">The new cool down time</param>
+    public void SetCooldown(float newTime)
+    {
+        possessionCooldown =  Mathf.Max(0.1f, newTime); // never negative or zero;
+    }
+    
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetFocusTime()
+    {
+        return timeToFocus;
+    }
+    
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 }

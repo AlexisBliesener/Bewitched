@@ -24,12 +24,13 @@ public class PauseManager : MonoBehaviour
     [Header("First Selected Buttons")]
     [Tooltip("The first button to be selected when Pause menu is opened.")]
     public GameObject pauseButton;
+    [Tooltip("The first button to be selected when Settings menu is opened.")]
+    public GameObject settingsButton;
     [Tooltip("The first button to be selected when Compendium menu is opened.")]
     public GameObject compendiumButton;
     [Tooltip("The first button to be selected when Upgrade Log menu is opened.")]
     public GameObject upgradeButton;
-    [Tooltip("The first button to be selected when Settings menu is opened.")]
-    public GameObject settingsButton;
+    
 
     [Header("Other Screens and their buttons")]
     [Tooltip("The Upgrade Selection Screen")]
@@ -74,7 +75,7 @@ public class PauseManager : MonoBehaviour
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
             //Audio
-            AudioManager.CloseUIAudio();
+            if(AudioManager.manager)AudioManager.CloseUIAudio();
         }
         else if (upgradeSelectionUI.activeInHierarchy)
         {

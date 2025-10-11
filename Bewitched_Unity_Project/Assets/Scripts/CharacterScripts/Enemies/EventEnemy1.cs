@@ -37,4 +37,12 @@ public class EventEnemy1 : Enemy
         base.FindPath();
         pathState = PathState.Set;
     }
+    /// <summary>
+    /// Override of Enemy.Die to change the level music to the outro
+    /// </summary>
+    public override void Die()
+    {
+        AudioManager.ChangeMusicParameter("End", "True");
+        base.Die();
+    }
 }
