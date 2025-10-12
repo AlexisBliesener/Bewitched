@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 /// <summary>
 /// Specialized animator controller for the Eleth character.
@@ -21,7 +22,7 @@ public class ElethAnimator : CharacterAnimator
     /// Switches the character's animation state and updates the Animator accordingly.
     /// Specific to the eleth animator adds in the possession state
     /// </summary>
-    public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
+    public override void SwitchState(string newState)
     {
         if (!animationStates.Contains(newState))
         {
@@ -58,26 +59,22 @@ public class ElethAnimator : CharacterAnimator
 
     protected override void Update()
     {
-        if (animator == null) return;
+        if (animator == null)
+        {
+            Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
+            return;
+        }
 
-        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-
-        if (stateInfo.IsName("Possession"))
-            currentAnimationState = "Possession";
-
-        base.Update();
+        // Idle/run switching
+        if (characterController != null)
+        {
+            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
+                SwitchState("Idle");
+            else
+                SwitchState("Run");
+        }
     }
 
-    /// <summary>
-    /// Updates currentAnimationState based on the animator’s active state.
-    /// </summary>
-    protected override void UpdateCurrentStateFromAnimator()
-    {
-        if (stateInfo.IsName("Run")) currentAnimationState = "Run";
-        else if (stateInfo.IsName("Idle")) currentAnimationState = "Idle";
-        else if (stateInfo.IsName("Possession")) currentAnimationState = "Possession";
-        else if (stateInfo.IsName("Death")) currentAnimationState = "Death";
-    }
 
     /// <summary>
     /// Resets all animator triggers
