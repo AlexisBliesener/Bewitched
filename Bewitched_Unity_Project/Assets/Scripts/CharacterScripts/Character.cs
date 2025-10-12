@@ -845,4 +845,16 @@ public abstract class Character : MonoBehaviour
         }
         dodging = false;
     }
+    /// <summary>
+    /// Gets the surrounding points component, if it's not found it will get it from the game object
+    /// </summary>
+    /// <returns> The surrounding points component </returns>
+    public SurroundingPoints GetSurroundingPoints()
+    {
+        if (surroundingPoints == null)
+        {
+            surroundingPoints = GetComponent<SurroundingPoints>();
+        }
+        return surroundingPoints;
+    }
 }

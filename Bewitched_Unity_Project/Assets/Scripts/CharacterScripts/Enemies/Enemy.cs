@@ -116,6 +116,7 @@ public abstract class Enemy : Character
 
     public Material perfectCounterTimeMaterial;
     public Material defaultMaterial;
+    private CharacterController characterController;
 
     public enum PathState
     {
@@ -176,7 +177,7 @@ public abstract class Enemy : Character
         if (currentPath == null) // No path, decelerate to 0
         {
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
-            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            GetCharacterController().Move(velocity * Time.deltaTime);
             return;
         }
 
@@ -186,7 +187,7 @@ public abstract class Enemy : Character
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
-            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            GetCharacterController().Move(velocity * Time.deltaTime);
             return;
         }
 
@@ -228,10 +229,10 @@ public abstract class Enemy : Character
             velocity = Vector3.zero;
         }
 
-        GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+        GetCharacterController().Move(velocity * Time.deltaTime);
 
-        if (!GetComponent<CharacterController>().isGrounded)
-            GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
+        if (!GetCharacterController().isGrounded)
+            GetCharacterController().Move(Vector3.down * Time.deltaTime);
     }
 
     /// <summary>
@@ -906,5 +907,18 @@ public abstract class Enemy : Character
         }
         if (val) aiState = AIMovementState.Retreating;
         else aiState = AIMovementState.Blocked;
+    }
+
+    /// <summary>
+    /// Gets the character controller component, if it's not found it will get it from the game object
+    /// </summary>
+    /// <returns> The character controller component </returns>
+    public CharacterController GetCharacterController()
+    {
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
+        return characterController;
     }
 }

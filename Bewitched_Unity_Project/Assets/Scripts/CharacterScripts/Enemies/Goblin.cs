@@ -198,7 +198,7 @@ public class Goblin : Enemy
         {
             Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
             targetPos.y = transform.position.y;
-            GetComponent<CharacterController>().enabled = false;
+            GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime);
             transform.DOLookAt(targetPos, chaseTime);
 
@@ -231,11 +231,11 @@ public class Goblin : Enemy
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 SetMovementValues(false);
-                GetComponent<CharacterController>().enabled = false;
+                GetCharacterController().enabled = false;
                 yield return null;
             }
             transform.position = targetPos;
-            GetComponent<CharacterController>().enabled = true;
+            GetCharacterController().enabled = true;
         }
 
         DestoryAttackIndicator();
@@ -482,7 +482,7 @@ public class Goblin : Enemy
                 rotationalVelocity = spinRotationalSpeed;
             }
 
-            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            GetCharacterController().Move(velocity * Time.deltaTime);
             transform.Rotate(Vector3.up, rotationalVelocity * Time.deltaTime);
 
             distanceTravelled += velocity.magnitude * Time.deltaTime;
@@ -498,7 +498,7 @@ public class Goblin : Enemy
             velocity = Vector3.Lerp(velocity, Vector3.zero, timeSinceSlowBegan / 0.5f);
             rotationalVelocity = Mathf.Lerp(rotationalVelocity, 0, timeSinceSlowBegan / 0.5f);
 
-            GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
+            GetCharacterController().Move(velocity * Time.deltaTime);
             transform.Rotate(Vector3.up, rotationalVelocity * Time.deltaTime);
 
             timeSinceSlowBegan += Time.deltaTime;
@@ -584,7 +584,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -593,7 +593,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -602,7 +602,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;

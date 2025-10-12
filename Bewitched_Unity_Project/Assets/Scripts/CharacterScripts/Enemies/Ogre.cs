@@ -147,7 +147,7 @@ public class Ogre : Enemy
         {
             Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
             targetPos.y = transform.position.y;
-            GetComponent<CharacterController>().enabled = false;
+            GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime);
             transform.DOLookAt(targetPos, chaseTime);
 
@@ -177,7 +177,7 @@ public class Ogre : Enemy
                 yield return null;
             }
             transform.position = targetPos;
-            GetComponent<CharacterController>().enabled = true;
+            GetCharacterController().enabled = true;
         }
 
         if (attackIndicator != null)
@@ -200,12 +200,14 @@ public class Ogre : Enemy
         float timeSinceStarted = 0f;
 
         GameObject pivot = Instantiate(batPivot, transform);
-        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
+        DefaultHitbox pivotHitbox = pivot.GetComponent<DefaultHitbox>();
+        pivotHitbox.Init(this, attackDuration: batSwingDuration);
         pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
-        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+        DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
+        batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+        pivotHitbox.AttachHitbox(batHitboxHitbox);
 
         Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
         Vector3 startFoward = transform.forward;
@@ -341,7 +343,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -350,7 +352,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -359,7 +361,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
