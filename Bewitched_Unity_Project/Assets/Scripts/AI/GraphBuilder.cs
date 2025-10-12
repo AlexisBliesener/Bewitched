@@ -102,6 +102,7 @@ public class GraphBuilder : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        lineRenderer = GetComponent<LineRenderer>();
         StartCoroutine(HandleSearching()); //What was causing long start time
     }
     /// <summary>
@@ -185,6 +186,7 @@ public class GraphBuilder : MonoBehaviour
                     vertices.Add(newNode.GetPosition());
                     vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
                     validNodes++;
+                    newNode.SetCreated();
                 }
                 // Check if this floor is far enough from existing floors
                 if (yPositions.Count == 0)
@@ -720,6 +722,9 @@ public class GraphBuilder : MonoBehaviour
             closedSet.Add(current);
             numSearched++;
 
+            Debug.Log("Current Node: " + current.GetPosition(enemy.gameObject).ToString() + " and hash code: " + current.GetHashCode().ToString() + " and cost: " + current.GetCost());
+            Debug.Log("It's y position: " + current.GetYPos());
+
             GameObject testNode = Instantiate(testSearchedNode);
             testNode.transform.position = current.GetPosition(enemy.gameObject);
             testNode.transform.position = new Vector3(testNode.transform.position.x, testNode.transform.position.y + 1, testNode.transform.position.z);
@@ -727,10 +732,6 @@ public class GraphBuilder : MonoBehaviour
             float costMagnitude = current.GetCost() / 1000;
             Renderer objRenderer = testNode.GetComponent<Renderer>();
             objRenderer.material.color = new Color(costMagnitude, costMagnitude, costMagnitude);
-
-            Debug.Log(current.GetPosition(testingEnemy.gameObject));
-            Debug.Log(current.GetCost());
-            Debug.Log(current.GetHashCode());
 
             createdObjects.Add(testNode);
 
@@ -741,14 +742,15 @@ public class GraphBuilder : MonoBehaviour
                 enemy.SetPath(path);
                 testNode.GetComponent<MeshRenderer>().material = greenMat;
                 Debug.Log("Path found in: " + numSearched.ToString() + " nodes");
+                Debug.Log("Path corners: " + path.GetCornerNodes().Count);
                 enemy.StartPath(false);
 
-                lineRenderer.positionCount = path.GetCornerNodes().Count;
+                lineRenderer.positionCount = path.GetCornerNodes().Count + 1;
                 lineRenderer.SetPosition(0, enemy.transform.position);
 
-                for (int i = 1; i < path.GetCornerNodes().Count; i++)
+                for (int i = 0; i < path.GetCornerNodes().Count; i++)
                 {
-                    lineRenderer.SetPosition(i, new Vector3(path.GetCornerNodes()[i].GetPosition().x, transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
+                    lineRenderer.SetPosition(i+1, new Vector3(path.GetCornerNodes()[i].GetPosition().x, enemy.transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
                 }
 
                 yield return new WaitForSeconds(5);
@@ -765,7 +767,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition());
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
