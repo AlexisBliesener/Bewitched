@@ -71,7 +71,7 @@ public class PossessionAbility : MonoBehaviour
 
     [Header("Ability Charging")]
     [SerializeField, Tooltip("The number of hits the player must do to refill the possession ability")]
-    private int hitsToCharge;
+    private int hitsToCharge = 4;
     [SerializeField, Tooltip("The time eleth has to wait in witch form to get a 'hit' refilling some charge of the possession ability")]
     private float possessionChargeTime;
 
@@ -456,15 +456,22 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void UpdateUI()
     {
-        possessionAbilitySlider.value = (int)(((float)possessionCharge / hitsToCharge) * 100);
-
-        if(currentCharacter == eleth)
+        if (possessionAbilitySlider != null)
         {
-            if(possessionCharge == hitsToCharge)
+            possessionAbilitySlider.value = (int)(((float)possessionCharge / hitsToCharge) * 100);
+        }
+        else
+        {
+            Debug.LogWarning("Possession Ability Slider is not set!");
+        }
+
+        if (currentCharacter == eleth)
+        {
+            if (possessionCharge == hitsToCharge)
             {
                 possessionChargeTimer = Time.time;
             }
-            else if(Time.time - possessionChargeTimer > possessionChargeTime)
+            else if (Time.time - possessionChargeTimer > possessionChargeTime)
             {
                 AddHitDone();
                 possessionChargeTimer = Time.time;
