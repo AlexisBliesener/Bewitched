@@ -144,9 +144,9 @@ public class PlayerController : MonoBehaviour
                         velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
                     }
 
-                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * 10f);
+                 //   velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * 10f);
 
-                    characterController.Move(velocity);
+                    characterController.Move(velocity * Time.fixedDeltaTime);
 
                 }
                 else
