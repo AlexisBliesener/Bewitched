@@ -619,7 +619,7 @@ public abstract class Enemy : Character
             transform.rotation = Quaternion.Euler(-angle / 3, lookRotation.eulerAngles.y, 0);
         }
 
-        return base.BeginPrimary();
+        yield return StartCoroutine(base.BeginPrimary());
     }
 
 
