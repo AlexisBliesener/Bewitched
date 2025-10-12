@@ -163,6 +163,9 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     public void SetStartedHoldTime(float val) => startedHoldTime = val;
 
+    /// <summary>
+    /// Adds a point of charge to the possession ability charge
+    /// </summary>
     public void AddHitDone()
     {
         possessionCharge++;
@@ -283,7 +286,10 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private IEnumerator FirePossession()
     {
+        // reset the possession ability charge
         possessionCharge = 0;
+
+        // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
         if (counteringEnemy != null)
         {
@@ -297,6 +303,8 @@ public class PossessionAbility : MonoBehaviour
             Debug.LogError("Failed to play possession sound effect. Is it assigned in the ref sheet?");
         }
         yield return new WaitForSeconds(0.5f);
+
+        // Possess target if there is one
         if (target)
         {
             target.SetControlled(true);
@@ -335,6 +343,7 @@ public class PossessionAbility : MonoBehaviour
             Debug.LogWarning("Firing Possession VFX is not assigned!");
         }
 
+        // Reset time scale if this was a counter
         if (counteringEnemy != null)
         {
             yield return new WaitForSeconds(0.2f);
@@ -570,11 +579,21 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns the amount of hits needed to charge the possession ability
+    /// Used by the Backup Plan upgrade
+    /// </summary>
+    /// <returns>hitsToCharge, the possession ability</returns>
     public int GetHitsToCharge()
     {
         return hitsToCharge;
     }
 
+    /// <summary>
+    /// Sets the amount of hits it takes to fully charge the possession ability
+    /// Used by the Backup Plan upgrade
+    /// </summary>
+    /// <param name="val">The amount of hits to set hitsToCharge to</param>
     public void SetHitsToCharge(int val)
     {
         hitsToCharge = val;
