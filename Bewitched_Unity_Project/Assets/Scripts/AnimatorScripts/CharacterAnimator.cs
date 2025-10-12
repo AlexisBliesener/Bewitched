@@ -20,7 +20,7 @@ public class CharacterAnimator : MonoBehaviour
     [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
     protected Animator animator;
     [SerializeField, Tooltip("Character controller attached to this gameobject.")]
-    private CharacterController characterController;
+    protected CharacterController characterController;
 
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
@@ -54,9 +54,6 @@ public class CharacterAnimator : MonoBehaviour
             Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
             return;
         }
-
-        // Track current animator state
-        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
         // Idle/run switching
         if (characterController != null)

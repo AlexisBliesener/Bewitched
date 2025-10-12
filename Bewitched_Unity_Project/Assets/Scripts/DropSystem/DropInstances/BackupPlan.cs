@@ -12,10 +12,10 @@ public class BackupPlan : MonoBehaviour, IDrop
     public int stackNum { get; set; }
 
     [Header("Cooldown Settings")]
-    [SerializeField, Tooltip("Multiplicative reduction factor per stack for possession cooldown")]
-    private float[] cooldownReduction = { 0.9f }; 
-    [Tooltip("The base cooldown from possession class")]
-    private float baseCooldown;
+    [SerializeField, Tooltip("The number of hits needed for possession at each stack amount")]
+    private int[] hitsNeeded = { 3, 2, 1 }; 
+    [Tooltip("The base number of hits needed to get possession from possession class")]
+    private int baseHits;
     [Tooltip("Whether the effect is currently active")]
     private bool active = false;
 
@@ -78,7 +78,7 @@ public class BackupPlan : MonoBehaviour, IDrop
     private void Start()
     {
         if (PossessionAbility.instance == null) return;
-        baseCooldown = PossessionAbility.instance.GetCooldown();
+        baseHits = PossessionAbility.instance.GetHitsToCharge();
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class BackupPlan : MonoBehaviour, IDrop
         active = false;
         if (PossessionAbility.instance != null)
         {
-            PossessionAbility.instance.SetCooldown(baseCooldown);
+            PossessionAbility.instance.SetHitsToCharge(baseHits);
         }
     }
 
@@ -109,12 +109,6 @@ public class BackupPlan : MonoBehaviour, IDrop
     {
         if (!active || PossessionAbility.instance == null) return;
 
-        float reduction = 1f;
-        for (int i = 0; i <= stackNum && i < cooldownReduction.Length; i++)
-        {
-            reduction *= cooldownReduction[i];
-        }
-
-        PossessionAbility.instance.SetCooldown(baseCooldown * reduction);
+        PossessionAbility.instance.SetHitsToCharge(hitsNeeded[stackNum]);
     }
 }

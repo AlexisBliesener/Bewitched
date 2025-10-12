@@ -151,7 +151,6 @@ public class DefaultHitbox : MonoBehaviour
     {
         if (user == null)
         {
-            Debug.Log("No User");
             Destroy(gameObject);
             foreach (DefaultHitbox child in children)
             {
@@ -185,6 +184,12 @@ public class DefaultHitbox : MonoBehaviour
                 if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable())
                 {
                     character.health.SubHealth(damage);
+
+                    // Increments the possession ability charge if the hit has done to anything other than the player
+                    if(character != PlayerController.instance.currentCharacter)
+                    {
+                        PossessionAbility.instance.AddHitDone();
+                    }
 
                     // Hit VFX
                     if(hitVFX != null)
