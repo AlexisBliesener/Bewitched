@@ -25,10 +25,6 @@ public abstract class Character : MonoBehaviour
     public float movementSpeed = 5;
     [Tooltip("Speed the character can move while approaching for an attack")]
     public float approachSpeed = 7;
-    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
-    private float jumpSpeed;
-    [SerializeField, Tooltip("How long to wait before doing a jump")]
-    private float jumpDelay;
     [Tooltip("Acceleration of the Character")]
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character")]
@@ -267,16 +263,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the amount of time to wait before doing a jump
-    /// For animation purposes
-    /// </summary>
-    /// <returns>The amount of time to wait before doing a jump </returns>
-    public float GetJumpDelay()
-    {
-        return jumpDelay;
-    }
-
-    /// <summary>
     /// Returns the Cinemachine Combat camera associated with this character.
     /// </summary>
     /// <returns>The FreeLook Cinemachine camera.</returns>
@@ -367,15 +353,6 @@ public abstract class Character : MonoBehaviour
 
     public abstract void Die();
 
-    /// <summary>
-    /// Return the jump speed of this character
-    /// </summary>
-    /// <returns>The jump speed of this character</returns>
-    public float GetJumpSpeed()
-    {
-        return jumpSpeed;
-    }
-
     protected virtual bool CheckPrimaryCooldown() {
         float cooldown = primaryCooldown;
         return Time.time - timeLastPrimary >= cooldown && Time.time - timeLastAny >= attackDelay;
@@ -422,14 +399,6 @@ public abstract class Character : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         if (PlayerController.instance != null)
             PlayerController.instance.SetAllowMovement(true);
-    }
-
-    /// <summary>
-    /// Sets the characters animation state to jump
-    /// </summary>
-    public void Jump()
-    {
-        characterAnimator.SwitchState("Jump", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
     }
 
     public IEnumerator StartTime(float stopTime)

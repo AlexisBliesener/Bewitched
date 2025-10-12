@@ -35,7 +35,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("Holds the current animator state info")]
     protected AnimatorStateInfo stateInfo;
     [Tooltip("The character this animator is working on")]
-    private Character character;
+    protected Character character;
 
 
     protected virtual void Start()
@@ -133,11 +133,6 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
                 break;
-            case "Jump":
-                animator.SetTrigger("Jump");
-                canChange = false;
-                StartCoroutine(WaitForGrounded());
-                break;
             case "Death":
                 animator.SetTrigger("Death");
                 canChange = false;
@@ -154,7 +149,6 @@ public class CharacterAnimator : MonoBehaviour
         animator.ResetTrigger("Run");
         animator.ResetTrigger("PrimaryAttack");
         animator.ResetTrigger("SecondaryAttack");
-        animator.ResetTrigger("Jump");
         animator.ResetTrigger("Death");
     }
 
@@ -203,7 +197,6 @@ public class CharacterAnimator : MonoBehaviour
     protected virtual IEnumerator WaitForGrounded()
     {
         yield return new WaitForFixedUpdate();
-        yield return new WaitForSeconds(character.GetJumpDelay());
         yield return new WaitUntil(() => characterController.isGrounded);
         canChange = true;
     }

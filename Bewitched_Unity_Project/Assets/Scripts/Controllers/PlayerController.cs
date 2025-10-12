@@ -70,10 +70,6 @@ public class PlayerController : MonoBehaviour
 
    // private bool dodging = false;
 
-    [Tooltip("The y velocity the player is moving at")]
-    private float yVelocity;
-    [Tooltip("The jump speed of the player")]
-    private float jumpSpeed;
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
 
@@ -130,16 +126,6 @@ public class PlayerController : MonoBehaviour
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
-        if(characterController.isGrounded && yVelocity <0)
-        {
-            yVelocity = -0.5f;
-        }
-        else if (yVelocity > Physics.gravity.y)
-        {
-            yVelocity += (Physics.gravity * Time.fixedDeltaTime * 2).y;
-        }
-
-
         if (allowMovement)
         {
             if (movementInput.sqrMagnitude > 0.01)
@@ -151,17 +137,16 @@ public class PlayerController : MonoBehaviour
                     desiredVelocity.y = 0f; // Prevent tilting
                     if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
                     {
-                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.deltaTime;
+                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.fixedDeltaTime;
                     }
                     else
                     {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * currentCharacter.deceleration);
+                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
                     }
 
-                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.deltaTime * 10f);
+                    velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * 10f);
 
-                    Vector3 finalMovement = velocity * Time.deltaTime + new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime;
-                    characterController.Move(finalMovement);
+                    characterController.Move(velocity);
 
                 }
                 else
@@ -170,12 +155,12 @@ public class PlayerController : MonoBehaviour
                     desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                     desiredVelocity.y = 0f; // Prevent tilting
                     desiredVelocity = desiredVelocity.normalized * speed;
-                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
+                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
                     velocity.x += xChange;
 
                     if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
 
-                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.deltaTime;
+                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
                     velocity.z += zChange;
 
                     if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
@@ -191,10 +176,7 @@ public class PlayerController : MonoBehaviour
                         velocity = Vector3.zero;
                     }
 
-                    characterController.Move(velocity * Time.deltaTime);
-
-                    Vector3 finalMovement = velocity * Time.deltaTime + new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime;
-                    characterController.Move(finalMovement);
+                    characterController.Move(velocity * Time.fixedDeltaTime);
 
                     if (velocity.sqrMagnitude > 0.01f)
                     {
@@ -202,19 +184,17 @@ public class PlayerController : MonoBehaviour
                         currentCharacter.transform.rotation = Quaternion.Slerp(
                             currentCharacter.transform.rotation,
                             targetRotation,
-                            10f * Time.deltaTime
+                            10f * Time.fixedDeltaTime
                         );
                     }
                 }
             }
             else
-            {
+            {   
                 velocity = new Vector3(0, 0, 0);
-                if(characterController.enabled)
-                {
-                    characterController.Move(new Vector3(0, yVelocity, 0) * Time.fixedDeltaTime);
-                }
+                characterController.Move(velocity);
             }
+          
             currentCharacter.SetVelocity(velocity);
         }
     }
@@ -303,37 +283,6 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-    }
-
-    public void Jump(InputAction.CallbackContext context)
-    {
-        if(characterController.isGrounded && context.started && currentCharacter.GetJumpSpeed() > 0)
-        {
-            Character attacker = currentCharacter.GetAttacker();
-            //if (attacker != null && !dodging) // Do a dodge if being attacked
-            //{
-            //   // StartCoroutine(Dodge(attacker.Dodgable(), attacker));
-            //}
-            //else
-            //{
-                jumpSpeed = currentCharacter.GetJumpSpeed();
-                yVelocity = jumpSpeed;
-          //  }
-            currentCharacter.Jump();
-            StartCoroutine(JumpCoroutine());
-        }
-    }
-
-    /// <summary>
-    /// Starts the jump
-    /// Waits for jump delay for animation purposes then starts movement 
-    /// </summary>
-    /// <returns></returns>
-    private IEnumerator JumpCoroutine()
-    {
-        yield return new WaitForSeconds(currentCharacter.GetJumpDelay());
-        jumpSpeed = currentCharacter.GetJumpSpeed();
-        yVelocity = jumpSpeed;
     }
 
     public void PauseGame(InputAction.CallbackContext context)
