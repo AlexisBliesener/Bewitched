@@ -176,7 +176,7 @@ public class NavPath
     /// <returns> Destination position </returns>
     public Vector3 GetDestinationPosition(GameObject obj = null)
     {
-        return destination.GetPosition(); // now it will use real y (floor height)
+        return destination.GetPosition(obj); 
     }
 
     /// <summary>
