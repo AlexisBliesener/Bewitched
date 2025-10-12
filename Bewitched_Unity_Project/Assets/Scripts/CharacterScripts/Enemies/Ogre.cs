@@ -60,15 +60,6 @@ public class Ogre : Enemy
     [Tooltip("Maximum time for ogre to sit")]
     [SerializeField] float maxSittingTime = 7;
 
-    float jumpVelocity = 0;
-
-    // Secondary stuff
-
-    GameObject slamBatHitbox;
-
-    float groundHeight;
-    bool jumping = false;
-
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
 
@@ -89,6 +80,7 @@ public class Ogre : Enemy
 
     public override void PrimaryAttack()
     {
+        
         hitCharacter = false;
         if (playerControlling)
         {
@@ -113,7 +105,7 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
-        Debug.Log("Starting swing");
+        // Debug.Log("Starting swing");
         attackStateCoroutine = StartCoroutine(BatWindup());
     }
 
@@ -286,14 +278,14 @@ public class Ogre : Enemy
     /// <returns> Time delays </returns>
     public IEnumerator HandleScream()
     {
-        Debug.Log("ROAR");
+        // Debug.Log("ROAR");
         attackState = AttackState.Attacking;
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
             if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
             {
-                Debug.Log("Scream hit character " + character);
+                // Debug.Log("Scream hit character " + character);
                 screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
             }
         }
@@ -314,7 +306,7 @@ public class Ogre : Enemy
     {
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
-        Debug.Log(aiState);
+        // Debug.Log(aiState);
 
         if (aiState == AIMovementState.Patrolling)
         {
@@ -381,19 +373,26 @@ public class Ogre : Enemy
     /// </summary>
     public override void Patrol()
     {
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
+
+
         if (LookForPlayer())
         {
-            Debug.Log("Spotted player");
+            // Debug.Log("Spotted player");
             StartCoroutine(SpotPlayer());
             return;
         }
 
         if (pathState == PathState.Set)
         {
-            Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
+            // Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
-                Debug.Log("Reached");
+                // Debug.Log("Reached");
                 pathState = PathState.Unset;
                 StartCoroutine(LookAround()); // Look around
             }
@@ -412,7 +411,7 @@ public class Ogre : Enemy
     }
 
     /// <summary>
-    /// Called in first frame, sets the patrol origin to Goblin position
+    /// Called in first frame, sets the patrol origin to Ogre position
     /// </summary>
     public void SetPatrolOrigin()
     {
@@ -425,7 +424,7 @@ public class Ogre : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
-        Debug.Log("Patrol origin: " + patrolOrigin);
+        // Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
         {
             float randomX = Random.Range(-patrolRange, patrolRange);
@@ -438,7 +437,7 @@ public class Ogre : Enemy
         {
             walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin).GetPosition(gameObject);
         }
-        Debug.Log(walkPoint);
+        // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
@@ -530,13 +529,13 @@ public class Ogre : Enemy
     /// <returns></returns>
     private IEnumerator Sit()
     {
-        Debug.Log("Start sit");
+        // Debug.Log("Start sit");
         inProcess = true;
 
         yield return new WaitForSeconds(Random.Range(minSittingTime, maxSittingTime));
 
         inProcess = false;
-        Debug.Log("End sit");
+        // Debug.Log("End sit");
     }
 
     /// <summary>
@@ -544,7 +543,6 @@ public class Ogre : Enemy
     /// </summary>
     public override void Chase()
     {
-
         lookAtPlayer = false;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -575,6 +573,11 @@ public class Ogre : Enemy
     /// </summary>
     public void Surround()
     {
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -608,6 +611,12 @@ public class Ogre : Enemy
     /// </summary>
     public void Retreat()
     {
+
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -634,7 +643,7 @@ public class Ogre : Enemy
     }
 
     /// <summary>
-    /// Handles Goblin attacking chance and triggering
+    /// Handles Ogre attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
     /// <returns> True if attacking, false otherwise </returns>
@@ -653,7 +662,7 @@ public class Ogre : Enemy
 
         if (totalOdds > 0)
         {
-            Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
+            // Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
@@ -667,5 +676,13 @@ public class Ogre : Enemy
             return true;
         }
         return false;
+    }
+    /// <summary>
+    /// Override of Enemy.Die to change the level music to the outro
+    /// </summary>
+    public override void Die()
+    {
+        AudioManager.ChangeMusicParameter("End", "True");
+        base.Die();
     }
 }

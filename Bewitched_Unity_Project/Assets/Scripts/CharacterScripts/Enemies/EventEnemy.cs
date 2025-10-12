@@ -4,6 +4,7 @@ using UnityEngine;
 
 
 // This is the event enemy for the event system
+[RequireComponent(typeof(Enemy))]
 public class EventEnemy : MonoBehaviour
 {
     [Tooltip("The enemy that is controlled by this event enemy")]
@@ -64,6 +65,10 @@ public class EventEnemy : MonoBehaviour
     /// </summary>
     public Enemy GetEnemy()
     {
+        if (enemyForEvent == null)
+        {
+            enemyForEvent = GetComponent<Enemy>();
+        }
         return enemyForEvent;
     }
 
