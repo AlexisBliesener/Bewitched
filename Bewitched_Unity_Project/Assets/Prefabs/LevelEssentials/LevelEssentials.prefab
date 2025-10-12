@@ -408,13 +408,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 962c00d601d43da4da1959ad750da17b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possessionCooldown: 1
   maxPossessionDistance: 10
-  lifeDrainPercentage: 0
   possessionMask:
     serializedVersion: 2
     m_Bits: 384
-  possessionCooldownDisplay: {fileID: 0}
+  possessionAbilitySlider: {fileID: 0}
   secondaryHealthBar: {fileID: 0}
   crossHair: {fileID: 0}
   eleth: {fileID: 1678128613887762981}
@@ -428,6 +426,8 @@ MonoBehaviour:
   startingPossessionDistance: 6
   endingPossesionDistance: 12
   timeToFocus: 1.5
+  hitsToCharge: 4
+  possessionChargeTime: 2
 --- !u!1 &6049376072004412199
 GameObject:
   m_ObjectHideFlags: 0

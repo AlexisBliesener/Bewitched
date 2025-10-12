@@ -328,6 +328,7 @@ public abstract class Enemy : Character
             aiState = AIMovementState.Patrolling;
         }
     }
+
     public override void Die()
     {
         if (playerControlling)

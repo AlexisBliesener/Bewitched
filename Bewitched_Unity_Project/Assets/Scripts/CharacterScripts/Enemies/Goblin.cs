@@ -216,9 +216,9 @@ public class Goblin : Enemy
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
-                        PlayerController.instance.SetCounterAvaliable(null);
+                        if(PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
+                   // if (lockedCharacter == currentPlayer && PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -228,7 +228,7 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
+                   // if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 SetMovementValues(false);
                 GetComponent<CharacterController>().enabled = false;
@@ -848,8 +848,6 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        Debug.Log(pathState);
-        Debug.Log(currentPath);
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             Debug.Log("Moving: " + gameObject);
