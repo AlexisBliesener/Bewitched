@@ -525,7 +525,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition());
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))

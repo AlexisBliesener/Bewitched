@@ -172,7 +172,7 @@ public class Guard : Enemy
     // Update is called once per frame
     void Update()
     {
-        currentPlayer = playerController.GetCurrentCharacter();
+        currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
         SetBehavior();
     }
@@ -286,7 +286,6 @@ public class Guard : Enemy
     /// </summary>
     public override void SetBehavior()
     {
-        target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
