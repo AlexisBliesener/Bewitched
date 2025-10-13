@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 
 
+
 /// <summary>
 /// This class is used to play any audio that needs to be called via Animation Events
 /// Every function call in animation events needs to pass it's arguments as an Animation Event
@@ -46,6 +47,18 @@ public class AnimationAudio : MonoBehaviour
 
     void OnDestroy()
     {
+        //Clean up code to unpin all memory before destroying this class instance
+        foreach(var ev in animEvents.Values)
+        {
+            ev.getUserData(out IntPtr data);
+            GCHandle handle = GCHandle.FromIntPtr(data);
+            handle.Free();
+            ev.setUserData(IntPtr.Zero);
+            //This should call the destroy callback right before this object gets destroyed,
+            //avoiding a crash. 
+            ev.release();
+            ev.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
         character.health.OnDeath -= OnDeath;
     }
 
@@ -239,6 +252,7 @@ public class AnimationAudio : MonoBehaviour
         }
         //When death animations are implemented, exclude death sound effects.
     }
+    
 
     /// <summary>
     /// Callback that removes the event from the animEvents dictionary when it gets destroyed.
@@ -252,6 +266,13 @@ public class AnimationAudio : MonoBehaviour
     {
         EventInstance ev = new(instancePtr);
         ev.getUserData(out IntPtr userData);
+        if (userData == IntPtr.Zero)
+        {
+            /*
+            Control should only get here when a scene is being reset and sound effects are still playing.
+            */
+            return FMOD.RESULT.OK;
+        }
         GCHandle handle = GCHandle.FromIntPtr(userData);
         string clipName = handle.Target as string;
         if (animEvents.ContainsKey(clipName)&&animEvents[clipName].Equals(ev))
