@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: -4911733195017043695}
   - component: {fileID: -4642130304282130039}
   - component: {fileID: -9206881998534952683}
+  - component: {fileID: 6302369574877686289}
+  - component: {fileID: 4578869385171369304}
   m_Layer: 7
   m_Name: Guard
   m_TagString: Untagged
@@ -147,7 +149,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345228425115439027}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.3
   m_Speed: 3.5
@@ -188,61 +190,82 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Guard
-  movementSpeed: 3
-  acceleration: 5
-  deceleration: 5
+  movementSpeed: 5
+  approachSpeed: 7
+  jumpSpeed: 0
+  jumpDelay: 0
+  acceleration: 6
+  deceleration: 10
+  rotationalVelocity: 240
+  chaseTime: 3
+  windupTime: 0.25
   weight: 7
   sizeRadius: 0.6
   numSurroundingPoints: 8
-  surroundingRadius: 2
+  minSurroundingRadius: 2
+  maxSurroundingRadius: 5
   teamID: 2
-  animator: {fileID: 0}
   primaryFireIcon: {fileID: 0}
   secondaryFireIcon: {fileID: 0}
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1.25
-  primaryComboExtraCooldown: 0
-  primaryComboSteps: 0
-  primaryComboResetTime: 0
-  primaryAnimationDelay: 0
   secondaryCooldown: 6
-  secondaryAnimationDelay: 0
   primaryAttackRange: 5
-  maxHealth: 150
+  primaryComboSteps: 0
+  primaryComboResetTime: []
+  primaryComboMinTime: []
+  health: {fileID: 0}
+  canPossess: 1
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.3
   characters:
     serializedVersion: 2
     m_Bits: 128
-  obstacle: {fileID: 0}
+  combatCam: {fileID: 0}
+  aimCam: {fileID: 0}
+  exploreCam: {fileID: 0}
+  attackEffects: []
+  effectJSONs: []
+  attackIndicatorPrefab: {fileID: 0}
   agent: {fileID: 297698976383686993}
-  minStopDistance: 0.5
-  highestPriority: 50
-  lowestPriority: 69
+  minStopDistance: 2
+  pathfindingPriority: 2
+  seenBuffer: 0.5
   ground:
     serializedVersion: 2
     m_Bits: 64
   environment:
     serializedVersion: 2
     m_Bits: 256
-  sightRange: 10
+  surroundingToChaseRadius: 4
+  chaseToSurroundingRadius: 3
+  sightRange: 15
   maxSightAngle: 40
   hearingRange: 2
   patrolRange: 5
+  timeBeforeSearch: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   attackDelayAI: 0.5
-  leaveBodyExplosionRadius: 5
-  leaveBodyExplosionMinimumDamage: 10
-  leaveBodyExplosionMaximumDamage: 40
-  leaveBodyExplosionMinimumKnockback: 10
-  leaveBodyExplosionMaximumKnockback: 30
+  primaryAttackChance: 1
+  secondaryAttackChance: 0
+  lowHealthThresholdPercentage: 30
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: -4642130304282130039}
-  lancePrefab: {fileID: 14054118119602519, guid: 66bdb1ae328c2074b9adad40659156b9, type: 3}
+  playerControlling: 0
+  perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
+  pathState: 0
+  aiState: 0
+  lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
+  lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6
-  lanceDamage: 22.5
-  lanceKnockback: 5
+  lanceHandleDamage: 20
+  lanceTipDamage: 5
+  lanceDuration: 0.5
+  lanceTipEffects: {fileID: 0}
+  lanceHandleEffects: {fileID: 0}
   shieldPrefab: {fileID: 5297234261058955286, guid: 3a6774d7279d5db47991fcb9a194ed59, type: 3}
   minimumShieldBashSpeed: 10
   maximumShieldBashSpeed: 20
@@ -250,9 +273,13 @@ MonoBehaviour:
   maximumShieldBashDamage: 55
   minimumShieldBashKnockback: 15
   maximumShieldBashKnockback: 35
+  shieldBashEffects: {fileID: 0}
   maxShieldBashChargeTime: 2
   bashDuration: 0.65
   chargingMovementSpeed: 2
+  numPatrolPoints: 3
+  patrolPointPrefab: {fileID: 459476383034558125, guid: 4951c2ee7e63db54fb82efb35ebd9595, type: 3}
+  patrolPoints: []
 --- !u!120 &-4642130304282130039
 LineRenderer:
   serializedVersion: 2
@@ -369,6 +396,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  environment:
+    serializedVersion: 2
+    m_Bits: 0
+  debugging: 0
+  pointObjPrefab: {fileID: 0}
+  minAttackTime: 0
+  maxAttackTime: 2
+  resetCostlyAreaDistance: 1
+--- !u!114 &6302369574877686289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345228425115439027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a6aeef76141464e8deb312572272c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  lowHealthCoefficient: 0.3
+  decayRate: 0
+  miniBarPrefab: {fileID: 0}
+  deathUI: {fileID: 0}
+--- !u!114 &4578869385171369304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345228425115439027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  primaryAnimationDelay:
+  - 0.5
+  secondaryAnimationDelay: 0.5
+  secondaryAttackLength: 1
+  animator: {fileID: 0}
+  characterController: {fileID: 0}
 --- !u!1001 &2563528445496889038
 PrefabInstance:
   m_ObjectHideFlags: 0
