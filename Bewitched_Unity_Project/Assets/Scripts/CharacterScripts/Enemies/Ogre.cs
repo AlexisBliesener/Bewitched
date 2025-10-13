@@ -1,64 +1,66 @@
 using DG.Tweening;
+using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Ogre : Enemy
 {
-    [Header("Ogre Settings")]
+    [Header("Ogre Prefabs/Effects"), ShowIf("dev")]
     [Tooltip("Ogre Bat Prefab")]
     [SerializeField] GameObject batHitboxPrefab;
-    [Tooltip("Pivot Prefab")]
+    [Tooltip("Pivot Prefab"), ShowIf("dev")]
     [SerializeField] GameObject batPivot;
 
-    [Tooltip("Bat Swing Damage")]
-    [SerializeField] float batSwingDamage;
-    [Tooltip("Bat Swing Angle")]
-    [SerializeField] float batSwingAngle;
-    [Tooltip("Bat Swing Duration")]
-    [SerializeField] float batSwingDuration;
-    [Tooltip("Bat Windup Period")]
-    [SerializeField] float batWindupPeriod;
-
-    [Tooltip("Bat Swing Status Effects")]
+    [Tooltip("Bat Swing Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects batSwingEffects;
 
-    [Tooltip("Ogre Slam Bat Hitbox")]
+    [Tooltip("Ogre Slam Bat Hitbox"), ShowIf("dev")]
     [SerializeField] GameObject slamHitboxPrefab;
-    [Tooltip("Ogre Jump Gravity")]
-    [SerializeField] float ogreJumpGravity;
-    [Tooltip("Ogre Jump Speed")]
-    [SerializeField] float ogreJumpSpeed;
-    [Tooltip("Ogre Jump Bat Damage")]
-    [SerializeField] float ogreJumpBatDamage;
-    [Tooltip("Ogre Jump Slam Damage")]
-    [SerializeField] float ogreJumpSlamDamage;
-    [Tooltip("Ogre Jump Minimum Knockback")]
-    [SerializeField] float ogreJumpKnockbackMinimum;
-    [Tooltip("Ogre Jump Maximum Knockback")]
-    [SerializeField] float ogreJumpKnockbackMaximum;
-    [Tooltip("Ogre Slam Knockback Range")]
-    [SerializeField] float ogreJumpSlamImpactRange = 8;
 
-
-    [Tooltip("Slam Bat Status Effects")]
+    [Tooltip("Slam Bat Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects slamBatEffects;
 
-    [Tooltip("Slam Impact Status Effects")]
+    [Tooltip("Slam Impact Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects slamImpactEffects;
 
+    [Tooltip("Scream effects"), ShowIf("dev")]
+    [SerializeField] AttackStatusEffects screamEffects;
+    [Header("Ogre Settings")]
+
+    [Tooltip("Bat Swing Damage")]
+    [SerializeField, Range(0, 100)] float batSwingDamage = 30f;
+    [Tooltip("Bat Swing Angle")]
+    [SerializeField, Range(0, 360)] float batSwingAngle = 60f;
+    [Tooltip("Bat Swing Duration")]
+    [SerializeField, Range(0, 10)] float batSwingDuration = 0.5f;
+    [Tooltip("Bat Windup Period")]
+    [SerializeField, Range(0, 10)] float batWindupPeriod = 0.5f;
+    [Header("Ogre Jump Settings")]
+    [Tooltip("Ogre Jump Gravity")]
+    [SerializeField, Range(0, 100)] float ogreJumpGravity = 40f;
+    [Tooltip("Ogre Jump Speed")]
+    [SerializeField, Range(0, 100)] float ogreJumpSpeed = 25f;
+    [Tooltip("Ogre Jump Bat Damage")]
+    [SerializeField, Range(0, 100)] float ogreJumpBatDamage = 50f;
+    [Tooltip("Ogre Jump Slam Damage")]
+    [SerializeField, Range(0, 100)] float ogreJumpSlamDamage = 20f;
+    [Tooltip("Ogre Jump Minimum Knockback")]
+    [SerializeField, Range(0, 100)] float ogreJumpKnockbackMinimum = 20f;
+    [Tooltip("Ogre Jump Maximum Knockback")]
+    [SerializeField, Range(0, 100)] float ogreJumpKnockbackMaximum = 70f;
+    [Tooltip("Ogre Slam Knockback Range")]
+    [SerializeField, Range(0, 100)] float ogreJumpSlamImpactRange = 8f;
+    [Header("Ogre Scream Settings")]
     [Tooltip("Scream radius")]
     [SerializeField] float screamRange = 5;
     [Tooltip("Scream windup time")]
     [SerializeField] float screamWindupDuration = 0.5f;
-
-    [Tooltip("Scream effects")]
-    [SerializeField] AttackStatusEffects screamEffects;
-
+    [Header("Ogre Sitting Settings")]
     [Tooltip("Minimum time for ogre to sit")]
-    [SerializeField] float minSittingTime = 3;
+    [SerializeField, Range(0, 10)] float minSittingTime = 3f;
     [Tooltip("Maximum time for ogre to sit")]
-    [SerializeField] float maxSittingTime = 7;
+    [SerializeField, Range(0, 10)] float maxSittingTime = 7f;
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;

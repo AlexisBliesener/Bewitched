@@ -3,74 +3,76 @@ using System.Collections.Generic;
 using DG.Tweening;
 using FMOD.Studio;
 using FMODUnity;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.AI;
 
 
 public class Goblin : Enemy
 {
-
-    [Header("Goblin Settings")]
+    [Header("References/Prefabs"), ShowIf("dev")]
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
+    [Tooltip("Dash Hitbox"), ShowIf("dev")]
+    [SerializeField] GameObject dashHitbox;
+    [Tooltip("Dash Effects"), ShowIf("dev")]
+    [SerializeField] AttackStatusEffects dashEffects;
+    [Tooltip("Spin Hitbox"), ShowIf("dev")]
+    [SerializeField] GameObject spinHitbox;
+    [Tooltip("Spin Effects"), ShowIf("dev")]
+    [SerializeField] AttackStatusEffects spinEffects;
+    [Tooltip("Knife Effects"), ShowIf("dev")]
+    [SerializeField] AttackStatusEffects[] knifeEffects;
+    [Header("Knife Settings for Goblin")]
+    [Tooltip("Knife duration")]
+    [SerializeField] float knifeDuration = 0.25f;
     [Tooltip("Thrust Speed")]
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };
-    [Tooltip("Knife duration")]
-    [SerializeField] float knifeDuration = 0.25f;
-    [Tooltip("Knife Effects")]
-    [SerializeField] AttackStatusEffects[] knifeEffects;
-    [Tooltip("Dash Hitbox")]
-    [SerializeField] GameObject dashHitbox;
-    [Tooltip("Dash Speed")]
+    [Header("Dash Settings for Goblin")]
+    [Tooltip("Dash Speed"), Range(0, 100)]
     [SerializeField] float dashSpeed = 50;
-    [Tooltip("Dash Duration")]
+    [Tooltip("Dash Duration"), Range(0, 10)]
     [SerializeField] float dashDuration = 0.5f;
-    [Tooltip("Dash Damage")]
+    [Tooltip("Dash Damage"), Range(0, 200)]
     [SerializeField] float dashDamage = 30;
-    [Tooltip("Dash Effects")]
-    [SerializeField] AttackStatusEffects dashEffects;
-    [Tooltip("Offset of the hitbox forward")]
+    [Tooltip("Offset of the hitbox forward"), Range(0, 10)]
     [SerializeField] private float offSetForward = 0.5f;
-
-    [Tooltip("Spin Hitbox")]
-    [SerializeField] GameObject spinHitbox;
-    [Tooltip("Spin Damage")]
+    [Header("Spin Settings for Goblin")]
+    [Tooltip("Spin Damage"), Range(0, 200)]
     [SerializeField] float spinDamage = 30;
-    [Tooltip("Distance to dodge in first part of spin")]
+    [Tooltip("Distance to dodge in first part of spin"), Range(0, 10)]
     [SerializeField] float spinDodgeDistance = 2;
-    [Tooltip("Input time after dodging for the spin dodge")]
+    [Tooltip("Input time after dodging for the spin dodge"), Range(0, 10)]
     [SerializeField] float spinDodgeInputTime = .75f;
-    [Tooltip("Distance for first spin jump")]
+    [Tooltip("Distance for first spin jump"), Range(0, 10)]
     [SerializeField] float spinDistance = 8;
-    [Tooltip("Distance dropoff per bounce")]
+    [Tooltip("Distance dropoff per bounce"), Range(0, 10)]
     [SerializeField] float spinDistanceDropoff = 2.5f;
-    [Tooltip("Spin Duration")]
+    [Tooltip("Spin Duration"), Range(0, 50)]
     [SerializeField] float spinDuration = 10;
-    [Tooltip("Spin Speed")]
+    [Tooltip("Spin Speed"), Range(0, 100)]
     [SerializeField] float spinSpeed = 15;
-    [Tooltip("Spin Rotational Speed")]
+    [Tooltip("Spin Rotational Speed"), Range(0, 360)]
     [SerializeField] float spinRotationalSpeed = 120;
-    [Tooltip("Standard Acceleration Period")]
+    [Tooltip("Standard Acceleration Period"), Range(0, 10)]
     [SerializeField] float standardAccelerationPeriod = 0.5f;
-    [Tooltip("Low Health Acceleration Period")]
+    [Tooltip("Low Health Acceleration Period"), Range(0, 10)]
     [SerializeField] float lowHealthAccelerationPeriod = 0.25f;
-    [Tooltip("Low Health Angle Variation Range")]
+    [Tooltip("Low Health Angle Variation Range"), Range(0, 360)]
     [SerializeField] float lowHealthAngleRange = 80; // maximum 40 degree change
-    [Tooltip("Maximum drift speed")]
+    [Tooltip("Maximum drift speed"), Range(0, 10)]
     [SerializeField] float maxDriftSpeed = 4;
-    [Tooltip("Spin Effects")]
-    [SerializeField] AttackStatusEffects spinEffects;
-    [Tooltip("The max angular distance a deflect will auto-target the player on wall/character spin collisions")]
+    [Tooltip("The max angular distance a deflect will auto-target the player on wall/character spin collisions"), Range(0, 360)]
     [SerializeField] float maxSpinDeflectAngle = 30;
 
     [Header("Goblin AI Settings")]
-    [Tooltip("Minimum Patrol Distance")]
+    [Tooltip("Minimum Patrol Distance"), Range(0, 100)]
     [SerializeField] float minPatrolDistance = 3;
-    [Tooltip("Maximum Patrol Distance")]
+    [Tooltip("Maximum Patrol Distance"), Range(0, 100)]
     [SerializeField] float maxPatrolDistance = 5;
-    [Tooltip("Range the Goblin can communicate with other Goblins")]
+    [Tooltip("Range the Goblin can communicate with other Goblins"), Range(0, 100)]
     [SerializeField] float communicationRange = 8;
 
     [Tooltip("Goblin animator script that controls the goblin animations")]

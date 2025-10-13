@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,76 +8,55 @@ using UnityEngine.AI;
 public abstract class Enemy : Character
 {
     [Header("Enemy AI Settings")]
-    [Tooltip("Navmesh Agent on this character")]
-    public NavMeshAgent agent;
-
-    [Tooltip("Minimum Stopping Distance")]
+    [Tooltip("Minimum Stopping Distance"), Range(0, 10)]
     public float minStopDistance = 0.5f;
-
-    [Tooltip("Pathfinding Priority")]
-    public int pathfindingPriority;
-
-    [Tooltip("Last seen time buffer")]
+    [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
+    [Header("Surrounding Settings")]
+    [Tooltip("Distance from point an enemy can be before switching to chase"), Range(0, 10)]
+    [SerializeField] protected float surroundingToChaseRadius = 2;
 
+    [Tooltip("Distance from point an enemy must reach before switching to surround"), Range(0, 10)]
+    [SerializeField] protected float chaseToSurroundingRadius = 1;
+    [Header("Sight Settings")]
+    [Tooltip("Sight Range"), Range(0, 360)]
+    public float sightRange;
+    [Tooltip("Maximum Sight Angle"), Range(0, 360)]
+    public float maxSightAngle;
+
+    [Tooltip("Hearing Range"), Range(0, 10)]
+    public float hearingRange;
+
+    [Tooltip("Walk Point Range"), Range(0, 50)]
+    public float patrolRange;
+
+    [Header("Time/Delay Settings")]
+
+    [Tooltip("Time before searching"), Range(0, 10)]
+    public float timeBeforeSearch = 5;
+    [Tooltip("AI Attack Delay"), Range(0, 10)]
+    public float attackDelayAI = 0.5f;
+
+    [Header("Attack Settings")]
+    [Tooltip("Chance for AI primary attack"), Range(0, 1)]
+    public float primaryAttackChance = .5f;
+
+    [Tooltip("Chance for AI secondary attack"), Range(0, 1)]
+    public float secondaryAttackChance = .5f;
+    [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
+    public float lowHealthThresholdPercentage = 30;
     protected PlayerController playerController;
 
     protected Hag hag;
     protected Character currentPlayer;
 
-    [Tooltip("Masks")]
-    public LayerMask ground;
-    public LayerMask environment;
-
-    [Tooltip("Distance from point an enemy can be before switching to chase")]
-    [SerializeField] protected float surroundingToChaseRadius = 2;
-
-    [Tooltip("Distance from point an enemy must reach before switching to surround")]
-    [SerializeField] protected float chaseToSurroundingRadius = 1;
-
     [SerializeField, Tooltip("If the player is further than distance away from the target the player will move towards it before attacking")]
     protected float moveToTargetDistance;
 
-    [Tooltip("Sight Range")]
-    public float sightRange;
 
-    [Tooltip("Maximum Sight Angle")]
-    public float maxSightAngle;
-
-    [Tooltip("Hearing Range")]
-    public float hearingRange;
-
-    [Tooltip("Walk Point Range")]
-    public float patrolRange;
-
-    [Tooltip("Time before searching")]
-    public float timeBeforeSearch = 5;
-
-    [Tooltip("Mini Health Bar Prefab")]
-    public GameObject miniBarPrefab;
-
-    [Tooltip("AI Attack Delay")]
-    public float attackDelayAI = 0.5f;
-
-    [Tooltip("Chance for AI primary attack")]
-    public float primaryAttackChance = .5f;
-
-    [Tooltip("Chance for AI secondary attack")]
-    public float secondaryAttackChance = .5f;
-
-    [Tooltip("The threshold percentage that the enemy is low health for specific behaviors")]
-    public float lowHealthThresholdPercentage = 30;
     
-    [Tooltip("Point that the Goblin runs to while chasing/surrounding")]
+    [Tooltip("Point that the Goblin runs to while chasing/surrounding"), HideIf("debugging")]
     protected GameObject surroundPoint;
-
-    [Header("Debug Options")]
-    [Tooltip("Show Paths, Destinations, etc")]
-    public bool debugging = false;
-    [Tooltip("Destination Marker Prefab")]
-    public GameObject destinationMarkerPrefab;
-    [Tooltip("Line Renderer for Path")]
-    public LineRenderer pathVisualizer;
 
     protected GameObject destinationMarker;
 
@@ -84,7 +64,6 @@ public abstract class Enemy : Character
     protected bool playerInSightRange, currentInSightRange, targetInSightRange = false;
     protected bool targetInPrimaryRange = false;
 
-    [SerializeField,NaughtyAttributes.ReadOnly]protected bool playerControlling = false; // flag for determining actions (player or AI)
 
     protected Vector3 walkPoint;
 
@@ -114,8 +93,6 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
-    public Material perfectCounterTimeMaterial;
-    public Material defaultMaterial;
     private CharacterController characterController;
 
     public enum PathState
@@ -125,8 +102,6 @@ public abstract class Enemy : Character
         Set
     }
 
-    [Tooltip("Current path state")]
-    public PathState pathState = PathState.Unset;
 
     public enum AIMovementState
     {
@@ -139,9 +114,6 @@ public abstract class Enemy : Character
         PlayerControlled // For when the player is controlling this enemy, should not be AI controlled
     }
 
-    [Tooltip("The Current AI State of the enemy")]
-    public AIMovementState aiState = AIMovementState.Patrolling;
-
     [Tooltip("Point relative to player for enemy to navigate towards")]
     protected Vector3 chasePoint;
 
@@ -153,7 +125,33 @@ public abstract class Enemy : Character
 
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
-    
+    [Header("Enemy Prefabs/Effects and references")]
+    [Tooltip("Navmesh Agent on this character"), ShowIf("dev")]
+    public NavMeshAgent agent;
+    [Tooltip("Perfect counter material for the enemy"), ShowIf("dev")]
+    public Material perfectCounterTimeMaterial;
+    [Tooltip("Default material for the enemy"), ShowIf("dev")]
+    public Material defaultMaterial;
+    [Header("Debug/Dev Options")]
+    [Tooltip("Current path state"), ShowIf("dev")]
+    public PathState pathState = PathState.Unset;
+    [Tooltip("The Current AI State of the enemy"), ShowIf("dev")]
+    public AIMovementState aiState = AIMovementState.Patrolling;
+    [Tooltip("Show Paths, Destinations, etc"), ShowIf("dev")]
+    public bool debugging = false;
+    [Tooltip("Destination Marker Prefab"), ShowIf("dev")]
+    public GameObject destinationMarkerPrefab;
+    [Tooltip("Line Renderer for Path"), ShowIf("dev")]
+    public LineRenderer pathVisualizer;
+    [Tooltip("Is Player controlling this enemy?"), ShowIf("dev")]
+    [SerializeField, NaughtyAttributes.ReadOnly] protected bool playerControlling = false; // flag for determining actions (player or AI)
+    [Tooltip("Pathfinding Priority"), ShowIf("dev")]
+    public int pathfindingPriority;
+    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
+    public LayerMask ground;
+    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
+    public LayerMask environment;
+
     /// <summary>
     /// Destorys the enemies attack indicator if it is active
     /// </summary>

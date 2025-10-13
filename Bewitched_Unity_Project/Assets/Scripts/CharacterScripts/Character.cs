@@ -8,6 +8,7 @@ using UnityEngine.AI;
 using DG.Tweening;
 using FMOD;
 using Debug = UnityEngine.Debug;
+using NaughtyAttributes;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
@@ -15,34 +16,37 @@ public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
     const string FILE_ENDING = ".json";
-
+    [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
+    protected private bool dev = false;
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
 
     [Header("Movement Settings")]
-    [Tooltip("Speed the Character Can Move While Chasing")]
+    [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 10)]
     public float movementSpeed = 5;
-    [Tooltip("Speed the character can move while approaching for an attack")]
+    [Tooltip("Speed the character can move while approaching for an attack"), Range(0, 50)]
     public float approachSpeed = 7;
-    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump")]
+    [SerializeField ,Tooltip("How much yVelocity the Character will get when hitting jump"), Range(0, 10)]
     private float jumpSpeed;
-    [SerializeField, Tooltip("How long to wait before doing a jump")]
+    [SerializeField, Tooltip("How long to wait before doing a jump"), Range(0, 10)]
     private float jumpDelay;
-    [Tooltip("Acceleration of the Character")]
+    [Tooltip("Acceleration of the Character"), Range(0, 50)]
     public float acceleration = 5;
-    [Tooltip("Deceleration of the Character")]
+    [Tooltip("Deceleration of the Character"), Range(0, 50)]
     public float deceleration = 5;
-    [Tooltip("Rotational velocity of the character")]
+    [Tooltip("Rotational velocity of the character"), Range(0, 360)]
     public float rotationalVelocity = 240;
-    [Tooltip("Time chasing a character for an attack")]
+    [Tooltip("Time chasing a character for an attack"), Range(0, 10)]
     public float chaseTime = 3;
+    [Tooltip("Time for the character to wind up"), Range(0, 10)]
     public float windupTime = 0.25f;
 
-    [Tooltip("Weight of the character")]
+    [Tooltip("Weight of the character"), Range(0, 50)]
     public float weight = 10;
+    [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
-    public float sizeRadius;
+    public float sizeRadius = 1.5f; 
     [Tooltip("Number of Points to Surround")]
     public int numSurroundingPoints = 8;
     [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
@@ -51,44 +55,27 @@ public abstract class Character : MonoBehaviour
     public float maxSurroundingRadius = 5;
     [Tooltip("Team of the character")]
     public int teamID;
-    [Tooltip("Primary Fire Image")]
-    public Sprite primaryFireIcon;
-    [Tooltip("Secondary Fire Image")]
-    public Sprite secondaryFireIcon;
     [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
     private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
-    [Tooltip("Attack Delay")]
+    [Header("Attack Settings")]
+    [Tooltip("Attack Delay"), Range(0, 10)]
     public float attackDelay = 1;
-    [Tooltip("Cooldown After Primary Ability")]
+    [Tooltip("Cooldown After Primary Ability"), Range(0,10)]
     public float primaryCooldown = 5;
-    [Tooltip("Cooldown After Secondary Ability")]
+    [Tooltip("Cooldown After Secondary Ability"), Range(0, 10)]
     public float secondaryCooldown = 5;
-    [Tooltip("Primary Attack Range")]
+    [Tooltip("Primary Attack Range"), Range(0, 10)]
     public float primaryAttackRange;
-
-
-    [Header("Primary Combo Stats")]
-    [Tooltip("Primary Cooldown Reset Time")]
-    public float[] primaryComboResetTime;
-    [Tooltip("Primary combo min time to wait to hit the next combo")]
-    public float[] primaryComboMinTime;
-
-    [Header("Note: Health settings can be changed on the Health Controller component!")]
-    [SerializeField] public HealthController health;
-
+    [Tooltip("The reference to the health controller"), HideInInspector]
+    public HealthController health;
     [Header("Possession Settings")]
     [Tooltip("Can the player possess the character?")]
     public bool canPossess = true;
 
     [Header("Hit Stun Settings")]
-    [Tooltip("Hit Stun Prefab")]
-    public GameObject hitStunPrefab;
-
     [Tooltip("Hit Stun Duration")]
     public float hitStunDuration = 0.5f;
-
-    public LayerMask characters;
 
     protected float timeLastPrimary = -Mathf.Infinity;
     protected float timeLastSecondary = -Mathf.Infinity;
@@ -113,20 +100,14 @@ public abstract class Character : MonoBehaviour
     protected int currentPrimaryComboStep = -1;
     [Tooltip("The amount of combo steps that this character has on their primary attack")]
     protected int primaryComboSteps;
-
-    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement.")]
-    private CinemachineFreeLook combatCam;
-    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view.")]
-    private CinemachineVirtualCamera aimCam;
-    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view.")]
-    private CinemachineFreeLook exploreCam;
-
     [Tooltip("The script that controls chaning animation states")]
     protected CharacterAnimator characterAnimator;
 
-    public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
-    [SerializeField] private List<string> effectJSONs = new List<string>();
-
+    [Header("Primary Combo Stats")]
+    [Tooltip("Primary Cooldown Reset Time")]
+    public float[] primaryComboResetTime;
+    [Tooltip("Primary combo min time to wait to hit the next combo")]
+    public float[] primaryComboMinTime;
     private SurroundingPoints surroundingPoints;
 
     [Tooltip("Character to lock onto")]
@@ -147,9 +128,6 @@ public abstract class Character : MonoBehaviour
 
     protected Character attackingEnemy = null;
 
-    [Tooltip("Attack indicator prefab")]
-    public GameObject attackIndicatorPrefab;
-
     [Tooltip("Attack indicator")]
     protected GameObject attackIndicator = null;
 
@@ -159,7 +137,28 @@ public abstract class Character : MonoBehaviour
     protected float timeLastDodge = 0;
 
     protected bool stunned = false;
-
+    [Header("Debug/Dev Options"), ShowIf("dev")]
+    [Tooltip("Layer mask for the characters")]
+    public LayerMask characters;
+    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf("dev")]
+    private CinemachineFreeLook combatCam;
+    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf("dev")]
+    private CinemachineVirtualCamera aimCam;
+    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view."), ShowIf("dev")]
+    private CinemachineFreeLook exploreCam;
+    [Tooltip("The list of attack status effects"), ShowIf("dev")]
+    public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
+    [Tooltip("The list of effects JSONs"), ShowIf("dev")]
+    [SerializeField] private List<string> effectJSONs = new List<string>();
+    [Header("References/Prefabs"), ShowIf("dev")]
+    [Tooltip("Primary Fire Image")]
+    public Sprite primaryFireIcon;
+    [Tooltip("Secondary Fire Image"), ShowIf("dev")]
+    public Sprite secondaryFireIcon;
+    [Tooltip("Hit Stun Prefab"), ShowIf("dev")]
+    public GameObject hitStunPrefab;
+    [Tooltip("Attack indicator prefab"), ShowIf("dev")]
+    public GameObject attackIndicatorPrefab;
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
