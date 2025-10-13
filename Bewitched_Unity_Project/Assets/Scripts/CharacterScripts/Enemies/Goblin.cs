@@ -619,12 +619,6 @@ public class Goblin : Enemy
     {
         if (!idleAudio.isValid()) AudioManager.TryPlayInstance("GoblinIdle", out idleAudio, true, gameObject);
 
-        // Set path if there is none
-        if (pathState == PathState.Unset)
-        {
-            FindPath();
-        }
-
         // Check if player is visible
         if (LookForPlayer())
         {
