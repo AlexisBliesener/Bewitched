@@ -1,9 +1,7 @@
 using DG.Tweening;
 using NaughtyAttributes;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 public class Ogre : Enemy
 {
     [Header("Ogre Prefabs/Effects"), ShowIf("dev")]
@@ -79,7 +77,9 @@ public class Ogre : Enemy
 
         SetBehavior();
     }
-
+    /// <summary>
+    /// Starts the primary attack for the ogre
+    /// </summary>
     public override void PrimaryAttack()
     {
         
@@ -110,7 +110,9 @@ public class Ogre : Enemy
         // Debug.Log("Starting swing");
         attackStateCoroutine = StartCoroutine(BatWindup());
     }
-
+    /// <summary>
+    /// Starts the secondary attack for the ogre
+    /// </summary>
     public override void SecondaryAttack()
     {
         attackingSecondary = true;
