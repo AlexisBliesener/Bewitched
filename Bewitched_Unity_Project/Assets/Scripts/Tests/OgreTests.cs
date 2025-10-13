@@ -180,7 +180,7 @@ public class OgreTests
         yield return testOgre.StartCoroutine(testOgre.ScreamWindup());
         FieldInfo attackStateField = typeof(Ogre).GetField("attackState", BindingFlags.Instance | BindingFlags.NonPublic);
         Character.AttackState attackState = (Character.AttackState)attackStateField.GetValue(testOgre);
-        Assert.AreEqual(Character.AttackState.Attacking, attackState);
+        Assert.AreEqual(Character.AttackState.Windup, attackState);
     }
 
 
