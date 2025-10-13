@@ -40,7 +40,7 @@ public class DropSystem : MonoBehaviour
     [Tooltip("The action that is triggered when a drop is picked up")]
     public Action<DropData, DropData, DropData> OnDropRandomDrop;
     [Tooltip("The action that is triggered when the player interacts with the shop alter. This is will be called on PlayerController")]
-    public Action<List<DropData>>  OnShopAlterInteract;
+    public Action<List<DropData>> OnShopAlterInteract;
     [Tooltip("The number of items dropped this run")]
     private int droppedItemThisRun = 0;
     [Tooltip("A reference to the pity system")]
@@ -95,7 +95,7 @@ public class DropSystem : MonoBehaviour
         if (availableDrops.Count == 0) return;
         // Check the chance of dropping an drop
         if (UnityEngine.Random.Range(1, 101) > dropChance)
-        { 
+        {
             if (usePitySystem)
             {
                 // no offered rarities - increase all pity 
@@ -132,7 +132,7 @@ public class DropSystem : MonoBehaviour
         DropData option3 = GetRandomDrop(new List<DropData>() { option1, option2 });
         if (option1 == null || option2 == null || option3 == null) return;
 
-        if(upgradeSelectionUI != null)
+        if (upgradeSelectionUI != null)
         {
             upgradeSelectionUI.SetActive(true);
         }
@@ -160,12 +160,12 @@ public class DropSystem : MonoBehaviour
         List<DropData> possibleDrops;
         if (usePitySystem)
         {
-            possibleDrops = availableDrops.Where(drop => 
+            possibleDrops = availableDrops.Where(drop =>
                 pitySystem.GetModifiedDropChance(availableRarities[drop.GetRarityIndex()]) >= randomRange).ToList();
         }
         else
         {
-            possibleDrops = availableDrops.Where(drop => 
+            possibleDrops = availableDrops.Where(drop =>
                 availableRarities[drop.GetRarityIndex()].dropChance >= randomRange).ToList();
         }
         // exclude drops that are already in the previous drops
@@ -180,7 +180,8 @@ public class DropSystem : MonoBehaviour
         {
             // if for some reason we don't have any drops with the chance we want, it will fallback to the highest chance drop so it gurantees this returns a drop 
             List<DropData> fallbackList = new List<DropData>(availableDrops);
-            if (previousDrops != null){
+            if (previousDrops != null)
+            {
                 foreach (DropData drop in previousDrops)
                 {
                     fallbackList.Remove(drop);
@@ -205,7 +206,7 @@ public class DropSystem : MonoBehaviour
             return fallbackDrop;
         }
 
-        
+
 
         // if we have drops with the chance we want, return a random from the possible drops
         return possibleDrops[UnityEngine.Random.Range(0, possibleDrops.Count)];
@@ -217,18 +218,21 @@ public class DropSystem : MonoBehaviour
     /// </summary>
     public void SelectDropsOption(DropData drop)
     {
-        
+
         if (drop == null) return;
-        if (drop.GetDropScript() == null) {
+        if (drop.GetDropScript() == null)
+        {
             Debug.LogError($"No drop script found for drop {drop.GetDropName()}");
             return;
-        };
-        if (drop.GetDropScript().GetComponent<IDrop>() == null) {
+        }
+        ;
+        if (drop.GetDropScript().GetComponent<IDrop>() == null)
+        {
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
             return;
         }
 
-        if(HUDManager.Instance != null)
+        if (HUDManager.Instance != null)
         {
             bool isNewUnique = !HUDManager.Instance.HasExactUpgrade(drop.GetID());
 
@@ -283,6 +287,16 @@ public class DropSystem : MonoBehaviour
         // Subtract souls from the player
         SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
         SelectDropsOption(drop);
+        //Sound Effect implementation for buying
+        if (AudioManager.manager != null)
+        {
+            AudioManager.TryPlayOneShot("ShopBuy", PlayerController.instance.currentCharacter.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is null!");
+        }
+
         return true;
     }
 
@@ -318,7 +332,7 @@ public class DropSystem : MonoBehaviour
             {
                 playerUpgrades[i].Deactivate();
             }
-        }    
+        }
 
         if (HUDManager.Instance != null)
         {
@@ -327,6 +341,15 @@ public class DropSystem : MonoBehaviour
         else
         {
             Debug.LogWarning("HUDManager not assigned.");
+        }
+        //Sound Effect Implementation for sell sound effect
+        if (AudioManager.manager != null)
+        {
+            AudioManager.TryPlayOneShot("ShopSell", PlayerController.instance.currentCharacter.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is null!");
         }
 
         return true;
