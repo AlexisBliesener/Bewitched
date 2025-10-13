@@ -282,7 +282,7 @@ public class Guard : Enemy
     }
 
     /// <summary>
-    /// Function that follows the flow chart to set behavior for the goblin
+    /// Function that follows the flow chart to set behavior for the guard
     /// </summary>
     public override void SetBehavior()
     {
@@ -351,9 +351,8 @@ public class Guard : Enemy
     }
 
     /// <summary>
-    /// Override function handling patrol functionality for the Goblin
-    /// This patrol method sets a point before the first frame and the goblin will patrol
-    /// randomly within a circle of that point
+    /// Override function handling patrol functionality for the Guard
+    /// This patrol method goes to points along a path, then follows the path back to the start
     /// </summary>
     public override void Patrol()
     {
@@ -419,7 +418,7 @@ public class Guard : Enemy
     }
 
     /// <summary>
-    /// Coroutine to handle the goblin when it reaches it's patrol destination
+    /// Coroutine to handle the guard when it reaches it's patrol point
     /// </summary>
     /// <returns> Waits for animation to be done and looks for player </returns>
     private IEnumerator LookAround()
