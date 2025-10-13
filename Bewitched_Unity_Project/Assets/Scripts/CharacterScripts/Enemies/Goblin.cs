@@ -118,7 +118,7 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (lockedCharacter != null && targetPos != Vector3.negativeInfinity)
         {
             animator.SetPrimaryMovementNeeded(true);
         }
@@ -152,7 +152,7 @@ public class Goblin : Enemy
         }
         attackingPrimary = true;
 
-        if (lockedCharacter != null && targetPos != Vector3.negativeInfinity)
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
         {
             attackStateCoroutine = StartCoroutine(KnifeWindup());
         }
@@ -255,8 +255,8 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        if(!playerControlling) { currentPrimaryComboStep = 0; }
-        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep], attackDuration: knifeDuration);
+        if (!playerControlling) { currentPrimaryComboStep = 0; }
+        knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f)
