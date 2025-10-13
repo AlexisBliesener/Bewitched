@@ -149,16 +149,6 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
-
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
-        {
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
-        }
-        else
-        {
-            attackStateCoroutine = StartCoroutine(HandleStab());
-        }
-        
     }
 
     /// <summary>
@@ -617,12 +607,6 @@ public class Goblin : Enemy
     public override void Patrol()
     {
         if (!idleAudio.isValid()) AudioManager.TryPlayInstance("GoblinIdle", out idleAudio, true, gameObject);
-
-        // Set path if there is none
-        if (pathState == PathState.Unset)
-        {
-            FindPath();
-        }
 
         // Check if player is visible
         if (LookForPlayer())
