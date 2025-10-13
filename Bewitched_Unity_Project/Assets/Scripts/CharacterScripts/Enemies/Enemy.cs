@@ -265,10 +265,12 @@ public abstract class Enemy : Character
             velocity = Vector3.zero;
         }
 
+        velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
+
         GetComponent<CharacterController>().Move(velocity * Time.deltaTime);
 
-        if (!GetComponent<CharacterController>().isGrounded)
-            GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
+        //if (!GetComponent<CharacterController>().isGrounded)
+        //    GetComponent<CharacterController>().Move(Vector3.down * Time.deltaTime);
     }
 
     /// <summary>
@@ -285,7 +287,7 @@ public abstract class Enemy : Character
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward,  new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
