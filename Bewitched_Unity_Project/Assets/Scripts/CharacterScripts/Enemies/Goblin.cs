@@ -149,24 +149,6 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
-
-    /// <summary>
-    /// Approach function for stabbing
-    /// </summary>
-    /// <returns> Time </returns>
-    public IEnumerator KnifeApproach()
-    {
-        attackState = AttackState.Approaching;
-
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
-        {
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
-        }
-        else
-        {
-            attackIndicator = null;
-            attackStateCoroutine = StartCoroutine(HandleStab());
-        }
     }
 
     /// <summary>
