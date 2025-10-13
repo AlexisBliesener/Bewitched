@@ -54,13 +54,13 @@ public class BackupPlanTests
     [Test]
     public void Activate_SetsActiveTrue_AndAppliesUpgrade()
     {
-        float baseCooldown = mockPossession.GetCooldown();
+        int baseHits = mockPossession.GetHitsToCharge();
         backupPlan.Activate();
         FieldInfo activeField = typeof(BackupPlan).GetField("active", BindingFlags.NonPublic | BindingFlags.Instance);
         bool isActive = (bool)activeField.GetValue(backupPlan);
 
         Assert.IsTrue(isActive);
-        Assert.Less(mockPossession.GetCooldown(), baseCooldown);
+        Assert.Less(mockPossession.GetHitsToCharge(), baseHits);
     }
 
     /// <summary>
@@ -79,21 +79,21 @@ public class BackupPlanTests
     }
 
     /// <summary>
-    /// Make sure that the cooldown is reduced by the stack number.
+    /// Make sure that the cooldown is reduced to the stack number.
     /// </summary>
     [Test]
-    public void ApplyUpgrade_MultipliesCooldownReduction()
+    public void ApplyUpgrade_AppliesReduction()
     {
         backupPlan.stackNum = 0;
         backupPlan.Activate();
 
-        float reducedCooldown = mockPossession.GetCooldown();
+        int reducdedHits = mockPossession.GetHitsToCharge();
 
         // Act with higher stack (if multiple values exist in array)
-        float[] cooldownReduction = (float[])typeof(BackupPlan).GetField("cooldownReduction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(backupPlan);
-        if (cooldownReduction.Length > 0)
+        int[] hitsNeeded = (int[])typeof(BackupPlan).GetField("hitsNeeded", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(backupPlan);
+        if (hitsNeeded.Length > 0)
         {
-            backupPlan.stackNum = Mathf.Min(1, cooldownReduction.Length - 1);
+            backupPlan.stackNum = Mathf.Min(1, hitsNeeded.Length - 1);
         }
         else
         {
@@ -101,8 +101,8 @@ public class BackupPlanTests
         }
 
         backupPlan.Activate();
-        float reducedCooldown2 = mockPossession.GetCooldown();
+        float reducdedHits2 = mockPossession.GetHitsToCharge();
 
-        Assert.LessOrEqual(reducedCooldown2, reducedCooldown);
+        Assert.LessOrEqual(reducdedHits2, reducdedHits);
     }
 }
