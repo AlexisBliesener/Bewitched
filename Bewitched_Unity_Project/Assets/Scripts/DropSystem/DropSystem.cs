@@ -283,6 +283,8 @@ public class DropSystem : MonoBehaviour
         // Subtract souls from the player
         SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
         SelectDropsOption(drop);
+        //Sound Effect implementation for buying
+        AudioManager.TryPlayOneShot("ShopBuy",PlayerController.instance.currentCharacter.gameObject);
         return true;
     }
 
@@ -318,7 +320,7 @@ public class DropSystem : MonoBehaviour
             {
                 playerUpgrades[i].Deactivate();
             }
-        }    
+        }
 
         if (HUDManager.Instance != null)
         {
@@ -328,7 +330,8 @@ public class DropSystem : MonoBehaviour
         {
             Debug.LogWarning("HUDManager not assigned.");
         }
-
+        //Sound Effect Implementation for sell sound effect
+        AudioManager.TryPlayOneShot("ShopSell",PlayerController.instance.currentCharacter.gameObject);
         return true;
     }
 
