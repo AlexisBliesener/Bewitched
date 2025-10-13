@@ -48,7 +48,7 @@ public class SurroundingPoints : MonoBehaviour
     float timeLastAttack;
 
     [Tooltip("List of nodes that are costly")]
-    List<Node> costlyNodes = new List<Node>();
+    List<List<int>> costlyNodes = new List<List<int>>();
 
     [Tooltip("Position the last costly area was made")]
     Vector3 lastCostlyPosition = Vector3.zero;
@@ -359,9 +359,9 @@ public class SurroundingPoints : MonoBehaviour
             ResetCostlyArea();
 
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius + 1.5f);
-            foreach (Node node in costlyNodes)
+            foreach (List<int> position in costlyNodes)
             {
-                node.AddCost(8000);
+                GraphBuilder.instance.AddNodeCost(position, 8000);
             }
             lastCostlyPosition = transform.position;
         }
@@ -372,9 +372,9 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void ResetCostlyArea()
     {
-        foreach (Node node in costlyNodes)
+        foreach (List<int> position in costlyNodes)
         {
-            node.AddCost(-8000);
+            GraphBuilder.instance.AddNodeCost(position, -8000);
         }
     }
 }
