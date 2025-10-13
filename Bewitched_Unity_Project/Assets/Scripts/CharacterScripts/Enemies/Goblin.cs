@@ -494,6 +494,10 @@ public class Goblin : Enemy
         // If reached this point (no deflects) slow down, destroy hitbox halfway through, and end
         float timeSinceSlowBegan = 0;
         Destroy(hitbox);
+
+        // end spin portion of the secondary attack animation, move into stagger portion
+        animator.SetSecondaryAttackEnded();
+
         while (timeSinceSlowBegan < 0.5f)
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, timeSinceSlowBegan / 0.5f);
@@ -507,8 +511,6 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        //stop the secondary sound effect
-        //if (secondaryAudio.isValid()) secondaryAudio.setParameterByNameWithLabel("End", "True");
         if (lockedCharacter)
         {
             lockedCharacter.SetAttacker(null);

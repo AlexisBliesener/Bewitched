@@ -16,17 +16,10 @@ public class GoblinAnimator : CharacterAnimator
         animator.ResetTrigger("ExitSecondaryAttack");
     }
 
-    /// <summary>
-    /// Waits for the end of an animation before allowing new state changes.
-    /// </summary>
-    protected override IEnumerator WaitForEndAnimation(float sec)
+    public override void SetSecondaryAttackEnded()
     {
-        yield return new WaitForSeconds(sec);
-        canChange = true;
-        if(stateInfo.IsName("GoblinSecondaryLoop"))
-        {
-            animator.SetTrigger("ExitSecondaryAttack");
-        }
+        base.SetSecondaryAttackEnded();
+        animator.SetTrigger("ExitSecondaryAttack");
     }
 }
 

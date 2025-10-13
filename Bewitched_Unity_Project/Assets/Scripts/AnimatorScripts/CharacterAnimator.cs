@@ -13,8 +13,6 @@ public class CharacterAnimator : MonoBehaviour
     protected float[] primaryAnimationDelay = { 0.5f };
     [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
     protected float secondaryAnimationDelay = 0.5f;
-    [SerializeField, Tooltip("Secondary attack animation length.")]
-    protected float secondaryAttackLength = 1f;
 
     [Header("References")]
     [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
@@ -131,7 +129,6 @@ public class CharacterAnimator : MonoBehaviour
             case "SecondaryAttack":
                 animator.SetTrigger("SecondaryAttack");
                 canChange = false;
-                StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
                 break;
             case "Death":
                 animator.SetTrigger("Death");
@@ -183,6 +180,11 @@ public class CharacterAnimator : MonoBehaviour
                 yield return new WaitForSeconds(secondaryAnimationDelay);
                 break;
         }
+    }
+
+    public virtual void SetSecondaryAttackEnded()
+    {
+        canChange = true;
     }
 
     public void SetPrimaryComboEnded()
