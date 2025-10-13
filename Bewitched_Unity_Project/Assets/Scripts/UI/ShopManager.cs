@@ -80,6 +80,8 @@ public class ShopManager : MonoBehaviour
         buyUpgradeButtons = BuyUI.GetComponentsInChildren<Button>(true);
         sellUpgradeButtons = SellUI.GetComponentsInChildren<Button>(true);
         UpdateSellOptions();
+        //UI Audio Ducking
+        AudioManager.OpenUIAudio();
 
     }
 
@@ -156,6 +158,7 @@ public class ShopManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
+        AudioManager.CloseUIAudio();
     }
 
     /// <summary>

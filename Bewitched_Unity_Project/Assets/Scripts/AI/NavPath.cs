@@ -98,6 +98,7 @@ public class NavPath
         if (destination == origin)
         {
             corners.Add(destination);
+            pathComplete = true;
             return;
         }
 
