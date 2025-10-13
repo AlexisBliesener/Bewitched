@@ -200,6 +200,11 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     private IEnumerator SwingBat()
     {
+        if (batHitboxPrefab == null || batPivot == null)
+        {
+            Debug.LogWarning("batHitboxPrefab or batPivot prefabs are not assigned!");
+            yield break;
+        }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
 
@@ -284,6 +289,11 @@ public class Ogre : Enemy
     /// <returns> Time delays </returns>
     public IEnumerator HandleScream()
     {
+        if (screamEffects == null)
+        {
+            Debug.LogWarning("Scream effects are not assigned!");
+            yield break;
+        }
         // Debug.Log("ROAR");
         attackState = AttackState.Attacking;
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
