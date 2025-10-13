@@ -309,7 +309,12 @@ public class Ogre : Enemy
         yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
 
         if (playerControlling) StartCoroutine(EnableMovement());
-        else aiState = AIMovementState.Chasing;
+        else
+        {
+            aiState = AIMovementState.Chasing;
+            attackState = AttackState.Neutral;
+            pathState = PathState.Unset;
+        }
 
         attackStateCoroutine = null;
         attackingSecondary = false;
