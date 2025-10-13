@@ -107,10 +107,8 @@ public class Guard : Enemy
                 DeletePatrolObjects();
                 for (int i = 0; i < numPatrolPoints; i++)
                 {
-                    Debug.Log(patrolPoints[i]);
                     GameObject point = Instantiate(patrolPointPrefab);
                     point.transform.position = patrolPoints[i];
-                    Debug.Log(point.transform.position);
                     // Update color of sphere too so that it is a gradient from black towards white
                     patrolObjs.Add(point);
                 }
@@ -129,7 +127,6 @@ public class Guard : Enemy
         {
             Vector3 point = patrolObjs[i].transform.position;
             patrolPoints.Add(point);
-            Debug.Log(point);
         }
     }
 
@@ -311,7 +308,6 @@ public class Guard : Enemy
     /// </summary>
     public override void FindPath()
     {
-        Debug.Log("Finding path");
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)

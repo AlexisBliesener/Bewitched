@@ -476,7 +476,6 @@ public class GraphBuilder : MonoBehaviour
             enemy.SetPath(null);
             enemy.ValidatePoint(); // Quick set path state to unset
             StartCoroutine(RetryPath(enemy));
-            Debug.Log("PATHNOTFOUND");
             yield break;
         }
 
@@ -552,7 +551,6 @@ public class GraphBuilder : MonoBehaviour
         enemy.SetPath(null);
         enemy.ValidatePoint(); // Quick set path state to unset
         StartCoroutine(RetryPath(enemy));
-        Debug.Log("PATHNOTFOUND");
         yield break;
 
     }
