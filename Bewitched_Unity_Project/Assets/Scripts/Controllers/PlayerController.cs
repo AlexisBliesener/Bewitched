@@ -383,18 +383,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 camForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
-        camForward = camForward.normalized;
-
-        //Vector3 camRight = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z);
-        //camRight = camRight.normalized;
-
-        // Vector3 inputDirection =  camForward * movementInput.y + camRight * movementInput.x;
-
         Vector3 inputDirection = currentCharacter.transform.forward;
 
         if (inputDirection.sqrMagnitude < 0.001f)
-            inputDirection = camForward;
+            inputDirection = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
 
         inputDirection = inputDirection.normalized;
 
@@ -404,7 +396,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        if(Physics.SphereCast(currentCharacter.transform.position, 5f, inputDirection, out info, 1, enemyLayerMask))
+        if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 2, enemyLayerMask))
         {
             if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {
