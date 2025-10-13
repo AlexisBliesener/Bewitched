@@ -144,7 +144,7 @@ public class PlayerController : MonoBehaviour
                         velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
                     }
 
-                 //   velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * 10f);
+                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
 
                     characterController.Move(velocity * Time.fixedDeltaTime);
 
@@ -176,11 +176,13 @@ public class PlayerController : MonoBehaviour
                         velocity = Vector3.zero;
                     }
 
+                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
+
                     characterController.Move(velocity * Time.fixedDeltaTime);
 
                     if (velocity.sqrMagnitude > 0.01f)
                     {
-                        Quaternion targetRotation = Quaternion.LookRotation(velocity);
+                        Quaternion targetRotation = Quaternion.LookRotation(new Vector3(velocity.x, 0, velocity.z));
                         currentCharacter.transform.rotation = Quaternion.Slerp(
                             currentCharacter.transform.rotation,
                             targetRotation,
@@ -384,10 +386,16 @@ public class PlayerController : MonoBehaviour
         Vector3 camForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
         camForward = camForward.normalized;
 
-        Vector3 camRight = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z);
-        camRight = camRight.normalized;
+        //Vector3 camRight = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z);
+        //camRight = camRight.normalized;
 
-        Vector3 inputDirection =  camForward * movementInput.y + camRight * movementInput.x;
+        // Vector3 inputDirection =  camForward * movementInput.y + camRight * movementInput.x;
+
+        Vector3 inputDirection = currentCharacter.transform.forward;
+
+        if (inputDirection.sqrMagnitude < 0.001f)
+            inputDirection = camForward;
+
         inputDirection = inputDirection.normalized;
 
         Debug.DrawRay(currentCharacter.transform.position, inputDirection, Color.red);
@@ -396,21 +404,21 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        if(Physics.SphereCast(currentCharacter.transform.position, 10f, inputDirection, out info, 10, enemyLayerMask))
+        if(Physics.SphereCast(currentCharacter.transform.position, 5f, inputDirection, out info, 1, enemyLayerMask))
         {
             if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
             {
                 lockedCharacter = info.collider.transform.GetComponent<Enemy>();
             }
         }
+        else
+        {
+            lockedCharacter = null;
+        }
 
         if (lockedCharacter)
         {
             Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
-            //if (Vector3.Distance(lockedCharacter.transform.position, currentCharacter.transform.position) > 4f) // if locked character is out of range
-            //{
-            //    lockedCharacter = null;
-            //}
         }
     }
 
