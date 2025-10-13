@@ -23,18 +23,14 @@ public class PossessionAbility : MonoBehaviour
     private const string FILE_ENDING = ".json";
 
     [Header("Possession Settings")]
-    [SerializeField, Tooltip("Cooldown (in seconds) the player must wait in Hag state before possessing again.")]
-    private float possessionCooldown = 10f;
     [SerializeField, Tooltip("Maximum distance from the camera where possession is possible.")]
     protected float maxPossessionDistance;
-    [SerializeField, Tooltip("Rate at which life drains from possessed enemies (percentage)."), Range(0, 100)]
-    private float lifeDrainPercentage = 2f;
     [SerializeField, Tooltip("Layer mask used to check valid possession targets.")]
     private LayerMask possessionMask;
 
     [Header("UI References")]
-    [SerializeField, Tooltip("UI element that displays the cooldown for possession.")]
-    private CooldownDisplay possessionCooldownDisplay;
+    [SerializeField, Tooltip("The slider of the possession ability UI")]
+    private Slider possessionAbilitySlider;
     [SerializeField, Tooltip("UI element that displays the currently controlled character's health bar.")]
     private GameObject secondaryHealthBar;
     [SerializeField, Tooltip("Crosshair image that changes color based on possession availability.")]
@@ -73,13 +69,17 @@ public class PossessionAbility : MonoBehaviour
     [SerializeField, Tooltip("Time required to fully focus possession (angle and distance).")]
     private float timeToFocus;
 
+    [Header("Ability Charging")]
+    [SerializeField, Tooltip("The number of hits the player must do to refill the possession ability")]
+    private int hitsToCharge = 4;
+    [SerializeField, Tooltip("The time eleth has to wait in witch form to get a 'hit' refilling some charge of the possession ability")]
+    private float possessionChargeTime;
+
     [Header("Runtime Data")]
     [Tooltip("The angle of possession cone currently being used.")]
     private float currentPossessionAngle;
     [Tooltip("The distance of possession ray currently being used.")]
     private float currentPossesionDistance;
-    [Tooltip("The time when possession was last released.")]
-    private float timePossessionLastLeft = Mathf.NegativeInfinity;
     [Tooltip("The time when possession of the current enemy started.")]
     private float timePossessing;
     [Tooltip("The current enemy targeted for possession.")]
@@ -94,6 +94,12 @@ public class PossessionAbility : MonoBehaviour
     private float startedHoldTime = -1;
     [Tooltip("The possession collider script")]
     private PossessionCollider possessionCollider;
+    [Tooltip("The enemy that is avalible to counter")]
+    private Enemy counteringEnemy = null;
+    [Tooltip("The current value of the possession ability charge")]
+    private int possessionCharge;
+    [Tooltip("The time eleth has been waiting for another possession ability 'hit' to increase charge")]
+    private float possessionChargeTimer;
 
     #region Saving/Loading
     /// <summary>
@@ -157,6 +163,16 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     public void SetStartedHoldTime(float val) => startedHoldTime = val;
 
+    /// <summary>
+    /// Adds a point of charge to the possession ability charge
+    /// </summary>
+    public void AddHitDone()
+    {
+        possessionCharge++;
+        possessionCharge = Mathf.Min(possessionCharge, hitsToCharge);
+
+    }
+
     private void Awake()
     {
         instance = this;
@@ -165,6 +181,7 @@ public class PossessionAbility : MonoBehaviour
         CharacterControlChangeEvent += SwitchCharacter;
         currentPossessionAngle = startingPossessionAngle;
         currentPossesionDistance = startingPossessionDistance;
+        possessionCharge = hitsToCharge;
 
         possessionCollider = GetComponentInChildren<PossessionCollider>();
 
@@ -185,7 +202,7 @@ public class PossessionAbility : MonoBehaviour
 
     private void Update()
     {
-        UpdateCooldowns();
+        UpdateUI();
         UpdateState();
         UpdateCrossHair();
         UpdateTargetVFX();
@@ -222,9 +239,10 @@ public class PossessionAbility : MonoBehaviour
     {
         if (context.started)
         {
-            if (Time.time - timePossessionLastLeft >= possessionCooldown)
+            if (possessionCharge == hitsToCharge)
             {
-                timePossessionLastLeft = Time.time;
+                counteringEnemy = PlayerController.instance.GetCounterAvailable();
+
                 eleth.AnimatePossess();
                 StartCoroutine(FirePossession());
             }
@@ -255,8 +273,6 @@ public class PossessionAbility : MonoBehaviour
                 {
                     GrandFinale.instance.Explode(timePossessing, false);
                 }
-
-                timePossessionLastLeft = Time.time;
             }
             else
             {
@@ -270,23 +286,36 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private IEnumerator FirePossession()
     {
+        // reset the possession ability charge
+        possessionCharge = 0;
+
+        // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
+        if (counteringEnemy != null)
+        {
+            Time.timeScale = 0.5f;
+            target = counteringEnemy;
+            yield return new WaitForSeconds(0.2f);
+        }
+
         if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
         {
             Debug.LogError("Failed to play possession sound effect. Is it assigned in the ref sheet?");
         }
         yield return new WaitForSeconds(0.5f);
+
+        // Possess target if there is one
         if (target)
         {
-            currentPossessableEnemy.SetControlled(true);
-            CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
+            target.SetControlled(true);
+            CharacterControlChangeEvent?.Invoke(target);
 
             // Possession smoke VFX
             if(smokeCloudVFX != null)
             {
-                Instantiate(smokeCloudVFX, new Vector3(currentPossessableEnemy.transform.position.x,
-                    currentPossessableEnemy.transform.position.y + currentPossessableEnemy.GetComponent<CharacterController>().height / 2,
-                    currentPossessableEnemy.transform.position.z), currentPossessableEnemy.transform.rotation);
+                Instantiate(smokeCloudVFX, new Vector3(target.transform.position.x,
+                    target.transform.position.y + target.GetComponent<CharacterController>().height / 2,
+                    target.transform.position.z), target.transform.rotation);
             }
             else
             {
@@ -295,6 +324,7 @@ public class PossessionAbility : MonoBehaviour
 
             if (possessionSoundEffect.isValid()) possessionSoundEffect.setParameterByName("Stage", 1);
             else Debug.LogError("Possession Sound Effect is not playing! Can't set param!");
+
         }
         else
         {
@@ -312,6 +342,13 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("Firing Possession VFX is not assigned!");
         }
+
+        // Reset time scale if this was a counter
+        if (counteringEnemy != null)
+        {
+            yield return new WaitForSeconds(0.2f);
+            Time.timeScale = 1f;
+        }
     }
     
     /// <summary>
@@ -322,14 +359,22 @@ public class PossessionAbility : MonoBehaviour
     {
         if(targetVFX != null)
         {
-            if (possessionState == PossessionStates.canPossess)
+            if(PlayerController.instance.GetCounterAvailable())
             {
                 targetVFX.SetActive(true);
-                targetVFX.transform.position = currentPossessableEnemy.transform.position ;
+                targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
             }
             else
             {
-                targetVFX.SetActive(false);
+                if (possessionState == PossessionStates.canPossess)
+                {
+                    targetVFX.SetActive(true);
+                    targetVFX.transform.position = currentPossessableEnemy.transform.position;
+                }
+                else
+                {
+                    targetVFX.SetActive(false);
+                }
             }
         }
         else
@@ -364,8 +409,8 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void UpdateState()
     {
-        // Can only possess if the cooldown is over
-        if(possessionCooldown - (Time.time - timePossessionLastLeft) > 0)
+        // Can only possess if the ability is charged
+        if(possessionCharge != hitsToCharge)
         {
             possessionState = PossessionStates.canNotPossess;
             return;
@@ -416,19 +461,35 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the possession cooldown UI display.
+    /// Updates the possession UI display.
     /// </summary>
-    private void UpdateCooldowns()
+    private void UpdateUI()
     {
-        if (possessionCooldownDisplay == null)
+        if (possessionAbilitySlider != null)
         {
-            Debug.LogWarning("Cooldown display is not assigned!");
-            return;
+            possessionAbilitySlider.value = (int)(((float)possessionCharge / hitsToCharge) * 100);
+        }
+        else
+        {
+            Debug.LogWarning("Possession Ability Slider is not set!");
         }
 
-        possessionCooldownDisplay.SetAbleToUse(true);
-
-        possessionCooldownDisplay.SetCooldownCover(possessionCooldown - (Time.time - timePossessionLastLeft));
+        if (currentCharacter == eleth)
+        {
+            if (possessionCharge == hitsToCharge)
+            {
+                possessionChargeTimer = Time.time;
+            }
+            else if (Time.time - possessionChargeTimer > possessionChargeTime)
+            {
+                AddHitDone();
+                possessionChargeTimer = Time.time;
+            }
+        }
+        else
+        {
+            possessionChargeTimer = Time.time;
+        }
     }
 
     /// <summary>
@@ -437,6 +498,11 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="newCharacter">The new character to switch control to.</param>
     public void SwitchCharacter(Character newCharacter)
     {
+        if(currentCharacter != eleth)
+        {
+            currentCharacter.SetControlled(false);
+        }
+        
         currentCharacter.DeactivateSurroundingPoints();
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
@@ -481,7 +547,6 @@ public class PossessionAbility : MonoBehaviour
             }
             if (newHealth != null)
             {
-                newHealth.SetDecay(lifeDrainPercentage);
                 newHealth.EnableUpdateModel(true);
                 if (secondaryHealthBar != null)
                 {
@@ -493,7 +558,6 @@ public class PossessionAbility : MonoBehaviour
             newCharacter.SetTeamID(1);
             timePossessing = Time.time;
         }
-        timePossessionLastLeft = Time.time;
         currentCharacter = newCharacter;
         currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
@@ -513,5 +577,42 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("The possession collider is not found!");
         }
+    }
+
+    /// <summary>
+    /// Returns the amount of hits needed to charge the possession ability
+    /// Used by the Backup Plan upgrade
+    /// </summary>
+    /// <returns>hitsToCharge, the possession ability</returns>
+    public int GetHitsToCharge()
+    {
+        return hitsToCharge;
+    }
+
+    /// <summary>
+    /// Sets the amount of hits it takes to fully charge the possession ability
+    /// Used by the Backup Plan upgrade
+    /// </summary>
+    /// <param name="val">The amount of hits to set hitsToCharge to</param>
+    public void SetHitsToCharge(int val)
+    {
+        hitsToCharge = val;
+    }
+    
+    /// Gets the base focus time for possession
+    /// </summary>
+    /// <returns>The base focus time</returns>
+    public float GetFocusTime()
+    {
+        return timeToFocus;
+    }
+    
+    /// <summary>
+    /// Sets the time to focus possession
+    /// </summary>
+    /// <param name="newTime">The new time to focus possession</param>
+    public void SetFocusTime(float newTime)
+    {
+        timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 }

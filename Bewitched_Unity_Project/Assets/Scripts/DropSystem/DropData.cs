@@ -10,7 +10,7 @@ public class DropData
     [Tooltip("The name of the drop")]
     [SerializeField] private string dropName;
     [Tooltip("The description of the drop")]
-    [SerializeField] private string description;
+    [SerializeField, TextArea] private string description;
     [Tooltip("The ID of the drop")]
     [SerializeField] private string dropID;
     [Tooltip("The icon of the drop")]

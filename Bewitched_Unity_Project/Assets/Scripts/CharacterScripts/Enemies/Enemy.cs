@@ -34,6 +34,9 @@ public abstract class Enemy : Character
     [Tooltip("Distance from point an enemy must reach before switching to surround")]
     [SerializeField] protected float chaseToSurroundingRadius = 1;
 
+    [SerializeField, Tooltip("If the player is further than distance away from the target the player will move towards it before attacking")]
+    protected float moveToTargetDistance;
+
     [Tooltip("Sight Range")]
     public float sightRange;
 
@@ -151,6 +154,19 @@ public abstract class Enemy : Character
 
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
+    
+    /// <summary>
+    /// Destorys the enemies attack indicator if it is active
+    /// </summary>
+    public void DestoryAttackIndicator()
+    {
+        if (attackIndicator != null)
+        {
+            Destroy(attackIndicator);
+        }
+        attackIndicator = null;
+    }
+
 
     private float lastPrimaryChance = 0;
     private float lastSecondaryChance = 0;
@@ -334,6 +350,10 @@ public abstract class Enemy : Character
 
         if (val)
         {
+            DestoryAttackIndicator();
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
             agent.enabled = false;
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
@@ -345,6 +365,7 @@ public abstract class Enemy : Character
             aiState = AIMovementState.Patrolling;
         }
     }
+
     public override void Die()
     {
         if (playerControlling)
@@ -468,24 +489,41 @@ public abstract class Enemy : Character
         }
     }
 
+    /// <summary>
+    /// Handles the hitstun actions for enemies
+    /// </summary>
+    /// <param name="duration"> Duration to stun for </param>
+    /// <returns> Time </returns>
     public override IEnumerator StartHitStun(float duration)
     {
-        if (stunned) yield break;
-        Debug.Log("Applying stun");
-        hitStunActual = Instantiate(hitStunPrefab, transform);
-        stunned = true;
-        float timeStarted = Time.time;
-        while (Time.time - timeStarted < duration)
+        if (duration > 0)
         {
-            if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-            else aiState = AIMovementState.Blocked;
-            yield return null;
+            if (stunned) yield break;
+            hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                if (playerControlling) PlayerController.instance.SetAllowMovement(false);
+                else aiState = AIMovementState.Blocked;
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+            }
+            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
+            else aiState = AIMovementState.Chasing;
+            stunned = false;
+            Destroy(hitStunActual); 
+            hitStunActual = null;
         }
-        if (playerControlling) PlayerController.instance.SetAllowMovement(true);
-        else aiState = AIMovementState.Chasing;
-        stunned = false;
-        Debug.Log(hitStunActual);
-        Destroy(hitStunActual); hitStunActual = null;
     }
 
     public virtual void Chase()
@@ -891,5 +929,20 @@ public abstract class Enemy : Character
         {
             aiState = AIMovementState.Retreating;
         }
+    }
+
+    /// <summary>
+    /// Function to simplify setting movement values in attack coroutines
+    /// </summary>
+    /// <param name="val"> Value to set movement to </param>
+    public void SetMovementValues(bool val)
+    {
+        if (playerControlling)
+        {
+            if (val) StartCoroutine(EnableMovement());
+            else PlayerController.instance.SetAllowMovement(false);
+        }
+        if (val) aiState = AIMovementState.Retreating;
+        else aiState = AIMovementState.Blocked;
     }
 }

@@ -56,6 +56,9 @@ public class DropSystem : MonoBehaviour
     public bool GetUsePitySystem() => usePitySystem;
     // <summary> Set whether to use the pity system </summary>
     public void SetUsePitySystem(bool val) => usePitySystem = val;
+    [Header("Debug")]
+    [SerializeField, Tooltip("Drops an upgrade where the player is")]
+    bool dropUpgrade;
 
     /// <summary>
     /// It sets the instance of the DropSystem class. And allow only one instance of the class.
@@ -357,8 +360,18 @@ public class DropSystem : MonoBehaviour
         drop.Activate();
     }
 
+    //Used to force an upgrade drop to spawn when the dropUpgrade is toggled in the inspector
+    void OnValidate()
+    {
+        if (dropUpgrade)
+        {
+            SpawnDropPickup(PlayerController.instance.currentCharacter.transform.position);
+            dropUpgrade = false;
+        }
+    }
 
-        #region Saving/Loading
+
+    #region Saving/Loading
 
     [ContextMenu("Save to JSON")]
     /// <summary>

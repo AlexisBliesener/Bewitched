@@ -291,7 +291,7 @@ public class SurroundingPoints : MonoBehaviour
 
         foreach (Enemy other in surroundingEnemies)
         {
-            if (other.TryGetComponent(out Goblin gob) && other != enemy)
+            if (other != null && other.TryGetComponent(out Goblin gob) && other != enemy)
             {
                 sameEnemies.Add(gob);
             }
