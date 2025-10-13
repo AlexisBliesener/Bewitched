@@ -42,8 +42,6 @@ public class MainMenuManager : MonoBehaviour
         OpenScreen(mainScreen);
         EventSystem.current.SetSelectedGameObject(mainButton);
         Cursor.lockState = CursorLockMode.None;
-        //Audio
-        AudioManager.OpenUIAudio();
     }
 
     /// <summary>
