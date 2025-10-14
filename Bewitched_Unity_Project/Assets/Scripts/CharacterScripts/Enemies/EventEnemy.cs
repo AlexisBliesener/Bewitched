@@ -43,11 +43,11 @@ public class EventEnemy : MonoBehaviour
         {
             case EventEnemyState.Attacking:
                 Debug.Log("Attacking");
-                enemyForEvent.SetControlled(false);
+                enemyForEvent.DisableEnemyAI(false);
                 break;
             case EventEnemyState.Dizzy:
                 Debug.Log("Dizzy");
-                enemyForEvent.SetControlled(true);
+                enemyForEvent.DisableEnemyAI(true);
                 break;
             case EventEnemyState.Possessed:
                 break;

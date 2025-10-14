@@ -63,7 +63,7 @@ public class EventSystemRoom1 : MonoBehaviour
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject && fightState == FightState.Waiting)
         {
             enemyEvent.GetEnemy().gameObject.SetActive(true);
-            enemyEvent.GetEnemy().SetControlled(true);
+            enemyEvent.GetEnemy().DisableEnemyAI(true);
             StartCutScene();
         }
     }
@@ -185,7 +185,7 @@ public class EventSystemRoom1 : MonoBehaviour
         cutScene.SetActive(false);
         fightState = FightState.Fighting;
         enemyEvent.GetEnemy().canPossess = false;
-        enemyEvent.GetEnemy().SetControlled(false);
+        enemyEvent.GetEnemy().DisableEnemyAI(false);
         // Activate the enemy spawner
         enemySpawner.Activate();
         // show all the HUD

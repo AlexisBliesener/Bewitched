@@ -304,12 +304,22 @@ public abstract class Enemy : Character
         hag = playerController.GetHag();
         currentPlayer = playerController.GetCurrentCharacter();
     }
-
+    /// <summary>
+    /// Sets if the player is controlling this enemy
+    /// </summary>
+    /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
         StopAllCoroutines();
+        DisableEnemyAI(val);
+    }
+    /// <summary>
+    /// Disables the enemy AI state. 
+    /// </summary>
+    /// <param name="val"></param>
+    public void DisableEnemyAI(bool val)
+    {
         playerControlling = val;
-
         if (val)
         {
             DestoryAttackIndicator();

@@ -59,6 +59,12 @@ public class Ogre : Enemy
     [SerializeField, Range(0, 10)] float minSittingTime = 3f;
     [Tooltip("Maximum time for ogre to sit")]
     [SerializeField, Range(0, 10)] float maxSittingTime = 7f;
+    [SerializeField, Tooltip("Offset for the attack indicator"), ShowIf("dev")]
+    private Vector3 offsetAttackIndicator = new Vector3(0, 2.5f, 0);
+    [SerializeField, Tooltip("Offset for the pivot for the bat"), ShowIf("dev")]
+    private Vector3 offsetPivotBat = new Vector3(0, 0, 0);
+    [SerializeField, Tooltip("Offset for the target position when the oge locked on the player"), ShowIf("dev")]
+    private float offsetForTargetPosition = 1.5f;
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
@@ -94,7 +100,7 @@ public class Ogre : Enemy
             lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+            attackIndicator.transform.localPosition = offsetAttackIndicator;
         }
 
         if (lockedCharacter)
@@ -149,7 +155,7 @@ public class Ogre : Enemy
 
         if (lockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
+            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
             targetPos.y = transform.position.y;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime);
@@ -207,13 +213,12 @@ public class Ogre : Enemy
         }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
-
-        GameObject pivot = Instantiate(batPivot, transform);
+        GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
         DefaultHitbox pivotHitbox = pivot.GetComponent<DefaultHitbox>();
         pivotHitbox.Init(this, attackDuration: batSwingDuration);
         pivot.SetActive(false);
 
-        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
+        GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivotHitbox.AttachHitbox(batHitboxHitbox);
@@ -308,12 +313,12 @@ public class Ogre : Enemy
 
         yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
 
-        if (playerControlling) StartCoroutine(EnableMovement());
-        else
+        if (playerControlling)
         {
+            StartCoroutine(EnableMovement());
+        }else{
             aiState = AIMovementState.Chasing;
             attackState = AttackState.Neutral;
-            pathState = PathState.Unset;
         }
 
         attackStateCoroutine = null;
