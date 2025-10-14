@@ -199,6 +199,11 @@ public abstract class Enemy : Character
         lastSecondaryChance = secondaryAttackChance;
     }
 
+    private void Update()
+    {
+        currentPlayer = playerController.currentCharacter;
+    }
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
