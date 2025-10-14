@@ -10,13 +10,13 @@ public class EventSystemRoom1Tests
 {
     private GameObject roomObject;
     private EventSystemRoom1 eventSystemRoom;
-    private EventEnemy1 enemyEvent;
+    private EventEnemy enemyEvent;
     private EnemySpawner enemySpawner;
     private GameObject cutScene;
     private PlayableDirector director;
     private GameObject hud;
     private TestDoor testDoor;
-    private GameObject mockPlayer;  
+    private GameObject mockPlayer;
     /// <summary>
     /// Mock Character class to create a non abstract character class.
     /// </summary>
@@ -35,6 +35,17 @@ public class EventSystemRoom1Tests
         public override void PrimaryAttack() { }
         public override void SecondaryAttack() { }
     }
+    public class MockEnemy : Enemy
+    {
+        protected override void Awake() { }
+        public override void Die() { }
+        public override void PrimaryAttack() { }
+        public override void SecondaryAttack() { }
+        protected override void OnDestroy() { }
+
+        public override void SetControlled(bool val) { }
+    }
+
     /// <summary>
     /// Mock PlayerController that skips FixedUpdate during tests.
     /// </summary>
@@ -73,9 +84,11 @@ public class EventSystemRoom1Tests
 
         // Mock enemy
         GameObject enemyObj = new GameObject("EnemyEvent");
-        enemyEvent = enemyObj.AddComponent<EventEnemy1>();
-        enemyEvent.health = enemyObj.AddComponent<HealthController>();
-        enemyEvent.health.SetMaxHealth(200);
+        MockEnemy enemy = enemyObj.AddComponent<MockEnemy>();
+        enemyEvent = enemyObj.AddComponent<EventEnemy>();
+        typeof(EventEnemy).GetField("enemyForEvent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(enemyEvent, enemy);
+        enemyEvent.GetEnemy().health = enemyObj.AddComponent<HealthController>();
+        enemyEvent.GetEnemy().health.SetMaxHealth(200);
 
         // Mock spawner
         GameObject spawnerObj = new GameObject("Spawner");
@@ -90,6 +103,7 @@ public class EventSystemRoom1Tests
 
         // Mock Door
         testDoor = new GameObject("Door").AddComponent<TestDoor>();
+
 
         typeof(EventSystemRoom1).GetField("enemyEvent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eventSystemRoom, enemyEvent);
 
@@ -163,13 +177,13 @@ public class EventSystemRoom1Tests
     [Test]
     public void Update_SetsEnemyToDizzyAfterEnoughDamage()
     {
-        enemyEvent.health.SubHealth(120); // damage > damageToPossess
+        enemyEvent.GetEnemy().health.SubHealth(120); // damage > damageToPossess
 
         System.Enum newValue = (System.Enum)System.Enum.Parse(typeof(EventSystemRoom1).GetNestedType("FightState", System.Reflection.BindingFlags.NonPublic), "Fighting");
         typeof(EventSystemRoom1).GetField("fightState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eventSystemRoom, newValue);
 
         eventSystemRoom.SendMessage("Update");
-        Assert.AreEqual(EventEnemy1.EventEnemyState1.Dizzy, enemyEvent.GetState());
+        Assert.AreEqual(EventEnemy.EventEnemyState.Dizzy, enemyEvent.GetState());
     }
 
     /// <summary>
@@ -182,7 +196,7 @@ public class EventSystemRoom1Tests
 
         eventSystemRoom.EndFight();
 
-        Assert.AreEqual(EventEnemy1.EventEnemyState1.Possessed, enemyEvent.GetState());
+        Assert.AreEqual(EventEnemy.EventEnemyState.Possessed, enemyEvent.GetState());
         Assert.IsFalse(testDoor.IsLocked);
     }
 }

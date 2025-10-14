@@ -4,7 +4,7 @@ using UnityEngine.Playables;
 public class EventSystemRoom1 : MonoBehaviour
 {
     [SerializeField, Tooltip("The enemy event prefab")]
-    private EventEnemy1 enemyEvent;
+    private EventEnemy enemyEvent;
     [SerializeField, Tooltip("The enemy spawner prefab")]
     private EnemySpawner enemySpawner;
     [SerializeField, Tooltip("The cut scene prefab")]
@@ -48,7 +48,11 @@ public class EventSystemRoom1 : MonoBehaviour
     {
         if (enemyEvent != null)
         {
-            enemyEvent.gameObject.SetActive(false);
+            enemyEvent.GetEnemy().gameObject.SetActive(false);
+        }
+        if (hud == null)
+        {
+            Debug.LogWarning("HUD is null on event system room 1");
         }
     }
     /// <summary>
@@ -58,7 +62,8 @@ public class EventSystemRoom1 : MonoBehaviour
     {
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject && fightState == FightState.Waiting)
         {
-            enemyEvent.gameObject.SetActive(true);
+            enemyEvent.GetEnemy().gameObject.SetActive(true);
+            enemyEvent.GetEnemy().DisableEnemyAI(true);
             StartCutScene();
         }
     }
@@ -91,34 +96,34 @@ public class EventSystemRoom1 : MonoBehaviour
             case FightState.Waiting:
                 break;
             case FightState.Fighting:
-                if ((enemyEvent.health.GetMaxHealth() - enemyEvent.health.GetHealth()) >= damageToPossess)
+                if ((enemyEvent.GetEnemy().health.GetMaxHealth() - enemyEvent.GetEnemy().health.GetHealth()) >= damageToPossess)
                 {
                     // change the state to be able to possess the enemy
                     fightState = FightState.Ending;
                     timeDizzyStarted = Time.time;
-                    enemyEvent.SetState(EventEnemy1.EventEnemyState1.Dizzy);
+                    enemyEvent.SetState(EventEnemy.EventEnemyState.Dizzy);
                 }
                 break;
             case FightState.Ending:
-                if (enemyEvent.gameObject == PlayerController.instance.currentCharacter.gameObject)
+                if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;
                 }
-                if (((enemyEvent.health.GetMaxHealth() - enemyEvent.health.GetHealth()) >= damageToPossess)
+                if (((enemyEvent.GetEnemy().health.GetMaxHealth() - enemyEvent.GetEnemy().health.GetHealth()) >= damageToPossess)
                        && (Time.time - timeDizzyStarted <= dizzyDuration))
                 {
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
-                    enemyEvent.canPossess = true;
+                    enemyEvent.GetEnemy().canPossess = true;
                     return;
                 }
                 // if it passes the dizzy duration, make the enemy not possessable, and add health to the enemy event
                 // and make the enemy to be able to attack again
-                enemyEvent.canPossess = false;
-                enemyEvent.health.AddHealth(healthToAdd);
+                enemyEvent.GetEnemy().canPossess = false;
+                enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
                 fightState = FightState.Fighting;
-                enemyEvent.SetState(EventEnemy1.EventEnemyState1.Attacking);
+                enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);
                 break;
             case FightState.Finished:
                 break;
@@ -130,7 +135,7 @@ public class EventSystemRoom1 : MonoBehaviour
     public void EndFight()
     {
         fightState = FightState.Finished;
-        enemyEvent.SetState(EventEnemy1.EventEnemyState1.Possessed);
+        enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
         if (door != null)
         {
             door.Unlock();
@@ -142,7 +147,7 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void GiveDamage()
     {
-        enemyEvent.health.SubHealth(100f);
+        enemyEvent.GetEnemy().health.SubHealth(100f);
     }
 
     [ContextMenu("Possess")]
@@ -151,7 +156,7 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void Possess()
     {
-        Character currentPossessableEnemy = enemyEvent.GetComponent<Character>();
+        Character currentPossessableEnemy = enemyEvent.GetEnemy().GetComponent<Character>();
         PossessionAbility.CharacterControlChangeEvent?.Invoke(currentPossessableEnemy);
         currentPossessableEnemy.SetControlled(true);
     }
@@ -179,7 +184,8 @@ public class EventSystemRoom1 : MonoBehaviour
         PlayerController.instance.SetAllowMovement(true);
         cutScene.SetActive(false);
         fightState = FightState.Fighting;
-        enemyEvent.canPossess = false;
+        enemyEvent.GetEnemy().canPossess = false;
+        enemyEvent.GetEnemy().DisableEnemyAI(false);
         // Activate the enemy spawner
         enemySpawner.Activate();
         // show all the HUD
