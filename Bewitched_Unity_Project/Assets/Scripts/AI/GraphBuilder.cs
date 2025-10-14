@@ -633,11 +633,15 @@ public class GraphBuilder : MonoBehaviour
         while (true)
         {
             enemyQueue = new PriorityQueue<Enemy>();
-            Enemy[] enemies = FindObjectsOfType<Enemy>();
-
-            foreach (Enemy enemy in enemies)
+            List<GameObject> enemies = new List<GameObject>();
+            if (RoomSystem.Instance.GetActiveRoomController())
             {
-                if (enemy.gameObject.activeSelf)
+                enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
+            }
+
+            foreach (GameObject enemyObj in enemies)
+            {
+                if (enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
                 }
