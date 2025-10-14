@@ -201,7 +201,14 @@ public abstract class Enemy : Character
 
     private void Update()
     {
-        currentPlayer = playerController.currentCharacter;
+        if(playerController != null)
+        {
+            currentPlayer = playerController.currentCharacter;
+        }
+        else
+        {
+            Debug.LogWarning("Player controller is not set!");
+        }
     }
 
     /// <summary>
