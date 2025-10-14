@@ -326,14 +326,14 @@ public abstract class Enemy : Character
             lockedCharacter = null;
             attackingPrimary = false;
             attackingSecondary = false;
-            agent.enabled = false;
+            if (agent != null) agent.enabled = false;
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
             pathState = PathState.Unset;
         }
         else
         {
-            agent.enabled = true;
+            if (agent != null) agent.enabled = true;
             aiState = AIMovementState.Patrolling;
         }
     }
