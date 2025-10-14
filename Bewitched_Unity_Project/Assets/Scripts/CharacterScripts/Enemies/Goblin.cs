@@ -151,16 +151,6 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
-
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
-        {
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
-        }
-        else
-        {
-            attackStateCoroutine = StartCoroutine(HandleStab());
-        }
-        
     }
 
     /// <summary>
@@ -218,9 +208,9 @@ public class Goblin : Enemy
                     if (attackIndicator != null)
                     {
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
-                        PlayerController.instance.SetCounterAvaliable(null);
+                        if(PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
+                   // if (lockedCharacter == currentPlayer && PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -230,7 +220,7 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
+                   // if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
@@ -550,8 +540,6 @@ public class Goblin : Enemy
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
 
-        Debug.Log(aiState);
-
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
             Patrol();
@@ -621,12 +609,6 @@ public class Goblin : Enemy
     public override void Patrol()
     {
         if (!idleAudio.isValid()) AudioManager.TryPlayInstance("GoblinIdle", out idleAudio, true, gameObject);
-
-        // Set path if there is none
-        if (pathState == PathState.Unset)
-        {
-            FindPath();
-        }
 
         // Check if player is visible
         if (LookForPlayer())
@@ -852,8 +834,6 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        Debug.Log(pathState);
-        Debug.Log(currentPath);
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             Debug.Log("Moving: " + gameObject);

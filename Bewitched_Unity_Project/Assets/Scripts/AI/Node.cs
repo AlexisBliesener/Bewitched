@@ -29,6 +29,16 @@ public class Node
     [Tooltip("Node separation")]
     [SerializeField] private int nodeSeparation;
 
+    [Tooltip("Bool representing that this node was created by the graph")]
+    [SerializeField] bool createdByGraph = false;
+
+    /// <summary>
+    /// Sets the values for the node
+    /// </summary>
+    /// <param name="x"> X position </param>
+    /// <param name="z"> Z position </param>
+    /// <param name="nodeDistance"> Distance between other nodes </param>
+    /// <param name="y"> Y position </param>
     public void SetValues(int x, int z, int nodeDistance, int y)
     {
         xPos = x;
@@ -184,5 +194,39 @@ public class Node
     public void AddCost(int cost)
     {
         nodeCost += cost;
+    }
+
+    /// <summary>
+    /// Resets the node cost
+    /// </summary>
+    public void ResetCost()
+    {
+        nodeCost = 0;
+    }
+
+    /// <summary>
+    /// Function to set the node's created by the graph variable true
+    /// </summary>
+    public void SetCreated()
+    {
+        createdByGraph = true;
+    }
+
+    /// <summary>
+    /// Gets if the node was created by the graph
+    /// </summary>
+    /// <returns> True if it is, false otherwise </returns>
+    public bool CreatedByGraph()
+    {
+        return createdByGraph;
+    }
+
+    /// <summary>
+    /// Gets the Y position of the node
+    /// </summary>
+    /// <returns> Y position </returns>
+    public int GetYPos()
+    {
+        return yPos;
     }
 }
