@@ -348,19 +348,19 @@ public class GraphBuilder : MonoBehaviour
         if (nodeDictionary == null || nodeDictionary.Count == 0)
             return null;
 
-        int xInt = (int)(position.x * 10);
+        int xInt = Mathf.RoundToInt(position.x * 10);
         List<int> xList = new List<int>(nodeDictionary.Keys);
         int xPos = BinaryCoordinateSearch(xInt, xList);
         if (!nodeDictionary.ContainsKey(xPos))
             return null;
 
-        int zInt = (int)(position.z * 10);
+        int zInt = Mathf.RoundToInt(position.z * 10);
         List<int> zList = new List<int>(nodeDictionary[xPos].Keys);
         int zPos = BinaryCoordinateSearch(zInt, zList);
         if (!nodeDictionary[xPos].ContainsKey(zPos))
             return null;
 
-        int yInt = (int)(position.y * 10);
+        int yInt = Mathf.RoundToInt(position.y * 10);
         List<int> yList = new List<int>(nodeDictionary[xPos][zPos].Keys);
         int yPos = BinaryCoordinateSearch(yInt, yList);
         if (!nodeDictionary[xPos][zPos].ContainsKey(yPos))

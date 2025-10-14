@@ -177,7 +177,7 @@ public class NavPath
     /// <returns> Destination position </returns>
     public Vector3 GetDestinationPosition(GameObject obj = null)
     {
-        return destination.GetPosition(); // now it will use real y (floor height)
+        return destination.GetPosition(obj); 
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public class NavPath
 
         // we will check first the horizontal distance then the vertical distance
         float horizontalDistance = Vector2.Distance(new Vector2(enemy.transform.position.x, enemy.transform.position.z), new Vector2(destination.GetPosition().x, destination.GetPosition().z));
-        if (horizontalDistance <= enemy.minStopDistance && Mathf.Abs(enemy.transform.position.y - destination.GetPosition().y) <= 2f)
+        if (horizontalDistance <= enemy.minStopDistance)
         {
             return true;
         }   
