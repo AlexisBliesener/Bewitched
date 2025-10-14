@@ -182,6 +182,11 @@ public class HealthController : MonoBehaviour
             return;
         }
         if (minibar != null) Destroy(minibar);
+        if (miniBarPrefab == null)
+        {
+            Debug.LogWarning($"No mini health bar prefab assigned on {gameObject.name}");
+            return;   
+        }
         minibar = Instantiate(miniBarPrefab);
         minibar.GetComponent<MiniHealthBar>().SetCharacter(character);
         minibar.GetComponent<MiniHealthBar>().Subscribe(this);
