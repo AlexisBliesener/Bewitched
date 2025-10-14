@@ -77,6 +77,8 @@ public class Goblin : Enemy
 
     [Tooltip("Goblin animator script that controls the goblin animations")]
     private GoblinAnimator animator;
+    [Tooltip("The position the goblin will try to move to on attack")]
+    private Vector3 targetPos = Vector3.negativeInfinity;
 
     //The sound effect for the spin attack
     //FMOD Event for idle sound effects
@@ -118,7 +120,7 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (lockedCharacter != null && targetPos != Vector3.negativeInfinity)
         {
             animator.SetPrimaryMovementNeeded(true);
         }
@@ -151,6 +153,16 @@ public class Goblin : Enemy
             }
         }
         attackingPrimary = true;
+
+        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        {
+            attackStateCoroutine = StartCoroutine(KnifeWindup());
+        }
+        else
+        {
+            attackStateCoroutine = StartCoroutine(HandleStab());
+        }
+        
     }
 
     /// <summary>
@@ -188,7 +200,7 @@ public class Goblin : Enemy
 
         if (lockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
+            targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
             targetPos.y = transform.position.y;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime);
@@ -210,7 +222,6 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
                         if(PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
-                   // if (lockedCharacter == currentPlayer && PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -220,7 +231,6 @@ public class Goblin : Enemy
                         attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
-                   // if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
@@ -229,7 +239,7 @@ public class Goblin : Enemy
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
-
+        targetPos = Vector3.negativeInfinity;
         DestoryAttackIndicator();
 
         attackStateCoroutine = StartCoroutine(HandleStab());
@@ -242,6 +252,7 @@ public class Goblin : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleStab()
     {
+        animator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
@@ -485,6 +496,10 @@ public class Goblin : Enemy
         // If reached this point (no deflects) slow down, destroy hitbox halfway through, and end
         float timeSinceSlowBegan = 0;
         Destroy(hitbox);
+
+        // end spin portion of the secondary attack animation, move into stagger portion
+        animator.SetSecondaryAttackEnded();
+
         while (timeSinceSlowBegan < 0.5f)
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, timeSinceSlowBegan / 0.5f);
@@ -498,8 +513,6 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        //stop the secondary sound effect
-        //if (secondaryAudio.isValid()) secondaryAudio.setParameterByNameWithLabel("End", "True");
         if (lockedCharacter)
         {
             lockedCharacter.SetAttacker(null);
@@ -952,11 +965,11 @@ public class Goblin : Enemy
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
-                PrimaryAttack();
+                StartCoroutine( BeginPrimary());
             }
             else
             {
-                SecondaryAttack();
+                StartCoroutine( BeginSecondary());
                 // Coordinate other goblin attack here
             }
             points.RemoveSurroundingEnemy(this);

@@ -199,6 +199,19 @@ public abstract class Enemy : Character
         lastSecondaryChance = secondaryAttackChance;
     }
 
+    private void Update()
+    {
+        // keep the which character is the player updated
+        if(playerController != null)
+        {
+            currentPlayer = playerController.currentCharacter;
+        }
+        else
+        {
+            Debug.LogWarning("Player controller is not set!");
+        }
+    }
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
@@ -262,10 +275,9 @@ public abstract class Enemy : Character
             velocity = Vector3.zero;
         }
 
-        GetCharacterController().Move(velocity * Time.deltaTime);
+        velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
 
-        if (!GetCharacterController().isGrounded)
-            GetCharacterController().Move(Vector3.down * Time.deltaTime);
+        GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
     /// <summary>
@@ -282,7 +294,7 @@ public abstract class Enemy : Character
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, velocity, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward,  new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
@@ -663,7 +675,7 @@ public abstract class Enemy : Character
             transform.rotation = Quaternion.Euler(-angle / 3, lookRotation.eulerAngles.y, 0);
         }
 
-        return base.BeginPrimary();
+        yield return StartCoroutine(base.BeginPrimary());
     }
 
 

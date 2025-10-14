@@ -13,8 +13,6 @@ public class CharacterAnimator : MonoBehaviour
     protected float[] primaryAnimationDelay = { 0.5f };
     [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
     protected float secondaryAnimationDelay = 0.5f;
-    [SerializeField, Tooltip("Secondary attack animation length.")]
-    protected float secondaryAttackLength = 1f;
 
     [Header("References")]
     [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
@@ -35,7 +33,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("Holds the current animator state info")]
     protected AnimatorStateInfo stateInfo;
     [Tooltip("The character this animator is working on")]
-    private Character character;
+    protected Character character;
 
 
     protected virtual void Start()
@@ -131,12 +129,6 @@ public class CharacterAnimator : MonoBehaviour
             case "SecondaryAttack":
                 animator.SetTrigger("SecondaryAttack");
                 canChange = false;
-                StartCoroutine(WaitForEndAnimation(secondaryAttackLength));
-                break;
-            case "Jump":
-                animator.SetTrigger("Jump");
-                canChange = false;
-                StartCoroutine(WaitForGrounded());
                 break;
             case "Death":
                 animator.SetTrigger("Death");
@@ -154,7 +146,6 @@ public class CharacterAnimator : MonoBehaviour
         animator.ResetTrigger("Run");
         animator.ResetTrigger("PrimaryAttack");
         animator.ResetTrigger("SecondaryAttack");
-        animator.ResetTrigger("Jump");
         animator.ResetTrigger("Death");
     }
 
@@ -191,6 +182,11 @@ public class CharacterAnimator : MonoBehaviour
         }
     }
 
+    public virtual void SetSecondaryAttackEnded()
+    {
+        canChange = true;
+    }
+
     public void SetPrimaryComboEnded()
     {
         canChange = true;
@@ -203,7 +199,6 @@ public class CharacterAnimator : MonoBehaviour
     protected virtual IEnumerator WaitForGrounded()
     {
         yield return new WaitForFixedUpdate();
-        yield return new WaitForSeconds(character.GetJumpDelay());
         yield return new WaitUntil(() => characterController.isGrounded);
         canChange = true;
     }
