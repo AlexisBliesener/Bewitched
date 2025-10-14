@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 
 
+
 /// <summary>
 /// This class is used to play any audio that needs to be called via Animation Events
 /// Every function call in animation events needs to pass it's arguments as an Animation Event
@@ -21,12 +22,26 @@ public class AnimationAudio : MonoBehaviour
     */
     Dictionary<string, EventInstance> animEvents;
     [Tooltip("Previews the fmod events currently playing on this script")]
-    [SerializeField,NaughtyAttributes.ReadOnly]List<string> eventsPlaying;
-    [SerializeField,Tooltip("Reference to the character script controlling this character")]
+    [SerializeField,NaughtyAttributes.ReadOnly] List<string> eventsPlaying;
+    [SerializeField, Tooltip("Reference to the character script controlling this character")]
     Character character;
     //Property for whether or not the character is possessed or not
-    bool possessed{get{ return (character is Enemy) && (character as Enemy).IsPlayerControlling(); }}
+    bool possessed { get { return (character is Enemy) && (character as Enemy).IsPlayerControlling(); } }
     EVENT_CALLBACK destroyCallback;
+    
+    /// <summary>
+    /// Class used to pass the dictionary key and class instance to the static callback method
+    /// </summary>
+    private class EntryData
+    {
+        public string key;
+        public AnimationAudio instance;
+        public EntryData(string str, AnimationAudio inst)
+        {
+            key = str;
+            instance = inst;
+        }
+    }
 
     void Start()
     {
@@ -40,7 +55,7 @@ public class AnimationAudio : MonoBehaviour
                 Debug.LogError("Animation audio could not find this character's character script");
                 return;
             }
-        } 
+        }
         character.health.OnDeath += OnDeath;
     }
 
@@ -77,11 +92,11 @@ public class AnimationAudio : MonoBehaviour
             return;
         }
         EventInstance ev = animEvents[clipName];
-       ev.getPlaybackState(out PLAYBACK_STATE state);
+        ev.getPlaybackState(out PLAYBACK_STATE state);
         if (state == PLAYBACK_STATE.STOPPED)
         {
             RegisterDestroyCallback(ev, clipName);
-            if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+            if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
             if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
@@ -105,7 +120,7 @@ public class AnimationAudio : MonoBehaviour
             }
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             eventsPlaying.Add(GetPath(ev));
-            if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+            if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
             if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
@@ -138,8 +153,8 @@ public class AnimationAudio : MonoBehaviour
     /// <param name="anim">Animation Event. STRING: Event name. INT: Attatched or not</param>
     public void StartOneShot(AnimationEvent anim)
     {
-        AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev,true,(anim.intParameter==1)?character.gameObject:null);
-        if(possessed) ev.setParameterByNameWithLabel("Possessed","True");
+        AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev, true, (anim.intParameter == 1) ? character.gameObject : null);
+        if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
     }
 
     /// <summary>
@@ -167,7 +182,7 @@ public class AnimationAudio : MonoBehaviour
     /// </summary>
     /// <param name="ev">The event instance</param>
     /// <returns>The path of the event</returns>
-    public string GetPath(EventInstance ev)
+    public static string GetPath(EventInstance ev)
     {
         if (!ev.isValid())
         {
@@ -186,13 +201,13 @@ public class AnimationAudio : MonoBehaviour
     /// <param name="clipName">The animation clip name that started the event</param>
     void RegisterDestroyCallback(EventInstance ev, string clipName)
     {
-        
+
         if (!ev.isValid())
         {
             Debug.LogWarning("Event instance is not valid!");
             return;
         }
-        GCHandle handle = GCHandle.Alloc(clipName);
+        GCHandle handle = GCHandle.Alloc(new EntryData(clipName,this));
         ev.setUserData(GCHandle.ToIntPtr(handle));
         ev.setCallback(destroyCallback, EVENT_CALLBACK_TYPE.DESTROYED);
     }
@@ -221,7 +236,7 @@ public class AnimationAudio : MonoBehaviour
             }
             //Change the object pinned at this memory address to be the new clipName
             GCHandle handle = GCHandle.FromIntPtr(ptr);
-            handle.Target = clipName;
+            (handle.Target as EntryData).key = clipName;
 
         }
         //If no user data, the event has been prepared but not started, don't set user data yet
@@ -240,6 +255,7 @@ public class AnimationAudio : MonoBehaviour
         //When death animations are implemented, exclude death sound effects.
     }
 
+
     /// <summary>
     /// Callback that removes the event from the animEvents dictionary when it gets destroyed.
     /// </summary>
@@ -248,18 +264,26 @@ public class AnimationAudio : MonoBehaviour
     /// <param name="paramPtr">For parameter-related callbacks, not relavant to this callback</param>
     /// <returns></returns>
     [AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
-    FMOD.RESULT AnimationEventDestroyCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr paramPtr)
+    static FMOD.RESULT AnimationEventDestroyCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr paramPtr)
     {
         EventInstance ev = new(instancePtr);
         ev.getUserData(out IntPtr userData);
-        GCHandle handle = GCHandle.FromIntPtr(userData);
-        string clipName = handle.Target as string;
-        if (animEvents.ContainsKey(clipName)&&animEvents[clipName].Equals(ev))
+        if (userData == IntPtr.Zero)
         {
-            animEvents.Remove(clipName);
+            Debug.LogError("AnimationEventDestroyCallback called on event with no user data!");
+            return FMOD.RESULT.ERR_INVALID_HANDLE;
         }
-        string path = GetPath(ev);
-        if (eventsPlaying.Contains(path)) eventsPlaying.Remove(path);
+        GCHandle handle = GCHandle.FromIntPtr(userData);
+        EntryData data = handle.Target as EntryData;
+        if (data.instance != null)
+        {
+            if (data.instance.animEvents.ContainsKey(data.key) && data.instance.animEvents[data.key].Equals(ev))
+            {
+                data.instance.animEvents.Remove(data.key);
+            }
+            string path = GetPath(ev);
+            if (data.instance.eventsPlaying.Contains(path)) data.instance.eventsPlaying.Remove(path);
+        }
         handle.Free();
         return FMOD.RESULT.OK;
     }
