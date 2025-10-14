@@ -201,6 +201,7 @@ public abstract class Enemy : Character
 
     private void Update()
     {
+        // keep the which character is the player updated
         if(playerController != null)
         {
             currentPlayer = playerController.currentCharacter;
