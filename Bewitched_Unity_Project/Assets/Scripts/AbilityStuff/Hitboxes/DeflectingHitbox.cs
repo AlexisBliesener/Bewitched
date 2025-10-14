@@ -64,7 +64,7 @@ public class DeflectingHitbox : DefaultHitbox
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable())
+                if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable() && user.teamID != character.teamID)
                 {
                     character.health.SubHealth(damage);
                     AddStatusEffects(character);
