@@ -8,7 +8,7 @@ using UnityEngine;
 public class ShopAlter : MonoBehaviour, IInteract
 {
     [Tooltip("The UI screen for shopping for upgrades.")]
-    public GameObject shopUI;
+    private GameObject shopUI;
 
     /// <summary>
     /// It will set the object of the shop alter in the player controller, and show the interact UI
@@ -54,11 +54,12 @@ public class ShopAlter : MonoBehaviour, IInteract
         }
         else
         {
-            Debug.LogWarning("ShopUI gameObject not assigned.");
+            Debug.LogWarning("ShopUI gameObject not assigned on RandomPlacementShop.");
         }
 
         DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
     }
 
     public GameObject GetGameObject() => gameObject;
+    public void SetShopUI(GameObject shopUI) => this.shopUI = shopUI;
 }
