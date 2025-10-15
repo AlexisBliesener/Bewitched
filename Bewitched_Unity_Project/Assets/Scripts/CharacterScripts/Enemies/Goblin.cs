@@ -537,6 +537,11 @@ public class Goblin : Enemy
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
 
+        while (animator.GetCurrentState() == "GoblinSecondaryEnd") // While still in the secondary animation state
+        {
+            yield return null;
+        }
+
         attackingSecondary = false;
         timeLastSecondary = Time.time;
 

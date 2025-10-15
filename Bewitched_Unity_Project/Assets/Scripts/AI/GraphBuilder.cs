@@ -99,11 +99,13 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
 
+    private Coroutine searchRoutine = null;
+
     // Start is called before the first frame update
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
-        StartCoroutine(HandleSearching()); //What was causing long start time
+        searchRoutine = StartCoroutine(HandleSearching()); //What was causing long start time
     }
     /// <summary>
     /// Create an instance in awake since the awake function called before the start function
@@ -121,7 +123,10 @@ public class GraphBuilder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (searchRoutine == null)
+        {
+            searchRoutine = StartCoroutine(HandleSearching());
+        }
     }
 
     /// <summary>
@@ -628,11 +633,15 @@ public class GraphBuilder : MonoBehaviour
         while (true)
         {
             enemyQueue = new PriorityQueue<Enemy>();
-            Enemy[] enemies = FindObjectsOfType<Enemy>();
-
-            foreach (Enemy enemy in enemies)
+            List<GameObject> enemies = new List<GameObject>();
+            if (RoomSystem.Instance.GetActiveRoomController())
             {
-                if (enemy.gameObject.activeSelf)
+                enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
+            }
+
+            foreach (GameObject enemyObj in enemies)
+            {
+                if (enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
                 }
