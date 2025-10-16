@@ -185,6 +185,11 @@ public class DefaultHitbox : MonoBehaviour
                 {
                     character.health.SubHealth(damage);
 
+                    if(character == PlayerController.instance.currentCharacter)
+                    {
+                        CameraController.instance.PlayerHitBy(user.gameObject);
+                    }
+
                     // Increments the possession ability charge if the hit has done to anything other than the player
                     if(character != PlayerController.instance.currentCharacter)
                     {
