@@ -107,6 +107,7 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        if (dead) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();

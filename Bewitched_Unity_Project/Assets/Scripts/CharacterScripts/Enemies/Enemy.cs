@@ -151,6 +151,8 @@ public abstract class Enemy : Character
     public LayerMask ground;
     [Tooltip("Mask for the environment layer"), ShowIf("dev")]
     public LayerMask environment;
+    //Just so code in update isn't called after the enemy is dead
+    protected bool dead=false;
 
     /// <summary>
     /// Destorys the enemies attack indicator if it is active
@@ -387,6 +389,7 @@ public abstract class Enemy : Character
 
     public override void Die()
     {
+        dead = true;
         if (playerControlling)
         {
             if(GrandFinale.instance.GetActive())
