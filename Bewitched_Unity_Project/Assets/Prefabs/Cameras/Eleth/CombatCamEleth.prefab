@@ -302,7 +302,7 @@ MonoBehaviour:
       m_LegacyHeadingDefinition: -1
       m_LegacyVelocityFilterStrength: -1
   m_YAxisRecentering:
-    m_enabled: 1
+    m_enabled: 0
     m_WaitTime: 1
     m_RecenteringTime: 2
     m_LegacyHeadingDefinition: -1
@@ -316,8 +316,8 @@ MonoBehaviour:
     m_InputAxisName: Mouse X
     m_InputAxisValue: 0
     m_InvertInput: 0
-    m_MinValue: -180
-    m_MaxValue: 180
+    m_MinValue: 0
+    m_MaxValue: 360
     m_Wrap: 1
     m_Recentering:
       m_enabled: 0
@@ -339,11 +339,11 @@ MonoBehaviour:
   m_SplineCurvature: 0.2
   m_Orbits:
   - m_Height: 7
-    m_Radius: 1
+    m_Radius: 5
+  - m_Height: 6
+    m_Radius: 6
   - m_Height: 5
-    m_Radius: 4
-  - m_Height: 0
-    m_Radius: 3
+    m_Radius: 7
   m_LegacyHeadingBias: 3.4028235e+38
   m_Rigs:
   - {fileID: 694124519383758910}
@@ -375,9 +375,9 @@ MonoBehaviour:
   m_CameraRadius: 1
   m_Strategy: 1
   m_MaximumEffort: 4
-  m_SmoothingTime: 0.28
-  m_Damping: 1.65
-  m_DampingWhenOccluded: 0.43
+  m_SmoothingTime: 0.43
+  m_Damping: 2.32
+  m_DampingWhenOccluded: 2.37
   m_OptimalTargetDistance: 0
 --- !u!114 &2461723433660053713
 MonoBehaviour:
