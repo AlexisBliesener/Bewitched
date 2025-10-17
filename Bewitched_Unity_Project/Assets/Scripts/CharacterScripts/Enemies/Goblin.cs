@@ -128,6 +128,8 @@ public class Goblin : Enemy
         {
             animator.SetPrimaryMovementNeeded(false);
         }
+
+        Debug.Log(animator.GetCurrentState());
     }
 
     public override void PrimaryAttack()
@@ -293,13 +295,11 @@ public class Goblin : Enemy
         hitCharacter = false;
         if (playerControlling)
         {
-            PlayerController.instance.SetAllowMovement(false);
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
         {
             lockedCharacter = currentPlayer;
-            aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
             attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
@@ -312,6 +312,8 @@ public class Goblin : Enemy
                 enemy.SetTargeted(true);
             }
         }
+
+        SetMovementValues(false);
 
         attackStateCoroutine = StartCoroutine(SpinWindup());
     }
@@ -348,6 +350,7 @@ public class Goblin : Enemy
         // For now wait 0.5 seconds, in future wait for animation trigger
         while (Time.time - timeStarted < 0.125f)
         {
+            SetMovementValues(false);
             if (lockedCharacter)
             {
                 Vector3 direc = lockedCharacter.transform.position - transform.position;
@@ -392,7 +395,6 @@ public class Goblin : Enemy
         float rotationalSpeed = 0;
         Vector3 desiredVelocity;
 
-        Debug.Log(direction);
         bool slowTime = false;
 
         GameObject hitbox = Instantiate(spinHitbox, transform);
@@ -532,8 +534,9 @@ public class Goblin : Enemy
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
 
-        while (animator.GetCurrentState() == "GoblinSecondaryEnd") // While still in the secondary animation state
+        while (animator.GetCurrentState() == "ExitSecondaryAttack" || animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
+            Debug.Log("Ending spin");
             yield return null;
         }
 
