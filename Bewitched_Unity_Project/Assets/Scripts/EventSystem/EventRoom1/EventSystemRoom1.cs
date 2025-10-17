@@ -134,6 +134,7 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     public void EndFight()
     {
+        AudioManager.ChangeMusicParameter("End", "True");
         fightState = FightState.Finished;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
         if (door != null)

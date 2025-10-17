@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.AI;
@@ -152,7 +153,24 @@ public abstract class Enemy : Character
     [Tooltip("Mask for the environment layer"), ShowIf("dev")]
     public LayerMask environment;
     //Just so code in update isn't called after the enemy is dead
-    protected bool dead=false;
+    protected bool dead = false;
+
+    //The sound effect for the spin attack
+    //FMOD Event for idle sound effects
+    protected EventInstance idleAudio;
+
+    /// <summary>
+    /// Stops the idle sound effects of the goblin if it's currently playing
+    /// </summary>
+    protected void StopIdleAudio()
+    {
+        if (idleAudio.isValid())
+        {
+            idleAudio.setParameterByNameWithLabel("End", "True");
+            idleAudio = new();
+        }
+    }
+
 
     /// <summary>
     /// Destorys the enemies attack indicator if it is active

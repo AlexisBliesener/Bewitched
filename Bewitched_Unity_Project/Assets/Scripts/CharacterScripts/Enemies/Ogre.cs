@@ -1,4 +1,6 @@
 using DG.Tweening;
+using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
 using UnityEngine;
@@ -316,13 +318,29 @@ public class Ogre : Enemy
         if (playerControlling)
         {
             StartCoroutine(EnableMovement());
-        }else{
+        }
+        else
+        {
             aiState = AIMovementState.Chasing;
             attackState = AttackState.Neutral;
         }
 
         attackStateCoroutine = null;
         attackingSecondary = false;
+    }
+    
+    protected override void OnDamaged(float f)
+    {
+        base.OnDamaged(f);
+        if(AudioManager.TryGetReference("OgreHit", out EventReference evRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.setParameterByName("Damage", f / health.GetMaxHealth());
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.start();
+            ev.release();
+        }
     }
 
     /// <summary>
@@ -336,18 +354,22 @@ public class Ogre : Enemy
 
         if (aiState == AIMovementState.Patrolling)
         {
+            if (!idleAudio.isValid()) AudioManager.TryPlayInstance("OgreIdle", out idleAudio, true, gameObject);
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
         {
+            StopIdleAudio();
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            StopIdleAudio();
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
         {
+            StopIdleAudio();
             Retreat();
         }
     }
@@ -708,7 +730,16 @@ public class Ogre : Enemy
     /// </summary>
     public override void Die()
     {
-        AudioManager.ChangeMusicParameter("End", "True");
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Ogre's Death sound effect
+        if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
+        {
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+        }
         base.Die();
     }
 }
