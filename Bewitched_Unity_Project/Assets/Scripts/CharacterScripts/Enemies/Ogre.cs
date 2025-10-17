@@ -70,6 +70,8 @@ public class Ogre : Enemy
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
+    //Is this an event enemy?
+    bool isEventEnemy = false;
 
     void Start()
     {
@@ -77,6 +79,7 @@ public class Ogre : Enemy
         health.SetHealthToMax();
         SetBaseStats();
         SetPatrolOrigin();
+        isEventEnemy = TryGetComponent<EventEnemy>(out var e);
     }
 
     private void FixedUpdate()
@@ -338,6 +341,7 @@ public class Ogre : Enemy
             RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
             ev.setParameterByName("Damage", f / health.GetMaxHealth());
             ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
             ev.start();
             ev.release();
         }
@@ -354,7 +358,11 @@ public class Ogre : Enemy
 
         if (aiState == AIMovementState.Patrolling)
         {
-            if (!idleAudio.isValid()) AudioManager.TryPlayInstance("OgreIdle", out idleAudio, true, gameObject);
+            if (!idleAudio.isValid())
+            {
+                AudioManager.TryPlayInstance("OgreIdle", out idleAudio, true, gameObject);
+                idleAudio.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            }
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
@@ -739,6 +747,7 @@ public class Ogre : Enemy
         if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
         {
             ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
         }
         base.Die();
     }
