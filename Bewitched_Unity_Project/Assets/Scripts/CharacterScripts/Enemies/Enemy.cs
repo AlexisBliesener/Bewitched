@@ -378,14 +378,6 @@ public abstract class Enemy : Character
     public override void SetControlled(bool val)
     {
         StopAllCoroutines();
-        DisableEnemyAI(val);
-    }
-    /// <summary>
-    /// Disables the enemy AI state. 
-    /// </summary>
-    /// <param name="val"></param>
-    public void DisableEnemyAI(bool val)
-    {
         playerControlling = val;
         if (val)
         {
