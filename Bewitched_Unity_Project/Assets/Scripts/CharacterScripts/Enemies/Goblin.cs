@@ -206,11 +206,6 @@ public class Goblin : Enemy
             transform.DOMove(targetPos, chaseTime);
             transform.DOLookAt(targetPos, chaseTime);
 
-            if (lockedCharacter != null)
-            {
-                CameraController.instance.GetCombatCamScript().TargetSet(lockedCharacter.gameObject);
-            }
-
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime)
             {
@@ -854,7 +849,7 @@ public class Goblin : Enemy
         lookAtPlayer = true;
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            Debug.Log("Moving: " + gameObject);
+           // Debug.Log("Moving: " + gameObject);
             AIMove();
             if (debugging)
             {
