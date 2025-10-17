@@ -21,6 +21,7 @@ public class AudioManager : MonoBehaviour
     [Tooltip("Dictionary with the snapshots active during runtime as the value and the snapshot name as the key.")]
     Dictionary<string, EventInstance> activeSnapshots;
     Coroutine pauseCoroutine;
+    //The UI Input System on the EventSystem object in the scene
     InputSystemUIInputModule UIInput;
 
     void Awake()
@@ -107,8 +108,8 @@ public class AudioManager : MonoBehaviour
     public static void OpenUIAudio(float transitionTime = 0.8f)
     {
         if (manager.activeSnapshots.ContainsKey("UIOpen")) return;
-        manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
-        manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
+        //Subscribes CheckClick to suitable UI Actions
+        SubscribeCheckClick();
         EventInstance inst = RuntimeManager.CreateInstance(manager.refSheet.snapshotRefs["UIOpen"]);
         inst.setParameterByName("UITransitionIn", transitionTime);
         inst.start();
@@ -134,8 +135,8 @@ public class AudioManager : MonoBehaviour
     {
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
         if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
-        manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
-        manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
+        //Unsubscribe CheckClick from UI Actions
+        UnsubscribeCheckClick();
         EventInstance inst = manager.activeSnapshots["UIOpen"];
         manager.activeSnapshots.Remove("UIOpen");
         inst.setParameterByName("UITransitionOut", transitionTime);
@@ -160,19 +161,28 @@ public class AudioManager : MonoBehaviour
     {
         manager.levelMusic.setParameterByNameWithLabel(param, value);
     }
-
-    public static void ForceSubscribeCheckClick()
+    /// <summary>
+    /// Forces Audio Manager to check for UI clicks outside of OpenUIAudio.
+    /// This is mostly used in the main menu.
+    /// </summary>
+    public static void SubscribeCheckClick()
     {
         manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
         manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
     }
-
-    public static void ForceUnsubscribeCheckClick()
+    /// <summary>
+    /// Forces Audio Manager to unsubscribe from click and submit actions.
+    /// </summary>
+    public static void UnsubscribeCheckClick()
     {
         manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
         manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
     }
 
+    /// <summary>
+    /// Checks the UI object that has been clicked or submitted on, if any, and plays the click sound effect
+    /// </summary>
+    /// <param name="context">Action context</param>
     void CheckClick(InputAction.CallbackContext context)
     {
         if (EventSystem.current.currentSelectedGameObject == null) return;

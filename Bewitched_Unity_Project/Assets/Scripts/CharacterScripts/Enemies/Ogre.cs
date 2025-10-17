@@ -331,7 +331,7 @@ public class Ogre : Enemy
         attackStateCoroutine = null;
         attackingSecondary = false;
     }
-    
+    //Override of OnDamaged to handle the OgreHit sound effect
     protected override void OnDamaged(float f)
     {
         base.OnDamaged(f);
@@ -734,7 +734,7 @@ public class Ogre : Enemy
         return false;
     }
     /// <summary>
-    /// Override of Enemy.Die to change the level music to the outro
+    /// Override of Enemy.Die to handle the ogre's death sound effect.
     /// </summary>
     public override void Die()
     {
