@@ -42,6 +42,7 @@ public class MainMenuManager : MonoBehaviour
         OpenScreen(mainScreen);
         EventSystem.current.SetSelectedGameObject(mainButton);
         Cursor.lockState = CursorLockMode.None;
+        AudioManager.ForceSubscribeCheckClick();
     }
 
     /// <summary>
@@ -51,8 +52,7 @@ public class MainMenuManager : MonoBehaviour
     {
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
-        //Audio
-        if (AudioManager.manager) AudioManager.CloseUIAudio();
+        AudioManager.ForceUnsubscribeCheckClick();
     }
 
     /// <summary>
