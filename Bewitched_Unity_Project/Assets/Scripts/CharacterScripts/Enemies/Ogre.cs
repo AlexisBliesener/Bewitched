@@ -80,8 +80,9 @@ public class Ogre : Enemy
     private void FixedUpdate()
     {
         currentPlayer = playerController.GetCurrentCharacter();
-
+        SetAIState();
         SetBehavior();
+        CreateLocalInvalidArea();
     }
     /// <summary>
     /// Starts the primary attack for the ogre
@@ -239,13 +240,8 @@ public class Ogre : Enemy
 
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
-        if (!playerControlling)
-        {
-            aiState = AIMovementState.Retreating;
-            attackState = AttackState.Neutral;
-            pathState = PathState.Unset;
-        }
-        else StartCoroutine(EnableMovement());
+        SetMovementValues(true);
+        attackState = AttackState.Neutral;
 
         if (lockedCharacter)
         {
@@ -313,13 +309,8 @@ public class Ogre : Enemy
 
         yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
 
-        if (playerControlling)
-        {
-            StartCoroutine(EnableMovement());
-        }else{
-            aiState = AIMovementState.Chasing;
-            attackState = AttackState.Neutral;
-        }
+        SetMovementValues(true);
+        attackState = AttackState.Neutral;
 
         attackStateCoroutine = null;
         attackingSecondary = false;
@@ -529,7 +520,7 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
-                StartCoroutine(SpotPlayer());
+                TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
             timer += Time.deltaTime;
@@ -580,18 +571,6 @@ public class Ogre : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -605,31 +584,7 @@ public class Ogre : Enemy
             FindPath();
         }
         lookAtPlayer = true;
-
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
-        {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
-            {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath(false);
-                }
-            }
-        }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) > surroundingToChaseRadius) // If out of range
-            {
-                aiState = AIMovementState.Chasing;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.RemoveSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -654,18 +609,6 @@ public class Ogre : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>

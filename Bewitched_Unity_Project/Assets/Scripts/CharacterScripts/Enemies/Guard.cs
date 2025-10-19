@@ -173,6 +173,7 @@ public class Guard : Enemy
         HandleHitStun();
         SetAIState();
         SetBehavior();
+        CreateLocalInvalidArea();
     }
 
     public override void PrimaryAttack()

@@ -132,6 +132,15 @@ public abstract class Character : MonoBehaviour
 
     protected float timeLastDodge = 0;
 
+    [Tooltip("List of nodes that are costly for the area this character is taking up")]
+    List<List<int>> costlyNodes = new List<List<int>>();
+
+    [Tooltip("Position the character was last time the nodes were reset")]
+    Vector3 previousCostlyPosition;
+
+    [Tooltip("Threshold distance before resetting costly area")]
+    float invalidAreaResetThreshold = 0.5f;
+
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
     [Tooltip("Layer mask for the characters")]
@@ -826,5 +835,34 @@ public abstract class Character : MonoBehaviour
             surroundingPoints = GetComponent<SurroundingPoints>();
         }
         return surroundingPoints;
+    }
+
+    /// <summary>
+    /// Creates a costly area around the player that enemies will avoid entering
+    /// </summary>
+    public void CreateLocalInvalidArea()
+    {
+        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold)
+        {
+            ResetInvalidArea();
+
+            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
+            foreach (List<int> position in costlyNodes)
+            {
+                GraphBuilder.instance.SetNodeValidity(position, false);
+            }
+            previousCostlyPosition = transform.position;
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly area values
+    /// </summary>
+    public void ResetInvalidArea()
+    {
+        foreach (List<int> position in costlyNodes)
+        {
+            GraphBuilder.instance.SetNodeValidity(position, true);
+        }
     }
 }

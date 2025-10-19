@@ -32,6 +32,9 @@ public class Node
     [Tooltip("Bool representing that this node was created by the graph")]
     [SerializeField] bool createdByGraph = false;
 
+    [Tooltip("If the node is walkable or not")]
+    [SerializeField] bool valid = true;
+
     /// <summary>
     /// Sets the values for the node
     /// </summary>
@@ -228,5 +231,23 @@ public class Node
     public int GetYPos()
     {
         return yPos;
+    }
+
+    /// <summary>
+    /// Setter for node validity
+    /// </summary>
+    /// <param name="val"> Value to set </param>
+    public void SetValid(bool val)
+    {
+        valid = val;
+    }
+
+    /// <summary>
+    /// If the node is valid
+    /// </summary>
+    /// <returns> True if it is, false otherwise </returns>
+    public bool IsValid()
+    {
+        return valid;
     }
 }

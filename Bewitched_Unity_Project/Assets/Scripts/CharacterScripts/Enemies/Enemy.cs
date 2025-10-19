@@ -967,7 +967,7 @@ public abstract class Enemy : Character
             if (val) StartCoroutine(EnableMovement());
             else PlayerController.instance.SetAllowMovement(false);
         }
-        if (val) aiState = AIMovementState.Retreating;
+        if (val) SetAIState(true);
         else aiState = AIMovementState.Blocked;
     }
 
