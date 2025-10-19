@@ -23,7 +23,7 @@ public abstract class Character : MonoBehaviour
     public string characterName;
 
     [Header("Movement Settings")]
-    [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 10)]
+    [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 20)]
     public float movementSpeed = 5;
     [Tooltip("Speed the character can move while approaching for an attack"), Range(0, 50)]
     public float approachSpeed = 7;
@@ -499,7 +499,7 @@ public abstract class Character : MonoBehaviour
     /// Resets the primary combo of this character back to in an inactive state (-1)
     /// </summary>
     public void ResetPrimaryComboStep()
-    { 
+    {
         currentPrimaryComboStep = -1;
         characterAnimator.SetPrimaryComboEnded();
     }
@@ -510,14 +510,16 @@ public abstract class Character : MonoBehaviour
         {
             if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
+
                 currentPrimaryComboStep += 1;
-                timeLastPrimary = Time.time;
 
                 if (currentPrimaryComboStep >= primaryComboSteps)
                 {
                     currentPrimaryComboStep = 0;
                 }
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+                characterAnimator.SwitchState("PrimaryAttack");
+
+                timeLastPrimary = Time.time;
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
                 PrimaryAttack();

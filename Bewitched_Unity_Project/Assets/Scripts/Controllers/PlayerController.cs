@@ -4,12 +4,13 @@ using FMODUnity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
-using UnityEngine.AI;
-using Unity.AI.Navigation;
+using static UnityEngine.UI.Image;
 
 public class PlayerController : MonoBehaviour
 {
@@ -383,30 +384,53 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 inputDirection = currentCharacter.transform.forward;
+        Vector3 dir = currentCharacter.transform.forward;
 
-        if (inputDirection.sqrMagnitude < 0.001f)
-            inputDirection = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
+        if (movementInput.magnitude < 0.001f)
+            dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
 
-        inputDirection = inputDirection.normalized;
-
-        Debug.DrawRay(currentCharacter.transform.position, inputDirection, Color.red);
-
-        RaycastHit info;
+        dir.y = 0;
+        dir = dir.normalized;
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        if(Physics.SphereCast(currentCharacter.transform.position, 3f, inputDirection, out info, 2, enemyLayerMask))
+        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 3f, 2f, dir, 0f, enemyLayerMask);
+
+        Enemy target = null;
+        float targetDistance = Mathf.Infinity;
+
+        if (hits.Length > 0 && (hits.Length != 1 || hits[0].collider.gameObject.name != "Eleth"))
         {
-            if(info.collider.transform.GetComponent<Enemy>() && info.collider.gameObject != currentCharacter.gameObject)
+            foreach (RaycastHit hit in hits)
             {
-                lockedCharacter = info.collider.transform.GetComponent<Enemy>();
+                Enemy enemy = hit.collider.GetComponent<Enemy>();
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                {
+                    target = enemy;
+                    targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
+                    break;
+                }
             }
         }
         else
         {
-            lockedCharacter = null;
+            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 8f, 4f, dir, 0f, enemyLayerMask);
+            if (hits.Length > 0)
+            {
+                foreach (RaycastHit hit in hits)
+                {
+                    Enemy enemy = hit.collider.GetComponent<Enemy>();
+                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                    {
+                        target = enemy;
+                        targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
+                        break;
+                    }
+                }
+            }
         }
+
+        lockedCharacter = target;
 
         if (lockedCharacter)
         {

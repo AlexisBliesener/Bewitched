@@ -286,6 +286,8 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private IEnumerator FirePossession()
     {
+        // The speed multipler of the possession animation as set in eleths animator controller
+        float possessionSpeedMult = eleth.GetComponent<ElethAnimator>().GetPossessionSpeedMult();
         // reset the possession ability charge
         possessionCharge = 0;
 
@@ -295,14 +297,14 @@ public class PossessionAbility : MonoBehaviour
         {
             Time.timeScale = 0.5f;
             target = counteringEnemy;
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.2f / possessionSpeedMult);
         }
 
         if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
         {
             Debug.LogError("Failed to play possession sound effect. Is it assigned in the ref sheet?");
         }
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.5f / possessionSpeedMult);
 
         // Possess target if there is one
         if (target)
@@ -346,7 +348,7 @@ public class PossessionAbility : MonoBehaviour
         // Reset time scale if this was a counter
         if (counteringEnemy != null)
         {
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.2f / possessionSpeedMult);
             Time.timeScale = 1f;
         }
     }

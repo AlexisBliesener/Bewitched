@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
@@ -7,15 +8,31 @@ using UnityEngine.TextCore.Text;
 /// </summary>
 public class ElethAnimator : CharacterAnimator
 {
+    [SerializeField, Tooltip("Possession attack animation speed multiplier."), Range(0.1f, 10f)]
+    private float possessionSpeedMult = 1f;
     [Header("Eleth Settings")]
     [SerializeField, Tooltip("Possession attack animation length.")]
     private float possessionAttackLength = 1f;
 
-    private void Awake()
+
+    /// <summary>
+    /// Returns the speed multiplier of eleths possession animation
+    /// </summary>
+    /// <returns>possession animation speed multiplier</returns>
+    public float GetPossessionSpeedMult()
     {
+        return possessionSpeedMult;
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+
         animationStates.Add("Possession");
         animationStates.Remove("PrimaryAttack");
         animationStates.Remove("SecondaryAttack");
+
+        animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
     }
 
     /// <summary>
@@ -38,19 +55,27 @@ public class ElethAnimator : CharacterAnimator
         switch (newState)
         {
             case "Idle":
+                animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
+                PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Run":
+                animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
+                PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Death":
+                animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+                PlayerController.instance.SetAllowMovement(true);
                 animator.SetTrigger("Death");
                 canChange = false;
                 break;
             case "Possession":
+                animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
                 animator.SetTrigger("Possession");
+                PlayerController.instance.SetAllowMovement(false);
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(possessionAttackLength));
                 break;
