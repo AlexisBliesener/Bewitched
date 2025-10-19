@@ -30,6 +30,12 @@ public abstract class Enemy : Character
     [Tooltip("Walk Point Range"), Range(0, 50)]
     public float patrolRange;
 
+    [Tooltip("Minimum distance enemy is surrounding from (added to target radius)")]
+    [SerializeField] float minimumSurroundingDistance = 3;
+
+    [Tooltip("Maxium distance enemy is surrounding from (added to target radius)")]
+    [SerializeField] float maximumSurroundingDistance = 5;
+
     [Header("Time/Delay Settings")]
 
     [Tooltip("Time before searching"), Range(0, 10)]
@@ -55,7 +61,7 @@ public abstract class Enemy : Character
 
 
     
-    [Tooltip("Point that the Goblin runs to while chasing/surrounding"), HideIf("debugging")]
+    [Tooltip("Point that the Enemy runs to while chasing/surrounding"), HideIf("debugging")]
     protected GameObject surroundPoint;
 
     protected GameObject destinationMarker;
@@ -976,5 +982,87 @@ public abstract class Enemy : Character
             characterController = GetComponent<CharacterController>();
         }
         return characterController;
+    }
+
+    /// <summary>
+    /// Function called every frame to set the correct AI state based on the current information
+    /// Alternatively called after attacks/stuns end to allow movement again
+    /// </summary>
+    /// <param name="overrideBlock"> Set true if being called to set the state unblocked </param>
+    public void SetAIState(bool overrideBlock = false)
+    {
+        if (overrideBlock || aiState != AIMovementState.Blocked)
+        {
+            // Check if player is visible, if not then patrol
+            if (LookForPlayer())
+            {
+                // Check distance first - if it is greater than surrounding then chase
+                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                {
+                    TransitionToState(AIMovementState.Chasing);
+                }
+                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                {
+                    TransitionToState(AIMovementState.Retreating);
+                }
+                else
+                {
+                    TransitionToState(AIMovementState.Surrounding);
+                }
+            }
+            else TransitionToState(AIMovementState.Patrolling);
+        }
+    }
+
+    /// <summary>
+    /// Function to handle transitions between states
+    /// </summary>
+    /// <param name="state"> State to switch to </param>
+    public void TransitionToState(AIMovementState state)
+    {
+        if (aiState == state || inProcess) return; // If no transition, do nothing
+
+        if (aiState == AIMovementState.Patrolling) // Reset path
+        {
+            pathState = PathState.Unset;
+        }
+        else if (aiState == AIMovementState.Chasing)
+        {
+            if (state == AIMovementState.Patrolling)
+            {
+                pathState = PathState.Unset;
+                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
+            }
+            if (state == AIMovementState.Surrounding)
+            {
+                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
+            }
+        }
+        else if (aiState == AIMovementState.Surrounding)
+        {
+            if (state == AIMovementState.Patrolling)
+            {
+                pathState = PathState.Unset;
+            }
+            currentPlayer.GetSurroundingPoints().RemoveSurroundingEnemy(this);
+        }
+        else if (aiState == AIMovementState.Retreating)
+        {
+            if (state == AIMovementState.Patrolling)
+            {
+                pathState = PathState.Unset;
+                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
+            }
+            if (state == AIMovementState.Surrounding)
+            {
+                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
+            }
+        }
+        else if (aiState == AIMovementState.Blocked)
+        {
+            pathState = PathState.Unset;
+        }
+
+        aiState = state;
     }
 }

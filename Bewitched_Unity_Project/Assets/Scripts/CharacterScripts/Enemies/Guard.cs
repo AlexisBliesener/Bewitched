@@ -171,6 +171,7 @@ public class Guard : Enemy
     {
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
+        SetAIState();
         SetBehavior();
     }
 
@@ -441,7 +442,7 @@ public class Guard : Enemy
         {
             if (LookForPlayer())
             {
-                StartCoroutine(SpotPlayer());
+                TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
             timer += Time.deltaTime;
@@ -491,18 +492,6 @@ public class Guard : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -524,18 +513,6 @@ public class Guard : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) > surroundingToChaseRadius) // If within a meter and a half of surrounding radius
-            {
-                aiState = AIMovementState.Chasing;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.RemoveSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -554,18 +531,6 @@ public class Guard : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
