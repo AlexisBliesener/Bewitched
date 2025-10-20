@@ -80,9 +80,7 @@ public class Goblin : Enemy
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
 
-    //The sound effect for the spin attack
-    //FMOD Event for idle sound effects
-    EventInstance idleAudio;
+
 
     private int numDeflections = 0;
 
@@ -107,6 +105,7 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        if (dead) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetBehavior();
@@ -1008,18 +1007,6 @@ public class Goblin : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
-    }
-
-    /// <summary>
-    /// Stops the idle sound effects of the goblin if it's currently playing
-    /// </summary>
-    void StopIdleAudio()
-    {
-        if (idleAudio.isValid())
-        {
-            idleAudio.setParameterByNameWithLabel("End", "True");
-            idleAudio = new();
-        }
     }
 
     //Override to implement Goblin's hit sound effect
