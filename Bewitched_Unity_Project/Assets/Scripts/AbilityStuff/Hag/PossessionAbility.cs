@@ -239,18 +239,70 @@ public class PossessionAbility : MonoBehaviour
     {
         if (context.started)
         {
+            counteringEnemy = PlayerController.instance.GetCounterAvailable();
             if (possessionCharge == hitsToCharge)
             {
-                counteringEnemy = PlayerController.instance.GetCounterAvailable();
-
                 eleth.AnimatePossess();
                 StartCoroutine(FirePossession());
+            }
+            else if (counteringEnemy != null)
+            {
+                StartCoroutine( Dodge(counteringEnemy.gameObject));
             }
         }
         else
         {
              return;
         }
+    }
+
+    [SerializeField]
+    private GameObject teleportVFX;
+    [SerializeField]
+    private float dodgeDistance = 4f;
+    [SerializeField]
+    private LayerMask environmentLayer;
+    private IEnumerator Dodge(GameObject counteringEnemy)
+    {
+        PlayerController.instance.SetAllowMovement(false);
+        currentCharacter.health.SetInvincible(true);
+        foreach(GameObject go in currentCharacter.GetModel())
+        {
+            go.SetActive(false);
+        }
+    
+        GameObject vfx1 =  Instantiate(teleportVFX, currentCharacter.transform.position, Quaternion.identity);
+        yield return new WaitForSeconds(0.1f);
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        if(Physics.Raycast(currentCharacter.transform.position, counteringEnemy.transform.forward, out hitInfo, dodgeDistance, environmentLayer))
+        {
+             moveDist = (counteringEnemy.transform.forward.normalized * hitInfo.distance);
+        }
+        else
+        {
+            moveDist = (counteringEnemy.transform.forward.normalized * dodgeDistance);
+        }
+
+        for(int i = 0; i < 8; i++)
+        {
+            currentCharacter.GetComponent<CharacterController>().Move(moveDist / 8f);
+            yield return null;
+        }
+
+        GameObject vfx2 = Instantiate(teleportVFX, currentCharacter.transform.position, Quaternion.identity);
+        foreach (GameObject go in currentCharacter.GetModel())
+        {
+            go.SetActive(true);
+        }
+        PlayerController.instance.SetAllowMovement(true);
+        currentCharacter.health.SetInvincible(false);
+        yield return new WaitForSeconds(0.3f);
+        Destroy(vfx1);
+        
+        yield return new WaitForSeconds(0.3f);
+        Destroy(vfx2);
+        
     }
 
     /// <summary>

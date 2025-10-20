@@ -21,6 +21,8 @@ public abstract class Character : MonoBehaviour
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
+    [SerializeField, Tooltip("The model of this character in art peices (keep animator on when turned off)")]
+    private GameObject[] modelPieces;
 
     [Header("Movement Settings")]
     [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 20)]
@@ -122,7 +124,6 @@ public abstract class Character : MonoBehaviour
     protected bool dodgable = false;
     protected bool attackDodged = false;
     protected bool dodging = false;
-    private bool invulnerable = false;
 
     protected bool inCounter = false;
 
@@ -263,6 +264,11 @@ public abstract class Character : MonoBehaviour
         health.OnDamaged -= OnDamaged;
         health.OnHealthChanged -= OnHealthChanged;
         health.OnDeath -= OnDeath;
+    }
+
+    public GameObject[] GetModel()
+    {
+        return modelPieces;
     }
 
     /// <summary>
@@ -702,27 +708,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Gives the character invulnerability for a duration
-    /// </summary>
-    /// <param name="duration"> Duration to be invulnerable </param>
-    /// <returns> Time </returns>
-    public IEnumerator GiveInvulnerability(float duration)
-    {
-        invulnerable = true;
-        yield return new WaitForSeconds(duration);
-        invulnerable = false;
-    }
-
-    /// <summary>
-    /// Gets the invulnerability status
-    /// </summary>
-    /// <returns> Invulnerability status </returns>
-    public bool Invulnerable()
-    {
-        return invulnerable;
-    }
-
-    /// <summary>
     /// Handles dodging for a character
     /// </summary>
     /// <param name="wellTimed"></param>
@@ -737,7 +722,6 @@ public abstract class Character : MonoBehaviour
 
         if (wellTimed)
         {
-            GiveInvulnerability(0.75f);
             Time.timeScale = 0.25f;
         }
         int attackDirection;
