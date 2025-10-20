@@ -59,8 +59,12 @@ public abstract class Character : MonoBehaviour
     public float attackDelay = 1;
     [Tooltip("Cooldown After Primary Ability"), Range(0,10)]
     public float primaryCooldown = 5;
+    [SerializeField, Tooltip("The amount of health this character will use when using their primary attack"), Range(0, 100)]
+    protected int primaryAttackCost;
     [Tooltip("Cooldown After Secondary Ability"), Range(0, 10)]
     public float secondaryCooldown = 5;
+    [SerializeField, Tooltip("The amount of health this character will use when using their secondary attack"), Range(0, 100)]
+    protected int secondaryAttackCost;
     [Tooltip("Primary Attack Range"), Range(0, 10)]
     public float primaryAttackRange;
     [Tooltip("The reference to the health controller"), HideInInspector]
@@ -504,12 +508,18 @@ public abstract class Character : MonoBehaviour
         characterAnimator.SetPrimaryComboEnded();
     }
 
+
+
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
         {
             if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
+                if (PlayerController.instance.currentCharacter == this)
+                {
+                    health.SubHealth(primaryAttackCost);
+                }
 
                 currentPrimaryComboStep += 1;
 
@@ -534,6 +544,10 @@ public abstract class Character : MonoBehaviour
         yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {
+            if (PlayerController.instance.currentCharacter == this)
+            {
+                health.SubHealth(secondaryAttackCost);
+            }
             SecondaryAttack();
 
         }

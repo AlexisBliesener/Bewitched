@@ -140,6 +140,11 @@ public class Goblin : Enemy
         {
             if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
             {
+                if(playerControlling)
+                {
+                    health.SubHealth(primaryAttackCost);
+                }
+                
                 currentPrimaryComboStep += 1;
                 if (currentPrimaryComboStep >= primaryComboSteps)
                 {
