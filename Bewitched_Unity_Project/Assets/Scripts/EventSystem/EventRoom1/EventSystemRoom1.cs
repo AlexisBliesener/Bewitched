@@ -134,7 +134,15 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     public void EndFight()
     {
-        AudioManager.ChangeMusicParameter("End", "True");
+        if(AudioManager.manager != null)
+        {
+            AudioManager.ChangeMusicParameter("End", "True");
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is not set!");
+        }
+            
         fightState = FightState.Finished;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
         if (door != null)
