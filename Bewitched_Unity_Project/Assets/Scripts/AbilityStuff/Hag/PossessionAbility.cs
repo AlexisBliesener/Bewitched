@@ -357,6 +357,7 @@ public class PossessionAbility : MonoBehaviour
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
         if (counteringEnemy != null)
         {
+            eleth.health.SetInvincible(true);
             Time.timeScale = 0.5f;
             target = counteringEnemy;
             yield return new WaitForSeconds(0.2f / possessionSpeedMult);
@@ -410,6 +411,7 @@ public class PossessionAbility : MonoBehaviour
         // Reset time scale if this was a counter
         if (counteringEnemy != null)
         {
+            eleth.health.SetInvincible(false);
             yield return new WaitForSeconds(0.2f / possessionSpeedMult);
             Time.timeScale = 1f;
         }
