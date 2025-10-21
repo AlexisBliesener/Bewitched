@@ -975,7 +975,11 @@ public abstract class Enemy : Character
             Debug.Log("Setting Movement True");
             overrideBlock = true;
         }
-        else aiState = AIMovementState.Blocked;
+        else
+        {
+            Debug.Log("Setting Movement False");
+            aiState = AIMovementState.Blocked;
+        }
     }
 
     /// <summary>

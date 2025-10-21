@@ -156,7 +156,7 @@ public class Goblin : Enemy
 
                 characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-                
+                Debug.Log("Starting Primary");
                 PrimaryAttack();
             }
 
@@ -166,13 +166,9 @@ public class Goblin : Enemy
     public override void PrimaryAttack()
     {
         hitCharacter = false;
-        if (playerControlling)
+        SetMovementValues(false);
+        if (!playerControlling)
         {
-            PlayerController.instance.SetAllowMovement(false);
-        }
-        else
-        {
-            aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
             attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
@@ -189,11 +185,13 @@ public class Goblin : Enemy
 
         if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
         {
+            Debug.Log("A");
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(KnifeWindup());
         }
         else
         {
+            Debug.Log("B");
             attackStateCoroutine = StartCoroutine(HandleStab());
         }
         
@@ -281,6 +279,8 @@ public class Goblin : Enemy
             GetCharacterController().enabled = true;
         }
 
+        attackState = AttackState.Attacking;
+
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
         if (!playerControlling) { currentPrimaryComboStep = 0; }
@@ -288,9 +288,41 @@ public class Goblin : Enemy
 
         targetPos = Vector3.negativeInfinity;
         DestoryAttackIndicator();
-        
-       
-       // attackStateCoroutine = StartCoroutine(HandleStab());
+
+        Debug.Log("Starting Stab");
+        float hitboxStartTime = Time.time;
+        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
+
+        if (!playerControlling)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
+        Debug.Log("Ending stab");
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(null);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
+
+        lockedCharacter = null;
+        attackingPrimary = false;
+
         yield break;
     }
 
@@ -800,34 +832,6 @@ public class Goblin : Enemy
         {
             StartPath(false);
         }
-    }
-
-    /// <summary>
-    /// Coroutine that plays when the player is spotted
-    /// </summary>
-    /// <param name="fromGoblin"> Whether the goblin was told where the player is </param>
-    /// <returns> Waits for animation to be done </returns>
-    private IEnumerator SpotPlayer(bool fromGoblin = false)
-    {
-        aiState = AIMovementState.Chasing;
-        if (debugging)
-        {
-            DestroyPath();
-        }
-
-        inProcess = true;
-
-        timePlayerLastSeen = Time.time;
-
-        // Play animation/noise that the player has been seen
-        if (!fromGoblin)
-        {
-            yield return new WaitForSeconds(0.25f);
-        }
-
-        // Alert nearby Goblins of player
-
-        inProcess = false;
     }
 
     /// <summary>
