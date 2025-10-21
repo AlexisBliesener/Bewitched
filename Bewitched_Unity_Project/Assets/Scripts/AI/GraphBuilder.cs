@@ -33,6 +33,9 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("How many nodes can be searched before the next frame is played")]
     [SerializeField] int nodesSearchedPerFrame = 60;
+    [Tooltip("How many tries an agent gets to search before it is skipped")]
+    [SerializeField] int maxAgentAttempts = 3;
+
     [SerializeField, Tooltip("Maximum height to scan for floors")]
     private float maxFloorHeight = 50f;
 
@@ -629,6 +632,7 @@ public class GraphBuilder : MonoBehaviour
     {
         if (testing) yield break;
         int iter = 1;
+        int agentAttempts = 1;
 
         while (true)
         {
@@ -653,11 +657,12 @@ public class GraphBuilder : MonoBehaviour
                 {
                     Enemy enemy = enemyQueue.Dequeue();
                     enemy.FindPath();
-                    while (!enemy.HasSetPath())
+                    while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
                     {
                         if (!enemy.IsFindingPath())
                         {
-                            enemy.FindPath();
+                            agentAttempts++;
+                            if (agentAttempts <= maxAgentAttempts) enemy.FindPath();
                         }
                         yield return null;
                     }

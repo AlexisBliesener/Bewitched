@@ -680,6 +680,7 @@ public class Goblin : Enemy
         else if (aiState == AIMovementState.Chasing)
         {
             surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
+            Debug.Log(gameObject + surroundPoint.ToString());
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
