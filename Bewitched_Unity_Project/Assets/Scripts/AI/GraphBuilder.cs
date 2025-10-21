@@ -535,7 +535,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
-                if (tentativeGScore < neighborGScore && neighbor.IsValid()) // Node must be valid as well
+                if (tentativeGScore < neighborGScore) // Node must be valid as well
                 {
                     path.SetPathVertex(neighbor, vertex);
                     gscore[neighbor.GetPosition()] = tentativeGScore;
@@ -780,7 +780,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
-                if (tentativeGScore < neighborGScore && neighbor.IsValid())
+                if (tentativeGScore < neighborGScore)
                 {
                     path.SetPathVertex(neighbor, vertex);
                     gscore[neighbor.GetPosition()] = tentativeGScore;
@@ -880,17 +880,6 @@ public class GraphBuilder : MonoBehaviour
     {
         nodeDictionary[position[0]][position[1]][position[2]].AddCost(cost);
     }
-
-    /// <summary>
-    /// Sets validity to a node based on the node position
-    /// </summary>
-    /// <param name="position"> Position values of node </param>
-    /// <param name="val"> Validity to set to node </param>
-    public void SetNodeValidity(List<int> position, bool val)
-    {
-        nodeDictionary[position[0]][position[1]][position[2]].SetValid(val);
-    }
-
 
     /// <summary>
     /// Resets all node costs

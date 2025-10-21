@@ -101,6 +101,8 @@ public abstract class Enemy : Character
 
     private CharacterController characterController;
 
+    protected bool overrideBlock = false;
+
     public enum PathState
     {
         Unset,
@@ -470,7 +472,7 @@ public abstract class Enemy : Character
         if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
         {
             seenTarget = true;
-            lastTargetLocation = target.transform.position;
+            lastTargetLocation = currentPlayer.transform.position;
             return true;
         }
         return false;
@@ -967,7 +969,12 @@ public abstract class Enemy : Character
             if (val) StartCoroutine(EnableMovement());
             else PlayerController.instance.SetAllowMovement(false);
         }
-        if (val) SetAIState(true);
+
+        if (val)
+        {
+            Debug.Log("Setting Movement True");
+            overrideBlock = true;
+        }
         else aiState = AIMovementState.Blocked;
     }
 
@@ -988,11 +995,15 @@ public abstract class Enemy : Character
     /// Function called every frame to set the correct AI state based on the current information
     /// Alternatively called after attacks/stuns end to allow movement again
     /// </summary>
-    /// <param name="overrideBlock"> Set true if being called to set the state unblocked </param>
-    public void SetAIState(bool overrideBlock = false)
+    public void SetAIState()
     {
         if (overrideBlock || aiState != AIMovementState.Blocked)
         {
+            if (overrideBlock)
+            {
+                Debug.Log("Overriding block");
+                overrideBlock = false;
+            }
             // Check if player is visible, if not then patrol
             if (LookForPlayer())
             {

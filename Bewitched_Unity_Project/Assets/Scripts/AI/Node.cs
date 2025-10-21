@@ -232,22 +232,4 @@ public class Node
     {
         return yPos;
     }
-
-    /// <summary>
-    /// Setter for node validity
-    /// </summary>
-    /// <param name="val"> Value to set </param>
-    public void SetValid(bool val)
-    {
-        valid = val;
-    }
-
-    /// <summary>
-    /// If the node is valid
-    /// </summary>
-    /// <returns> True if it is, false otherwise </returns>
-    public bool IsValid()
-    {
-        return valid;
-    }
 }

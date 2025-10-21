@@ -583,6 +583,19 @@ public class Ogre : Enemy
         {
             FindPath();
         }
+
+        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        {
+            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            {
+                AIMove();
+                if (debugging)
+                {
+                    UpdatePath(false);
+                }
+            }
+        }
+
         lookAtPlayer = true;
         AILook();
     }
