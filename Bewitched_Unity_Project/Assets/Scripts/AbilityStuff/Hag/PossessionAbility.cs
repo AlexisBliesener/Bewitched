@@ -264,6 +264,11 @@ public class PossessionAbility : MonoBehaviour
     private LayerMask environmentLayer;
     private IEnumerator Dodge(GameObject counteringEnemy)
     {
+        if(currentCharacter != eleth)
+        {
+            RespawnEleth();
+        }
+
         PlayerController.instance.SetAllowMovement(false);
         currentCharacter.health.SetInvincible(true);
         foreach(GameObject go in currentCharacter.GetModel())
@@ -315,21 +320,26 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
-                if (!GrandFinale.instance.GetActive())
-                {
-                    // respawn old Hag
-                    currentCharacter.SetControlled(false);
-                    CharacterControlChangeEvent?.Invoke(eleth);
-                }
-                else
-                {
-                    GrandFinale.instance.Explode(timePossessing, false);
-                }
+                RespawnEleth();
             }
             else
             {
                 return;
             }
+        }
+    }
+
+    private void RespawnEleth()
+    {
+        if (!GrandFinale.instance.GetActive())
+        {
+            // respawn old Hag
+            currentCharacter.SetControlled(false);
+            CharacterControlChangeEvent?.Invoke(eleth);
+        }
+        else
+        {
+            GrandFinale.instance.Explode(timePossessing, false);
         }
     }
 
