@@ -129,8 +129,8 @@ public abstract class Character : MonoBehaviour
 
     protected Character attackingEnemy = null;
 
-    [Tooltip("Attack indicator")]
-    protected GameObject attackIndicator = null;
+    [SerializeField, Tooltip("Counter indicator")]
+    protected GameObject counterIndicatorVFX;
 
     [Tooltip("Target tween position")]
     protected Vector3 targetTweenPosition;
@@ -159,7 +159,7 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Hit Stun Prefab"), ShowIf("dev")]
     public GameObject hitStunPrefab;
     [Tooltip("Attack indicator prefab"), ShowIf("dev")]
-    public GameObject attackIndicatorPrefab;
+    public GameObject counterIndicatorVFXPrefab;
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -349,7 +349,7 @@ public abstract class Character : MonoBehaviour
         Die();
         // Stop all coroutines destroy all objects too
         if (hitStunActual != null) Destroy(hitStunActual);
-        if (attackIndicator != null) Destroy(attackIndicator);
+        if (counterIndicatorVFX != null) Destroy(counterIndicatorVFX);
     }
 
     /// <summary>

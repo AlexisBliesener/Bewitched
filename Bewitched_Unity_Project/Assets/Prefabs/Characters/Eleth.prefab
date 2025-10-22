@@ -3521,7 +3521,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dev: 0
   characterName: Hag
-  model: {fileID: 919132149155446097}
+  modelPieces: []
   movementSpeed: 9.4
   approachSpeed: 7
   acceleration: 10
@@ -3547,6 +3547,7 @@ MonoBehaviour:
   hitStunDuration: 0.5
   primaryComboResetTime: []
   primaryComboMinTime: []
+  counterIndicatorVFX: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -3558,7 +3559,7 @@ MonoBehaviour:
   primaryFireIcon: {fileID: 21300000, guid: 1cbb8d62684018f47b22eadc74c7d248, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: 1cbb8d62684018f47b22eadc74c7d248, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
-  attackIndicatorPrefab: {fileID: 5268847967852326968, guid: f9010be385ea18341b16aa0fb2416a56, type: 3}
+  counterIndicatorVFXPrefab: {fileID: 0}
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 2

@@ -377,8 +377,6 @@ public class PlayerController : MonoBehaviour
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
     }
 
-    
-
     /// <summary>
     /// Targets the closest enemy to the input direction if it is within a range
     /// </summary>

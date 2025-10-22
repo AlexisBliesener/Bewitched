@@ -172,8 +172,6 @@ public class Goblin : Enemy
         else
         {
             aiState = AIMovementState.Blocked;
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
 
         if (lockedCharacter)
@@ -254,10 +252,10 @@ public class Goblin : Enemy
                     }
 
                     //   dodgable = false;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX != null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
-                        if(PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+                        DestroyCounterIndicator();
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
 
                     inPrimaryWindup = false;
@@ -265,9 +263,10 @@ public class Goblin : Enemy
                 else // First 3 quarters, attack is dodgable
                 {
                     //    dodgable = true;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX == null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
+                        counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                        counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
                 }
@@ -286,7 +285,7 @@ public class Goblin : Enemy
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         targetPos = Vector3.negativeInfinity;
-        DestoryAttackIndicator();
+        
         
        
        // attackStateCoroutine = StartCoroutine(HandleStab());
@@ -353,8 +352,6 @@ public class Goblin : Enemy
         else
         {
             lockedCharacter = currentPlayer;
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
         }
 
         if (lockedCharacter)
@@ -386,8 +383,8 @@ public class Goblin : Enemy
         if (playerControlling) lockedCharacter = PlayerController.instance.GetLockedTarget();
         else
         {
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+            counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+            counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
             lockedCharacter = currentPlayer;
         }
 
@@ -412,7 +409,7 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if (playerControlling && attackIndicator != null) Destroy(attackIndicator); // Destroy attack indicator if possessed
+            if (playerControlling && counterIndicatorVFX != null) DestroyCounterIndicator(); // Destroy attack indicator if possessed
             yield return null;
         }
         numDeflections = 0;

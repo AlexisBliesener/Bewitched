@@ -42,6 +42,8 @@ public class PossessionAbility : MonoBehaviour
     protected Hag eleth;
     [Tooltip("The current character that is being controlled (Hag or possessed enemy).")]
     protected Character currentCharacter;
+    [SerializeField, Tooltip("The current smoke vfx")]
+    private GameObject currentSmokeVFX;
 
     [Header("VFX")]
     [SerializeField, Tooltip("Highlights the enemy currently targeted for possession.")]
@@ -50,6 +52,8 @@ public class PossessionAbility : MonoBehaviour
     private GameObject firingVFX;
     [SerializeField, Tooltip("Prefab for smoke cloud spawned when possession succeeds.")]
     private GameObject smokeCloudVFX;
+    [SerializeField, Tooltip("Prefab for the teleport VFX spawns on counter dodge")]
+    private GameObject teleportVFX;
 
     [Header("Possession Collider")]
     [SerializeField, Tooltip("Trigger object used to detect possessable enemies.")]
@@ -74,6 +78,12 @@ public class PossessionAbility : MonoBehaviour
     private int hitsToCharge = 4;
     [SerializeField, Tooltip("The time eleth has to wait in witch form to get a 'hit' refilling some charge of the possession ability")]
     private float possessionChargeTime;
+
+    [Header("Dodge Counter")]
+    [SerializeField, Tooltip("The distance the player will dodge backwards when using dodge")]
+    private float dodgeDistance = 4f;
+    [SerializeField, Tooltip("The layer that the enviornment objects are in")]
+    private LayerMask environmentLayer;
 
     [Header("Runtime Data")]
     [Tooltip("The angle of possession cone currently being used.")]
@@ -170,7 +180,6 @@ public class PossessionAbility : MonoBehaviour
     {
         possessionCharge++;
         possessionCharge = Mathf.Min(possessionCharge, hitsToCharge);
-
     }
 
     private void Awake()
@@ -206,6 +215,15 @@ public class PossessionAbility : MonoBehaviour
         UpdateState();
         UpdateCrossHair();
         UpdateTargetVFX();
+
+        if(currentCharacter != eleth)
+        {
+            currentSmokeVFX.SetActive(true);
+        }
+        else
+        {
+            currentSmokeVFX.SetActive(false);
+        }
 
         if (startedHoldTime != -1)
         {
@@ -256,12 +274,6 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    private GameObject teleportVFX;
-    [SerializeField]
-    private float dodgeDistance = 4f;
-    [SerializeField]
-    private LayerMask environmentLayer;
     private IEnumerator Dodge(GameObject counteringEnemy)
     {
         if(currentCharacter != eleth)

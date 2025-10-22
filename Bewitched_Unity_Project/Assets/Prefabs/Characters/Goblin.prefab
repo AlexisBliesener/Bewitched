@@ -118,6 +118,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dev: 1
   characterName: Goblin
+  modelPieces: []
   movementSpeed: 14.4
   approachSpeed: 7
   acceleration: 11.5
@@ -149,6 +150,7 @@ MonoBehaviour:
   - 0.3
   - 0.6
   - 0.3
+  counterIndicatorVFX: {fileID: 0}
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -160,7 +162,7 @@ MonoBehaviour:
   primaryFireIcon: {fileID: 21300000, guid: eb66dd4d8bc50424894fe2c2ac2a701e, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: d6f3abf455e654e4ba22dfe133ac915c, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
-  attackIndicatorPrefab: {fileID: 5268847967852326968, guid: f9010be385ea18341b16aa0fb2416a56, type: 3}
+  counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   minStopDistance: 1.5
   seenBuffer: 0.5
   surroundingToChaseRadius: 4
@@ -2035,19 +2037,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.34768614
+      value: -0.34768626
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.11890855
+      value: -0.118908584
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.87999916
+      value: 0.8799991
       objectReference: {fileID: 0}
     - target: {fileID: 3604157192103189433, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.30095944
+      value: -0.3009594
       objectReference: {fileID: 0}
     - target: {fileID: 3661707226821301937, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_Lens.FieldOfView
@@ -2079,19 +2081,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.32397777
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: 0.1733877
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.8199929
       objectReference: {fileID: 0}
     - target: {fileID: 6053225954450110116, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.43884704
       objectReference: {fileID: 0}
     - target: {fileID: 6254074510790357329, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_Name
@@ -2111,19 +2113,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: -0.34339947
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.1307735
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.86914945
       objectReference: {fileID: 0}
     - target: {fileID: 6419776441788025356, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.3309898
       objectReference: {fileID: 0}
     - target: {fileID: 6843657780726876346, guid: a57f581fb4488cc42a5fec4a76156623, type: 3}
       propertyPath: m_BindingMode

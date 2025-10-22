@@ -99,8 +99,6 @@ public class Ogre : Enemy
         {
             lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = offsetAttackIndicator;
         }
 
         if (lockedCharacter)
@@ -167,9 +165,13 @@ public class Ogre : Enemy
                 if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
                     //   dodgable = false;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX != null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
+                        if (counterIndicatorVFX != null)
+                        {
+                            DestroyCounterIndicator();
+                        }
+                        counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
@@ -177,9 +179,10 @@ public class Ogre : Enemy
                 else // First 3 quarters, attack is dodgable
                 {
                     //    dodgable = true;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX == null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
+                        counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                        counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
@@ -189,12 +192,6 @@ public class Ogre : Enemy
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
-
-        if (attackIndicator != null)
-        {
-            Destroy(attackIndicator);
-        }
-        attackIndicator = null;
 
         attackStateCoroutine = StartCoroutine(SwingBat());
         yield break;

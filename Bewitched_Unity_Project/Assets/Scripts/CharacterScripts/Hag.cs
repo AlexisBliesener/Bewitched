@@ -136,7 +136,7 @@ public class Hag : Character
         //Wait until the sound effect is over before returning to the main menu
         Invoke("Die", 12f);
         if (hitStunActual != null) Destroy(hitStunActual);
-        if (attackIndicator != null) Destroy(attackIndicator);
+        if (counterIndicatorVFX != null) Destroy(counterIndicatorVFX);
     }
 
     public override void Die()

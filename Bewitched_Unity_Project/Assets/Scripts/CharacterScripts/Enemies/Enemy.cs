@@ -153,15 +153,15 @@ public abstract class Enemy : Character
     public LayerMask environment;
 
     /// <summary>
-    /// Destorys the enemies attack indicator if it is active
+    /// Destorys the enemies counter indicator if it is active
     /// </summary>
-    public void DestoryAttackIndicator()
+    public void DestroyCounterIndicator()
     {
-        if (attackIndicator != null)
+        if (counterIndicatorVFX != null)
         {
-            Destroy(attackIndicator);
+            Destroy(counterIndicatorVFX);
         }
-        attackIndicator = null;
+        counterIndicatorVFX = null;
     }
 
 
@@ -369,7 +369,7 @@ public abstract class Enemy : Character
         playerControlling = val;
         if (val)
         {
-            DestoryAttackIndicator();
+            DestroyCounterIndicator();
             lockedCharacter = null;
             attackingPrimary = false;
             attackingSecondary = false;
