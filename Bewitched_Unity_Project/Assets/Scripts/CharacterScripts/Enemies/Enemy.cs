@@ -99,7 +99,6 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
-    private CharacterController characterController;
 
     protected bool overrideBlock = false;
 
@@ -978,19 +977,6 @@ public abstract class Enemy : Character
         {
             aiState = AIMovementState.Blocked;
         }
-    }
-
-    /// <summary>
-    /// Gets the character controller component, if it's not found it will get it from the game object
-    /// </summary>
-    /// <returns> The character controller component </returns>
-    public CharacterController GetCharacterController()
-    {
-        if (characterController == null)
-        {
-            characterController = GetComponent<CharacterController>();
-        }
-        return characterController;
     }
 
     /// <summary>

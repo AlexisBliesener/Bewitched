@@ -169,6 +169,8 @@ public abstract class Character : MonoBehaviour
     public GameObject hitStunPrefab;
     [Tooltip("Attack indicator prefab"), ShowIf("dev")]
     public GameObject counterIndicatorVFXPrefab;
+    [Tooltip("Character Controller component")]
+    private CharacterController characterController;
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -862,5 +864,17 @@ public abstract class Character : MonoBehaviour
         {
             GraphBuilder.instance.AddNodeCost(position, -(int)(sizeRadius * sizeRadius));
         }
+    }
+    /// <summary>
+    /// Gets the character controller component, if it's not found it will get it from the game object
+    /// </summary>
+    /// <returns> The character controller component </returns>
+    public CharacterController GetCharacterController()
+    {
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
+        return characterController;
     }
 }

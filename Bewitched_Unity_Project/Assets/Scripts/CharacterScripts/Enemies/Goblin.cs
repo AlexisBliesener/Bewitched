@@ -210,6 +210,8 @@ public class Goblin : Enemy
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = Time.time;
+        // save the current position to use the y value later
+        targetPos = transform.position;
         // For now wait 0.25 seconds, in future wait for animation trigger
         // Strider 9/30/25: moved this to a variable, need to adjust
         while (Time.time - timeStarted < 0.2f / animator.GetPrimaryWindupMult())
@@ -237,9 +239,18 @@ public class Goblin : Enemy
         if (lockedCharacter)
         {
             float dis = Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position);
-            targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
-            targetPos.y = transform.position.y;
-            GetCharacterController().enabled = false;
+            Vector3 direction = (lockedCharacter.transform.position - transform.position).normalized;
+            float oldY = targetPos.y;
+            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + 0.5f);
+            RaycastHit hit;
+            // Raycast to check for environment collision
+            if (Physics.SphereCast(transform.position, GetCharacterController().radius, direction, out hit, dis, environment))
+            {
+                // Move just before environment hit point
+                dis = hit.distance;
+                targetPos = hit.point - direction * GetCharacterController().radius;
+            }
+            targetPos.y = oldY;
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
@@ -263,7 +274,6 @@ public class Goblin : Enemy
                         if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
 
-                    inPrimaryWindup = false;
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -277,6 +287,7 @@ public class Goblin : Enemy
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
+                inPrimaryWindup = false;
                 yield return null;
             }
             
