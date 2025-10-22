@@ -244,7 +244,7 @@ public class Goblin : Enemy
             targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + 0.5f);
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position, direction, out hit, dis, environment))
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
                 // Move just before environment hit point
                 dis = hit.distance;
