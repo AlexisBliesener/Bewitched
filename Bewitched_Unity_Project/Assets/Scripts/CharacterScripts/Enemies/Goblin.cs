@@ -133,6 +133,12 @@ public class Goblin : Enemy
         }
 
         CreateLocalInvalidArea();
+
+        Debug.Log(aiState.ToString() + " " + currentPlayer.transform.position.ToString() + " " + pathState);
+        if (currentPath != null)
+        {
+            Debug.Log("Path destination: " + currentPath.GetDestinationPosition(gameObject));
+        }
     }
 
     /// <summary>
@@ -288,7 +294,6 @@ public class Goblin : Enemy
         targetPos = Vector3.negativeInfinity;
         DestoryAttackIndicator();
 
-        Debug.Log("Starting Stab");
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
@@ -304,7 +309,6 @@ public class Goblin : Enemy
             }
         }
 
-        Debug.Log("Ending stab");
         SetMovementValues(true);
 
         attackState = AttackState.Neutral;
@@ -667,7 +671,6 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
-        Debug.Log(gameObject + "Finding path");
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)

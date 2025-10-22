@@ -972,12 +972,10 @@ public abstract class Enemy : Character
 
         if (val)
         {
-            Debug.Log("Setting Movement True");
             overrideBlock = true;
         }
         else
         {
-            Debug.Log("Setting Movement False");
             aiState = AIMovementState.Blocked;
         }
     }
@@ -1005,7 +1003,6 @@ public abstract class Enemy : Character
         {
             if (overrideBlock)
             {
-                Debug.Log("Overriding block");
                 overrideBlock = false;
             }
             // Check if player is visible, if not then patrol

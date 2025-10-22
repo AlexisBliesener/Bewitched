@@ -662,7 +662,6 @@ public class GraphBuilder : MonoBehaviour
                         if (!enemy.IsFindingPath())
                         {
                             agentAttempts++;
-                            Debug.Log(enemy);
                             if (agentAttempts <= maxAgentAttempts) enemy.FindPath();
                         }
                         yield return null;
