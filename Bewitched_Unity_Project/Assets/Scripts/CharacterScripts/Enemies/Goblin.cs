@@ -133,12 +133,6 @@ public class Goblin : Enemy
         }
 
         CreateLocalInvalidArea();
-
-        Debug.Log(aiState.ToString() + " " + currentPlayer.transform.position.ToString() + " " + pathState);
-        if (currentPath != null)
-        {
-            Debug.Log("Path destination: " + currentPath.GetDestinationPosition(gameObject));
-        }
     }
 
     /// <summary>
@@ -161,7 +155,6 @@ public class Goblin : Enemy
 
                 characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
-                Debug.Log("Starting Primary");
                 PrimaryAttack();
             }
 
@@ -190,13 +183,11 @@ public class Goblin : Enemy
 
         if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
         {
-            Debug.Log("A");
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(KnifeWindup());
         }
         else
         {
-            Debug.Log("B");
             attackStateCoroutine = StartCoroutine(HandleStab());
         }
         
