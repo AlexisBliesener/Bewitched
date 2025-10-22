@@ -83,13 +83,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
-  m_Radius: 0.5
+  m_Height: 5
+  m_Radius: 1.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 1.1, z: 0}
 --- !u!195 &297698976383686993
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -137,35 +137,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4ab677d308fc4240927c3429c778d81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dev: 0
   characterName: Guard
   movementSpeed: 5
   approachSpeed: 7
-  jumpSpeed: 0
-  jumpDelay: 0
   acceleration: 6
   deceleration: 10
   rotationalVelocity: 240
   chaseTime: 3
   windupTime: 0.25
   weight: 7
-  sizeRadius: 0.6
+  sizeRadius: 1.5
   numSurroundingPoints: 8
   minSurroundingRadius: 2
   maxSurroundingRadius: 5
   teamID: 2
-  primaryFireIcon: {fileID: 0}
-  secondaryFireIcon: {fileID: 0}
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1.25
   secondaryCooldown: 6
   primaryAttackRange: 5
-  primaryComboResetTime: []
-  primaryComboMinTime: []
   health: {fileID: 0}
   canPossess: 1
-  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   hitStunDuration: 0.3
+  primaryComboResetTime: []
+  primaryComboMinTime: []
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -174,38 +170,42 @@ MonoBehaviour:
   exploreCam: {fileID: 0}
   attackEffects: []
   effectJSONs: []
+  primaryFireIcon: {fileID: 0}
+  secondaryFireIcon: {fileID: 0}
+  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   attackIndicatorPrefab: {fileID: 0}
-  agent: {fileID: 297698976383686993}
   minStopDistance: 2
-  pathfindingPriority: 2
   seenBuffer: 0.5
+  surroundingToChaseRadius: 4
+  chaseToSurroundingRadius: 3
+  sightRange: 15
+  maxSightAngle: 40
+  hearingRange: 2
+  patrolRange: 5
+  minimumSurroundingDistance: 3
+  maximumSurroundingDistance: 5
+  timeBeforeSearch: 5
+  attackDelayAI: 0.5
+  primaryAttackChance: 1
+  secondaryAttackChance: 0
+  lowHealthThresholdPercentage: 30
+  moveToTargetDistance: 0
+  agent: {fileID: 297698976383686993}
+  perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
+  pathState: 0
+  aiState: 0
+  debugging: 0
+  destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
+  pathVisualizer: {fileID: -4642130304282130039}
+  playerControlling: 0
+  pathfindingPriority: 2
   ground:
     serializedVersion: 2
     m_Bits: 64
   environment:
     serializedVersion: 2
     m_Bits: 256
-  surroundingToChaseRadius: 4
-  chaseToSurroundingRadius: 3
-  moveToTargetDistance: 0
-  sightRange: 15
-  maxSightAngle: 40
-  hearingRange: 2
-  patrolRange: 5
-  timeBeforeSearch: 5
-  miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
-  attackDelayAI: 0.5
-  primaryAttackChance: 1
-  secondaryAttackChance: 0
-  lowHealthThresholdPercentage: 30
-  debugging: 0
-  destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
-  pathVisualizer: {fileID: -4642130304282130039}
-  playerControlling: 0
-  perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
-  defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
-  pathState: 0
-  aiState: 0
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6
@@ -382,12 +382,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dev: 0
   primaryAnimationDelay:
   - 0.5
   secondaryAnimationDelay: 0.5
-  secondaryAttackLength: 1
-  animator: {fileID: 0}
-  characterController: {fileID: 0}
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
 --- !u!1001 &3337135714018391594
 PrefabInstance:
   m_ObjectHideFlags: 0

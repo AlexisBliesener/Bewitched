@@ -33,6 +33,9 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("How many nodes can be searched before the next frame is played")]
     [SerializeField] int nodesSearchedPerFrame = 60;
+    [Tooltip("How many tries an agent gets to search before it is skipped")]
+    [SerializeField] int maxAgentAttempts = 3;
+
     [SerializeField, Tooltip("Maximum height to scan for floors")]
     private float maxFloorHeight = 50f;
 
@@ -95,6 +98,12 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("Cost of costly area")]
     [SerializeField] int costlyAreaCost = 500;
+
+    [Tooltip("RoomSystem of this scene")]
+    [SerializeField] RoomSystem roomSystem;
+
+    [Tooltip("Range of node room tolerance")]
+    [SerializeField] float roomToleranceRange = 0.5f;
 
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
@@ -185,13 +194,16 @@ public class GraphBuilder : MonoBehaviour
                 List<Node> floorsAtPosition = Node.Create(x, z, pointDistance, floorLayer, wallLayer, maxFloorHeight, minFloorSeparation);
                 foreach (Node newNode in floorsAtPosition)
                 {
-                    int yPos = (int)(newNode.GetPosition().y * 10);
-                    yPositions[yPos] = newNode;
-                    FillVertices(x, z, yPos);
-                    vertices.Add(newNode.GetPosition());
-                    vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
-                    validNodes++;
-                    newNode.SetCreated();
+                    if (roomSystem.GetRoomFromCoordinates(newNode.GetPosition(), roomToleranceRange) != null) // Ensuring it is tied to a room
+                    {
+                        int yPos = (int)(newNode.GetPosition().y * 10);
+                        yPositions[yPos] = newNode;
+                        FillVertices(x, z, yPos);
+                        vertices.Add(newNode.GetPosition());
+                        vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
+                        validNodes++;
+                        newNode.SetCreated();
+                    }
                 }
                 // Check if this floor is far enough from existing floors
                 if (yPositions.Count == 0)
@@ -535,7 +547,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
-                if (tentativeGScore < neighborGScore)
+                if (tentativeGScore < neighborGScore) // Node must be valid as well
                 {
                     path.SetPathVertex(neighbor, vertex);
                     gscore[neighbor.GetPosition()] = tentativeGScore;
@@ -629,6 +641,7 @@ public class GraphBuilder : MonoBehaviour
     {
         if (testing) yield break;
         int iter = 1;
+        int agentAttempts = 1;
 
         while (true)
         {
@@ -653,11 +666,12 @@ public class GraphBuilder : MonoBehaviour
                 {
                     Enemy enemy = enemyQueue.Dequeue();
                     enemy.FindPath();
-                    while (!enemy.HasSetPath())
+                    while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
                     {
                         if (!enemy.IsFindingPath())
                         {
-                            enemy.FindPath();
+                            agentAttempts++;
+                            if (agentAttempts <= maxAgentAttempts) enemy.FindPath();
                         }
                         yield return null;
                     }

@@ -53,9 +53,12 @@ public class CharacterAnimator : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         character = GetComponent<Character>();
 
-        animator.SetFloat("IdleSpeedMult", idleSpeedMult);
-        animator.SetFloat("WalkSpeedMult", walkSpeedMult);
-        animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+        if (animator != null)
+        {
+            animator.SetFloat("IdleSpeedMult", idleSpeedMult);
+            animator.SetFloat("WalkSpeedMult", walkSpeedMult);
+            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+        }
     }
 
 
