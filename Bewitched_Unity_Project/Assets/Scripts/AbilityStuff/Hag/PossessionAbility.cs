@@ -218,11 +218,25 @@ public class PossessionAbility : MonoBehaviour
 
         if(currentCharacter != eleth)
         {
-            currentSmokeVFX.SetActive(true);
+            if (currentSmokeVFX != null)
+            {
+                currentSmokeVFX.SetActive(true);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke VFX is not assigned!");
+            }
         }
         else
         {
-            currentSmokeVFX.SetActive(false);
+            if (currentSmokeVFX != null)
+            {
+                currentSmokeVFX.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("Smoke VFX is not assigned!");
+            }
         }
 
         if (startedHoldTime != -1)
