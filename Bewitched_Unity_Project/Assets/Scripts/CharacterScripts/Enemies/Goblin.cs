@@ -107,7 +107,6 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
-        Debug.Log(gameObject + ": State = " + aiState.ToString() + ", inProcess = " + inProcess.ToString());
 
         currentPlayer = playerController.GetCurrentCharacter();
 
@@ -668,6 +667,7 @@ public class Goblin : Enemy
     /// </summary>
     public override void FindPath()
     {
+        Debug.Log(gameObject + "Finding path");
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
@@ -680,7 +680,6 @@ public class Goblin : Enemy
         else if (aiState == AIMovementState.Chasing)
         {
             surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            Debug.Log(gameObject + surroundPoint.ToString());
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
