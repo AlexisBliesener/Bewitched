@@ -654,7 +654,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
                 }
