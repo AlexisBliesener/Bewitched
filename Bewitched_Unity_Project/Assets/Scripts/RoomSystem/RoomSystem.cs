@@ -192,4 +192,20 @@ public class RoomSystem : MonoBehaviour
     /// Gets the rooms list for editor access
     /// </summary>
     public List<RoomData> GetRooms() => rooms;
+
+    /// <summary>
+    /// Gets the currently active room if any are active
+    /// </summary>
+    /// <returns> Currently active room, null if none </returns>
+    public RoomController GetActiveRoomController()
+    {
+        foreach (RoomData room in rooms)
+        {
+            if (room.roomController.GetCurrentState() == RoomState.Active)
+            {
+                return room.roomController;
+            }
+        }
+        return null;
+    }
 }

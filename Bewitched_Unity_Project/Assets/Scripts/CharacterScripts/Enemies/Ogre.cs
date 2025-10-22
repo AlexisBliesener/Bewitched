@@ -1,73 +1,70 @@
 using DG.Tweening;
+using NaughtyAttributes;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 public class Ogre : Enemy
 {
-    [Header("Ogre Settings")]
+    [Header("Ogre Prefabs/Effects"), ShowIf("dev")]
     [Tooltip("Ogre Bat Prefab")]
     [SerializeField] GameObject batHitboxPrefab;
-    [Tooltip("Pivot Prefab")]
+    [Tooltip("Pivot Prefab"), ShowIf("dev")]
     [SerializeField] GameObject batPivot;
 
-    [Tooltip("Bat Swing Damage")]
-    [SerializeField] float batSwingDamage;
-    [Tooltip("Bat Swing Angle")]
-    [SerializeField] float batSwingAngle;
-    [Tooltip("Bat Swing Duration")]
-    [SerializeField] float batSwingDuration;
-    [Tooltip("Bat Windup Period")]
-    [SerializeField] float batWindupPeriod;
-
-    [Tooltip("Bat Swing Status Effects")]
+    [Tooltip("Bat Swing Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects batSwingEffects;
 
-    [Tooltip("Ogre Slam Bat Hitbox")]
+    [Tooltip("Ogre Slam Bat Hitbox"), ShowIf("dev")]
     [SerializeField] GameObject slamHitboxPrefab;
-    [Tooltip("Ogre Jump Gravity")]
-    [SerializeField] float ogreJumpGravity;
-    [Tooltip("Ogre Jump Speed")]
-    [SerializeField] float ogreJumpSpeed;
-    [Tooltip("Ogre Jump Bat Damage")]
-    [SerializeField] float ogreJumpBatDamage;
-    [Tooltip("Ogre Jump Slam Damage")]
-    [SerializeField] float ogreJumpSlamDamage;
-    [Tooltip("Ogre Jump Minimum Knockback")]
-    [SerializeField] float ogreJumpKnockbackMinimum;
-    [Tooltip("Ogre Jump Maximum Knockback")]
-    [SerializeField] float ogreJumpKnockbackMaximum;
-    [Tooltip("Ogre Slam Knockback Range")]
-    [SerializeField] float ogreJumpSlamImpactRange = 8;
 
-
-    [Tooltip("Slam Bat Status Effects")]
+    [Tooltip("Slam Bat Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects slamBatEffects;
 
-    [Tooltip("Slam Impact Status Effects")]
+    [Tooltip("Slam Impact Status Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects slamImpactEffects;
 
+    [Tooltip("Scream effects"), ShowIf("dev")]
+    [SerializeField] AttackStatusEffects screamEffects;
+    [Header("Ogre Settings")]
+
+    [Tooltip("Bat Swing Damage")]
+    [SerializeField, Range(0, 100)] float batSwingDamage = 30f;
+    [Tooltip("Bat Swing Angle")]
+    [SerializeField, Range(0, 360)] float batSwingAngle = 60f;
+    [Tooltip("Bat Swing Duration")]
+    [SerializeField, Range(0, 10)] float batSwingDuration = 0.5f;
+    [Tooltip("Bat Windup Period")]
+    [SerializeField, Range(0, 10)] float batWindupPeriod = 0.5f;
+    [Header("Ogre Jump Settings")]
+    [Tooltip("Ogre Jump Gravity")]
+    [SerializeField, Range(0, 100)] float ogreJumpGravity = 40f;
+    [Tooltip("Ogre Jump Speed")]
+    [SerializeField, Range(0, 100)] float ogreJumpSpeed = 25f;
+    [Tooltip("Ogre Jump Bat Damage")]
+    [SerializeField, Range(0, 100)] float ogreJumpBatDamage = 50f;
+    [Tooltip("Ogre Jump Slam Damage")]
+    [SerializeField, Range(0, 100)] float ogreJumpSlamDamage = 20f;
+    [Tooltip("Ogre Jump Minimum Knockback")]
+    [SerializeField, Range(0, 100)] float ogreJumpKnockbackMinimum = 20f;
+    [Tooltip("Ogre Jump Maximum Knockback")]
+    [SerializeField, Range(0, 100)] float ogreJumpKnockbackMaximum = 70f;
+    [Tooltip("Ogre Slam Knockback Range")]
+    [SerializeField, Range(0, 100)] float ogreJumpSlamImpactRange = 8f;
+    [Header("Ogre Scream Settings")]
     [Tooltip("Scream radius")]
     [SerializeField] float screamRange = 5;
     [Tooltip("Scream windup time")]
     [SerializeField] float screamWindupDuration = 0.5f;
-
-    [Tooltip("Scream effects")]
-    [SerializeField] AttackStatusEffects screamEffects;
-
+    [Header("Ogre Sitting Settings")]
     [Tooltip("Minimum time for ogre to sit")]
-    [SerializeField] float minSittingTime = 3;
+    [SerializeField, Range(0, 10)] float minSittingTime = 3f;
     [Tooltip("Maximum time for ogre to sit")]
-    [SerializeField] float maxSittingTime = 7;
-
-    float jumpVelocity = 0;
-
-    // Secondary stuff
-
-    GameObject slamBatHitbox;
-
-    float groundHeight;
-    bool jumping = false;
+    [SerializeField, Range(0, 10)] float maxSittingTime = 7f;
+    [SerializeField, Tooltip("Offset for the attack indicator"), ShowIf("dev")]
+    private Vector3 offsetAttackIndicator = new Vector3(0, 2.5f, 0);
+    [SerializeField, Tooltip("Offset for the pivot for the bat"), ShowIf("dev")]
+    private Vector3 offsetPivotBat = new Vector3(0, 0, 0);
+    [SerializeField, Tooltip("Offset for the target position when the oge locked on the player"), ShowIf("dev")]
+    private float offsetForTargetPosition = 1.5f;
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
@@ -86,9 +83,12 @@ public class Ogre : Enemy
 
         SetBehavior();
     }
-
+    /// <summary>
+    /// Starts the primary attack for the ogre
+    /// </summary>
     public override void PrimaryAttack()
     {
+        
         hitCharacter = false;
         if (playerControlling)
         {
@@ -100,7 +100,7 @@ public class Ogre : Enemy
             lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
             attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = new Vector3(0, 2.5f, 0);
+            attackIndicator.transform.localPosition = offsetAttackIndicator;
         }
 
         if (lockedCharacter)
@@ -113,10 +113,12 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
-        Debug.Log("Starting swing");
+        // Debug.Log("Starting swing");
         attackStateCoroutine = StartCoroutine(BatWindup());
     }
-
+    /// <summary>
+    /// Starts the secondary attack for the ogre
+    /// </summary>
     public override void SecondaryAttack()
     {
         attackingSecondary = true;
@@ -153,9 +155,9 @@ public class Ogre : Enemy
 
         if (lockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * 1.5f;
+            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
             targetPos.y = transform.position.y;
-            GetComponent<CharacterController>().enabled = false;
+            GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime);
             transform.DOLookAt(targetPos, chaseTime);
 
@@ -185,7 +187,7 @@ public class Ogre : Enemy
                 yield return null;
             }
             transform.position = targetPos;
-            GetComponent<CharacterController>().enabled = true;
+            GetCharacterController().enabled = true;
         }
 
         if (attackIndicator != null)
@@ -204,16 +206,22 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     private IEnumerator SwingBat()
     {
+        if (batHitboxPrefab == null || batPivot == null)
+        {
+            Debug.LogWarning("batHitboxPrefab or batPivot prefabs are not assigned!");
+            yield break;
+        }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
-
-        GameObject pivot = Instantiate(batPivot, transform);
-        pivot.GetComponent<DefaultHitbox>().Init(this, attackDuration: batSwingDuration);
+        GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
+        DefaultHitbox pivotHitbox = pivot.GetComponent<DefaultHitbox>();
+        pivotHitbox.Init(this, attackDuration: batSwingDuration);
         pivot.SetActive(false);
 
-        GameObject batHitbox = Instantiate(batHitboxPrefab, transform);
-        batHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
-        pivot.GetComponent<DefaultHitbox>().AttachHitbox(batHitbox.GetComponent<DefaultHitbox>());
+        GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
+        DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
+        batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+        pivotHitbox.AttachHitbox(batHitboxHitbox);
 
         Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
         Vector3 startFoward = transform.forward;
@@ -286,22 +294,32 @@ public class Ogre : Enemy
     /// <returns> Time delays </returns>
     public IEnumerator HandleScream()
     {
-        Debug.Log("ROAR");
+        if (screamEffects == null)
+        {
+            Debug.LogWarning("Scream effects are not assigned!");
+            yield break;
+        }
+        // Debug.Log("ROAR");
         attackState = AttackState.Attacking;
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
             if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
             {
-                Debug.Log("Scream hit character " + character);
+                // Debug.Log("Scream hit character " + character);
                 screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
             }
         }
 
         yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
 
-        if (playerControlling) StartCoroutine(EnableMovement());
-        else aiState = AIMovementState.Chasing;
+        if (playerControlling)
+        {
+            StartCoroutine(EnableMovement());
+        }else{
+            aiState = AIMovementState.Chasing;
+            attackState = AttackState.Neutral;
+        }
 
         attackStateCoroutine = null;
         attackingSecondary = false;
@@ -314,7 +332,7 @@ public class Ogre : Enemy
     {
         target = playerController.currentCharacter; // Always update this
         if (playerControlling || inProcess) return;
-        Debug.Log(aiState);
+        // Debug.Log(aiState);
 
         if (aiState == AIMovementState.Patrolling)
         {
@@ -349,7 +367,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -358,7 +376,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -367,7 +385,7 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
+            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
             if (surroundPoint)
             {
                 pathState = PathState.Searching;
@@ -381,19 +399,26 @@ public class Ogre : Enemy
     /// </summary>
     public override void Patrol()
     {
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
+
+
         if (LookForPlayer())
         {
-            Debug.Log("Spotted player");
+            // Debug.Log("Spotted player");
             StartCoroutine(SpotPlayer());
             return;
         }
 
         if (pathState == PathState.Set)
         {
-            Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
+            // Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
-                Debug.Log("Reached");
+                // Debug.Log("Reached");
                 pathState = PathState.Unset;
                 StartCoroutine(LookAround()); // Look around
             }
@@ -412,7 +437,7 @@ public class Ogre : Enemy
     }
 
     /// <summary>
-    /// Called in first frame, sets the patrol origin to Goblin position
+    /// Called in first frame, sets the patrol origin to Ogre position
     /// </summary>
     public void SetPatrolOrigin()
     {
@@ -425,7 +450,7 @@ public class Ogre : Enemy
     /// </summary>
     public void SetPatrollingPoint()
     {
-        Debug.Log("Patrol origin: " + patrolOrigin);
+        // Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
         {
             float randomX = Random.Range(-patrolRange, patrolRange);
@@ -438,7 +463,7 @@ public class Ogre : Enemy
         {
             walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin).GetPosition(gameObject);
         }
-        Debug.Log(walkPoint);
+        // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
         StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
@@ -530,13 +555,13 @@ public class Ogre : Enemy
     /// <returns></returns>
     private IEnumerator Sit()
     {
-        Debug.Log("Start sit");
+        // Debug.Log("Start sit");
         inProcess = true;
 
         yield return new WaitForSeconds(Random.Range(minSittingTime, maxSittingTime));
 
         inProcess = false;
-        Debug.Log("End sit");
+        // Debug.Log("End sit");
     }
 
     /// <summary>
@@ -544,7 +569,6 @@ public class Ogre : Enemy
     /// </summary>
     public override void Chase()
     {
-
         lookAtPlayer = false;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -575,6 +599,11 @@ public class Ogre : Enemy
     /// </summary>
     public void Surround()
     {
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -608,6 +637,12 @@ public class Ogre : Enemy
     /// </summary>
     public void Retreat()
     {
+
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            FindPath();
+        }
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -634,7 +669,7 @@ public class Ogre : Enemy
     }
 
     /// <summary>
-    /// Handles Goblin attacking chance and triggering
+    /// Handles Ogre attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
     /// <returns> True if attacking, false otherwise </returns>
@@ -653,7 +688,7 @@ public class Ogre : Enemy
 
         if (totalOdds > 0)
         {
-            Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
+            // Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
@@ -667,5 +702,13 @@ public class Ogre : Enemy
             return true;
         }
         return false;
+    }
+    /// <summary>
+    /// Override of Enemy.Die to change the level music to the outro
+    /// </summary>
+    public override void Die()
+    {
+        AudioManager.ChangeMusicParameter("End", "True");
+        base.Die();
     }
 }

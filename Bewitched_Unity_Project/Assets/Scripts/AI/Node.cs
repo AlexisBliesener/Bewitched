@@ -89,7 +89,7 @@ public class Node
             if (validFloor)
             {
                 Node newNode = new Node();
-                newNode.SetValues(x, z, nodeDistance, (int)(hit.point.y * 10));
+                newNode.SetValues(x, z, nodeDistance, Mathf.RoundToInt(hit.point.y * 10));
                 if (newNode.IsOpen(floor, environment))
                 {
                     foundFloors.Add(hit.point.y);
@@ -117,7 +117,7 @@ public class Node
         RaycastHit hit;
         if (Physics.Raycast(position, Vector3.down, out hit, 30, floor))
         {
-            yPos = (int)(hit.point.y * 10);
+            yPos = Mathf.RoundToInt(hit.point.y * 10);
             // check if blocked by walls
             Vector3 checkPos = hit.point + Vector3.up * 0.1f;
             if (Physics.CheckSphere(checkPos, 0.01f, walls)) // with a radius of 0.01f

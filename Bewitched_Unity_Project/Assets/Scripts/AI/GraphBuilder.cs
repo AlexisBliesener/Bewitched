@@ -99,11 +99,13 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
 
+    private Coroutine searchRoutine = null;
+
     // Start is called before the first frame update
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
-        StartCoroutine(HandleSearching()); //What was causing long start time
+        searchRoutine = StartCoroutine(HandleSearching()); //What was causing long start time
     }
     /// <summary>
     /// Create an instance in awake since the awake function called before the start function
@@ -121,7 +123,10 @@ public class GraphBuilder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (searchRoutine == null)
+        {
+            searchRoutine = StartCoroutine(HandleSearching());
+        }
     }
 
     /// <summary>
@@ -348,19 +353,19 @@ public class GraphBuilder : MonoBehaviour
         if (nodeDictionary == null || nodeDictionary.Count == 0)
             return null;
 
-        int xInt = (int)(position.x * 10);
+        int xInt = Mathf.RoundToInt(position.x * 10);
         List<int> xList = new List<int>(nodeDictionary.Keys);
         int xPos = BinaryCoordinateSearch(xInt, xList);
         if (!nodeDictionary.ContainsKey(xPos))
             return null;
 
-        int zInt = (int)(position.z * 10);
+        int zInt = Mathf.RoundToInt(position.z * 10);
         List<int> zList = new List<int>(nodeDictionary[xPos].Keys);
         int zPos = BinaryCoordinateSearch(zInt, zList);
         if (!nodeDictionary[xPos].ContainsKey(zPos))
             return null;
 
-        int yInt = (int)(position.y * 10);
+        int yInt = Mathf.RoundToInt(position.y * 10);
         List<int> yList = new List<int>(nodeDictionary[xPos][zPos].Keys);
         int yPos = BinaryCoordinateSearch(yInt, yList);
         if (!nodeDictionary[xPos][zPos].ContainsKey(yPos))
@@ -628,11 +633,15 @@ public class GraphBuilder : MonoBehaviour
         while (true)
         {
             enemyQueue = new PriorityQueue<Enemy>();
-            Enemy[] enemies = FindObjectsOfType<Enemy>();
-
-            foreach (Enemy enemy in enemies)
+            List<GameObject> enemies = new List<GameObject>();
+            if (RoomSystem.Instance.GetActiveRoomController())
             {
-                if (enemy.gameObject.activeSelf)
+                enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
+            }
+
+            foreach (GameObject enemyObj in enemies)
+            {
+                if (enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
                 }
