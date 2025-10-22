@@ -764,7 +764,7 @@ public class GraphBuilder : MonoBehaviour
                 testNode.GetComponent<MeshRenderer>().material = greenMat;
                 Debug.Log("Path found in: " + numSearched.ToString() + " nodes");
                 Debug.Log("Path corners: " + path.GetCornerNodes().Count);
-                enemy.StartPath(false);
+                enemy.StartPath();
 
                 lineRenderer.positionCount = path.GetCornerNodes().Count + 1;
                 lineRenderer.SetPosition(0, enemy.transform.position);

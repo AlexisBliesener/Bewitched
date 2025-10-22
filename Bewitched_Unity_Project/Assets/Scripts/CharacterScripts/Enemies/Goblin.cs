@@ -91,16 +91,10 @@ public class Goblin : Enemy
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
-        SetAgentValues();
         SetDebuggingValues();
         SetPatrolOrigin();
 
         aiState = AIMovementState.Patrolling;
-
-        // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
-        agent.updatePosition = false;
-        agent.updateRotation = false;
-        agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
     protected void FixedUpdate()
@@ -737,7 +731,7 @@ public class Goblin : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         else // If no current path, mark as available
@@ -795,7 +789,7 @@ public class Goblin : Enemy
             {
                 if (debugging)
                 {
-                    StartPath(false);
+                    StartPath();
                 }
 
                 reachedWalkpoint = false;
@@ -839,7 +833,7 @@ public class Goblin : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -856,7 +850,7 @@ public class Goblin : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -877,7 +871,7 @@ public class Goblin : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
@@ -896,7 +890,7 @@ public class Goblin : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();

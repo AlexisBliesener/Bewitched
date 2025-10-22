@@ -218,7 +218,7 @@ public class SurroundingPoints : MonoBehaviour
                                 closestDist = distance;
                             }
                         }
-                        else if (enemy.agent.avoidancePriority < tempCompetition.agent.avoidancePriority) // If not the same type, compare priority
+                        else if (enemy.pathfindingPriority < tempCompetition.pathfindingPriority) // If not the same type, compare priority
                         {
                             competition = tempCompetition;
                             closestPoint = point;

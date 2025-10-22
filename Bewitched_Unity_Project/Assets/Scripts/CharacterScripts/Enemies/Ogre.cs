@@ -450,7 +450,7 @@ public class Ogre : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
             AIMove();
             AILook();
@@ -570,7 +570,7 @@ public class Ogre : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -601,7 +601,7 @@ public class Ogre : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -625,7 +625,7 @@ public class Ogre : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
@@ -652,7 +652,7 @@ public class Ogre : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();

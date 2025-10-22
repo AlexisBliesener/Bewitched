@@ -134,8 +134,6 @@ public abstract class Enemy : Character
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
     [Header("Enemy Prefabs/Effects and references")]
-    [Tooltip("Navmesh Agent on this character"), ShowIf("dev")]
-    public NavMeshAgent agent;
     [Tooltip("Perfect counter material for the enemy"), ShowIf("dev")]
     public Material perfectCounterTimeMaterial;
     [Tooltip("Default material for the enemy"), ShowIf("dev")]
@@ -356,13 +354,6 @@ public abstract class Enemy : Character
         }
     }
 
-    public void SetAgentValues()
-    {
-        agent.stoppingDistance = minStopDistance;
-        agent.speed = movementSpeed;
-        agent.acceleration = acceleration;
-    }
-
     public void SetDebuggingValues()
     {
         pathVisualizer.startWidth = .15f;
@@ -392,14 +383,12 @@ public abstract class Enemy : Character
             lockedCharacter = null;
             attackingPrimary = false;
             attackingSecondary = false;
-            if (agent != null) agent.enabled = false;
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
             pathState = PathState.Unset;
         }
         else
         {
-            if (agent != null) agent.enabled = true;
             aiState = AIMovementState.Patrolling;
         }
     }
@@ -492,7 +481,6 @@ public abstract class Enemy : Character
 
     public virtual void SetBehavior()
     {
-        if(!agent.enabled) return;
         if (inAttackDelay) return;
         if (targetInSightRange && CheckCharacterBehindEnvironment(target.transform))
         {
@@ -501,7 +489,6 @@ public abstract class Enemy : Character
 
             if (targetInPrimaryRange)
             {
-                agent.enabled = false;
                 inAttackDelay = true;
                 StartCoroutine(AttackWithDelay(attackDelayAI));
             }
@@ -514,7 +501,6 @@ public abstract class Enemy : Character
         {
             if ((lastTargetLocation - transform.position).magnitude > 0.1)
             {
-                agent.SetDestination(lastTargetLocation);
             }
             else
             {
@@ -567,64 +553,16 @@ public abstract class Enemy : Character
 
     public virtual void Chase()
     {
-        if ((target.transform.position - transform.position).magnitude - target.sizeRadius < 1)
-        {
-            agent.stoppingDistance = target.sizeRadius + minStopDistance;
-            agent.SetDestination(transform.position);
-        }
-        else
-        {
-            agent.stoppingDistance = target.sizeRadius + minStopDistance;
-            agent.SetDestination(target.transform.position);
-        }
+        
     }
 
     public virtual void Patrol()
     {
-        if(!agent.enabled) return;
-        if (!walkPointSet)
-        {
-            SetWalkPoint();
-        }
-
-        if (walkPointSet)
-        {
-            agent.stoppingDistance = minStopDistance;
-            agent.SetDestination(walkPoint);
-        }
-
-        Vector3 distance = transform.position - walkPoint;
-
-        if (distance.magnitude < 1)
-        {
-            walkPointSet = false;
-        }
+       
     }
 
     public virtual bool SetWalkPoint()
     {
-        float randomX = Random.Range(-patrolRange, patrolRange);
-        float randomZ = Random.Range(-patrolRange, patrolRange);
-
-        walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
-        if (NavMesh.SamplePosition(walkPoint, out NavMeshHit hit, 2f, NavMesh.AllAreas))
-        {
-            NavMeshPath path = new NavMeshPath();
-            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete)
-            {
-                walkPoint = hit.position;
-                walkPointSet = true;
-                agent.SetDestination(walkPoint);
-
-                if (debugging)
-                {
-                    destinationMarker = Instantiate(destinationMarkerPrefab);
-                    destinationMarker.transform.position = walkPoint;
-                }
-
-                return true;
-            }
-        }
         return false;
     }
 
@@ -638,8 +576,7 @@ public abstract class Enemy : Character
         {
             if (Time.time - health.TimeLastHit > hitStunDuration)
             {
-                if (playerControlling) StartCoroutine(EnableMovement());
-                else agent.enabled = true;
+                SetMovementValues(true);
             }
         }
 
@@ -666,7 +603,6 @@ public abstract class Enemy : Character
     {
         yield return new WaitForSeconds(delayTime);
 
-        agent.enabled = true;
         inAttackDelay = false;
         StartCoroutine(BeginPrimary());
     }
@@ -699,79 +635,14 @@ public abstract class Enemy : Character
     }
 
 
-    public void StartPath(bool usingAgent = true)
+    public void StartPath()
     {
-        if (usingAgent == false && currentPath == null) return;
+        if (currentPath == null) return;
 
         if (destinationMarker)
         {
-            if (usingAgent)
-            {
-                destinationMarker.transform.position = agent.destination;
-            }
-            else
-            {
-                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
-                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
-            }
-        }
-        else
-        {
-            if (!usingAgent)
-            {
-                destinationMarker = Instantiate(destinationMarkerPrefab);
-                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
-                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
-            }
-        }
-
-        pathVisualizer.positionCount = 0;
-
-        if (usingAgent)
-        {
-            pathVisualizer.positionCount = agent.path.corners.Length;
-        }
-        else
-        {
-            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count;
-        }
-
-        if (pathVisualizer.positionCount < 1) return;
-
-        pathVisualizer.SetPosition(0, transform.position);
-
-        if (usingAgent)
-        {
-            for (int i = 1; i < agent.path.corners.Length; i++)
-            {
-                pathVisualizer.SetPosition(i, agent.path.corners[i]);
-            }
-        }
-        else
-        {
-            for (int i = 1; i < currentPath.GetCornerNodes().Count; i++)
-            {
-                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Draws a path the agent follows
-    /// </summary>
-    public void UpdatePath(bool usingAgent = true)
-    {
-        if (destinationMarker)
-        {
-            if (usingAgent)
-            {
-                destinationMarker.transform.position = agent.destination;
-            }
-            else
-            {
-                destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
-                destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
-            }
+            destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+            destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
         }
         else
         {
@@ -782,34 +653,48 @@ public abstract class Enemy : Character
 
         pathVisualizer.positionCount = 0;
 
-        if (usingAgent)
+        pathVisualizer.positionCount = currentPath.GetCornerNodes().Count;
+
+        if (pathVisualizer.positionCount < 1) return;
+
+        pathVisualizer.SetPosition(0, transform.position);
+
+        for (int i = 1; i < currentPath.GetCornerNodes().Count; i++)
         {
-            pathVisualizer.positionCount = agent.path.corners.Length;
+            pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
+        }
+    }
+
+    /// <summary>
+    /// Draws a path the agent follows
+    /// </summary>
+    public void UpdatePath()
+    {
+        if (destinationMarker)
+        {
+            destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+            destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
         }
         else
         {
-            pathVisualizer.positionCount = currentPath.GetCornerNodes().Count - currentCornerIndex;
+            destinationMarker = Instantiate(destinationMarkerPrefab);
+            destinationMarker.transform.position = currentPath.GetDestinationPosition(gameObject);
+            destinationMarker.transform.position = new Vector3(destinationMarker.transform.position.x, 1, destinationMarker.transform.position.z);
         }
+
+        pathVisualizer.positionCount = 0;
+
+        pathVisualizer.positionCount = currentPath.GetCornerNodes().Count - currentCornerIndex;
 
         if (pathVisualizer.positionCount == 0) return;
 
         pathVisualizer.SetPosition(0, transform.position);
 
-        if (usingAgent)
+        for (int i = currentCornerIndex-1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
         {
-            for (int i = 1; i < agent.path.corners.Length; i++)
+            if (i >= 0)
             {
-                pathVisualizer.SetPosition(i, agent.path.corners[i]);
-            }
-        }
-        else
-        {
-            for (int i = currentCornerIndex-1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
-            {
-                if (i >= 0)
-                {
-                    pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
-                }
+                pathVisualizer.SetPosition(i, new Vector3(currentPath.GetCornerNodes()[i].GetPosition().x, transform.position.y, currentPath.GetCornerNodes()[i].GetPosition().z));
             }
         }
     }
