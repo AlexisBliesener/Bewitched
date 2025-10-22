@@ -4,6 +4,7 @@ using FMODUnity;
 using FMOD.Studio;
 using System;
 using System.Runtime.InteropServices;
+using NaughtyAttributes;
 
 
 
@@ -22,9 +23,11 @@ public class AnimationAudio : MonoBehaviour
     */
     Dictionary<string, EventInstance> animEvents;
     [Tooltip("Previews the fmod events currently playing on this script")]
-    [SerializeField,NaughtyAttributes.ReadOnly] List<string> eventsPlaying;
+    [SerializeField,ReadOnly] List<string> eventsPlaying;
     [SerializeField, Tooltip("Reference to the character script controlling this character")]
     Character character;
+    [Tooltip("Whether this enemy is an event enemy")]
+    [SerializeField,ReadOnly] bool isEventEnemy = false;
     //Property for whether or not the character is possessed or not
     bool possessed { get { return (character is Enemy) && (character as Enemy).IsPlayerControlling(); } }
     EVENT_CALLBACK destroyCallback;
@@ -56,6 +59,7 @@ public class AnimationAudio : MonoBehaviour
                 return;
             }
         }
+        isEventEnemy = character.TryGetComponent<EventEnemy>(out var e);
         character.health.OnDeath += OnDeath;
     }
 
@@ -97,6 +101,7 @@ public class AnimationAudio : MonoBehaviour
         {
             RegisterDestroyCallback(ev, clipName);
             if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
+            if (isEventEnemy) ev.setParameterByNameWithLabel("Event", "True");
             if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
@@ -121,6 +126,7 @@ public class AnimationAudio : MonoBehaviour
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
             eventsPlaying.Add(GetPath(ev));
             if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
+            if (isEventEnemy) ev.setParameterByNameWithLabel("Event", "True");
             if (anim.intParameter == 1) RuntimeManager.AttachInstanceToGameObject(ev, character.gameObject);
             ev.start();
             ev.release();
@@ -155,6 +161,7 @@ public class AnimationAudio : MonoBehaviour
     {
         AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev, true, (anim.intParameter == 1) ? character.gameObject : null);
         if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
+        if (isEventEnemy) ev.setParameterByNameWithLabel("Event", "True");
     }
 
     /// <summary>
