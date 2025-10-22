@@ -129,7 +129,7 @@ public abstract class Character : MonoBehaviour
 
     protected Character attackingEnemy = null;
 
-    [SerializeField, Tooltip("Counter indicator")]
+    [Tooltip("Counter indicator")]
     protected GameObject counterIndicatorVFX;
 
     [Tooltip("Target tween position")]

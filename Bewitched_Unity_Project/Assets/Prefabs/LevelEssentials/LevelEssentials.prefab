@@ -416,9 +416,11 @@ MonoBehaviour:
   secondaryHealthBar: {fileID: 0}
   crossHair: {fileID: 0}
   eleth: {fileID: 1678128613887762981}
+  currentSmokeVFX: {fileID: 9152577308483619990}
   targetVFX: {fileID: 0}
   firingVFX: {fileID: 8793291929081330377, guid: 12de295a5fe62364280a0358439b33ef, type: 3}
   smokeCloudVFX: {fileID: 2559313966253667506, guid: f0ce394722376c94087b926531c2171b, type: 3}
+  teleportVFX: {fileID: 4319184169495111252, guid: e8e0154e36251de4abfcb35c9b513a0c, type: 3}
   possessionTrigger: {fileID: 3118486939061492975}
   possessionColliderScript: {fileID: 7629263566965475982}
   startingPossessionAngle: 90
@@ -428,7 +430,6 @@ MonoBehaviour:
   timeToFocus: 1.5
   hitsToCharge: 4
   possessionChargeTime: 2
-  teleportVFX: {fileID: 4319184169495111252, guid: e8e0154e36251de4abfcb35c9b513a0c, type: 3}
   dodgeDistance: 4
   environmentLayer:
     serializedVersion: 2
@@ -789,6 +790,11 @@ MonoBehaviour:
 --- !u!4 &2012322130574558354 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1847222282280203633, guid: 47fe2244657b3c04281ce95f6fc43c68, type: 3}
+  m_PrefabInstance: {fileID: 166512996165792227}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &9152577308483619990 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9028571706742357365, guid: 47fe2244657b3c04281ce95f6fc43c68, type: 3}
   m_PrefabInstance: {fileID: 166512996165792227}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2848102940621251006
