@@ -63,7 +63,7 @@ public class EventSystemRoom1 : MonoBehaviour
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject && fightState == FightState.Waiting)
         {
             enemyEvent.GetEnemy().gameObject.SetActive(true);
-            enemyEvent.GetEnemy().DisableEnemyAI(true);
+            enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
             StartCutScene();
         }
     }
@@ -134,6 +134,15 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     public void EndFight()
     {
+        if(AudioManager.manager != null)
+        {
+            AudioManager.ChangeMusicParameter("End", "True");
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is not set!");
+        }
+            
         fightState = FightState.Finished;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
         if (door != null)
@@ -185,7 +194,7 @@ public class EventSystemRoom1 : MonoBehaviour
         cutScene.SetActive(false);
         fightState = FightState.Fighting;
         enemyEvent.GetEnemy().canPossess = false;
-        enemyEvent.GetEnemy().DisableEnemyAI(false);
+        enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Patrolling;
         // Activate the enemy spawner
         enemySpawner.Activate();
         // show all the HUD

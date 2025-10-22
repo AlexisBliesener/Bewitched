@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
@@ -17,12 +21,15 @@ public class AudioManager : MonoBehaviour
     [Tooltip("Dictionary with the snapshots active during runtime as the value and the snapshot name as the key.")]
     Dictionary<string, EventInstance> activeSnapshots;
     Coroutine pauseCoroutine;
+    //The UI Input System on the EventSystem object in the scene
+    InputSystemUIInputModule UIInput;
 
     void Awake()
     {
         if (manager) throw new System.Exception("There are multiple audio managers in the scene!");
         else if (!refSheet) throw new System.Exception("Audio Manager refSheet not assigned!");
         manager = this;
+        if (!EventSystem.current.gameObject.TryGetComponent<InputSystemUIInputModule>(out UIInput)) throw new System.Exception("Could not find InputSystemUIInputModule in scene");
         if (!levelMusicReference.IsNull)
         {
             levelMusic = RuntimeManager.CreateInstance(levelMusicReference);
@@ -41,6 +48,8 @@ public class AudioManager : MonoBehaviour
         {
             inst.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
+        RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(false);
+
     }
 
     /// <summary>
@@ -99,6 +108,8 @@ public class AudioManager : MonoBehaviour
     public static void OpenUIAudio(float transitionTime = 0.8f)
     {
         if (manager.activeSnapshots.ContainsKey("UIOpen")) return;
+        //Subscribes CheckClick to suitable UI Actions
+        SubscribeCheckClick();
         EventInstance inst = RuntimeManager.CreateInstance(manager.refSheet.snapshotRefs["UIOpen"]);
         inst.setParameterByName("UITransitionIn", transitionTime);
         inst.start();
@@ -124,6 +135,8 @@ public class AudioManager : MonoBehaviour
     {
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
         if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
+        //Unsubscribe CheckClick from UI Actions
+        UnsubscribeCheckClick();
         EventInstance inst = manager.activeSnapshots["UIOpen"];
         manager.activeSnapshots.Remove("UIOpen");
         inst.setParameterByName("UITransitionOut", transitionTime);
@@ -147,6 +160,36 @@ public class AudioManager : MonoBehaviour
     public static void ChangeMusicParameter(string param, string value)
     {
         manager.levelMusic.setParameterByNameWithLabel(param, value);
+    }
+    /// <summary>
+    /// Forces Audio Manager to check for UI clicks outside of OpenUIAudio.
+    /// This is mostly used in the main menu.
+    /// </summary>
+    public static void SubscribeCheckClick()
+    {
+        manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
+        manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
+    }
+    /// <summary>
+    /// Forces Audio Manager to unsubscribe from click and submit actions.
+    /// </summary>
+    public static void UnsubscribeCheckClick()
+    {
+        manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
+        manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
+    }
+
+    /// <summary>
+    /// Checks the UI object that has been clicked or submitted on, if any, and plays the click sound effect
+    /// </summary>
+    /// <param name="context">Action context</param>
+    void CheckClick(InputAction.CallbackContext context)
+    {
+        if (EventSystem.current.currentSelectedGameObject == null) return;
+        if(EventSystem.current.currentSelectedGameObject.TryGetComponent<Button>(out var button) && !button.gameObject.CompareTag("NoClick"))
+        {
+            TryPlayOneShot("Click");
+        }
     }
 }
 
