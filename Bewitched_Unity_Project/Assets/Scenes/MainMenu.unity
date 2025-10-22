@@ -1644,8 +1644,8 @@ GameObject:
   m_Component:
   - component: {fileID: 593724944}
   - component: {fileID: 593724943}
+  - component: {fileID: 593724942}
   - component: {fileID: 593724945}
-  - component: {fileID: 593724946}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1653,6 +1653,14 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!81 &593724942
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593724941}
+  m_Enabled: 1
 --- !u!20 &593724943
 Camera:
   m_ObjectHideFlags: 0
@@ -1763,77 +1771,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &593724946
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 593724941}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nonRigidbodyVelocity: 0
-  attenuationObject: {fileID: 593724941}
---- !u!1001 &879590052
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.73428774
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.27415848
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.8297
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4437575231074894490, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6848772241999647890, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
-      propertyPath: m_Name
-      value: AudioManager
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: df0c9dbc64510421ba844df332c3b15c, type: 3}
 --- !u!1 &911938963
 GameObject:
   m_ObjectHideFlags: 0
@@ -2673,7 +2610,6 @@ MonoBehaviour:
   m_FirstSelected: {fileID: 75364374}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
-  m_CurrentSelected: {fileID: 0}
 --- !u!4 &1590114038
 Transform:
   m_ObjectHideFlags: 0
@@ -2705,17 +2641,17 @@ MonoBehaviour:
   m_MoveRepeatDelay: 0.5
   m_MoveRepeatRate: 0.1
   m_XRTrackingOrigin: {fileID: 0}
-  m_ActionsAsset: {fileID: -944628639613478452, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_PointAction: {fileID: -1654692200621890270, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_MoveAction: {fileID: -8784545083839296357, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_SubmitAction: {fileID: 392368643174621059, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_CancelAction: {fileID: 7727032971491509709, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_LeftClickAction: {fileID: 3001919216989983466, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_RightClickAction: {fileID: -4090225696740746782, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
-  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ee8fd8361c3144ac3953e2fdb26c247d, type: 3}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: 2dbf61e6471822f4abda786151e0bf6d, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
@@ -3505,4 +3441,3 @@ SceneRoots:
   - {fileID: 1038867278}
   - {fileID: 1590114038}
   - {fileID: 2077289816}
-  - {fileID: 879590052}

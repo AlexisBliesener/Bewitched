@@ -361,7 +361,7 @@ public class SurroundingPoints : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius + 1.5f);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, 8000);
+                GraphBuilder.instance.AddNodeCost(position, (int)Mathf.Pow(GetComponent<Character>().sizeRadius,2));
             }
             lastCostlyPosition = transform.position;
         }
@@ -374,7 +374,7 @@ public class SurroundingPoints : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, -8000);
+            GraphBuilder.instance.AddNodeCost(position, -(int)Mathf.Pow(GetComponent<Character>().sizeRadius, 2));
         }
     }
 }

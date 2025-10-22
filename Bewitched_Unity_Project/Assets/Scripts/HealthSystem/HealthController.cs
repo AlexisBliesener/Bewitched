@@ -212,6 +212,11 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public void SetInvincible(bool value) => invincible = value;
 
+    public bool GetInvincible()
+    {
+        return invincible;
+    }
+
     #endregion
     private void NotifyHealthChanged()
     {
