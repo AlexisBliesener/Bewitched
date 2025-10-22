@@ -35,6 +35,9 @@ public class Node
     [Tooltip("If the node is walkable or not")]
     [SerializeField] bool valid = true;
 
+    [Tooltip("The room this node belongs to")]
+    [SerializeField] RoomController room;
+
     /// <summary>
     /// Sets the values for the node
     /// </summary>

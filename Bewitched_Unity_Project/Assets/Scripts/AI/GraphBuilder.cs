@@ -99,6 +99,12 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Cost of costly area")]
     [SerializeField] int costlyAreaCost = 500;
 
+    [Tooltip("RoomSystem of this scene")]
+    [SerializeField] RoomSystem roomSystem;
+
+    [Tooltip("Range of node room tolerance")]
+    [SerializeField] float roomToleranceRange = 0.5f;
+
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
 
@@ -188,13 +194,16 @@ public class GraphBuilder : MonoBehaviour
                 List<Node> floorsAtPosition = Node.Create(x, z, pointDistance, floorLayer, wallLayer, maxFloorHeight, minFloorSeparation);
                 foreach (Node newNode in floorsAtPosition)
                 {
-                    int yPos = (int)(newNode.GetPosition().y * 10);
-                    yPositions[yPos] = newNode;
-                    FillVertices(x, z, yPos);
-                    vertices.Add(newNode.GetPosition());
-                    vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
-                    validNodes++;
-                    newNode.SetCreated();
+                    if (roomSystem.GetRoomFromCoordinates(newNode.GetPosition(), roomToleranceRange) != null) // Ensuring it is tied to a room
+                    {
+                        int yPos = (int)(newNode.GetPosition().y * 10);
+                        yPositions[yPos] = newNode;
+                        FillVertices(x, z, yPos);
+                        vertices.Add(newNode.GetPosition());
+                        vertexPositions[new Tuple<int, int, int>(x, z, yPos)] = validNodes;
+                        validNodes++;
+                        newNode.SetCreated();
+                    }
                 }
                 // Check if this floor is far enough from existing floors
                 if (yPositions.Count == 0)
