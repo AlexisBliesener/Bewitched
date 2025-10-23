@@ -626,9 +626,11 @@ public class Goblin : Enemy
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
 
-        while (animator.GetCurrentState() == "ExitSecondaryAttack" || animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
+        while (animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
-            Debug.Log("Ending spin");
+            Debug.Log(animator.GetCurrentState());
+            Debug.Log(aiState);
+            SetMovementValues(false);
             yield return null;
         }
 
