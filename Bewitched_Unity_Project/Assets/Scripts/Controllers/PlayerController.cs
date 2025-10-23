@@ -332,6 +332,7 @@ public class PlayerController : MonoBehaviour
         if (interactUI == null) return;
         interactUI.SetActive(true);
     }
+
     /// <summary>
     /// Hides the interact UI, this is called when the player is out of range of the interactable object
     /// </summary>

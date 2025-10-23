@@ -288,7 +288,7 @@ public class Goblin : Enemy
                 inPrimaryWindup = false;
                 yield return null;
             }
-            
+            animator.ExitLeap();
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
