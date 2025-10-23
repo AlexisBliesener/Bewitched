@@ -233,14 +233,14 @@ public class Goblin : Enemy
             float dis = Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position);
             Vector3 direction = (lockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + 0.5f);
+            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + offSetForward);
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
                 // Move just before environment hit point
                 dis = hit.distance;
-                targetPos = hit.point - direction * GetCharacterController().radius;
+                targetPos = hit.point - direction * (sizeRadius + offSetForward);
             }
             targetPos.y = oldY;
             transform.DOMove(targetPos, chaseTime * dis);
@@ -251,6 +251,11 @@ public class Goblin : Enemy
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
+                if (Vector3.Distance(transform.position, lockedCharacter.transform.position) < sizeRadius + offSetForward)
+                {
+                    DOTween.Kill(gameObject); // Kill tweens if we are too close
+                }
+                
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
                     if(!triggerSet)

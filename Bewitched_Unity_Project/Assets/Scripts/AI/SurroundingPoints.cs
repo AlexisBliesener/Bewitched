@@ -56,6 +56,20 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Distance for node reset")]
     [SerializeField] float resetCostlyAreaDistance = 1;
 
+    [Tooltip("The time between a room switching before enemies can attack")]
+    float roomSwapEnemyWaitTime = 3;
+
+    [Tooltip("Active room for enemies")]
+    RoomController activeRoom = null;
+
+    [Tooltip("Time since room swap")]
+    private float timeLastRoomSwap;
+
+    private void Start()
+    {
+        timeLastRoomSwap = Time.time;
+    }
+
     private void Update()
     {
         if (pointsActive)
@@ -63,6 +77,12 @@ public class SurroundingPoints : MonoBehaviour
             HandlePointsEachFrame();
             HandleSurroundAttack();
             CreateLocalCostlyArea();
+        }
+
+        if (RoomSystem.Instance.GetActiveRoomController() != activeRoom)
+        {
+            activeRoom = RoomSystem.Instance.GetActiveRoomController();
+            timeLastRoomSwap = Time.time;
         }
     }
 
@@ -324,7 +344,7 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
-        if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0)
+        if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0 && activeRoom != null && Time.time - timeLastRoomSwap > roomSwapEnemyWaitTime)
         {
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
