@@ -8,6 +8,8 @@ using UnityEngine;
 public abstract class Enemy : Character
 {
     [Header("Enemy AI Settings")]
+    [Tooltip("Determines the enemy's mental state atm")]
+    public bool lobotimzed = false;
     [Tooltip("Minimum Stopping Distance"), Range(0, 10)]
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]

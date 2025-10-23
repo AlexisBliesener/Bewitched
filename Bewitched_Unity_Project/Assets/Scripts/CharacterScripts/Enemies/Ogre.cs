@@ -84,6 +84,7 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
+        if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
         SetAIState();
         SetBehavior();

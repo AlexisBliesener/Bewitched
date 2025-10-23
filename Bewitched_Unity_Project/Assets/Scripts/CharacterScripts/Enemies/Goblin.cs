@@ -99,7 +99,7 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
-        if (dead) return;
+        if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetAIState();

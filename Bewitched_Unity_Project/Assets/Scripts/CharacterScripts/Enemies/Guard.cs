@@ -169,6 +169,7 @@ public class Guard : Enemy
     // Update is called once per frame
     void Update()
     {
+        if (dead || lobotimzed) return;
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
         SetAIState();
