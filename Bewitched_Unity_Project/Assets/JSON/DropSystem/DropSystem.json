@@ -3,21 +3,21 @@
     "dropChance": 20,
     "salvageAmount": 10.0,
     "upgradeSelectionUI": {
-        "instanceID": -320686
+        "instanceID": 341654
     },
     "swapUpgradeUI": {
-        "instanceID": -320798
+        "instanceID": 311360
     },
     "pendingSwap": {
         "dropName": "Vampirism",
         "description": "Vampire",
         "dropID": "2",
         "icon": {
-            "instanceID": 95822
+            "instanceID": 100258
         },
         "rarityIndex": 1,
         "dropScript": {
-            "instanceID": -332658
+            "instanceID": -578678
         },
         "buyAmount": 150,
         "sellAmount": 150
@@ -25,11 +25,15 @@
     "availableRarities": [
         {
             "displayName": "Ultra Rare",
-            "dropChance": 100
+            "dropChance": 5
         },
         {
             "displayName": "Rare",
-            "dropChance": 100
+            "dropChance": 15
+        },
+        {
+            "displayName": "Common",
+            "dropChance": 50
         }
     ],
     "availableDrops": [
@@ -38,32 +42,103 @@
             "description": "Enemies now explode! Possess an enemy and get it to low health, then exit the enemy to trigger an explosion to damage all surrounding enemies! Be careful you don't let the enemy get to 0 health though, or you might explode with it.",
             "dropID": "1",
             "icon": {
-                "instanceID": 95822
+                "instanceID": 100258
             },
             "rarityIndex": 0,
             "dropScript": {
-                "instanceID": -332652
+                "instanceID": -578672
             },
-            "buyAmount": 200,
-            "sellAmount": 200
+            "buyAmount": 150,
+            "sellAmount": 80
         },
         {
             "dropName": "Vampirism",
             "description": "Damaging an enemy while possessing an enemy will regain a small amount of health, scaling with damage done.",
             "dropID": "2",
             "icon": {
-                "instanceID": 95822
+                "instanceID": 100258
             },
             "rarityIndex": 1,
             "dropScript": {
-                "instanceID": -332658
+                "instanceID": -578678
             },
-            "buyAmount": 130,
-            "sellAmount": 130
+            "buyAmount": 100,
+            "sellAmount": 50
+        },
+        {
+            "dropName": "Clear Focus",
+            "description": "Decreases the time taken to focus the possession cone to a specific enemy to possess.",
+            "dropID": "3",
+            "icon": {
+                "instanceID": 100258
+            },
+            "rarityIndex": 2,
+            "dropScript": {
+                "instanceID": -578684
+            },
+            "buyAmount": 50,
+            "sellAmount": 20
+        },
+        {
+            "dropName": "Smarter Control",
+            "description": "Lowers the rate at which enemies' health depletes. ",
+            "dropID": "4",
+            "icon": {
+                "instanceID": 100258
+            },
+            "rarityIndex": 1,
+            "dropScript": {
+                "instanceID": -578708
+            },
+            "buyAmount": 90,
+            "sellAmount": 50
+        },
+        {
+            "dropName": "Adrenaline",
+            "description": "Increase the damage buff granted from swapping to a new enemy.",
+            "dropID": "5",
+            "icon": {
+                "instanceID": 100258
+            },
+            "rarityIndex": 1,
+            "dropScript": {
+                "instanceID": -578702
+            },
+            "buyAmount": 80,
+            "sellAmount": 40
+        },
+        {
+            "dropName": "Shielding Spirits",
+            "description": "When possessing an enemy, grant a temporary shield. Lasts for 5 seconds.",
+            "dropID": "6",
+            "icon": {
+                "instanceID": 100258
+            },
+            "rarityIndex": 1,
+            "dropScript": {
+                "instanceID": -578690
+            },
+            "buyAmount": 100,
+            "sellAmount": 50
+        },
+        {
+            "dropName": "Backup Plan",
+            "description": "Decrease the time it takes for the possession ability to recharge when knocked out of an enemy.",
+            "dropID": "7",
+            "icon": {
+                "instanceID": 100258
+            },
+            "rarityIndex": 2,
+            "dropScript": {
+                "instanceID": -578696
+            },
+            "buyAmount": 60,
+            "sellAmount": 30
         }
     ],
     "dropPickupPrefab": {
-        "instanceID": 98346
+        "instanceID": 102334
     },
-    "usePitySystem": true
+    "usePitySystem": true,
+    "dropUpgrade": false
 }
