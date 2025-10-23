@@ -345,7 +345,6 @@ public class Goblin : Enemy
         if (!playerControlling) { currentPrimaryComboStep = 0; }
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
-        Debug.Log("Starting Stab");
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
@@ -361,7 +360,6 @@ public class Goblin : Enemy
             }
         }
 
-        Debug.Log("Ending stab");
         SetMovementValues(true);
 
         attackState = AttackState.Neutral;

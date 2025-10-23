@@ -183,7 +183,7 @@ public abstract class Character : MonoBehaviour
     }
 
     [Tooltip("The attack state")]
-    protected AttackState attackState;
+    public AttackState attackState;
 
     #region Saving/Loading
 
