@@ -162,14 +162,6 @@ public class Goblin : Enemy
     {
         hitCharacter = false;
         SetMovementValues(false);
-        if (!playerControlling)
-        {
-            PlayerController.instance.SetAllowMovement(false);
-        }
-        else
-        {
-            aiState = AIMovementState.Blocked;
-        }
 
         if (lockedCharacter)
         {
@@ -181,14 +173,22 @@ public class Goblin : Enemy
         }
         attackingPrimary = true;
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (playerControlling)
         {
-            inPrimaryWindup = true;
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
+            if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            {
+                inPrimaryWindup = true;
+                attackStateCoroutine = StartCoroutine(KnifeWindup());
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(HandleStab());
+            }
         }
         else
         {
-            attackStateCoroutine = StartCoroutine(HandleStab());
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(KnifeWindup());
         }
         
     }
@@ -208,6 +208,7 @@ public class Goblin : Enemy
         // Strider 9/30/25: moved this to a variable, need to adjust
         while (Time.time - timeStarted < 0.2f / animator.GetPrimaryWindupMult())
         {
+            SetMovementValues(false);
             if (lockedCharacter)
             {
                 Vector3 direc = lockedCharacter.transform.position - transform.position;
