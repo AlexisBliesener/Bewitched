@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Cinemachine;
-using UnityEngine.AI;
 using DG.Tweening;
 using FMOD;
 using Debug = UnityEngine.Debug;

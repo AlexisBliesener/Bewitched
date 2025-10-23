@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using FMOD.Studio;
 using NaughtyAttributes;
 using UnityEngine;
-using UnityEngine.AI;
 
 [RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : Character
