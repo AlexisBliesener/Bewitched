@@ -293,6 +293,11 @@ public class Goblin : Enemy
             GetCharacterController().enabled = true;
         }
 
+        if (counterIndicatorVFX != null)
+        {
+            DestroyCounterIndicator();
+        }
+
         attackState = AttackState.Attacking;
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
@@ -456,7 +461,7 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if (playerControlling && counterIndicatorVFX != null) DestroyCounterIndicator(); // Destroy attack indicator if possessed
+            if (counterIndicatorVFX != null) DestroyCounterIndicator(); // Destroy attack indicator if possessed
             yield return null;
         }
         numDeflections = 0;
