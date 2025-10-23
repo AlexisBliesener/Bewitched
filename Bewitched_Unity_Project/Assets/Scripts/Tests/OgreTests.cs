@@ -99,7 +99,7 @@ public class OgreTests
         pivotField.SetValue(testOgre, batPivot);
 
         attackIndicatorPrefab = new GameObject("AttackIndicator");
-        testOgre.attackIndicatorPrefab = attackIndicatorPrefab;
+        testOgre.counterIndicatorVFXPrefab = attackIndicatorPrefab;
 
         // Create mock player
         mockPlayer = new GameObject("MockPlayer");
