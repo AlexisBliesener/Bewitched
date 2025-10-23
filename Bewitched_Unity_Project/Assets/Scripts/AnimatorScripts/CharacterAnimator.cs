@@ -1,3 +1,4 @@
+using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,17 +9,23 @@ using UnityEngine;
 /// </summary>
 public class CharacterAnimator : MonoBehaviour
 {
+    [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
+    protected private bool dev = false;
+
     [Header("Animation Timings")]
-    [SerializeField, Tooltip("Time delay before completing the primary ability animation.")]
+    [SerializeField, Tooltip("Time delay before completing the primary ability animation."), ShowIf("dev")]
     protected float[] primaryAnimationDelay = { 0.5f };
-    [SerializeField, Tooltip("Time delay before completing the secondary ability animation.")]
+    [SerializeField, Tooltip("Time delay before completing the secondary ability animation."), ShowIf("dev")]
     protected float secondaryAnimationDelay = 0.5f;
 
-    [Header("References")]
-    [SerializeField, Tooltip("Animator component responsible for handling character animations.")]
-    protected Animator animator;
-    [SerializeField, Tooltip("Character controller attached to this gameobject.")]
-    protected CharacterController characterController;
+    [Header("Animation Speed Multipliers")]
+    [SerializeField, Tooltip("Walk animation speed multiplier."), Range(0.1f, 10f)]
+    protected float walkSpeedMult = 1f;
+    [SerializeField, Tooltip("Idle animation speed multiplier."), Range(0.1f, 10f)]
+    protected float idleSpeedMult = 1f;
+    [SerializeField, Tooltip("Death animation speed multiplier."), Range(0.1f, 10f)]
+    protected float deathSpeedMult = 1f;
+
 
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
@@ -34,16 +41,26 @@ public class CharacterAnimator : MonoBehaviour
     protected AnimatorStateInfo stateInfo;
     [Tooltip("The character this animator is working on")]
     protected Character character;
+    [Tooltip("Animator component responsible for handling character animations.")]
+    protected Animator animator;
+    [Tooltip("Character controller attached to this gameobject.")]
+    protected CharacterController characterController;
 
-
-    protected virtual void Start()
+    protected virtual void Awake()
     {
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
+        animator = GetComponentInChildren<Animator>();
 
         characterController = GetComponent<CharacterController>();
         character = GetComponent<Character>();
+
+        if (animator != null)
+        {
+            animator.SetFloat("IdleSpeedMult", idleSpeedMult);
+            animator.SetFloat("WalkSpeedMult", walkSpeedMult);
+            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+        }
     }
+
 
     protected virtual void Update()
     {
@@ -57,7 +74,7 @@ public class CharacterAnimator : MonoBehaviour
         if (characterController != null)
         {
             if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
-                SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                SwitchState("Idle",  character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
             else
                 SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
         }
@@ -87,7 +104,18 @@ public class CharacterAnimator : MonoBehaviour
 
         SwitchState(newState);
     }
-    
+
+    /// <summary>
+    /// Switches the character's animation state and updates the Animator accordingly.
+    /// Use when setting primary attack state 
+    /// </summary>
+    public virtual void SwitchState(string newState, int currentPrimaryComboStep)
+    {
+        animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
+
+        SwitchState(newState);
+    }
+
     /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>
@@ -115,10 +143,12 @@ public class CharacterAnimator : MonoBehaviour
         switch (newState)
         {
             case "Idle":
+                animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
+                animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
@@ -131,6 +161,7 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = false;
                 break;
             case "Death":
+                animator.SetFloat("DeathSpeedMult", deathSpeedMult);
                 animator.SetTrigger("Death");
                 canChange = false;
                 break;
@@ -169,7 +200,7 @@ public class CharacterAnimator : MonoBehaviour
     /// <summary>
     /// Waits for a delay corresponding to the current animation state.
     /// </summary>
-    public IEnumerator WaitForDelay(string animation, int comboNum)
+    public virtual IEnumerator WaitForDelay(string animation, int comboNum)
     {
         switch (animation)
         {

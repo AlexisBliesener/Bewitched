@@ -1,4 +1,6 @@
 using DG.Tweening;
+using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
 using UnityEngine;
@@ -68,6 +70,8 @@ public class Ogre : Enemy
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
+    //Is this an event enemy?
+    bool isEventEnemy = false;
 
     void Start()
     {
@@ -75,13 +79,15 @@ public class Ogre : Enemy
         health.SetHealthToMax();
         SetBaseStats();
         SetPatrolOrigin();
+        isEventEnemy = TryGetComponent<EventEnemy>(out var e);
     }
 
     private void FixedUpdate()
     {
         currentPlayer = playerController.GetCurrentCharacter();
-
+        SetAIState();
         SetBehavior();
+        CreateLocalInvalidArea();
     }
     /// <summary>
     /// Starts the primary attack for the ogre
@@ -99,8 +105,6 @@ public class Ogre : Enemy
         {
             lockedCharacter = currentPlayer;
             aiState = AIMovementState.Blocked;
-            attackIndicator = Instantiate(attackIndicatorPrefab, transform);
-            attackIndicator.transform.localPosition = offsetAttackIndicator;
         }
 
         if (lockedCharacter)
@@ -167,9 +171,13 @@ public class Ogre : Enemy
                 if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
                 {
                     //   dodgable = false;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX != null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = defaultMaterial;
+                        if (counterIndicatorVFX != null)
+                        {
+                            DestroyCounterIndicator();
+                        }
+                        counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
@@ -177,9 +185,10 @@ public class Ogre : Enemy
                 else // First 3 quarters, attack is dodgable
                 {
                     //    dodgable = true;
-                    if (attackIndicator != null)
+                    if (counterIndicatorVFX == null)
                     {
-                        attackIndicator.GetComponent<MeshRenderer>().material = perfectCounterTimeMaterial;
+                        counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                        counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
                     if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
@@ -189,12 +198,6 @@ public class Ogre : Enemy
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
-
-        if (attackIndicator != null)
-        {
-            Destroy(attackIndicator);
-        }
-        attackIndicator = null;
 
         attackStateCoroutine = StartCoroutine(SwingBat());
         yield break;
@@ -239,13 +242,8 @@ public class Ogre : Enemy
 
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
-        if (!playerControlling)
-        {
-            aiState = AIMovementState.Retreating;
-            attackState = AttackState.Neutral;
-            pathState = PathState.Unset;
-        }
-        else StartCoroutine(EnableMovement());
+        SetMovementValues(true);
+        attackState = AttackState.Neutral;
 
         if (lockedCharacter)
         {
@@ -313,16 +311,35 @@ public class Ogre : Enemy
 
         yield return new WaitForSeconds(0.25f); // Wait until end of animation in the future
 
+        SetMovementValues(true);
+        attackState = AttackState.Neutral;
         if (playerControlling)
         {
             StartCoroutine(EnableMovement());
-        }else{
+        }
+        else
+        {
             aiState = AIMovementState.Chasing;
             attackState = AttackState.Neutral;
         }
 
         attackStateCoroutine = null;
         attackingSecondary = false;
+    }
+    //Override of OnDamaged to handle the OgreHit sound effect
+    protected override void OnDamaged(float f)
+    {
+        base.OnDamaged(f);
+        if(AudioManager.TryGetReference("OgreHit", out EventReference evRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.setParameterByName("Damage", f / health.GetMaxHealth());
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            ev.start();
+            ev.release();
+        }
     }
 
     /// <summary>
@@ -336,18 +353,26 @@ public class Ogre : Enemy
 
         if (aiState == AIMovementState.Patrolling)
         {
+            if (!idleAudio.isValid())
+            {
+                AudioManager.TryPlayInstance("OgreIdle", out idleAudio, true, gameObject);
+                idleAudio.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            }
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
         {
+            StopIdleAudio();
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            StopIdleAudio();
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
         {
+            StopIdleAudio();
             Retreat();
         }
     }
@@ -529,7 +554,7 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
-                StartCoroutine(SpotPlayer());
+                TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
             timer += Time.deltaTime;
@@ -580,18 +605,6 @@ public class Ogre : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -604,7 +617,6 @@ public class Ogre : Enemy
         {
             FindPath();
         }
-        lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
@@ -617,19 +629,9 @@ public class Ogre : Enemy
                 }
             }
         }
-        AILook();
 
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) > surroundingToChaseRadius) // If out of range
-            {
-                aiState = AIMovementState.Chasing;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.RemoveSurroundingEnemy(this);
-                }
-            }
-        }
+        lookAtPlayer = true;
+        AILook();
     }
 
     /// <summary>
@@ -654,18 +656,6 @@ public class Ogre : Enemy
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -704,11 +694,21 @@ public class Ogre : Enemy
         return false;
     }
     /// <summary>
-    /// Override of Enemy.Die to change the level music to the outro
+    /// Override of Enemy.Die to handle the ogre's death sound effect.
     /// </summary>
     public override void Die()
     {
-        AudioManager.ChangeMusicParameter("End", "True");
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Ogre's Death sound effect
+        if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
+        {
+            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
+            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+        }
         base.Die();
     }
 }

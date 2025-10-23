@@ -245,4 +245,9 @@ public class CameraController : MonoBehaviour
         yield return new WaitForSeconds(TRANSITION_TIME);
         transitioning = false;
     }
+
+    public void PlayerHitBy(GameObject hitBy)
+    {
+        combatCamScript.PlayerHitBy(hitBy);
+    }
 }

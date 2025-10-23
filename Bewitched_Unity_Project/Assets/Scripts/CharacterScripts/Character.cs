@@ -21,9 +21,11 @@ public abstract class Character : MonoBehaviour
     [Header("Character Settings")]
     [Tooltip("Character Name")]
     public string characterName;
+    [SerializeField, Tooltip("The model of this character in art peices (keep animator on when turned off)")]
+    private GameObject[] modelPieces;
 
     [Header("Movement Settings")]
-    [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 10)]
+    [Tooltip("Speed the Character Can Move While Chasing"), Range(0, 20)]
     public float movementSpeed = 5;
     [Tooltip("Speed the character can move while approaching for an attack"), Range(0, 50)]
     public float approachSpeed = 7;
@@ -59,8 +61,12 @@ public abstract class Character : MonoBehaviour
     public float attackDelay = 1;
     [Tooltip("Cooldown After Primary Ability"), Range(0,10)]
     public float primaryCooldown = 5;
+    [SerializeField, Tooltip("The amount of health this character will use when using their primary attack"), Range(0, 100)]
+    protected int primaryAttackCost;
     [Tooltip("Cooldown After Secondary Ability"), Range(0, 10)]
     public float secondaryCooldown = 5;
+    [SerializeField, Tooltip("The amount of health this character will use when using their secondary attack"), Range(0, 100)]
+    protected int secondaryAttackCost;
     [Tooltip("Primary Attack Range"), Range(0, 10)]
     public float primaryAttackRange;
     [Tooltip("The reference to the health controller"), HideInInspector]
@@ -118,19 +124,27 @@ public abstract class Character : MonoBehaviour
     protected bool dodgable = false;
     protected bool attackDodged = false;
     protected bool dodging = false;
-    private bool invulnerable = false;
 
     protected bool inCounter = false;
 
     protected Character attackingEnemy = null;
 
-    [Tooltip("Attack indicator")]
-    protected GameObject attackIndicator = null;
+    [Tooltip("Counter indicator")]
+    protected GameObject counterIndicatorVFX;
 
     [Tooltip("Target tween position")]
     protected Vector3 targetTweenPosition;
 
     protected float timeLastDodge = 0;
+
+    [Tooltip("List of nodes that are costly for the area this character is taking up")]
+    List<List<int>> costlyNodes = new List<List<int>>();
+
+    [Tooltip("Position the character was last time the nodes were reset")]
+    Vector3 previousCostlyPosition;
+
+    [Tooltip("Threshold distance before resetting costly area")]
+    float invalidAreaResetThreshold = 0.5f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
@@ -154,7 +168,9 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Hit Stun Prefab"), ShowIf("dev")]
     public GameObject hitStunPrefab;
     [Tooltip("Attack indicator prefab"), ShowIf("dev")]
-    public GameObject attackIndicatorPrefab;
+    public GameObject counterIndicatorVFXPrefab;
+    [Tooltip("Character Controller component")]
+    private CharacterController characterController;
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -261,6 +277,11 @@ public abstract class Character : MonoBehaviour
         health.OnDeath -= OnDeath;
     }
 
+    public GameObject[] GetModel()
+    {
+        return modelPieces;
+    }
+
     /// <summary>
     /// Returns the Cinemachine Combat camera associated with this character.
     /// </summary>
@@ -339,7 +360,7 @@ public abstract class Character : MonoBehaviour
         Die();
         // Stop all coroutines destroy all objects too
         if (hitStunActual != null) Destroy(hitStunActual);
-        if (attackIndicator != null) Destroy(attackIndicator);
+        if (counterIndicatorVFX != null) Destroy(counterIndicatorVFX);
     }
 
     /// <summary>
@@ -499,10 +520,12 @@ public abstract class Character : MonoBehaviour
     /// Resets the primary combo of this character back to in an inactive state (-1)
     /// </summary>
     public void ResetPrimaryComboStep()
-    { 
+    {
         currentPrimaryComboStep = -1;
         characterAnimator.SetPrimaryComboEnded();
     }
+
+
 
     public virtual IEnumerator BeginPrimary()
     {
@@ -510,14 +533,20 @@ public abstract class Character : MonoBehaviour
         {
             if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
+                if (PlayerController.instance.currentCharacter == this)
+                {
+                    health.SubHealth(primaryAttackCost);
+                }
+
                 currentPrimaryComboStep += 1;
-                timeLastPrimary = Time.time;
 
                 if (currentPrimaryComboStep >= primaryComboSteps)
                 {
                     currentPrimaryComboStep = 0;
                 }
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep, timeLastPrimary, primaryComboResetTime);
+                characterAnimator.SwitchState("PrimaryAttack");
+
+                timeLastPrimary = Time.time;
                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
 
                 PrimaryAttack();
@@ -532,6 +561,10 @@ public abstract class Character : MonoBehaviour
         yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
         if (gameObject)
         {
+            if (PlayerController.instance.currentCharacter == this)
+            {
+                health.SubHealth(secondaryAttackCost);
+            }
             SecondaryAttack();
 
         }
@@ -686,27 +719,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Gives the character invulnerability for a duration
-    /// </summary>
-    /// <param name="duration"> Duration to be invulnerable </param>
-    /// <returns> Time </returns>
-    public IEnumerator GiveInvulnerability(float duration)
-    {
-        invulnerable = true;
-        yield return new WaitForSeconds(duration);
-        invulnerable = false;
-    }
-
-    /// <summary>
-    /// Gets the invulnerability status
-    /// </summary>
-    /// <returns> Invulnerability status </returns>
-    public bool Invulnerable()
-    {
-        return invulnerable;
-    }
-
-    /// <summary>
     /// Handles dodging for a character
     /// </summary>
     /// <param name="wellTimed"></param>
@@ -721,7 +733,6 @@ public abstract class Character : MonoBehaviour
 
         if (wellTimed)
         {
-            GiveInvulnerability(0.75f);
             Time.timeScale = 0.25f;
         }
         int attackDirection;
@@ -824,5 +835,46 @@ public abstract class Character : MonoBehaviour
             surroundingPoints = GetComponent<SurroundingPoints>();
         }
         return surroundingPoints;
+    }
+
+    /// <summary>
+    /// Creates a costly area around the player that enemies will avoid entering
+    /// </summary>
+    public void CreateLocalInvalidArea()
+    {
+        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold)
+        {
+            ResetInvalidArea();
+
+            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
+            foreach (List<int> position in costlyNodes)
+            {
+                GraphBuilder.instance.AddNodeCost(position, (int)(sizeRadius * sizeRadius));
+            }
+            previousCostlyPosition = transform.position;
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly area values
+    /// </summary>
+    public void ResetInvalidArea()
+    {
+        foreach (List<int> position in costlyNodes)
+        {
+            GraphBuilder.instance.AddNodeCost(position, -(int)(sizeRadius * sizeRadius));
+        }
+    }
+    /// <summary>
+    /// Gets the character controller component, if it's not found it will get it from the game object
+    /// </summary>
+    /// <returns> The character controller component </returns>
+    public CharacterController GetCharacterController()
+    {
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
+        return characterController;
     }
 }

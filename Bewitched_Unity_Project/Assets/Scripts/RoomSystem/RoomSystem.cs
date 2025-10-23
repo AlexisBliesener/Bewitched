@@ -192,4 +192,41 @@ public class RoomSystem : MonoBehaviour
     /// Gets the rooms list for editor access
     /// </summary>
     public List<RoomData> GetRooms() => rooms;
+
+    /// <summary>
+    /// Gets the currently active room if any are active
+    /// </summary>
+    /// <returns> Currently active room, null if none </returns>
+    public RoomController GetActiveRoomController()
+    {
+        foreach (RoomData room in rooms)
+        {
+            if (room.roomController.GetCurrentState() == RoomState.Active)
+            {
+                return room.roomController;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the RoomController by its coordinates
+    /// </summary>
+    /// <param name="coords"> Coordinates to search from </param>
+    /// <param name="range"> Range of room bounds </param>
+    /// <returns> RoomController with bounds containing coords </returns>
+    public RoomController GetRoomFromCoordinates(Vector3 coords, float range)
+    {
+        Debug.Log("Node Coordinates: " + coords);
+        foreach (RoomData room in rooms)
+        {
+            Debug.Log(room.roomName + room.roomController.GetRoomBounds());
+            if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
+            {
+                return room.roomController;
+            }
+        }
+        Debug.Log("Here");
+        return null;
+    }
 }

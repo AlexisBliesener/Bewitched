@@ -8,6 +8,8 @@ public class RandomPlacementShop : MonoBehaviour
     [Header("Shop Settings")]
     [SerializeField, Tooltip("The prefab of the shop alter model.")]
     private GameObject shopAlterPrefab;
+    [SerializeField, Tooltip("The prefab of the shop alter UI.")]
+    private GameObject shopAlterUI;
     [SerializeField, Tooltip("The list of the shop alters points to get a random point and then spawn the shop alter.")]
     private List<GameObject> shopAltersPoints = new List<GameObject>();
     /// <summary>
@@ -19,7 +21,21 @@ public class RandomPlacementShop : MonoBehaviour
         // Select a random shop alter point
         GameObject shopAlterPoint = shopAltersPoints[Random.Range(0, shopAltersPoints.Count)];
         // Spawn the shop alter
-        Instantiate(shopAlterPrefab, shopAlterPoint.transform.position, shopAlterPoint.transform.rotation);
+        GameObject shopAlter = Instantiate(shopAlterPrefab, shopAlterPoint.transform.position, shopAlterPoint.transform.rotation);
+        ShopAlter shopAlterScript = shopAlter.GetComponent<ShopAlter>();
+        if (shopAlterScript != null)
+        {
+            if (shopAlterUI == null)
+            {
+                Debug.LogWarning("ShopUI gameObject not assigned.");
+            }
+            
+            shopAlterScript.SetShopUI(shopAlterUI);
+        }
+        else
+        {
+            Debug.LogWarning("Shop alter script not found.");
+        }
         // Then create a graph builder
         GraphBuilder.instance.CreateGraph();
     }

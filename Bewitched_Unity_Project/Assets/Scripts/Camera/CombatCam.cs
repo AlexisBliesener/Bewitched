@@ -8,46 +8,36 @@ public class CombatCam : MonoBehaviour
 {
     private CinemachineFreeLook combatCam;
 
-    private float vel = 0f;
-
     private void Awake()
     {
         combatCam = GetComponent<CinemachineFreeLook>();
     }
 
-    public void TargetSet(GameObject enemy)
+
+
+    public void PlayerHitBy(GameObject hitBy)
     {
-        //Vector3 combatCamForward = new Vector3(this.transform.forward.x, 0, this.transform.forward.z);
-        //Vector3 toEnemy = enemy.transform.position - this.transform.position;
-        //toEnemy = new Vector3(toEnemy.x, 0, toEnemy.z);
-        //toEnemy = toEnemy.normalized;
-        //combatCamForward = combatCamForward.normalized;
+        StopAllCoroutines();
 
-        //float dotProduct = Vector3.Dot(combatCamForward, toEnemy);
-        //float angle = Mathf.Acos(dotProduct);
-        //angle = Mathf.Rad2Deg * angle;
-        //angle += 180;
+        Vector3 toEnemy = hitBy.transform.position - PlayerController.instance.currentCharacter.transform.position;
 
-        //Debug.Log("ANGLE " + angle);
+        toEnemy.y = 0;
 
-        //StartCoroutine(SmoothFrame(angle));
+        float degrees = Vector3.SignedAngle(Vector3.forward, toEnemy, Vector3.up);
 
-        StartCoroutine(Recenter());
+        if (degrees < 0) degrees += 360;
+
+        StartCoroutine(RotateCamera(degrees, 0.1f));
+
     }
 
-    private IEnumerator SmoothFrame(float angle)
+    private IEnumerator RotateCamera(float degrees, float time)
     {
-        for(int i = 0; i < 50; i ++)
+        float startingValue = combatCam.m_XAxis.Value;
+        for (int i = 1; i < 51; i++)
         {
-            combatCam.m_XAxis.Value = Mathf.SmoothDampAngle(combatCam.m_XAxis.Value, angle, ref vel, 0.5f);
-            yield return new WaitForSeconds(0.01f);
+            combatCam.m_XAxis.Value = Mathf.LerpAngle(startingValue, degrees, i / 50f);
+            yield return new WaitForSeconds(time / 50f);
         }
-    }
-
-    private IEnumerator Recenter()
-    {
-        combatCam.m_RecenterToTargetHeading.m_enabled = true;
-        yield return new WaitForSeconds(combatCam.m_RecenterToTargetHeading.m_RecenteringTime);
-        combatCam.m_RecenterToTargetHeading.m_enabled = false;
     }
 }
