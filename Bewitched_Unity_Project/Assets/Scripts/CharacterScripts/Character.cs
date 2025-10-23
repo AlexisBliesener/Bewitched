@@ -439,7 +439,7 @@ public abstract class Character : MonoBehaviour
     {
         if (duration > 0)
         {
-            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
+            if (hitStunPrefab && hitStunActual != null) hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
