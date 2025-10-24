@@ -259,6 +259,7 @@ public class Goblin : Enemy
                 if (Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
+                    animator.ExitLeap();
                 }
                 
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
@@ -275,7 +276,6 @@ public class Goblin : Enemy
                         DestroyCounterIndicator();
                         if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
-
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -292,7 +292,6 @@ public class Goblin : Enemy
                 inPrimaryWindup = false;
                 yield return null;
             }
-            animator.ExitLeap();
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
