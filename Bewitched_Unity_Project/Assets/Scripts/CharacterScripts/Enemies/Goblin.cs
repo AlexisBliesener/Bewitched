@@ -79,6 +79,8 @@ public class Goblin : Enemy
     private GoblinAnimator animator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
+    [Tooltip("Is this goblin is currently in the windup animation")]
+    private bool inPrimaryWindup = false;
 
 
 
@@ -157,7 +159,7 @@ public class Goblin : Enemy
 
         }
     }
-    private bool inPrimaryWindup = false;
+    
     public override void PrimaryAttack()
     {
         hitCharacter = false;
@@ -318,7 +320,7 @@ public class Goblin : Enemy
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.1f);
             }
         }
 
@@ -982,6 +984,8 @@ public class Goblin : Enemy
     /// <returns> True if attacking, false otherwise </returns>
     public override bool AttackFromSurrounding(SurroundingPoints points)
     {
+        if (playerControlling) return false;
+
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
 
