@@ -61,7 +61,6 @@ public class CharacterAnimator : MonoBehaviour
         }
     }
 
-
     protected virtual void Update()
     {
         if (animator == null)

@@ -34,6 +34,20 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
+    /// Returns true if the goblin is in the leap animation
+    /// </summary>
+    /// <returns>True if the goblin is leaping</returns>
+    public bool GetInLeap()
+    {
+        AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
+        if(clip[0].clip.name == ("GoblinLeap"))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Returns the primary attack windup speed multiplier
     /// </summary>
     /// <returns>primary attack windup speed multiplier</returns>

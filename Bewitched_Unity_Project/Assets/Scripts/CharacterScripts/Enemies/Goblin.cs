@@ -209,9 +209,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
 
-        // For now wait 0.25 seconds, in future wait for animation trigger
-        // Strider 9/30/25: moved this to a variable, need to adjust
-        while (Time.time - timeStarted < 0.2f / animator.GetPrimaryWindupMult())
+        while(!animator.GetInLeap())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
