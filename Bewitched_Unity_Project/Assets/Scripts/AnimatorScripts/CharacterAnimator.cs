@@ -73,7 +73,7 @@ public class CharacterAnimator : MonoBehaviour
         // Idle/run switching
         if (characterController != null)
         {
-            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
+            if (characterController.velocity.magnitude < 0.05f)
                 SwitchState("Idle",  character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
             else
                 SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());

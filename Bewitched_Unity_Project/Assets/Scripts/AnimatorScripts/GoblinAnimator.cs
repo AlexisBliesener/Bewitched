@@ -113,6 +113,7 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public void ExitLeap()
     {
+        base.ResetAllTriggers();
         animator.SetTrigger("ExitLeap");
     }
 
