@@ -173,6 +173,8 @@ public class Goblin : Enemy
                 enemy.SetTargeted(true);
             }
         }
+
+        Character tempLockedChar = lockedCharacter;
         attackingPrimary = true;
 
         if (playerControlling)
@@ -180,17 +182,17 @@ public class Goblin : Enemy
             if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 inPrimaryWindup = true;
-                attackStateCoroutine = StartCoroutine(KnifeWindup());
+                attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
             }
             else
             {
-                attackStateCoroutine = StartCoroutine(HandleStab());
+                attackStateCoroutine = StartCoroutine(HandleStab(tempLockedChar));
             }
         }
         else
         {
             inPrimaryWindup = true;
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
+            attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
         
     }
@@ -199,44 +201,44 @@ public class Goblin : Enemy
     /// Starts the windup for the knife
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator KnifeWindup()
+    public IEnumerator KnifeWindup(Character tempLockedCharacter)
     {
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = Time.time;
         // save the current position to use the y value later
         targetPos = transform.position;
+
         // For now wait 0.25 seconds, in future wait for animation trigger
         // Strider 9/30/25: moved this to a variable, need to adjust
         while (Time.time - timeStarted < 0.2f / animator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
-            if (lockedCharacter)
+            if (tempLockedCharacter)
             {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                Vector3 direc = tempLockedCharacter.transform.position - transform.position;
                 direc.y = 0;
                 Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
             yield return null;
         }
-        attackStateCoroutine = StartCoroutine(KnifeApproach());
+        attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
     /// <summary>
     /// Approach function for stabbing
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator KnifeApproach()
+    public IEnumerator KnifeApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
-        Character tempLockedChar = lockedCharacter;
-        if (tempLockedChar)
+        if (tempLockedCharacter)
         {
-            float dis = Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position);
-            Vector3 direction = (tempLockedChar.transform.position - transform.position).normalized;
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+            Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedChar.transform.position - direction * (GetCharacterController().radius + tempLockedChar.GetCharacterController().radius + offSetForward);
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + offSetForward);
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
@@ -254,7 +256,7 @@ public class Goblin : Enemy
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (Vector3.Distance(transform.position, tempLockedChar.transform.position) < sizeRadius + offSetForward)
+                if (Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                 }
@@ -329,10 +331,10 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
 
-        if (tempLockedChar)
+        if (tempLockedCharacter)
         {
-            tempLockedChar.SetAttacker(null);
-            if (tempLockedChar.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
@@ -348,7 +350,7 @@ public class Goblin : Enemy
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
     /// <returns> Time breaks </returns>
-    public IEnumerator HandleStab()
+    public IEnumerator HandleStab(Character tempLockedCharacter)
     {
         animator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
@@ -378,16 +380,16 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
         }
 
-        lockedCharacter = null;
+        tempLockedCharacter = null;
         attackingPrimary = false;
     }
 
@@ -406,10 +408,12 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter)
+        Character tempLockedCharacter = lockedCharacter;
+
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(this);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(this);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(true);
             }
@@ -417,14 +421,14 @@ public class Goblin : Enemy
 
         SetMovementValues(false);
 
-        attackStateCoroutine = StartCoroutine(SpinWindup());
+        attackStateCoroutine = StartCoroutine(SpinWindup(tempLockedCharacter));
     }
 
     /// <summary>
     /// Handles the windup for the spin
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator SpinWindup()
+    public IEnumerator SpinWindup(Character tempLockedCharacter)
     {
         inCounter = false;
         attackingSecondary = true;
@@ -432,15 +436,11 @@ public class Goblin : Enemy
 
         float timeStarted = Time.time;
 
-        if (playerControlling) lockedCharacter = PlayerController.instance.GetLockedTarget();
-        else
+        if (!playerControlling)
         {
             counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
             counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
-            lockedCharacter = currentPlayer;
         }
-
-        Character tempLockedCharacter = lockedCharacter;
 
         if (tempLockedCharacter)
         {
@@ -641,8 +641,6 @@ public class Goblin : Enemy
 
         while (animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
-            Debug.Log(animator.GetCurrentState());
-            Debug.Log(aiState);
             SetMovementValues(false);
             yield return null;
         }
