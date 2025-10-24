@@ -56,6 +56,12 @@ public class PlayerController : MonoBehaviour
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
 
+    [Tooltip("Player Modifier Volume")]
+    [SerializeField] NavMeshModifierVolume playerZone;
+
+    [Tooltip("Navmesh Surface")]
+    [SerializeField] NavMeshSurface surface;
+
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
@@ -88,12 +94,6 @@ public class PlayerController : MonoBehaviour
     {
         characterController = controller;
     }
-    
-    [Tooltip("Player Modifier Volume")]
-    [SerializeField] NavMeshModifierVolume playerZone;
-
-    [Tooltip("Navmesh Surface")]
-    [SerializeField] NavMeshSurface surface;
 
     private void Start()
     {
@@ -303,6 +303,7 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+
     /// <summary>
     /// This is called when the player interacts with the interactable object
     /// It will trigger the pickup event
