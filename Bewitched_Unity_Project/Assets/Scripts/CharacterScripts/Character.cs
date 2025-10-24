@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Cinemachine;
-using UnityEngine.AI;
 using DG.Tweening;
 using FMOD;
 using Debug = UnityEngine.Debug;
@@ -184,7 +183,7 @@ public abstract class Character : MonoBehaviour
     }
 
     [Tooltip("The attack state")]
-    protected AttackState attackState;
+    public AttackState attackState;
 
     #region Saving/Loading
 
@@ -440,7 +439,7 @@ public abstract class Character : MonoBehaviour
     {
         if (duration > 0)
         {
-            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
+            if (hitStunPrefab && hitStunActual != null) hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)

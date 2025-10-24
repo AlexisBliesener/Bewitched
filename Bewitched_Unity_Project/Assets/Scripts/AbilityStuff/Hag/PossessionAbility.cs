@@ -269,7 +269,7 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.started && currentCharacter.attackState == Character.AttackState.Neutral)
         {
             counteringEnemy = PlayerController.instance.GetCounterAvailable();
             if (possessionCharge == hitsToCharge)
@@ -279,7 +279,7 @@ public class PossessionAbility : MonoBehaviour
             }
             else if (counteringEnemy != null)
             {
-                StartCoroutine( Dodge(counteringEnemy.gameObject));
+                StartCoroutine(Dodge(counteringEnemy.gameObject));
             }
         }
         else

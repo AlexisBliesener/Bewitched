@@ -91,21 +91,15 @@ public class Goblin : Enemy
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
-        SetAgentValues();
         SetDebuggingValues();
         SetPatrolOrigin();
 
         aiState = AIMovementState.Patrolling;
-
-        // Set update position to false so the agent does not try to move the character since we are controlling it (AiMove function)
-        agent.updatePosition = false;
-        agent.updateRotation = false;
-        agent.enabled = false; // Disable navmesh agent since we are not using it at all
     }
 
     protected void FixedUpdate()
     {
-        if (dead) return;
+        if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetAIState();
@@ -168,14 +162,6 @@ public class Goblin : Enemy
     {
         hitCharacter = false;
         SetMovementValues(false);
-        if (!playerControlling)
-        {
-            PlayerController.instance.SetAllowMovement(false);
-        }
-        else
-        {
-            aiState = AIMovementState.Blocked;
-        }
 
         if (lockedCharacter)
         {
@@ -187,14 +173,22 @@ public class Goblin : Enemy
         }
         attackingPrimary = true;
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (playerControlling)
         {
-            inPrimaryWindup = true;
-            attackStateCoroutine = StartCoroutine(KnifeWindup());
+            if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            {
+                inPrimaryWindup = true;
+                attackStateCoroutine = StartCoroutine(KnifeWindup());
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(HandleStab());
+            }
         }
         else
         {
-            attackStateCoroutine = StartCoroutine(HandleStab());
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(KnifeWindup());
         }
         
     }
@@ -214,6 +208,7 @@ public class Goblin : Enemy
         // Strider 9/30/25: moved this to a variable, need to adjust
         while (Time.time - timeStarted < 0.2f / animator.GetPrimaryWindupMult())
         {
+            SetMovementValues(false);
             if (lockedCharacter)
             {
                 Vector3 direc = lockedCharacter.transform.position - transform.position;
@@ -239,14 +234,14 @@ public class Goblin : Enemy
             float dis = Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position);
             Vector3 direction = (lockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + 0.5f);
+            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + offSetForward);
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
                 // Move just before environment hit point
                 dis = hit.distance;
-                targetPos = hit.point - direction * GetCharacterController().radius;
+                targetPos = hit.point - direction * (sizeRadius + offSetForward);
             }
             targetPos.y = oldY;
             transform.DOMove(targetPos, chaseTime * dis);
@@ -257,6 +252,11 @@ public class Goblin : Enemy
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
+                if (Vector3.Distance(transform.position, lockedCharacter.transform.position) < sizeRadius + offSetForward)
+                {
+                    DOTween.Kill(gameObject); // Kill tweens if we are too close
+                }
+                
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
                     if(!triggerSet)
@@ -351,7 +351,6 @@ public class Goblin : Enemy
         if (!playerControlling) { currentPrimaryComboStep = 0; }
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
-        Debug.Log("Starting Stab");
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
@@ -367,7 +366,6 @@ public class Goblin : Enemy
             }
         }
 
-        Debug.Log("Ending stab");
         SetMovementValues(true);
 
         attackState = AttackState.Neutral;
@@ -632,9 +630,11 @@ public class Goblin : Enemy
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
 
-        while (animator.GetCurrentState() == "ExitSecondaryAttack" || animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
+        while (animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
-            Debug.Log("Ending spin");
+            Debug.Log(animator.GetCurrentState());
+            Debug.Log(aiState);
+            SetMovementValues(false);
             yield return null;
         }
 
@@ -737,7 +737,7 @@ public class Goblin : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         else // If no current path, mark as available
@@ -795,7 +795,7 @@ public class Goblin : Enemy
             {
                 if (debugging)
                 {
-                    StartPath(false);
+                    StartPath();
                 }
 
                 reachedWalkpoint = false;
@@ -839,7 +839,7 @@ public class Goblin : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -856,7 +856,7 @@ public class Goblin : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -877,7 +877,7 @@ public class Goblin : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
@@ -896,7 +896,7 @@ public class Goblin : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();

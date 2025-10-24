@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3852248043185768998}
   - component: {fileID: 4388634277021614962}
   - component: {fileID: 6169657856336344411}
-  - component: {fileID: 5347660582151986861}
   - component: {fileID: -6918275186734421657}
   - component: {fileID: 1348470291095463243}
   - component: {fileID: 1604847013949478277}
@@ -150,7 +149,6 @@ MonoBehaviour:
   - 0.3
   - 0.6
   - 0.3
-  counterIndicatorVFX: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -171,13 +169,15 @@ MonoBehaviour:
   maxSightAngle: 60
   hearingRange: 2
   patrolRange: 10
+  minimumSurroundingDistance: 3
+  maximumSurroundingDistance: 5
   timeBeforeSearch: 0.67
   attackDelayAI: 0.5
   primaryAttackChance: 0.5
   secondaryAttackChance: 0.5
   lowHealthThresholdPercentage: 30
   moveToTargetDistance: 3.5
-  agent: {fileID: 5347660582151986861}
+  agent: {fileID: 0}
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
   pathState: 0
@@ -231,28 +231,6 @@ MonoBehaviour:
   minPatrolDistance: 3
   maxPatrolDistance: 5
   communicationRange: 30
---- !u!195 &5347660582151986861
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2305004250363809269}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 1
-  m_Speed: 3.5
-  m_Acceleration: 7
-  avoidancePriority: 3
-  m_AngularSpeed: 10000
-  m_StoppingDistance: 1
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 1
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &-6918275186734421657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1906,6 +1884,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventsPlaying: []
   character: {fileID: 6169657856336344411}
+  isEventEnemy: 0
 --- !u!4 &7881905517430963790 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
