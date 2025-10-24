@@ -230,13 +230,13 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach()
     {
         attackState = AttackState.Approaching;
-
-        if (lockedCharacter)
+        Character tempLockedChar = lockedCharacter;
+        if (tempLockedChar)
         {
-            float dis = Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position);
-            Vector3 direction = (lockedCharacter.transform.position - transform.position).normalized;
+            float dis = Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position);
+            Vector3 direction = (tempLockedChar.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = lockedCharacter.transform.position - direction * (GetCharacterController().radius + lockedCharacter.GetCharacterController().radius + offSetForward);
+            targetPos = tempLockedChar.transform.position - direction * (GetCharacterController().radius + tempLockedChar.GetCharacterController().radius + offSetForward);
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
@@ -254,7 +254,7 @@ public class Goblin : Enemy
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (Vector3.Distance(transform.position, lockedCharacter.transform.position) < sizeRadius + offSetForward)
+                if (Vector3.Distance(transform.position, tempLockedChar.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                 }
@@ -329,10 +329,10 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
 
-        if (lockedCharacter)
+        if (tempLockedChar)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedChar.SetAttacker(null);
+            if (tempLockedChar.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
@@ -440,10 +440,12 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter)
+        Character tempLockedCharacter = lockedCharacter;
+
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(this);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(this);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(true);
             }
@@ -453,9 +455,9 @@ public class Goblin : Enemy
         while (Time.time - timeStarted < 0.125f / animator.GetSecondaryWindupMult())
         {
             SetMovementValues(false);
-            if (lockedCharacter)
+            if (tempLockedCharacter)
             {
-                Vector3 direc = lockedCharacter.transform.position - transform.position;
+                Vector3 direc = tempLockedCharacter.transform.position - transform.position;
                 direc.y = 0;
                 Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
@@ -465,7 +467,7 @@ public class Goblin : Enemy
             yield return null;
         }
         numDeflections = 0;
-        attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance, spinRotationalSpeed));
+        attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance, spinRotationalSpeed, tempLockedCharacter));
     }
 
     /// <summary>
@@ -475,7 +477,7 @@ public class Goblin : Enemy
     /// <param name="desiredRotation"> Rotation to reach for goblin spin </param>
     /// <param name="newDirection"> Velocity to move at, zero by default if unset </param>
     /// <returns> Time </returns>
-    public IEnumerator HandleSpin(float distance, float desiredRotation, Vector3 direction = default)
+    public IEnumerator HandleSpin(float distance, float desiredRotation, Character tempLockedCharacter, Vector3 direction = default)
     {
         attackState = AttackState.Attacking;
         if (distance < 0.5f)
@@ -507,9 +509,9 @@ public class Goblin : Enemy
         {
             if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
 
-            if (lockedCharacter)
+            if (tempLockedCharacter)
             {
-                desiredVelocity = (lockedCharacter.transform.position - transform.position).normalized;
+                desiredVelocity = (tempLockedCharacter.transform.position - transform.position).normalized;
             }
             else
             {
@@ -613,10 +615,10 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
@@ -625,10 +627,10 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
@@ -969,7 +971,7 @@ public class Goblin : Enemy
         if (attackStateCoroutine != null) // If coroutine has ended, end this
         {
             StopCoroutine(attackStateCoroutine);
-            attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance - spinDistanceDropoff * numDeflections, spinRotationalSpeed * rotationMultiplier, deflectDirection));
+            attackStateCoroutine = StartCoroutine(HandleSpin(spinDistance - spinDistanceDropoff * numDeflections, spinRotationalSpeed * rotationMultiplier, lockedCharacter, deflectDirection));
             rotationalVelocity = -rotationalVelocity / 2; // Reverse rotational speed and halve it
             Destroy(caller.gameObject);
         }

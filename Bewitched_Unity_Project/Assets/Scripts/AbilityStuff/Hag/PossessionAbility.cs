@@ -355,8 +355,10 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
-    private void RespawnEleth()
+    private IEnumerator RespawnEleth()
     {
+        // gives eleth 0.1f sec of invinciblity so she doesnt get hit by the same attack that killed the enemy she was possessing
+        eleth.health.SetInvincible(true);
         if (!GrandFinale.instance.GetActive())
         {
             // respawn old Hag
@@ -367,6 +369,8 @@ public class PossessionAbility : MonoBehaviour
         {
             GrandFinale.instance.Explode(timePossessing, false);
         }
+        yield return new WaitForSeconds(0.1f);
+        eleth.health.SetInvincible(false);
     }
 
     /// <summary>
