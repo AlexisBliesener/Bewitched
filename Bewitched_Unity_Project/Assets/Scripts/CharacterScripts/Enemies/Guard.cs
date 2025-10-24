@@ -169,6 +169,7 @@ public class Guard : Enemy
     // Update is called once per frame
     void Update()
     {
+        if (dead || lobotimzed) return;
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
         SetAIState();
@@ -374,7 +375,7 @@ public class Guard : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         else // If no current path, mark as available
@@ -453,7 +454,7 @@ public class Guard : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -489,7 +490,7 @@ public class Guard : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -509,7 +510,7 @@ public class Guard : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
@@ -528,7 +529,7 @@ public class Guard : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
