@@ -168,6 +168,8 @@ public class AttackStatusEffects : MonoBehaviour
     /// <param name="hitbox"> Hitbox the attack is using </param>
     public void ApplyTimeStop(Character user, Character character, DefaultHitbox hitbox)
     {
+        if (timeStopDuration == 0) return;
+
         Time.timeScale = 0;
         user.StartCoroutine(user.StartTime(timeStopDuration));
     }

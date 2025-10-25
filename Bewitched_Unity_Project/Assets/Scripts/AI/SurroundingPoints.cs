@@ -56,6 +56,20 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Distance for node reset")]
     [SerializeField] float resetCostlyAreaDistance = 1;
 
+    [Tooltip("The time between a room switching before enemies can attack")]
+    float roomSwapEnemyWaitTime = 3;
+
+    [Tooltip("Active room for enemies")]
+    RoomController activeRoom = null;
+
+    [Tooltip("Time since room swap")]
+    private float timeLastRoomSwap;
+
+    private void Start()
+    {
+        timeLastRoomSwap = Time.time;
+    }
+
     private void Update()
     {
         if (pointsActive)
@@ -63,6 +77,12 @@ public class SurroundingPoints : MonoBehaviour
             HandlePointsEachFrame();
             HandleSurroundAttack();
             CreateLocalCostlyArea();
+        }
+
+        if (RoomSystem.Instance.GetActiveRoomController() != activeRoom)
+        {
+            activeRoom = RoomSystem.Instance.GetActiveRoomController();
+            timeLastRoomSwap = Time.time;
         }
     }
 
@@ -218,7 +238,7 @@ public class SurroundingPoints : MonoBehaviour
                                 closestDist = distance;
                             }
                         }
-                        else if (enemy.agent.avoidancePriority < tempCompetition.agent.avoidancePriority) // If not the same type, compare priority
+                        else if (enemy.pathfindingPriority < tempCompetition.pathfindingPriority) // If not the same type, compare priority
                         {
                             competition = tempCompetition;
                             closestPoint = point;
@@ -324,12 +344,12 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
-        if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0)
+        if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0 && activeRoom != null && Time.time - timeLastRoomSwap > roomSwapEnemyWaitTime)
         {
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (!enemy.IsNeutral()) // If coming across an enemy in an attack dont attack
+                if (!enemy.IsNeutral() || enemy.lobotimzed) // If coming across an enemy in an attack dont attack
                 {
                     startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                     timeLastAttack = Time.time;
@@ -361,7 +381,7 @@ public class SurroundingPoints : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius + 1.5f);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, 8000);
+                GraphBuilder.instance.AddNodeCost(position, (int)Mathf.Pow(GetComponent<Character>().sizeRadius,2));
             }
             lastCostlyPosition = transform.position;
         }
@@ -374,7 +394,7 @@ public class SurroundingPoints : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, -8000);
+            GraphBuilder.instance.AddNodeCost(position, -(int)Mathf.Pow(GetComponent<Character>().sizeRadius, 2));
         }
     }
 }

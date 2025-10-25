@@ -169,9 +169,12 @@ public class Guard : Enemy
     // Update is called once per frame
     void Update()
     {
+        if (dead || lobotimzed) return;
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
+        SetAIState();
         SetBehavior();
+        CreateLocalInvalidArea();
     }
 
     public override void PrimaryAttack()
@@ -372,7 +375,7 @@ public class Guard : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         else // If no current path, mark as available
@@ -441,7 +444,7 @@ public class Guard : Enemy
         {
             if (LookForPlayer())
             {
-                StartCoroutine(SpotPlayer());
+                TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
             timer += Time.deltaTime;
@@ -451,7 +454,7 @@ public class Guard : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -487,22 +490,10 @@ public class Guard : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -519,23 +510,11 @@ public class Guard : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) > surroundingToChaseRadius) // If within a meter and a half of surrounding radius
-            {
-                aiState = AIMovementState.Chasing;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.RemoveSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -550,22 +529,10 @@ public class Guard : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
-
-        if (currentPath != null)
-        {
-            if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= chaseToSurroundingRadius) // If within range
-            {
-                aiState = AIMovementState.Surrounding;
-                if (currentPlayer.TryGetComponent(out SurroundingPoints points))
-                {
-                    points.AddSurroundingEnemy(this);
-                }
-            }
-        }
     }
 
     /// <summary>

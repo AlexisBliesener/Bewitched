@@ -99,7 +99,7 @@ public class OgreTests
         pivotField.SetValue(testOgre, batPivot);
 
         attackIndicatorPrefab = new GameObject("AttackIndicator");
-        testOgre.attackIndicatorPrefab = attackIndicatorPrefab;
+        testOgre.counterIndicatorVFXPrefab = attackIndicatorPrefab;
 
         // Create mock player
         mockPlayer = new GameObject("MockPlayer");
@@ -178,8 +178,7 @@ public class OgreTests
     public IEnumerator ScreamWindup_TransitionsToHandleScream()
     {
         yield return testOgre.StartCoroutine(testOgre.ScreamWindup());
-        FieldInfo attackStateField = typeof(Ogre).GetField("attackState", BindingFlags.Instance | BindingFlags.NonPublic);
-        Character.AttackState attackState = (Character.AttackState)attackStateField.GetValue(testOgre);
+        Character.AttackState attackState = testOgre.attackState;
         Assert.AreEqual(Character.AttackState.Windup, attackState);
     }
 

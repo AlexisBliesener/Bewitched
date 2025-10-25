@@ -177,13 +177,18 @@ public class DefaultHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (active)
+        if (active && user != null)
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && !hitChars.Contains(character) && character != user && !character.Invulnerable() && character.teamID != user.teamID)
+                if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible() && character.teamID != user.teamID)
                 {
                     character.health.SubHealth(damage);
+
+                    if(character == PlayerController.instance.currentCharacter)
+                    {
+                        CameraController.instance.PlayerHitBy(user.gameObject);
+                    }
 
                     // Increments the possession ability charge if the hit has done to anything other than the player
                     if(character != PlayerController.instance.currentCharacter)

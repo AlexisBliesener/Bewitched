@@ -208,4 +208,25 @@ public class RoomSystem : MonoBehaviour
         }
         return null;
     }
+
+    /// <summary>
+    /// Gets the RoomController by its coordinates
+    /// </summary>
+    /// <param name="coords"> Coordinates to search from </param>
+    /// <param name="range"> Range of room bounds </param>
+    /// <returns> RoomController with bounds containing coords </returns>
+    public RoomController GetRoomFromCoordinates(Vector3 coords, float range)
+    {
+        Debug.Log("Node Coordinates: " + coords);
+        foreach (RoomData room in rooms)
+        {
+            Debug.Log(room.roomName + room.roomController.GetRoomBounds());
+            if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
+            {
+                return room.roomController;
+            }
+        }
+        Debug.Log("Here");
+        return null;
+    }
 }
