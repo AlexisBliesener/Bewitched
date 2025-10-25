@@ -177,7 +177,7 @@ public class DefaultHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (active)
+        if (active && user != null)
         {
             if (other.TryGetComponent(out Character character))
             {
