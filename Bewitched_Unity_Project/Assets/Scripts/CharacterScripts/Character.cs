@@ -74,9 +74,8 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Can the player possess the character?")]
     public bool canPossess = true;
 
-    [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Duration")]
-    public float hitStunDuration = 0.5f;
+    protected float hitStunDuration = 0.12f;
 
     protected float timeLastPrimary = -Mathf.Infinity;
     protected float timeLastSecondary = -Mathf.Infinity;
