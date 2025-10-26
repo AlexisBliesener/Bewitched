@@ -87,7 +87,7 @@ public class HUDManager : MonoBehaviour
         rt.pivot = new Vector2(0.5f, 1f);
 
         int count = upgradeDict[upgradeID].childCount - 1;
-        float overlap = 20f;
+        float overlap = 15f;
 
         rt.anchoredPosition = new Vector2(0, -count * overlap);
         upgradeObject.transform.SetAsFirstSibling();
