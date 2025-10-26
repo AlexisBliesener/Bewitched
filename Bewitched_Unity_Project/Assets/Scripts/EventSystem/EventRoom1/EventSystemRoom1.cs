@@ -43,6 +43,8 @@ public class EventSystemRoom1 : MonoBehaviour
     [SerializeField, Tooltip("The door to open when the event enemy is possessed")]
     private IDoor door;
 
+    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]
+
 
     private void Start()
     {
@@ -54,6 +56,7 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             Debug.LogWarning("HUD is null on event system room 1");
         }
+
     }
     /// <summary>
     /// Handles when the event enemy is triggered by the player to activate the fight
@@ -102,9 +105,11 @@ public class EventSystemRoom1 : MonoBehaviour
                     fightState = FightState.Ending;
                     timeDizzyStarted = Time.time;
                     enemyEvent.SetState(EventEnemy.EventEnemyState.Dizzy);
+                    // Make the health bar flashing on dizzy state
+                    enemyEvent.GetEnemy().health.GetComponent<EventHealth>().SetFlashing(true);
                 }
                 break;
-            case FightState.Ending:
+            case FightState.Ending: // Ending = dizzy 
                 if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
                     // this mean the player has possessed the enemy, change the state to finished for the fight
@@ -124,6 +129,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
                 fightState = FightState.Fighting;
                 enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);
+                enemyEvent.GetEnemy().health.GetComponent<EventHealth>().SetFlashing(false);
                 break;
             case FightState.Finished:
                 break;
@@ -199,6 +205,7 @@ public class EventSystemRoom1 : MonoBehaviour
         enemySpawner.Activate();
         // show all the HUD
         if (hud != null) { hud.SetActive(true); }
+        enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
     }
 }
 
