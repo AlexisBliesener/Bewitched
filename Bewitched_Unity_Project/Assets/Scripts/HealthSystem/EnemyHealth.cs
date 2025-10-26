@@ -9,6 +9,15 @@ public class EnemyHealth : HealthController
     [Header("Debug")]
     [SerializeField, Tooltip("Immediately kill this enemy")]
     bool kill;
+
+    [Tooltip("The animator that controls this enemy")]
+    private CharacterAnimator characterAnimator;
+
+    private void Start()
+    {
+        characterAnimator = GetComponent<CharacterAnimator>();
+    }
+
     /// <summary>
     /// Override to show mini health bar when damaged by player
     /// </summary>
@@ -17,6 +26,7 @@ public class EnemyHealth : HealthController
         // To show mini health bar when damaged by player if the player wasn't the enemy itself
         float finalDamage = amt;
         Enemy enemy = GetCharacter() as Enemy;
+
         if (enemy != null && !enemy.IsPlayerControlling())
         {
             // Apply Adrenaline buff if active
@@ -25,6 +35,7 @@ public class EnemyHealth : HealthController
                 finalDamage = Adrenaline.instance.GetModifiedDamage(amt);
             }
             ShowMiniHealthBar(true, GetCharacter());
+            StartCoroutine(characterAnimator.SetHit());
         }
         base.SubHealth(finalDamage);
     }
