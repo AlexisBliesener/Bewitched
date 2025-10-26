@@ -575,7 +575,7 @@ public abstract class Enemy : Character
     {
         if (hitStunActual != null)
         {
-            if (Time.time - health.TimeLastHit > hitStunDuration)
+            if (Time.time - health.TimeLastHit > hitStunDuration / GetComponent<CharacterAnimator>().GetHitStunMult())
             {
                 SetMovementValues(true);
             }
