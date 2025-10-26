@@ -981,8 +981,6 @@ public class Goblin : Enemy
     /// <returns> True if attacking, false otherwise </returns>
     public override bool AttackFromSurrounding(SurroundingPoints points)
     {
-        if (playerControlling) return false;
-
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
 

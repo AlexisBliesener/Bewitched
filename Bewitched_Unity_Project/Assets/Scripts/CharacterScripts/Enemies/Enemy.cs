@@ -962,4 +962,9 @@ public abstract class Enemy : Character
 
         aiState = state;
     }
+
+    /// <summary>
+    /// Returns alive state of enemy
+    /// </summary>
+    public bool IsDead => dead;
 }

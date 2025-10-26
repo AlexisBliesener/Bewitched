@@ -349,7 +349,7 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (!enemy.IsNeutral() || enemy.lobotimzed) // If coming across an enemy in an attack dont attack
+                if (!enemy.IsNeutral() || enemy.lobotimzed || enemy.IsDead || enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                     timeLastAttack = Time.time;
