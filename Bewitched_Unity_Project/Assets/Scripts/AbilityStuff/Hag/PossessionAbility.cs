@@ -599,7 +599,6 @@ public class PossessionAbility : MonoBehaviour
             currentCharacter.SetControlled(false);
         }
         
-        currentCharacter.DeactivateSurroundingPoints();
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
@@ -655,7 +654,6 @@ public class PossessionAbility : MonoBehaviour
             timePossessing = Time.time;
         }
         currentCharacter = newCharacter;
-        currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
 
         if(currentCharacter.GetComponent<CharacterController>() != null )

@@ -91,6 +91,12 @@ public abstract class Enemy : Character
 
     protected NavPath currentPath;
 
+    /// <summary>
+    /// Path getter function
+    /// </summary>
+    /// <returns> The path for this enemy </returns>
+    public NavPath GetNavPath() { return currentPath; }
+
     protected bool reachedWalkpoint = true;
 
     protected bool lookAtPlayer = false;
@@ -932,7 +938,7 @@ public abstract class Enemy : Character
             }
             if (state == AIMovementState.Surrounding)
             {
-                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
+                SurroundingPoints.instance.AddSurroundingEnemy(this);
             }
         }
         else if (aiState == AIMovementState.Surrounding)
@@ -941,7 +947,7 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
             }
-            currentPlayer.GetSurroundingPoints().RemoveSurroundingEnemy(this);
+            SurroundingPoints.instance.RemoveSurroundingEnemy(this);
         }
         else if (aiState == AIMovementState.Retreating)
         {
@@ -952,7 +958,7 @@ public abstract class Enemy : Character
             }
             if (state == AIMovementState.Surrounding)
             {
-                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
+                SurroundingPoints.instance.AddSurroundingEnemy(this);
             }
         }
         else if (aiState == AIMovementState.Blocked)

@@ -330,7 +330,6 @@ GameObject:
   - component: {fileID: 1936789453594467898}
   - component: {fileID: -4911733195017043695}
   - component: {fileID: -4642130304282130039}
-  - component: {fileID: -9206881998534952683}
   - component: {fileID: 6302369574877686289}
   - component: {fileID: 4578869385171369304}
   m_Layer: 7
@@ -446,6 +445,7 @@ MonoBehaviour:
   minSurroundingRadius: 2
   maxSurroundingRadius: 5
   teamID: 2
+  priority: 2
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1.25
@@ -455,7 +455,6 @@ MonoBehaviour:
   primaryAttackRange: 5
   health: {fileID: 0}
   canPossess: 1
-  hitStunDuration: 0.3
   primaryComboResetTime: []
   primaryComboMinTime: []
   characters:
@@ -470,6 +469,8 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 0}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 0}
+  attackState: 0
+  lobotimzed: 0
   minStopDistance: 2
   seenBuffer: 0.5
   surroundingToChaseRadius: 4
@@ -486,7 +487,6 @@ MonoBehaviour:
   secondaryAttackChance: 0
   lowHealthThresholdPercentage: 30
   moveToTargetDistance: 0
-  agent: {fileID: 0}
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
   pathState: 0
@@ -628,26 +628,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &-9206881998534952683
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1345228425115439027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 0
-  debugging: 0
-  pointObjPrefab: {fileID: 0}
-  minAttackTime: 0
-  maxAttackTime: 2
-  resetCostlyAreaDistance: 1
 --- !u!114 &6302369574877686289
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -685,6 +665,7 @@ MonoBehaviour:
   walkSpeedMult: 1
   idleSpeedMult: 1
   deathSpeedMult: 1
+  hitStunMult: 1
 --- !u!1 &1746353363804849243
 GameObject:
   m_ObjectHideFlags: 0

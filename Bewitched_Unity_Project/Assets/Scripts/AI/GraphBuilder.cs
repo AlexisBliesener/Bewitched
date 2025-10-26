@@ -72,8 +72,11 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("If an enemy is searching currently")]
     bool searching = false;
 
-    [Tooltip("If we are testing")]
+    [Tooltip("If we are testing the search")]
     [SerializeField] bool testing = false;
+
+    [Tooltip("If we are showing the graph")]
+    [SerializeField] bool showGraph = false;
 
     [Tooltip("Destination marker object")]
     [SerializeField] GameObject testDestinationObj;
@@ -108,6 +111,9 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
 
+    [Tooltip("List of node objects created to show graph")]
+    Dictionary<Node, GameObject> shownNodes = new Dictionary<Node, GameObject>();
+
     private Coroutine searchRoutine = null;
 
     // Start is called before the first frame update
@@ -121,6 +127,25 @@ public class GraphBuilder : MonoBehaviour
     /// </summary>
     void Awake()
     {
+        if (showGraph)
+        {
+            foreach (SerializableDictionary<int, SerializableDictionary<int, Node>> mini1 in nodeDictionary.Values)
+            {
+                foreach (SerializableDictionary<int, Node> mini2 in mini1.Values)
+                {
+                    foreach (Node node in mini2.Values)
+                    {
+                        GameObject inst = Instantiate(testSearchedNode, transform);
+                        Vector3 pos = node.GetPosition();
+                        pos.y += 5;
+                        inst.transform.localPosition = pos;
+
+                        shownNodes[node] = inst;
+                    }
+                }
+            }
+        }
+
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -132,6 +157,14 @@ public class GraphBuilder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (showGraph)
+        {
+            foreach (Node node in shownNodes.Keys)
+            {
+                shownNodes[node].GetComponent<Renderer>().material.color = Color.Lerp(Color.white, Color.red, node.GetCost() / 25);
+            }
+        }
+
         if (searchRoutine == null)
         {
             searchRoutine = StartCoroutine(HandleSearching());
@@ -478,12 +511,12 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="enemy"> Enemy looking for path </param>
     /// <param name="destination"> Destination location </param>
     /// <returns></returns>
-    public IEnumerator AStarSearch(Enemy enemy, Vector3 destination)
+    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination)
     {
         searching = true;
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
-        Node origin = FindClosestNode(enemy.transform.position);
+        Node origin = FindClosestNode(originPos);
         Node targetNode = FindClosestNode(destination);
 
         if (origin == null || targetNode == null)
@@ -541,7 +574,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
@@ -691,15 +724,6 @@ public class GraphBuilder : MonoBehaviour
     {
         createdObjects = new List<GameObject>();
 
-        if (costlyOrigin)
-        {
-            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
-            foreach (List<int> positions in costlyNodes)
-            {
-                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(costlyAreaCost);
-            }
-        }
-
         lineRenderer.positionCount = 0;
 
         StartCoroutine(SequentialAStar(testingEnemy, testDestinationObj.transform.position));
@@ -743,14 +767,11 @@ public class GraphBuilder : MonoBehaviour
             closedSet.Add(current);
             numSearched++;
 
-            Debug.Log("Current Node: " + current.GetPosition(enemy.gameObject).ToString() + " and hash code: " + current.GetHashCode().ToString() + " and cost: " + current.GetCost());
-            Debug.Log("It's y position: " + current.GetYPos());
-
             GameObject testNode = Instantiate(testSearchedNode);
             testNode.transform.position = current.GetPosition(enemy.gameObject);
             testNode.transform.position = new Vector3(testNode.transform.position.x, testNode.transform.position.y + 1, testNode.transform.position.z);
 
-            float costMagnitude = current.GetCost() / 1000;
+            float costMagnitude = current.GetCost(enemy) / 1000;
             Renderer objRenderer = testNode.GetComponent<Renderer>();
             objRenderer.material.color = new Color(costMagnitude, costMagnitude, costMagnitude);
 
@@ -788,7 +809,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
@@ -820,14 +841,6 @@ public class GraphBuilder : MonoBehaviour
             Destroy(obj);
         }
 
-        if (costlyOrigin)
-        {
-            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
-            foreach (List<int> positions in costlyNodes)
-            {
-                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(-costlyAreaCost);
-            }
-        }
         lineRenderer.positionCount = 0;
     }
 
@@ -889,10 +902,11 @@ public class GraphBuilder : MonoBehaviour
     /// Adds a cost to a node based on the node position
     /// </summary>
     /// <param name="position"> Position values of node </param>
+    /// <param name="character"> Character setting a cost </param>
     /// <param name="cost"> Cost to add to node </param>
-    public void AddNodeCost(List<int> position, int cost)
+    public void AddNodeCost(List<int> position, Character character, int cost)
     {
-        nodeDictionary[position[0]][position[1]][position[2]].AddCost(cost);
+        nodeDictionary[position[0]][position[1]][position[2]].AddCost(character, cost);
     }
 
     /// <summary>

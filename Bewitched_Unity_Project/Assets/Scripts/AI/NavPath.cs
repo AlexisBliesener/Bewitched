@@ -10,9 +10,6 @@ using UnityEngine.AI;
 /// </summary>
 public class NavPath
 {
-    [Tooltip("Total path cost")]
-    float totalCost;
-
     [Tooltip("Actual distance of path")]
     float distance;
 
@@ -39,7 +36,6 @@ public class NavPath
     /// </summary>
     public NavPath()
     {
-        totalCost = 0;
         distance = 0;
         origin = null;
         destination = null;
@@ -49,7 +45,6 @@ public class NavPath
 
     public NavPath(Enemy enemy)
     {
-        totalCost = 0;
         distance = 0;
         origin = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
         destination = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
@@ -113,8 +108,6 @@ public class NavPath
             Node next = GraphBuilder.instance.GetNodeFromTuple(jumpVertex.GetNode(currentNode));
 
             distance += jumpVertex.GetDistance();
-
-            totalCost += jumpVertex.GetDistance() + next.GetCost();
 
             Tuple<int, int, int> jumpDirection = GetDirection(currentNode.GetNodeValues(), next.GetNodeValues());
 
@@ -219,6 +212,40 @@ public class NavPath
     public bool PathComplete()
     {
         return pathComplete;
+    }
+
+    public void AdjustPath(Character currentPlayer, Enemy enemy)
+    {
+        float goalDistance = currentPlayer.sizeRadius + (currentPlayer.maxSurroundingRadius + currentPlayer.minSurroundingRadius) / 2;
+        float minScore = Mathf.Infinity;
+        Node bestNode = null;
+
+        List<Node> newCorners = new List<Node>();
+        List<Node> newPositions = new List<Node>();
+
+        foreach (Node node in positions)
+        {
+            float dist = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
+            float score = (float)(0.1 * node.GetCost() + Mathf.Abs(dist - goalDistance));
+
+            if (score < minScore)
+            {
+                minScore = score;
+                bestNode = node;
+            }
+        }
+
+        foreach (Node node in positions)
+        {
+            newPositions.Add(node);
+            if (corners.Contains(node)) newCorners.Add(node);
+            if (node == bestNode) break;
+        }
+
+        destination = bestNode;
+        if (!newCorners.Contains(bestNode)) newCorners.Add(bestNode);
+        corners = newCorners;
+        positions = newPositions;
     }
 }
 

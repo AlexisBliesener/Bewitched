@@ -2367,6 +2367,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventsPlaying: []
   character: {fileID: 0}
+  isEventEnemy: 0
 --- !u!95 &8043270076455531339
 Animator:
   serializedVersion: 5
@@ -3441,7 +3442,6 @@ GameObject:
   - component: {fileID: 5217174856955666005}
   - component: {fileID: 1515034274812679110}
   - component: {fileID: 3937552589655486426}
-  - component: {fileID: 3001831873393093468}
   - component: {fileID: 4902741983886367773}
   m_Layer: 7
   m_Name: Eleth
@@ -3489,6 +3489,7 @@ MonoBehaviour:
   walkSpeedMult: 1
   idleSpeedMult: 1
   deathSpeedMult: 1
+  hitStunMult: 1
   possessionSpeedMult: 1
   possessionAttackLength: 1.458
 --- !u!114 &5217174856955666005
@@ -3536,6 +3537,7 @@ MonoBehaviour:
   minSurroundingRadius: 2
   maxSurroundingRadius: 5
   teamID: 1
+  priority: 0
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1
@@ -3545,7 +3547,6 @@ MonoBehaviour:
   primaryAttackRange: 0
   health: {fileID: 5217174856955666005}
   canPossess: 1
-  hitStunDuration: 0.5
   primaryComboResetTime: []
   primaryComboMinTime: []
   characters:
@@ -3560,6 +3561,7 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 21300000, guid: 1cbb8d62684018f47b22eadc74c7d248, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
+  attackState: 0
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 2
@@ -3600,26 +3602,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.4, z: 0}
---- !u!114 &3001831873393093468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6457948663650330657}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 256
-  debugging: 0
-  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
-  minAttackTime: 1
-  maxAttackTime: 3
-  resetCostlyAreaDistance: 1
 --- !u!114 &4902741983886367773
 MonoBehaviour:
   m_ObjectHideFlags: 0
