@@ -82,7 +82,7 @@ public class ShopManager : MonoBehaviour
         UpdateSellOptions();
         //UI Audio Ducking
         AudioManager.OpenUIAudio();
-
+        AudioManager.TryPlayOneShot("ShopOpen");
     }
 
     /// <summary>
