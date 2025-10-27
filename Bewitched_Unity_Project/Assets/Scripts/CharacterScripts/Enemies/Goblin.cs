@@ -120,7 +120,7 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (!playerControlling || ( lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
         }
