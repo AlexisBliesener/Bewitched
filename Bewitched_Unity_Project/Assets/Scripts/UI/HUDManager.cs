@@ -77,8 +77,8 @@ public class HUDManager : MonoBehaviour
 
         // resizing the icons
         LayoutElement layout = upgradeObject.AddComponent<LayoutElement>();
-        layout.preferredWidth = 100;
-        layout.preferredHeight = 100;
+        layout.preferredWidth = 10;
+        layout.preferredHeight = 10;
 
         // Stacking 
         RectTransform rt = upgradeObject.GetComponent<RectTransform>();
