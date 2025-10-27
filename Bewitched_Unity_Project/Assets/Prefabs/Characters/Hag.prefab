@@ -386,7 +386,6 @@ GameObject:
   - component: {fileID: 8828446020428933963}
   - component: {fileID: 3730021192468053594}
   - component: {fileID: -772148356125373448}
-  - component: {fileID: 6914294341399529832}
   - component: {fileID: 6746886717747144383}
   - component: {fileID: 3478541869600220231}
   m_Layer: 7
@@ -525,34 +524,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50ba220f001e4464ab81379ce6d53add, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dev: 0
   characterName: Old Hag
+  modelPieces: []
   movementSpeed: 15
-  jumpSpeed: 0
+  approachSpeed: 7
   acceleration: 5
   deceleration: 5
+  rotationalVelocity: 240
+  chaseTime: 3
+  windupTime: 0.25
   weight: 5
   sizeRadius: 0.5
   numSurroundingPoints: 8
-  surroundingRadius: 3.5
+  minSurroundingRadius: 2
+  maxSurroundingRadius: 5
   teamID: 1
-  primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
-  secondaryFireIcon: {fileID: 0}
+  priority: 0
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 1
-  primaryComboExtraCooldown: 0
-  primaryComboSteps: 0
-  primaryComboResetTime: 0
+  primaryAttackCost: 0
   secondaryCooldown: 5
+  secondaryAttackCost: 0
   primaryAttackRange: 0
   health: {fileID: 0}
-  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
-  hitStunDuration: 0.5
+  canPossess: 1
+  primaryComboResetTime: []
+  primaryComboMinTime: []
   characters:
     serializedVersion: 2
     m_Bits: 128
+  combatCam: {fileID: 0}
+  aimCam: {fileID: 0}
+  exploreCam: {fileID: 0}
   attackEffects: []
   effectJSONs: []
+  primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
+  secondaryFireIcon: {fileID: 0}
+  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
+  counterIndicatorVFXPrefab: {fileID: 0}
+  attackState: 0
   knockbackAngle: 50
   knockbackRange: 1
   knockbackAmount: 10
@@ -561,6 +573,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   knockBackCone: {fileID: 2462584303736013082}
+  objectsToDisable: []
+  deathUI: {fileID: 0}
 --- !u!114 &-772148356125373448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -574,26 +588,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gettingKnockback: 0
---- !u!114 &6914294341399529832
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6457948663650330657}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 256
-  debugging: 1
-  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
-  minAttackTime: 1
-  maxAttackTime: 3
-  resetCostlyAreaDistance: 1
 --- !u!114 &6746886717747144383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -607,8 +601,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
+  deathUI: {fileID: 0}
 --- !u!114 &3478541869600220231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,9 +617,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryAnimationDelay: 0.5
+  dev: 0
+  primaryAnimationDelay: []
   secondaryAnimationDelay: 0.5
-  primaryAttackLength: 1
-  secondaryAttackLength: 1
-  animator: {fileID: 0}
-  characterController: {fileID: 0}
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
+  hitStunMult: 1

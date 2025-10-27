@@ -95,6 +95,7 @@ public class Goblin : Enemy
         SetBaseStats();
         SetDebuggingValues();
         SetPatrolOrigin();
+        sizeRadius = GetComponent<CharacterController>().radius;
 
         aiState = AIMovementState.Patrolling;
     }
@@ -205,7 +206,6 @@ public class Goblin : Enemy
     {
         inCounter = false;
         attackState = AttackState.Windup;
-        float timeStarted = Time.time;
         // save the current position to use the y value later
         targetPos = transform.position;
 
@@ -692,30 +692,15 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -770,7 +755,7 @@ public class Goblin : Enemy
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -886,6 +871,7 @@ public class Goblin : Enemy
             }
         }
         AILook();
+        CreateLocalSurroundingArea();
     }
 
     /// <summary>
@@ -981,8 +967,6 @@ public class Goblin : Enemy
     /// <returns> True if attacking, false otherwise </returns>
     public override bool AttackFromSurrounding(SurroundingPoints points)
     {
-        if (playerControlling) return false;
-
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
 
@@ -1011,6 +995,7 @@ public class Goblin : Enemy
                 // Coordinate other goblin attack here
             }
             points.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
             return true;
         }
         else

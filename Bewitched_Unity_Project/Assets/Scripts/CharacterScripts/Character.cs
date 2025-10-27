@@ -52,6 +52,8 @@ public abstract class Character : MonoBehaviour
     public float maxSurroundingRadius = 5;
     [Tooltip("Team of the character")]
     public int teamID;
+    [Tooltip("The priority of this character")]
+    public int priority = 1;
     [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
     private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
@@ -108,7 +110,6 @@ public abstract class Character : MonoBehaviour
     public float[] primaryComboResetTime;
     [Tooltip("Primary combo min time to wait to hit the next combo")]
     public float[] primaryComboMinTime;
-    private SurroundingPoints surroundingPoints;
 
     [Tooltip("Character to lock onto")]
     protected Character lockedCharacter = null;
@@ -139,10 +140,10 @@ public abstract class Character : MonoBehaviour
     List<List<int>> costlyNodes = new List<List<int>>();
 
     [Tooltip("Position the character was last time the nodes were reset")]
-    Vector3 previousCostlyPosition;
+    protected Vector3 previousCostlyPosition;
 
     [Tooltip("Threshold distance before resetting costly area")]
-    float invalidAreaResetThreshold = 0.5f;
+    protected float invalidAreaResetThreshold = 0.5f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
@@ -353,7 +354,6 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDeath(GameObject enemyGameObject)
     {
-        DeactivateSurroundingPoints();
         StopAllCoroutines();
         Die();
         // Stop all coroutines destroy all objects too
@@ -595,43 +595,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Create surrounding points for AI navigation
-    /// </summary>
-    public void ActivateSurroundingPoints()
-    {
-        if (!surroundingPoints)
-        {
-            gameObject.TryGetComponent<SurroundingPoints>(out surroundingPoints);
-        }
-
-        if (surroundingPoints != null)
-        {
-            surroundingPoints.Init(numSurroundingPoints, minSurroundingRadius, maxSurroundingRadius);
-        }
-    }
-
-    /// <summary>
-    /// Destroy the surrounding points when inactive
-    /// </summary>
-    public void DeactivateSurroundingPoints()
-    {
-        if(surroundingPoints != null)
-        {
-            surroundingPoints.DestroyPoints();
-        }
-    }
-
-    /// <summary>
-    /// Finds the closest available surrounding point
-    /// </summary>
-    /// <param name="enemy"> Enemy searching for a point </param>
-    /// <returns></returns>
-    public GameObject FindClosestSurroundingPoint(Enemy enemy)
-    {
-        return surroundingPoints.AssignPoint(enemy);
-    }
-
-    /// <summary>
     /// Deflects the user's current velocity towards a different direction
     /// </summary>
     /// <param name="direction"> Direction to deflect towards </param>
@@ -822,18 +785,6 @@ public abstract class Character : MonoBehaviour
         }
         dodging = false;
     }
-    /// <summary>
-    /// Gets the surrounding points component, if it's not found it will get it from the game object
-    /// </summary>
-    /// <returns> The surrounding points component </returns>
-    public SurroundingPoints GetSurroundingPoints()
-    {
-        if (surroundingPoints == null)
-        {
-            surroundingPoints = GetComponent<SurroundingPoints>();
-        }
-        return surroundingPoints;
-    }
 
     /// <summary>
     /// Creates a costly area around the player that enemies will avoid entering
@@ -847,7 +798,7 @@ public abstract class Character : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, (int)(sizeRadius * sizeRadius));
+                GraphBuilder.instance.AddNodeCost(position, this, 25);
             }
             previousCostlyPosition = transform.position;
         }
@@ -860,7 +811,7 @@ public abstract class Character : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, -(int)(sizeRadius * sizeRadius));
+            GraphBuilder.instance.AddNodeCost(position, this, -25);
         }
     }
     /// <summary>

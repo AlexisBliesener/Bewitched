@@ -45,7 +45,6 @@ GameObject:
   - component: {fileID: 1425984857738050746}
   - component: {fileID: 732372681308907037}
   - component: {fileID: 6417695604396302911}
-  - component: {fileID: -550221043697874190}
   - component: {fileID: 4985444316756526280}
   - component: {fileID: 8720534003032205823}
   - component: {fileID: 4731386785871686445}
@@ -159,7 +158,6 @@ MonoBehaviour:
   primaryAttackRange: 4
   health: {fileID: 0}
   canPossess: 1
-  hitStunDuration: 0.5
   primaryComboResetTime:
   - 0.5
   primaryComboMinTime:
@@ -176,6 +174,8 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 21300000, guid: 85dd53280ef138649b2847c71c0fb1ba, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 0}
+  attackState: 0
+  lobotimzed: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
   surroundingToChaseRadius: 6
@@ -192,7 +192,6 @@ MonoBehaviour:
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   moveToTargetDistance: 0
-  agent: {fileID: 0}
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0
@@ -337,26 +336,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &-550221043697874190
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2214453077761272128}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 0
-  debugging: 0
-  pointObjPrefab: {fileID: 0}
-  minAttackTime: 0
-  maxAttackTime: 2
-  resetCostlyAreaDistance: 1
 --- !u!114 &4985444316756526280
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,6 +375,7 @@ MonoBehaviour:
   walkSpeedMult: 1
   idleSpeedMult: 1
   deathSpeedMult: 1
+  hitStunMult: 1
 --- !u!114 &4731386785871686445
 MonoBehaviour:
   m_ObjectHideFlags: 0

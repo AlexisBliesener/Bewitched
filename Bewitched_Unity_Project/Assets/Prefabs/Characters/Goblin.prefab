@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 6169657856336344411}
   - component: {fileID: -6918275186734421657}
   - component: {fileID: 1348470291095463243}
-  - component: {fileID: 1604847013949478277}
   - component: {fileID: 7573160092936169644}
   m_Layer: 7
   m_Name: Goblin
@@ -89,6 +88,7 @@ MonoBehaviour:
   walkSpeedMult: 1
   idleSpeedMult: 1
   deathSpeedMult: 1
+  hitStunMult: 1
   primaryWindupSpeedMultPlayer: 3.66
   primaryWindupSpeedMultEnemy: 0.7
   primaryComboSpeedMultPlayer:
@@ -131,6 +131,7 @@ MonoBehaviour:
   minSurroundingRadius: 2
   maxSurroundingRadius: 5
   teamID: 2
+  priority: 3
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 0.92
   primaryCooldown: 0
@@ -140,7 +141,6 @@ MonoBehaviour:
   primaryAttackRange: 1
   health: {fileID: 7573160092936169644}
   canPossess: 1
-  hitStunDuration: 0.5
   primaryComboResetTime:
   - 0.5
   - 1
@@ -161,6 +161,8 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 21300000, guid: d6f3abf455e654e4ba22dfe133ac915c, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
+  attackState: 0
+  lobotimzed: 0
   minStopDistance: 1.5
   seenBuffer: 0.5
   surroundingToChaseRadius: 4
@@ -177,7 +179,6 @@ MonoBehaviour:
   secondaryAttackChance: 0.5
   lowHealthThresholdPercentage: 30
   moveToTargetDistance: 3.5
-  agent: {fileID: 0}
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
   pathState: 0
@@ -348,26 +349,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &1604847013949478277
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2305004250363809269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 256
-  debugging: 0
-  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
-  minAttackTime: 1
-  maxAttackTime: 3
-  resetCostlyAreaDistance: 1
 --- !u!114 &7573160092936169644
 MonoBehaviour:
   m_ObjectHideFlags: 0

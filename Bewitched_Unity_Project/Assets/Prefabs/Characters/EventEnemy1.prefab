@@ -44,7 +44,6 @@ GameObject:
   - component: {fileID: 3658127197087543663}
   - component: {fileID: 3862486846740890311}
   - component: {fileID: 5797441428398634537}
-  - component: {fileID: 3914265374028854697}
   - component: {fileID: 191969954075269605}
   - component: {fileID: 6691992593587386689}
   - component: {fileID: 3942806193874285845}
@@ -225,26 +224,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &3914265374028854697
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242306305238571520}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 0
-  debugging: 0
-  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
-  minAttackTime: 0
-  maxAttackTime: 2
-  resetCostlyAreaDistance: 1
 --- !u!114 &191969954075269605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,6 +260,7 @@ MonoBehaviour:
   walkSpeedMult: 1
   idleSpeedMult: 1
   deathSpeedMult: 1
+  hitStunMult: 1
 --- !u!114 &3942806193874285845
 MonoBehaviour:
   m_ObjectHideFlags: 0

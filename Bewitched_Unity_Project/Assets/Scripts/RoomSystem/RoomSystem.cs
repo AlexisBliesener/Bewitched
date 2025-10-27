@@ -201,9 +201,12 @@ public class RoomSystem : MonoBehaviour
     {
         foreach (RoomData room in rooms)
         {
-            if (room.roomController.GetCurrentState() == RoomState.Active)
+            if (room.roomController != null)
             {
-                return room.roomController;
+                if (room.roomController.GetCurrentState() == RoomState.Active)
+                {
+                    return room.roomController;
+                }
             }
         }
         return null;
@@ -217,16 +220,17 @@ public class RoomSystem : MonoBehaviour
     /// <returns> RoomController with bounds containing coords </returns>
     public RoomController GetRoomFromCoordinates(Vector3 coords, float range)
     {
-        Debug.Log("Node Coordinates: " + coords);
         foreach (RoomData room in rooms)
         {
-            Debug.Log(room.roomName + room.roomController.GetRoomBounds());
-            if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
+            if (room.roomController != null)
             {
-                return room.roomController;
+                Debug.Log(room.roomName + room.roomController.GetRoomBounds());
+                if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
+                {
+                    return room.roomController;
+                }
             }
         }
-        Debug.Log("Here");
         return null;
     }
 }
