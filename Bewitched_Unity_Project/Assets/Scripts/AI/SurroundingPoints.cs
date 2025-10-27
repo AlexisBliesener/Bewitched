@@ -54,6 +54,7 @@ public class SurroundingPoints : MonoBehaviour
     {
         timeLastRoomSwap = Time.time;
         instance = this;
+        Init();
     }
 
     private void Update()
@@ -172,6 +173,7 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
+        Debug.Log(surroundingEnemies.Count);
         if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0 && activeRoom != null && Time.time - timeLastRoomSwap > roomSwapEnemyWaitTime)
         {
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
@@ -182,19 +184,28 @@ public class SurroundingPoints : MonoBehaviour
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (!enemy.IsNeutral()) return; // For now just keep returning until no enemies are attacking
+                if (!enemy.IsNeutral())
+                {
+                    Debug.Log("Non-neutral enemy: " + enemy + ". Attack state: " + enemy.attackState);
+                    return; // For now just keep returning until no enemies are attacking
+                }
             }
+            Debug.Log("Choosing enemy from: " + tempEnemies.Count + " enemies");
 
             if (tempEnemies.Count > 0)
             {
-                Enemy chosen = tempEnemies.Dequeue();
-                while (!chosen.AttackFromSurrounding(this) && tempEnemies.Count > 0)
+                while (tempEnemies.Count > 0)
                 {
-                    chosen = tempEnemies.Dequeue();
-                }
+                    Enemy chosen = tempEnemies.Dequeue();
 
-                startAttackTime = Random.Range(minAttackTime, maxAttackTime);
-                timeLastAttack = Time.time;
+                    if (chosen.AttackFromSurrounding(this))
+                    {
+                        Debug.Log("Chosen enemy: " + chosen);
+                        startAttackTime = Random.Range(minAttackTime, maxAttackTime);
+                        timeLastAttack = Time.time;
+                        break;
+                    }
+                }
             }
         }
     }

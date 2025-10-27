@@ -315,11 +315,16 @@ public class Goblin : Enemy
             yield return null;
         }
 
+        float timeStart = Time.time;
         if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
-                yield return new WaitForSeconds(0.1f);
+                while (Time.time - timeStart > 0.1f)
+                {
+                    SetMovementValues(false);
+                    yield return null;
+                }
             }
         }
 
@@ -646,6 +651,7 @@ public class Goblin : Enemy
         timeLastSecondary = Time.time;
 
         SetMovementValues(true);
+        attackState = AttackState.Neutral;
         attackStateCoroutine = null;
     }
 
@@ -668,6 +674,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            Debug.Log(gameObject + " surrounding");
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
