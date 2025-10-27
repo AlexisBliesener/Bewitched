@@ -111,7 +111,7 @@ public class Goblin : Enemy
 
         SetBehavior();
 
-        if(playerControlling)
+        if (playerControlling)
         {
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
@@ -120,7 +120,7 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (!playerControlling || ( lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
         }
@@ -140,29 +140,36 @@ public class Goblin : Enemy
     {
         if (gameObject != null)
         {
-            if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
+            if (playerControlling)
             {
-                if(playerControlling)
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
+
                     health.SubHealth(primaryAttackCost);
-                }
-                
-                currentPrimaryComboStep += 1;
-                if (currentPrimaryComboStep >= primaryComboSteps)
-                {
-                    currentPrimaryComboStep = 0;
-                }
 
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
                 timeLastPrimary = Time.time;
-
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                characterAnimator.SwitchState("PrimaryAttack", 0);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
                 PrimaryAttack();
             }
-
         }
     }
-    
+
     public override void PrimaryAttack()
     {
         hitCharacter = false;
@@ -197,7 +204,7 @@ public class Goblin : Enemy
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
-        
+
     }
 
     /// <summary>
@@ -211,7 +218,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
 
-        while(!animator.GetInLeap())
+        while (!animator.GetInLeap())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -252,7 +259,7 @@ public class Goblin : Enemy
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis *3f /4f;
+            timeLastPrimary = Time.time + chaseTime * dis * 3f / 4f;
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
@@ -261,10 +268,10 @@ public class Goblin : Enemy
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     animator.ExitLeap();
                 }
-                
+
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
-                    if(!triggerSet)
+                    if (!triggerSet)
                     {
                         animator.ExitLeap();
                         triggerSet = true;
@@ -371,7 +378,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if(!playerControlling)
+        if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
@@ -891,7 +898,7 @@ public class Goblin : Enemy
         lookAtPlayer = true;
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-           // Debug.Log("Moving: " + gameObject);
+            // Debug.Log("Moving: " + gameObject);
             AIMove();
             if (debugging)
             {
@@ -996,11 +1003,11 @@ public class Goblin : Enemy
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
-                StartCoroutine( BeginPrimary());
+                StartCoroutine(BeginPrimary());
             }
             else
             {
-                StartCoroutine( BeginSecondary());
+                StartCoroutine(BeginSecondary());
                 // Coordinate other goblin attack here
             }
             ResetSurroundingArea();
