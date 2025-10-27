@@ -14,7 +14,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &8357787189380071982
 Transform:
@@ -58,7 +58,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4387418015947301991
 Transform:
@@ -1045,6 +1045,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MediumPillar1
       objectReference: {fileID: 0}
+    - target: {fileID: 1814706807792355308, guid: bdeb8ff78147c4add8b814058bb96b19, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 3940677947957695819, guid: bdeb8ff78147c4add8b814058bb96b19, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.91
@@ -1169,6 +1173,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MediumPillar1 (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1814706807792355308, guid: bdeb8ff78147c4add8b814058bb96b19, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 3940677947957695819, guid: bdeb8ff78147c4add8b814058bb96b19, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.9899998
@@ -1234,6 +1242,10 @@ PrefabInstance:
     - target: {fileID: 6187075779350350723, guid: 7e3b0d11274f5451eb977b207cf57a21, type: 3}
       propertyPath: m_Name
       value: cellEntryway_S (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6187075779350350723, guid: 7e3b0d11274f5451eb977b207cf57a21, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 6815978170478072121, guid: 7e3b0d11274f5451eb977b207cf57a21, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1673,6 +1685,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: cellEntryway_S
       objectReference: {fileID: 0}
+    - target: {fileID: 6187075779350350723, guid: 7e3b0d11274f5451eb977b207cf57a21, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 6815978170478072121, guid: 7e3b0d11274f5451eb977b207cf57a21, type: 3}
       propertyPath: m_LocalPosition.x
       value: -29
@@ -1982,6 +1998,10 @@ PrefabInstance:
     - target: {fileID: 2671584447928831100, guid: cf2599eb699864e88a8465eac14aa214, type: 3}
       propertyPath: m_Name
       value: SmallCell_BarsVar1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2671584447928831100, guid: cf2599eb699864e88a8465eac14aa214, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 5770150653157762878, guid: cf2599eb699864e88a8465eac14aa214, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2453,9 +2473,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2362174273827793498, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 3205782656244722440, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6402996798370798827, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6954010077320930473, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6974052274792161989, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 8920513549669059653, guid: 64842a1de20114e149184a9e71809de7, type: 3}
       propertyPath: m_Name
       value: SmallCell_BarsVar2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8920513549669059653, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 9201677033323464575, guid: 64842a1de20114e149184a9e71809de7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
