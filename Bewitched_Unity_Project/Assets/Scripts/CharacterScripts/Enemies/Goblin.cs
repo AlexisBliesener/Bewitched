@@ -206,7 +206,6 @@ public class Goblin : Enemy
     {
         inCounter = false;
         attackState = AttackState.Windup;
-        float timeStarted = Time.time;
         // save the current position to use the y value later
         targetPos = transform.position;
 
@@ -872,6 +871,7 @@ public class Goblin : Enemy
             }
         }
         AILook();
+        CreateLocalSurroundingArea();
     }
 
     /// <summary>
@@ -995,6 +995,7 @@ public class Goblin : Enemy
                 // Coordinate other goblin attack here
             }
             points.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
             return true;
         }
         else

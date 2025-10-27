@@ -140,10 +140,10 @@ public abstract class Character : MonoBehaviour
     List<List<int>> costlyNodes = new List<List<int>>();
 
     [Tooltip("Position the character was last time the nodes were reset")]
-    Vector3 previousCostlyPosition;
+    protected Vector3 previousCostlyPosition;
 
     [Tooltip("Threshold distance before resetting costly area")]
-    float invalidAreaResetThreshold = 0.5f;
+    protected float invalidAreaResetThreshold = 0.5f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]

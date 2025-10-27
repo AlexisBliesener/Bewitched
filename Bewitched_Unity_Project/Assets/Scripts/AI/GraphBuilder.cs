@@ -899,6 +899,16 @@ public class GraphBuilder : MonoBehaviour
     }
 
     /// <summary>
+    /// Gets a node based on a position
+    /// </summary>
+    /// <param name="position"> Position </param>
+    /// <returns> Node at the position </returns>
+    public Node GetNodeFromPosition(List<int> position)
+    {
+        return nodeDictionary[position[0]][position[1]][position[2]];
+    }
+
+    /// <summary>
     /// Adds a cost to a node based on the node position
     /// </summary>
     /// <param name="position"> Position values of node </param>

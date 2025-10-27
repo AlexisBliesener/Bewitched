@@ -676,6 +676,7 @@ public class Ogre : Enemy
                 StartCoroutine(BeginSecondary());
             }
             points.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
             return true;
         }
         return false;

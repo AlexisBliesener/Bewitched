@@ -540,6 +540,7 @@ public class Guard : Enemy
         {
             PrimaryAttack();
             points.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
             return true;
         }
         else
