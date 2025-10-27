@@ -269,7 +269,7 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.started && currentCharacter.attackState == Character.AttackState.Neutral)
         {
             counteringEnemy = PlayerController.instance.GetCounterAvailable();
             if (possessionCharge == hitsToCharge)
@@ -279,7 +279,7 @@ public class PossessionAbility : MonoBehaviour
             }
             else if (counteringEnemy != null)
             {
-                StartCoroutine( Dodge(counteringEnemy.gameObject));
+                StartCoroutine(Dodge(counteringEnemy.gameObject));
             }
         }
         else
@@ -355,8 +355,10 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
-    private void RespawnEleth()
+    private IEnumerator RespawnEleth()
     {
+        // gives eleth 0.1f sec of invinciblity so she doesnt get hit by the same attack that killed the enemy she was possessing
+        eleth.health.SetInvincible(true);
         if (!GrandFinale.instance.GetActive())
         {
             // respawn old Hag
@@ -367,6 +369,8 @@ public class PossessionAbility : MonoBehaviour
         {
             GrandFinale.instance.Explode(timePossessing, false);
         }
+        yield return new WaitForSeconds(0.1f);
+        eleth.health.SetInvincible(false);
     }
 
     /// <summary>

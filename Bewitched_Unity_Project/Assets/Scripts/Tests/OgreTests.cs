@@ -178,8 +178,7 @@ public class OgreTests
     public IEnumerator ScreamWindup_TransitionsToHandleScream()
     {
         yield return testOgre.StartCoroutine(testOgre.ScreamWindup());
-        FieldInfo attackStateField = typeof(Ogre).GetField("attackState", BindingFlags.Instance | BindingFlags.NonPublic);
-        Character.AttackState attackState = (Character.AttackState)attackStateField.GetValue(testOgre);
+        Character.AttackState attackState = testOgre.attackState;
         Assert.AreEqual(Character.AttackState.Windup, attackState);
     }
 

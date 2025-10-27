@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 5886931667424895826}
   - component: {fileID: 85061892651481883}
   - component: {fileID: 3118035466723393950}
-  - component: {fileID: 8810894426884420593}
   - component: {fileID: 1425984857738050746}
   - component: {fileID: 732372681308907037}
   - component: {fileID: 6417695604396302911}
@@ -110,28 +109,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!195 &8810894426884420593
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2214453077761272128}
-  m_Enabled: 0
-  m_AgentTypeID: 0
-  m_Radius: 2
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 2
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 5
-  m_BaseOffset: 2.5
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &1425984857738050746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -187,7 +164,6 @@ MonoBehaviour:
   - 0.5
   primaryComboMinTime:
   - 0.2
-  counterIndicatorVFX: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -208,13 +184,15 @@ MonoBehaviour:
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
+  minimumSurroundingDistance: 3
+  maximumSurroundingDistance: 5
   timeBeforeSearch: 5
   attackDelayAI: 0
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   moveToTargetDistance: 0
-  agent: {fileID: 8810894426884420593}
+  agent: {fileID: 0}
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Cinemachine;
-using UnityEngine.AI;
 using DG.Tweening;
 using FMOD;
 using Debug = UnityEngine.Debug;
@@ -75,9 +74,8 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Can the player possess the character?")]
     public bool canPossess = true;
 
-    [Header("Hit Stun Settings")]
     [Tooltip("Hit Stun Duration")]
-    public float hitStunDuration = 0.5f;
+    protected float hitStunDuration = 0.12f;
 
     protected float timeLastPrimary = -Mathf.Infinity;
     protected float timeLastSecondary = -Mathf.Infinity;
@@ -184,7 +182,7 @@ public abstract class Character : MonoBehaviour
     }
 
     [Tooltip("The attack state")]
-    protected AttackState attackState;
+    public AttackState attackState;
 
     #region Saving/Loading
 
@@ -440,7 +438,7 @@ public abstract class Character : MonoBehaviour
     {
         if (duration > 0)
         {
-            if (hitStunPrefab) hitStunActual = Instantiate(hitStunPrefab, transform);
+            if (hitStunPrefab && hitStunActual != null) hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
