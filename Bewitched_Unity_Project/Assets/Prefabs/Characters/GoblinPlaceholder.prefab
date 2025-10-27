@@ -104,6 +104,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6075872993970219567}
+  - component: {fileID: 2982819245971250333}
   m_Layer: 7
   m_Name: GoblinPlaceholder
   m_TagString: Enemy
@@ -125,8 +126,43 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2768620536924495830}
+  - {fileID: 1052522367516105372}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -63.658, z: 0}
+--- !u!114 &2982819245971250333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372598212476890096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40bad13273738a34ebe0057d9dd6f207, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dev: 1
+  primaryAnimationDelay:
+  - 0.5
+  secondaryAnimationDelay: 0.5
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
+  hitStunMult: 1
+  primaryWindupSpeedMultPlayer: 2
+  primaryWindupSpeedMultEnemy: 0.7
+  primaryComboSpeedMultPlayer:
+  - 1
+  - 1
+  - 1
+  primaryComboSpeedMultEnemy:
+  - 0.7
+  - 0.7
+  - 0.7
+  secondaryWindupSpeedMultPlayer: 1
+  secondaryWindupSpeedMultEnemy: 1
+  dizzyTimePlayer: 0
+  dizzyTimeEnemy: 0
 --- !u!1 &458070769348777110
 GameObject:
   m_ObjectHideFlags: 0
@@ -895,6 +931,37 @@ Transform:
   - {fileID: 747679282695142169}
   m_Father: {fileID: 6333281624116482423}
   m_LocalEulerAnglesHint: {x: -44.978485, y: -23.930311, z: -20.406397}
+--- !u!1 &2787970687950602291
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1052522367516105372}
+  m_Layer: 7
+  m_Name: JumpPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1052522367516105372
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2787970687950602291}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: -14.117, z: 4.64}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6075872993970219567}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2841506942781598326
 GameObject:
   m_ObjectHideFlags: 0

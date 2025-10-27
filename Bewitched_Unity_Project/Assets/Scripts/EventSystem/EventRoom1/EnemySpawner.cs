@@ -1,66 +1,155 @@
+using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 /// This is a spawner for enemies in the event system, it will spawn enemies from a list of spawn points
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField, Tooltip("Spawn interval")]
-    private float spawnInterval = 10f;
     [SerializeField, Tooltip("Enemy prefab")]
     private GameObject enemyPrefab;
-    [SerializeField, Tooltip("Max enemies to spawn")]
-    private int maxEnemiesLimit = 10;
-    [SerializeField, Tooltip("The range of enemies to spawn from 1 to ..."), Range(1, 30)]
-    private int enemiesPerSpawn = 5;
-    [Tooltip("The number of enemies spawned")]
-    private int enemiesSpawned = 0;
-    [Tooltip("The time the last enemy was spawned")]
-    private float timeLastSpawned = 0f;
+    [SerializeField, Tooltip("How many enimies should be on the arena?")]
+    private int maxEnemiesLimit = 5;
+    [SerializeField, Tooltip("Auto getting the points to spawn enemies from")]
+    private GameObject realPlaceHolder;
 
     [SerializeField, Tooltip("Points to spawn enemies from")]
-    private GameObject[] spawnPoints;
-    [Tooltip("Is the spawner active or not")]
-    private bool isActive = false;
+    private List<GameObject> placeHolderEnemies;
+
+    [SerializeField, Tooltip("Where should the enemies be jumping down to? Each index will represent a place holder (at the same index as the enemy prefab)")]
+    private List<GameObject> jumpDownPlaceHolders;
+
+    [SerializeField, Tooltip("Inital spawn points")]
+    private List<GameObject> initialSpawnPoints;
+
+    [Tooltip("The list of all enemies spawned")]
+    private List<Enemy> enemiesSpawned = new List<Enemy>();
+    [Header("Jump Settings")]
+    [SerializeField, Tooltip("How high the enemy will jump")]
+    private float jumpPower = 12f;
+    [SerializeField,Tooltip("How long the enemy will jump")]
+    private float jumpDuration = 3f;
     /// <summary>
-    /// Starts the spawner and sets the time last spawned to the current time
+    /// Starts the spawner
     /// </summary>
     private void Start()
     {
-        timeLastSpawned = Time.time + spawnInterval; // Add a little bit of time to make sure the first spawn is not instant
-    }
-    /// <summary>
-    /// Updates the spawner, if the spawner is active and the time since the last spawn is greater than the spawn interval, it will spawn an enemy
-    /// </summary>
-    private void Update()
-    {
-        if (isActive && Time.time - timeLastSpawned >= spawnInterval)
+        // Instead of drag and drop each place holder ... 
+        foreach (Transform placeHolder in realPlaceHolder.GetComponentInChildren<Transform>())
         {
-            if (enemiesSpawned < maxEnemiesLimit)
+            placeHolderEnemies.Add(placeHolder.gameObject);
+            foreach (Transform go in placeHolder.GetComponentInChildren<Transform>())
             {
-                int enemiesThisWave = Random.Range(0, enemiesPerSpawn + 1);
-
-                for (int i = 0; i < enemiesThisWave; i++)
+                if (go.name == "JumpPoint")
                 {
-                    if (enemiesSpawned >= maxEnemiesLimit)
-                        break;
-
-                    Instantiate(enemyPrefab, spawnPoints[Random.Range(0, spawnPoints.Length)].transform.position, transform.rotation);
-                    enemiesSpawned++;
+                    jumpDownPlaceHolders.Add(go.gameObject);
+                    continue;
                 }
             }
-            timeLastSpawned = Time.time;
+        }
+
+        // spawn enemies on start
+        for (int i = 0; i < maxEnemiesLimit; i++)
+        {
+            if (initialSpawnPoints.Count == 0)
+            {
+                Debug.LogWarning("No spawn points found on spawner");
+                return;
+            }
+            GameObject spawnPoint = initialSpawnPoints[UnityEngine.Random.Range(0, initialSpawnPoints.Count)];
+            Enemy enemy = Instantiate(enemyPrefab, spawnPoint.transform.position, spawnPoint.transform.rotation, gameObject.transform).GetComponent<Enemy>();
+            enemy.aiState = Enemy.AIMovementState.Blocked;
+            enemy.health.OnDeath += OnEnemyDeath;
+            enemiesSpawned.Add(enemy);
         }
     }
+    /// <summary>
+    /// When an enemy dies, it will remove it from the list of enemies spawned and spawn another one        
+    /// </summary>
+    private void OnEnemyDeath(GameObject enemyGameObject)
+    {
+        enemiesSpawned.Remove(enemiesSpawned.Find(e => e.gameObject == enemyGameObject));
+        SpawnEnemy();
+    }
+    /// <summary>
+    /// Spawns an enemy
+    /// If the index is -1 it will pick a random one
+    /// If the index is not -1 it will spawn the enemy at the corresponding index
+    /// <param name="index">The index of the place holder to spawn the enemy at</param>
+    /// </summary>
+    private void SpawnEnemy(int index = -1)
+    {
+        if (index == -1)
+        {
+            index = UnityEngine.Random.Range(0, placeHolderEnemies.Count);
+        }
+        GameObject enemyPlaceHolder = placeHolderEnemies[index];
+        if (enemyPlaceHolder.activeSelf == false)
+        {
+            // if it was active it means that this place holder is being used (in proccess of spawning an enemy)
+            // so we need to select another one and try again
+            SpawnEnemy();
+            return;
+        }
+
+        // we found a place holder? good, let's start the process of spawning an enemy
+        enemyPlaceHolder.SetActive(false); // set it to inactive to spawn the enemy in the place holder 
+        Enemy enemy = Instantiate(enemyPrefab, enemyPlaceHolder.transform.position, enemyPlaceHolder.transform.rotation, gameObject.transform).GetComponent<Enemy>();
+        // we will stop the ai to make the enemy jumping down from the stands
+        enemy.aiState = Enemy.AIMovementState.Blocked;
+        enemy.health.OnDeath += OnEnemyDeath;
+        enemiesSpawned.Add(enemy);
+        StartCoroutine(HandleJumpDown(enemy, index));
+    }
+    /// <summary>
+    /// To handle the jump down for the enemy 
+    /// </summary>
+    /// <param name="enemy">The enemy to jump down</param>
+    /// <param name="index">The index corresponding to the place holder </param>
+    private IEnumerator HandleJumpDown(Enemy enemy, int index)
+    {
+        enemy.aiState = Enemy.AIMovementState.Blocked;
+        enemy.GetCharacterController().enabled = false;
+        yield return new WaitForSeconds(0.2f);
+        Transform target = jumpDownPlaceHolders[index].transform;
+
+        GoblinAnimator goblinAnimator = enemy.GetComponent<GoblinAnimator>();
+        if (goblinAnimator != null)
+        {
+            // I just used the primary attack for now, since we don't have a jump animation (yet?) and I think it kind of doing the job :) 
+            goblinAnimator.SwitchState("PrimaryAttack", 0);
+            yield return StartCoroutine(goblinAnimator.WaitForDelay("PrimaryAttack", 1));
+
+            yield return enemy.transform.DOJump(target.position, jumpPower, 1, jumpDuration).SetEase(Ease.OutQuad).WaitForCompletion();
+            goblinAnimator.ExitLeap();
+        }
+
+        enemy.transform.position = target.position;
+        enemy.GetCharacterController().enabled = true;
+        // Reactivate the source placeholder (this spot can spawn again)
+        placeHolderEnemies[index].SetActive(true);
+        // Ser the enemy to patrol
+        enemy.aiState = Enemy.AIMovementState.Patrolling;
+    }
+    /// <summary>
+    /// Unsubscribe from the enemy death event when destroyed
+    /// </summary>
+    private void OnDestroy()
+    {
+        foreach (Enemy enemy in enemiesSpawned)
+        {
+            enemy.health.OnDeath -= OnEnemyDeath;
+        }
+    }
+
     /// <summary>
     /// Activates the spawner
     /// </summary>
     public void Activate()
     {
-        isActive = true;
-    }
-    /// <summary>
-    /// Deactivates the spawner
-    /// </summary>
-    public void Deactivate()
-    {
-        isActive = false;
+        // Set all the enimies to patrolling (This is only for the enimies that are spawned on start)
+        foreach (Enemy enemy in enemiesSpawned)
+        {
+            enemy.aiState = Enemy.AIMovementState.Patrolling;
+        }
     }
 }

@@ -87,7 +87,7 @@ public class EventSystemRoom1Tests
         MockEnemy enemy = enemyObj.AddComponent<MockEnemy>();
         enemyEvent = enemyObj.AddComponent<EventEnemy>();
         typeof(EventEnemy).GetField("enemyForEvent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(enemyEvent, enemy);
-        enemyEvent.GetEnemy().health = enemyObj.AddComponent<HealthController>();
+        enemyEvent.GetEnemy().health = enemyObj.AddComponent<EventHealth>();
         enemyEvent.GetEnemy().health.SetMaxHealth(200);
 
         // Mock spawner

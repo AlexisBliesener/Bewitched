@@ -205,7 +205,10 @@ public class EventSystemRoom1 : MonoBehaviour
         enemySpawner.Activate();
         // show all the HUD
         if (hud != null) { hud.SetActive(true); }
-        enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
+        if (enemyEvent.GetEnemy().health.GetComponent<EventHealth>() != null)
+        {
+            enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
+        }
     }
 }
 

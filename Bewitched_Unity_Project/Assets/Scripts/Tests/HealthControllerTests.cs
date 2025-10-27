@@ -93,7 +93,7 @@ public class HealthControllerTests
         lastHealAmount = amount;
     }
 
-    private void OnDeathHandler()
+    private void OnDeathHandler(GameObject enemyGameObject)
     {
         deathCalled = true;
     }

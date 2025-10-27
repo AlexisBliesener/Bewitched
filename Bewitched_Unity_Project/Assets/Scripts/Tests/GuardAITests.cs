@@ -109,7 +109,7 @@ public class GuardAITests
         /// <summary>
         /// Overrides Character.OnDeath() for testing; marks that Die() was called.
         /// </summary>
-        protected override void OnDeath()
+        protected override void OnDeath(GameObject enemyGameObject)
         {
             Die();
         }

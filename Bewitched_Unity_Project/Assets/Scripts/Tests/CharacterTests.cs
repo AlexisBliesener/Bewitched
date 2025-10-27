@@ -114,9 +114,9 @@ public class CharacterTests
             CreateHitStun();
         }
         /// <summary>
-        /// Overrides Character.OnDeath() for testing; marks that Die() was called.
+        /// Overrides Character.OnDeath(Gameobject enemyGameObject) for testing; marks that Die() was called.
         /// </summary>
-        protected override void OnDeath()
+        protected override void OnDeath(GameObject enemyGameObject)
         {
             Die();
         }
