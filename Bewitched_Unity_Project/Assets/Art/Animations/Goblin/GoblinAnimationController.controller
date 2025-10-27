@@ -145,9 +145,6 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryMovementNeeded
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: PrimaryCombo
-    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1731864405745445272}
   m_Solo: 0
@@ -827,11 +824,11 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryAttack
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: PrimaryCombo
-    m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: PrimaryMovementNeeded
+    m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -8813449718830124445}
@@ -1027,9 +1024,6 @@ AnimatorStateTransition:
     m_EventTreshold: 0
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryMovementNeeded
-    m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: PrimaryCombo
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1731864405745445272}

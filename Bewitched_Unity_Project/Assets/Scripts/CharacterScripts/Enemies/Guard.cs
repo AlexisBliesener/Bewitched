@@ -168,9 +168,10 @@ public class Guard : Enemy
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+        ManageSurrounding();
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
         SetAIState();
@@ -539,7 +540,6 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
-            points.RemoveSurroundingEnemy(this);
             ResetSurroundingArea();
             return true;
         }

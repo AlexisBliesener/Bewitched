@@ -107,6 +107,8 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
+    protected string debugAIInfo;
+
     [Tooltip("Dictionary of costly nodes with the cost they have been given")]
     Dictionary<List<int>, int> surroundingCostlyNodes = new Dictionary<List<int>, int>();
 
@@ -244,6 +246,14 @@ public abstract class Enemy : Character
         {
             Debug.LogWarning("Player controller is not set!");
         }
+    }
+
+    /// <summary>
+    /// Sets the debug info string
+    /// </summary>
+    public void SetDebugString()
+    {
+        debugAIInfo = "Character: " + gameObject.ToString() + ", state: " + aiState.ToString() + ", attack status: " + attackState + ", inProcess = " + inProcess.ToString();
     }
 
     /// <summary>
@@ -939,10 +949,6 @@ public abstract class Enemy : Character
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
-            if (state == AIMovementState.Surrounding)
-            {
-                SurroundingPoints.instance.AddSurroundingEnemy(this);
-            }
         }
         else if (aiState == AIMovementState.Surrounding)
         {
@@ -950,7 +956,6 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
             }
-            SurroundingPoints.instance.RemoveSurroundingEnemy(this);
         }
         else if (aiState == AIMovementState.Retreating)
         {
@@ -958,10 +963,6 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
-            }
-            if (state == AIMovementState.Surrounding)
-            {
-                SurroundingPoints.instance.AddSurroundingEnemy(this);
             }
         }
         else if (aiState == AIMovementState.Blocked)
@@ -1019,5 +1020,15 @@ public abstract class Enemy : Character
             GraphBuilder.instance.AddNodeCost(position, this, -surroundingCostlyNodes[position]);
         }
         surroundingCostlyNodes = new Dictionary<List<int>, int>();
+    }
+
+    /// <summary>
+    /// Adds or removes an enemy from the surrounding points
+    /// </summary>
+    public void ManageSurrounding()
+    {
+        float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
+        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius) SurroundingPoints.instance.AddSurroundingEnemy(this);
+        else SurroundingPoints.instance.RemoveSurroundingEnemy(this);
     }
 }
