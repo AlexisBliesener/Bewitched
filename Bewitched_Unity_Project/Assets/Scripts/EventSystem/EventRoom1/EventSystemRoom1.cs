@@ -15,7 +15,6 @@ public class EventSystemRoom1 : MonoBehaviour
 
     [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]  
     private GameObject hud;
-
     /// <summary>
     /// The enum for the fight state
     /// </summary>
@@ -73,6 +72,7 @@ public class EventSystemRoom1 : MonoBehaviour
     [ContextMenu("Start Cut Scene")]
     private void StartCutScene()
     {
+        enemySpawner.gameObject.SetActive(true);
         PlayerController.instance.SetAllowMovement(false);
         // Start the cut scene, if it's already active, it will be stopped and then started again
         if (cutScene != null)
@@ -209,6 +209,7 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
         }
+
     }
 }
 

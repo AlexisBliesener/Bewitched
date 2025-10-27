@@ -20,19 +20,23 @@ public class EnemySpawner : MonoBehaviour
 
     [SerializeField, Tooltip("Inital spawn points")]
     private List<GameObject> initialSpawnPoints;
-
-    [Tooltip("The list of all enemies spawned")]
-    private List<Enemy> enemiesSpawned = new List<Enemy>();
     [Header("Jump Settings")]
     [SerializeField, Tooltip("How high the enemy will jump")]
     private float jumpPower = 12f;
     [SerializeField,Tooltip("How long the enemy will jump")]
     private float jumpDuration = 3f;
+    [SerializeField,Tooltip("The room controller for the event room")]
+    private RoomController roomController;
     /// <summary>
     /// Starts the spawner
     /// </summary>
     private void Start()
     {
+        if (roomController == null)
+        {
+            Debug.LogWarning("Room controller is null on enemy spawner!");
+            return;
+        }
         // Instead of drag and drop each place holder ... 
         foreach (Transform placeHolder in realPlaceHolder.GetComponentInChildren<Transform>())
         {
@@ -47,19 +51,23 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
+        StartCoroutine(SpawnInitalEnemies());
+    }
+    /// <summary>
+    /// Spawns the initial enemies
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator SpawnInitalEnemies()
+    {
         // spawn enemies on start
         for (int i = 0; i < maxEnemiesLimit; i++)
         {
-            if (initialSpawnPoints.Count == 0)
-            {
-                Debug.LogWarning("No spawn points found on spawner");
-                return;
-            }
             GameObject spawnPoint = initialSpawnPoints[UnityEngine.Random.Range(0, initialSpawnPoints.Count)];
             Enemy enemy = Instantiate(enemyPrefab, spawnPoint.transform.position, spawnPoint.transform.rotation, gameObject.transform).GetComponent<Enemy>();
+            yield return null; // wait for one frame to make sure the enemy is spawned and called (Start) function on the enemy since the enemy is calling the AiState to Patrol
             enemy.aiState = Enemy.AIMovementState.Blocked;
             enemy.health.OnDeath += OnEnemyDeath;
-            enemiesSpawned.Add(enemy);
+            roomController.AddEnemy(enemy.gameObject);
         }
     }
     /// <summary>
@@ -67,7 +75,6 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void OnEnemyDeath(GameObject enemyGameObject)
     {
-        enemiesSpawned.Remove(enemiesSpawned.Find(e => e.gameObject == enemyGameObject));
         SpawnEnemy();
     }
     /// <summary>
@@ -96,8 +103,9 @@ public class EnemySpawner : MonoBehaviour
         Enemy enemy = Instantiate(enemyPrefab, enemyPlaceHolder.transform.position, enemyPlaceHolder.transform.rotation, gameObject.transform).GetComponent<Enemy>();
         // we will stop the ai to make the enemy jumping down from the stands
         enemy.aiState = Enemy.AIMovementState.Blocked;
+        enemy.GetCharacterController().enabled = false;
         enemy.health.OnDeath += OnEnemyDeath;
-        enemiesSpawned.Add(enemy);
+        roomController.AddEnemy(enemy.gameObject);
         StartCoroutine(HandleJumpDown(enemy, index));
     }
     /// <summary>
@@ -107,8 +115,6 @@ public class EnemySpawner : MonoBehaviour
     /// <param name="index">The index corresponding to the place holder </param>
     private IEnumerator HandleJumpDown(Enemy enemy, int index)
     {
-        enemy.aiState = Enemy.AIMovementState.Blocked;
-        enemy.GetCharacterController().enabled = false;
         yield return new WaitForSeconds(0.2f);
         Transform target = jumpDownPlaceHolders[index].transform;
 
@@ -127,7 +133,7 @@ public class EnemySpawner : MonoBehaviour
         enemy.GetCharacterController().enabled = true;
         // Reactivate the source placeholder (this spot can spawn again)
         placeHolderEnemies[index].SetActive(true);
-        // Ser the enemy to patrol
+        // Set the enemy to patrol
         enemy.aiState = Enemy.AIMovementState.Patrolling;
     }
     /// <summary>
@@ -135,9 +141,9 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void OnDestroy()
     {
-        foreach (Enemy enemy in enemiesSpawned)
+        foreach (GameObject enemy in roomController.roomEnemies)
         {
-            enemy.health.OnDeath -= OnEnemyDeath;
+            enemy.GetComponent<Enemy>().health.OnDeath -= OnEnemyDeath;
         }
     }
 
@@ -147,9 +153,9 @@ public class EnemySpawner : MonoBehaviour
     public void Activate()
     {
         // Set all the enimies to patrolling (This is only for the enimies that are spawned on start)
-        foreach (Enemy enemy in enemiesSpawned)
+        foreach (GameObject enemy in roomController.roomEnemies)
         {
-            enemy.aiState = Enemy.AIMovementState.Patrolling;
+            enemy.GetComponent<Enemy>().aiState = Enemy.AIMovementState.Patrolling;
         }
     }
 }

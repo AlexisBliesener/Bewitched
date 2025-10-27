@@ -643,8 +643,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b1a057fc58474ba78fdfa77ce1a5eb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 2305004250363809269, guid: e00dc79e828bf034cbcd718582cd9860, type: 3}
-  maxEnemiesLimit: 10
+  enemyPrefab: {fileID: 0}
+  maxEnemiesLimit: 4
   realPlaceHolder: {fileID: 6925030790981468778}
   placeHolderEnemies: []
   jumpDownPlaceHolders: []
@@ -940,7 +940,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Path: {fileID: 7412903111564223498}
-  m_PathPosition: 25.68738
+  m_PathPosition: 25.68676
   m_PositionUnits: 0
   m_PathOffset: {x: 0, y: 0, z: 0}
   m_XDamping: 0
@@ -1247,7 +1247,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2501605034956347129
 Transform:
   m_ObjectHideFlags: 0
@@ -5298,7 +5298,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7266749476652974094, guid: e9f605ab01bc4194794a5abcea78c7e5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.1000001
+      value: -1.2
       objectReference: {fileID: 0}
     - target: {fileID: 7266749476652974094, guid: e9f605ab01bc4194794a5abcea78c7e5, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5388,7 +5388,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 732372681308907037, guid: 366ca6a59595a834bb56f4ee7f34f2cc, type: 3}
       propertyPath: pathfindingPriority
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 732372681308907037, guid: 366ca6a59595a834bb56f4ee7f34f2cc, type: 3}
       propertyPath: offsetAttackIndicator.x
@@ -5736,7 +5736,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2214453077761272128, guid: 366ca6a59595a834bb56f4ee7f34f2cc, type: 3}
-      insertIndex: 8
+      insertIndex: -1
       addedObject: {fileID: 5243794777742645525}
   m_SourcePrefab: {fileID: 100100000, guid: 366ca6a59595a834bb56f4ee7f34f2cc, type: 3}
 --- !u!114 &753020586725064776 stripped
