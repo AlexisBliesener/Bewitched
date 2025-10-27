@@ -108,6 +108,7 @@ public class Goblin : Enemy
         SetDebugString();
 
         SetAIState();
+        ManageSurrounding();
 
         SetBehavior();
 
@@ -871,7 +872,6 @@ public class Goblin : Enemy
     /// </summary>
     public void Surround()
     {
-        if (!SurroundingPoints.instance.IsSurrounding(this)) SurroundingPoints.instance.AddSurroundingEnemy(this);
         StopIdleAudio();
         lookAtPlayer = true;
 

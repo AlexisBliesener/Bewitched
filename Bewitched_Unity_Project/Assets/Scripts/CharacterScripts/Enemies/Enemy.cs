@@ -949,10 +949,6 @@ public abstract class Enemy : Character
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
-            if (state == AIMovementState.Surrounding)
-            {
-                SurroundingPoints.instance.AddSurroundingEnemy(this);
-            }
         }
         else if (aiState == AIMovementState.Surrounding)
         {
@@ -960,7 +956,6 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
             }
-            SurroundingPoints.instance.RemoveSurroundingEnemy(this);
         }
         else if (aiState == AIMovementState.Retreating)
         {
@@ -968,10 +963,6 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
-            }
-            if (state == AIMovementState.Surrounding)
-            {
-                SurroundingPoints.instance.AddSurroundingEnemy(this);
             }
         }
         else if (aiState == AIMovementState.Blocked)
@@ -1029,5 +1020,15 @@ public abstract class Enemy : Character
             GraphBuilder.instance.AddNodeCost(position, this, -surroundingCostlyNodes[position]);
         }
         surroundingCostlyNodes = new Dictionary<List<int>, int>();
+    }
+
+    /// <summary>
+    /// Adds or removes an enemy from the surrounding points
+    /// </summary>
+    public void ManageSurrounding()
+    {
+        float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
+        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius) SurroundingPoints.instance.AddSurroundingEnemy(this);
+        else SurroundingPoints.instance.RemoveSurroundingEnemy(this);
     }
 }

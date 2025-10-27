@@ -86,6 +86,7 @@ public class Ogre : Enemy
     private void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+        ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
         SetAIState();
         SetBehavior();
@@ -675,7 +676,6 @@ public class Ogre : Enemy
             {
                 StartCoroutine(BeginSecondary());
             }
-            points.RemoveSurroundingEnemy(this);
             ResetSurroundingArea();
             return true;
         }
