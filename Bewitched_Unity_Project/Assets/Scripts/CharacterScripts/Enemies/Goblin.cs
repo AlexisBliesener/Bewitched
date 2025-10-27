@@ -105,6 +105,8 @@ public class Goblin : Enemy
         if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
+        SetDebugString();
+
         SetAIState();
 
         SetBehavior();
@@ -674,7 +676,6 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Surrounding)
         {
-            Debug.Log(gameObject + " surrounding");
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
@@ -863,6 +864,7 @@ public class Goblin : Enemy
     /// </summary>
     public void Surround()
     {
+        if (!SurroundingPoints.instance.IsSurrounding(this)) SurroundingPoints.instance.AddSurroundingEnemy(this);
         StopIdleAudio();
         lookAtPlayer = true;
 
@@ -1001,7 +1003,6 @@ public class Goblin : Enemy
                 StartCoroutine( BeginSecondary());
                 // Coordinate other goblin attack here
             }
-            points.RemoveSurroundingEnemy(this);
             ResetSurroundingArea();
             return true;
         }

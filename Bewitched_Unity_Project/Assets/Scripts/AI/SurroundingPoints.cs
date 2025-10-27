@@ -173,7 +173,6 @@ public class SurroundingPoints : MonoBehaviour
     /// </summary>
     public void HandleSurroundAttack()
     {
-        Debug.Log(surroundingEnemies.Count);
         if (Time.time - timeLastAttack > startAttackTime && surroundingEnemies.Count > 0 && activeRoom != null && Time.time - timeLastRoomSwap > roomSwapEnemyWaitTime)
         {
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
@@ -186,11 +185,9 @@ public class SurroundingPoints : MonoBehaviour
 
                 if (!enemy.IsNeutral())
                 {
-                    Debug.Log("Non-neutral enemy: " + enemy + ". Attack state: " + enemy.attackState);
                     return; // For now just keep returning until no enemies are attacking
                 }
             }
-            Debug.Log("Choosing enemy from: " + tempEnemies.Count + " enemies");
 
             if (tempEnemies.Count > 0)
             {
@@ -208,5 +205,15 @@ public class SurroundingPoints : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if the surrounding points contains an enemy
+    /// </summary>
+    /// <param name="enemy"> Enemy to add </param>
+    /// <returns> True if it is in there, false otherwise </returns>
+    public bool IsSurrounding(Enemy enemy)
+    {
+        return surroundingEnemies.Contains(enemy);
     }
 }
