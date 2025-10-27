@@ -41,6 +41,9 @@ public abstract class Character : MonoBehaviour
 
     [Tooltip("Weight of the character"), Range(0, 50)]
     public float weight = 10;
+    [Tooltip("Push force modifer"), Range(0, 0.5f)]
+    public float pushForceModifer = 0.1f;
+
     [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
     public float sizeRadius = 1.5f; 
@@ -149,6 +152,10 @@ public abstract class Character : MonoBehaviour
     [Header("Debug/Dev Options"), ShowIf("dev")]
     [Tooltip("Layer mask for the characters")]
     public LayerMask characters;
+    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
+    public LayerMask ground;
+    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
+    public LayerMask environment;
     [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf("dev")]
     private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf("dev")]
@@ -825,5 +832,24 @@ public abstract class Character : MonoBehaviour
             characterController = GetComponent<CharacterController>();
         }
         return characterController;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
+        {
+            Debug.Log(hit.gameObject);
+            Debug.Log("Adding force");
+
+            float force = weight * velocity.magnitude * pushForceModifer;
+            Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
+            knockback.AddImpact(direction, force);
+            velocity -= direction * force * deceleration * Time.deltaTime;
+        }
+
+        if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
+        {
+            GetComponent<KnockbackControl>().ResetImpact();
+        }
     }
 }

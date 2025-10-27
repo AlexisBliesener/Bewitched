@@ -384,10 +384,10 @@ GameObject:
   - component: {fileID: 7189197676705877190}
   - component: {fileID: 4588424096257332066}
   - component: {fileID: 8828446020428933963}
-  - component: {fileID: 3730021192468053594}
   - component: {fileID: -772148356125373448}
   - component: {fileID: 6746886717747144383}
   - component: {fileID: 3478541869600220231}
+  - component: {fileID: 7355122453543391555}
   m_Layer: 7
   m_Name: Hag
   m_TagString: Player
@@ -512,69 +512,6 @@ CharacterController:
   m_SkinWidth: 0.04
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3730021192468053594
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6457948663650330657}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50ba220f001e4464ab81379ce6d53add, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dev: 0
-  characterName: Old Hag
-  modelPieces: []
-  movementSpeed: 15
-  approachSpeed: 7
-  acceleration: 5
-  deceleration: 5
-  rotationalVelocity: 240
-  chaseTime: 3
-  windupTime: 0.25
-  weight: 5
-  sizeRadius: 0.5
-  numSurroundingPoints: 8
-  minSurroundingRadius: 2
-  maxSurroundingRadius: 5
-  teamID: 1
-  priority: 0
-  shoulderOffset: {x: 1, y: 2.5, z: 0}
-  attackDelay: 1
-  primaryCooldown: 1
-  primaryAttackCost: 0
-  secondaryCooldown: 5
-  secondaryAttackCost: 0
-  primaryAttackRange: 0
-  health: {fileID: 0}
-  canPossess: 1
-  primaryComboResetTime: []
-  primaryComboMinTime: []
-  characters:
-    serializedVersion: 2
-    m_Bits: 128
-  combatCam: {fileID: 0}
-  aimCam: {fileID: 0}
-  exploreCam: {fileID: 0}
-  attackEffects: []
-  effectJSONs: []
-  primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
-  secondaryFireIcon: {fileID: 0}
-  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
-  counterIndicatorVFXPrefab: {fileID: 0}
-  attackState: 0
-  knockbackAngle: 50
-  knockbackRange: 1
-  knockbackAmount: 10
-  blinkDistance: 10
-  environment:
-    serializedVersion: 2
-    m_Bits: 256
-  knockBackCone: {fileID: 2462584303736013082}
-  objectsToDisable: []
-  deathUI: {fileID: 0}
 --- !u!114 &-772148356125373448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -624,3 +561,70 @@ MonoBehaviour:
   idleSpeedMult: 1
   deathSpeedMult: 1
   hitStunMult: 1
+--- !u!114 &7355122453543391555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6457948663650330657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50ba220f001e4464ab81379ce6d53add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dev: 0
+  characterName: Old Hag
+  modelPieces: []
+  movementSpeed: 15
+  approachSpeed: 7
+  acceleration: 5
+  deceleration: 5
+  rotationalVelocity: 240
+  chaseTime: 3
+  windupTime: 0.25
+  weight: 5
+  pushForceModifer: 0.15
+  sizeRadius: 0.5
+  numSurroundingPoints: 8
+  minSurroundingRadius: 2
+  maxSurroundingRadius: 5
+  teamID: 1
+  priority: 0
+  shoulderOffset: {x: 1, y: 2.5, z: 0}
+  attackDelay: 1
+  primaryCooldown: 1
+  primaryAttackCost: 0
+  secondaryCooldown: 5
+  secondaryAttackCost: 0
+  primaryAttackRange: 0
+  health: {fileID: 0}
+  canPossess: 1
+  primaryComboResetTime: []
+  primaryComboMinTime: []
+  characters:
+    serializedVersion: 2
+    m_Bits: 128
+  ground:
+    serializedVersion: 2
+    m_Bits: 0
+  environment:
+    serializedVersion: 2
+    m_Bits: 256
+  combatCam: {fileID: 0}
+  aimCam: {fileID: 0}
+  exploreCam: {fileID: 0}
+  attackEffects: []
+  effectJSONs: []
+  primaryFireIcon: {fileID: 21300000, guid: 06c2081d69bb6744284e27dfe6a60cb2, type: 3}
+  secondaryFireIcon: {fileID: 0}
+  hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
+  counterIndicatorVFXPrefab: {fileID: 0}
+  attackState: 0
+  knockbackAngle: 50
+  knockbackRange: 1
+  knockbackAmount: 10
+  blinkDistance: 10
+  knockBackCone: {fileID: 2462584303736013082}
+  objectsToDisable: []
+  deathUI: {fileID: 0}

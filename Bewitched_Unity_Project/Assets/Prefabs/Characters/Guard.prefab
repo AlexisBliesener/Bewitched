@@ -440,6 +440,7 @@ MonoBehaviour:
   chaseTime: 3
   windupTime: 0.25
   weight: 7
+  pushForceModifer: 0.15
   sizeRadius: 1.5
   numSurroundingPoints: 8
   minSurroundingRadius: 2
@@ -460,6 +461,12 @@ MonoBehaviour:
   characters:
     serializedVersion: 2
     m_Bits: 128
+  ground:
+    serializedVersion: 2
+    m_Bits: 64
+  environment:
+    serializedVersion: 2
+    m_Bits: 256
   combatCam: {fileID: 0}
   aimCam: {fileID: 0}
   exploreCam: {fileID: 0}
@@ -496,12 +503,6 @@ MonoBehaviour:
   pathVisualizer: {fileID: -4642130304282130039}
   playerControlling: 0
   pathfindingPriority: 2
-  ground:
-    serializedVersion: 2
-    m_Bits: 64
-  environment:
-    serializedVersion: 2
-    m_Bits: 256
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6

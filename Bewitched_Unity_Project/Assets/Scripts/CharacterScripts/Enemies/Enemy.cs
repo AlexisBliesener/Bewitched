@@ -164,10 +164,6 @@ public abstract class Enemy : Character
     [SerializeField, NaughtyAttributes.ReadOnly] protected bool playerControlling = false; // flag for determining actions (player or AI)
     [Tooltip("Pathfinding Priority"), ShowIf("dev")]
     public int pathfindingPriority;
-    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
-    public LayerMask ground;
-    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
-    public LayerMask environment;
     //Just so code in update isn't called after the enemy is dead
     protected bool dead = false;
 
