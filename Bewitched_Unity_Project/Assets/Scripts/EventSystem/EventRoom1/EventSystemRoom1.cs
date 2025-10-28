@@ -13,8 +13,10 @@ public class EventSystemRoom1 : MonoBehaviour
     [SerializeField, Tooltip("The director for the cut scene")]
     private PlayableDirector director;
 
-    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]  
+    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]
     private GameObject hud;
+    [SerializeField, Tooltip("The wall script")]
+    private BreakWallMoment wall;
     /// <summary>
     /// The enum for the fight state
     /// </summary>
@@ -23,13 +25,14 @@ public class EventSystemRoom1 : MonoBehaviour
         Waiting,
         Fighting,
         Ending,
+        LastEnemies,
         Finished
     }
     [Tooltip("The current fight state")]
     private FightState fightState = FightState.Waiting;
 
-    [SerializeField, Tooltip("Damage to activate the ability to possess the event enemy")]
-    private float damageToPossess = 100f;
+    [SerializeField, Tooltip("If this health or lower, the event enemy will be possessed (in dizzy state)")]
+    private float healthToPossess = 100f;
 
     [SerializeField, Tooltip("The duration of the event enemy to get from dizzy to fighting if not possessed (in seconds)")]
     private float dizzyDuration = 5f;
@@ -55,7 +58,11 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             Debug.LogWarning("HUD is null on event system room 1");
         }
-
+        if (wall == null)
+        {
+            Debug.LogWarning("Wall script is null on event system room 1");
+        }
+        wall.enabled = false;
     }
     /// <summary>
     /// Handles when the event enemy is triggered by the player to activate the fight
@@ -99,7 +106,7 @@ public class EventSystemRoom1 : MonoBehaviour
             case FightState.Waiting:
                 break;
             case FightState.Fighting:
-                if ((enemyEvent.GetEnemy().health.GetMaxHealth() - enemyEvent.GetEnemy().health.GetHealth()) >= damageToPossess)
+                if (enemyEvent.GetEnemy().health.GetHealth() <= healthToPossess)
                 {
                     // change the state to be able to possess the enemy
                     fightState = FightState.Ending;
@@ -116,7 +123,7 @@ public class EventSystemRoom1 : MonoBehaviour
                     EndFight();
                     return;
                 }
-                if (((enemyEvent.GetEnemy().health.GetMaxHealth() - enemyEvent.GetEnemy().health.GetHealth()) >= damageToPossess)
+                if ((enemyEvent.GetEnemy().health.GetHealth() <= healthToPossess)
                        && (Time.time - timeDizzyStarted <= dizzyDuration))
                 {
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
@@ -131,7 +138,18 @@ public class EventSystemRoom1 : MonoBehaviour
                 enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);
                 enemyEvent.GetEnemy().health.GetComponent<EventHealth>().SetFlashing(false);
                 break;
+            case FightState.LastEnemies:
+                // Start making the enemies jump down
+                StartCoroutine(enemySpawner.SpawnFinalEnemies());
+                // Enable the wall script so the player can walk and break the wall
+                fightState = FightState.Finished;
+                break;
             case FightState.Finished:
+                // we will check if all enemies are dead, if so, we will enable the wall script so the player can walk and break the wall
+                if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 0)
+                {
+                    wall.enabled = true;
+                }
                 break;
         }
     }
@@ -149,12 +167,12 @@ public class EventSystemRoom1 : MonoBehaviour
             Debug.LogWarning("Audio Manager instance is not set!");
         }
             
-        fightState = FightState.Finished;
+        fightState = FightState.LastEnemies;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
-        if (door != null)
-        {
-            door.Unlock();
-        }
+        // if (door != null)
+        // {
+        //     door.Unlock();
+        // }
     }
     [ContextMenu("Give damage")]
     /// <summary>

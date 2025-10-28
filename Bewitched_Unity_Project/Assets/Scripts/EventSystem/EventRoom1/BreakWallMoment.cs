@@ -56,6 +56,12 @@ public class BreakWallMoment : MonoBehaviour
     {
         PlayerController.instance.SetAllowMovement(false);
         PlayerController.instance.currentCharacter.gameObject.SetActive(false);
+        // we will kill all the enemies on the arena 
+        foreach (GameObject enemyGameObject in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
+        {
+            Enemy enemy = enemyGameObject.GetComponent<Enemy>();
+            enemy.health.SetCurrentHealth(0);
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
