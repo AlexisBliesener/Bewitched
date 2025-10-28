@@ -46,7 +46,7 @@ public abstract class Character : MonoBehaviour
 
     [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
-    public float sizeRadius = 1.5f; 
+    public float sizeRadius = 1.5f;
     [Tooltip("Number of Points to Surround")]
     public int numSurroundingPoints = 8;
     [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
@@ -63,14 +63,18 @@ public abstract class Character : MonoBehaviour
     [Header("Attack Settings")]
     [Tooltip("Attack Delay"), Range(0, 10)]
     public float attackDelay = 1;
-    [Tooltip("Cooldown After Primary Ability"), Range(0,10)]
+    [Tooltip("Cooldown After Primary Ability"), Range(0, 10)]
     public float primaryCooldown = 5;
     [SerializeField, Tooltip("The amount of health this character will use when using their primary attack"), Range(0, 100)]
     protected int primaryAttackCost;
+    [SerializeField, Tooltip("The AI cost of the primary attack"), Range(0, 10)]
+    protected int primaryAICost;
     [Tooltip("Cooldown After Secondary Ability"), Range(0, 10)]
     public float secondaryCooldown = 5;
     [SerializeField, Tooltip("The amount of health this character will use when using their secondary attack"), Range(0, 100)]
     protected int secondaryAttackCost;
+    [SerializeField, Tooltip("The AI cost of the secondary attack"), Range(0, 10)]
+    protected int secondaryAICost;
     [Tooltip("Primary Attack Range"), Range(0, 10)]
     public float primaryAttackRange;
     [Tooltip("The reference to the health controller"), HideInInspector]
@@ -349,7 +353,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        
+
     }
 
     /// <summary>
@@ -477,7 +481,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual void HandleHitStun()
     {
-        
+
     }
 
     public void SetPrimaryStatus(bool val)
@@ -491,7 +495,7 @@ public abstract class Character : MonoBehaviour
     }
 
     public void SetBaseStats()
-    { 
+    {
         baseMovementSpeed = movementSpeed;
         basePrimaryCooldown = primaryCooldown;
         baseSecondaryCooldown = secondaryCooldown;
@@ -513,7 +517,7 @@ public abstract class Character : MonoBehaviour
     public virtual void PrimaryAttack()
     {
     }
-    
+
     /// <summary>
     /// Virutal function that is called on any characters secondary attack started
     /// </summary>
@@ -536,7 +540,7 @@ public abstract class Character : MonoBehaviour
     {
         if (gameObject != null)
         {
-            if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
+            if (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
                 if (PlayerController.instance.currentCharacter == this)
                 {
@@ -640,6 +644,16 @@ public abstract class Character : MonoBehaviour
     {
         if (attackState == AttackState.Neutral) return true;
         return false;
+    }
+
+    /// <summary>
+    /// Checks if the enemy is winding up or approaching (no other attacks can be started then)
+    /// </summary>
+    /// <returns> True if other enemies can attack </returns>
+    public bool OtherEnemyCanAttack()
+    {
+        if (attackState == AttackState.Windup || attackState == AttackState.Approaching) return false;
+        return true;
     }
 
     /// <summary>
@@ -805,7 +819,7 @@ public abstract class Character : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, this, 25);
+                GraphBuilder.instance.AddNodeCost(position, this, 50);
             }
             previousCostlyPosition = transform.position;
         }
@@ -818,7 +832,7 @@ public abstract class Character : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, this, -25);
+            GraphBuilder.instance.AddNodeCost(position, this, -50);
         }
     }
     /// <summary>
@@ -843,8 +857,10 @@ public abstract class Character : MonoBehaviour
 
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
+            direction.y = 0;
+            direction = direction.normalized;
             knockback.AddImpact(direction, force);
-            velocity -= direction * force * deceleration * Time.deltaTime;
+            GetComponent<KnockbackControl>().AddImpact(-direction, force);
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact

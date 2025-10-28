@@ -650,9 +650,10 @@ public class Ogre : Enemy
     /// Handles Ogre attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
 
         if (CheckPrimaryUsable())
@@ -671,14 +672,15 @@ public class Ogre : Enemy
             if (choice <= primaryAttackChance) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
+                return primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
+                return secondaryAICost;
             }
-            return true;
         }
-        return false;
+        return 0;
     }
     /// <summary>
     /// Override of Enemy.Die to handle the ogre's death sound effect.

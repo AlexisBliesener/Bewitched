@@ -526,9 +526,10 @@ public class Guard : Enemy
     /// Handles Guard attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
 
         // For now keep as just primary, once more combat is done then if being attacked it will block
@@ -540,11 +541,11 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
-            return true;
+            return primaryAICost;
         }
         else
         {
-            return false;
+            return 0;
         }
     }
 }

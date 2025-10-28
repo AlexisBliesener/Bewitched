@@ -163,8 +163,9 @@ public class GraphBuilder : MonoBehaviour
             {
                 Color color;
                 int cost = node.GetCost();
-                if (cost < 0) color = Color.Lerp(Color.blue, Color.white, 50 - Mathf.Abs(cost) / 50f);
-                else color = Color.Lerp(Color.white, Color.red, cost / 50f);
+                if (cost < 0) color = Color.Lerp(Color.blue, Color.white, 50 - Mathf.Abs(cost) / 10f);
+                else color = Color.Lerp(Color.white, Color.red, cost / 10f);
+                if (cost >= 50) color = Color.black;
                 shownNodes[node].GetComponent<Renderer>().material.color = color;
             }
         }

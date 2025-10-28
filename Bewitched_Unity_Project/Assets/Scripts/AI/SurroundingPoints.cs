@@ -17,11 +17,14 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("The Environment Layer")]
     public LayerMask environment;
 
+    [Tooltip("Maximum number of attack points available")]
+    public int maxAttackPoints = 10;
+
+    [Tooltip("Number of attack points currently available")]
+    private int attackPoints;
+
     [Tooltip("Turns on debug mode")]
     [SerializeField] bool debugging = false;
-
-    [Tooltip("If the Points are Active")]
-    bool pointsActive = false;
 
     [Tooltip("List of enemies in surrounding range")]
     List<Enemy> surroundingEnemies = new List<Enemy>();
@@ -53,6 +56,7 @@ public class SurroundingPoints : MonoBehaviour
     private void Awake()
     {
         timeLastRoomSwap = Time.time;
+        attackPoints = maxAttackPoints;
         instance = this;
         Init();
     }
@@ -79,7 +83,6 @@ public class SurroundingPoints : MonoBehaviour
         timeLastAttack = Time.time;
 
         surroundingEnemies = new List<Enemy>();
-        pointsActive = true;
     }
 
     /// <summary>
@@ -183,7 +186,7 @@ public class SurroundingPoints : MonoBehaviour
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (!enemy.IsNeutral())
+                if (!enemy.OtherEnemyCanAttack())
                 {
                     return; // For now just keep returning until no enemies are attacking
                 }
@@ -194,10 +197,12 @@ public class SurroundingPoints : MonoBehaviour
                 while (tempEnemies.Count > 0)
                 {
                     Enemy chosen = tempEnemies.Dequeue();
+                    float cost = chosen.AttackFromSurrounding(this);
 
-                    if (chosen.AttackFromSurrounding(this))
+                    if (cost > 0)
                     {
                         Debug.Log("Chosen enemy: " + chosen);
+                        
                         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                         timeLastAttack = Time.time;
                         break;
@@ -208,12 +213,11 @@ public class SurroundingPoints : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks if the surrounding points contains an enemy
+    /// Gets the attack points available at this time
     /// </summary>
-    /// <param name="enemy"> Enemy to add </param>
-    /// <returns> True if it is in there, false otherwise </returns>
-    public bool IsSurrounding(Enemy enemy)
+    /// <returns> Attack points current </returns>
+    public int GetAvailableAttackPoints()
     {
-        return surroundingEnemies.Contains(enemy);
+        return attackPoints;
     }
 }

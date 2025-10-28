@@ -101,13 +101,13 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        ManageSurrounding();
         if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
 
         SetAIState();
-        ManageSurrounding();
 
         SetBehavior();
 
@@ -971,17 +971,19 @@ public class Goblin : Enemy
     /// Handles Goblin attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
+        float remaining = points.GetAvailableAttackPoints();
 
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost > remaining)
         {
             totalOdds += primaryAttackChance;
         }
-        if (CheckSecondaryUsable())
+        if (CheckSecondaryUsable() && secondaryAICost > remaining)
         {
             if (goblins.Count >= 1) // Only do this if other goblins are around
             {
@@ -991,21 +993,24 @@ public class Goblin : Enemy
 
         if (totalOdds > 0)
         {
+            int cost;
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
+                cost = primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
-                // Coordinate other goblin attack here
+                // Plan other goblin attack here and add to cost ahead of time
+                cost = secondaryAICost;
             }
-            return true;
+            return cost;
         }
         else
         {
-            return false;
+            return 0;
         }
     }
 

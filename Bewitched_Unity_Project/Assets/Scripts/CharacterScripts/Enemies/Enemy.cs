@@ -825,10 +825,10 @@ public abstract class Enemy : Character
     /// A function called by the surrounding points to make an enemy attack
     /// </summary>
     /// <param name="points"> Points the request came from </param>
-    /// <returns> True if attack is done, false otherwise </returns>
-    public virtual bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public virtual int AttackFromSurrounding(SurroundingPoints points)
     {
-        return false;
+        return 0;
     }
     /// <summary>
     ///  Returns whether the player is currently controlling this enemy.
@@ -998,9 +998,9 @@ public abstract class Enemy : Character
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
                 float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
                 float ratio = (totalDist - dist) / totalDist;
-                node.AddCost(this, (int)(25 * ratio));
+                node.AddCost(this, (int)(10 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(25 * ratio);
+                surroundingCostlyNodes[position] = (int)(10 * ratio);
                 numSet++;
             }
             previousCostlyPosition = transform.position;
