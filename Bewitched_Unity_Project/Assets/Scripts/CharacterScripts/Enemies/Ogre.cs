@@ -80,12 +80,15 @@ public class Ogre : Enemy
         SetBaseStats();
         SetPatrolOrigin();
         isEventEnemy = TryGetComponent<EventEnemy>(out var e);
+        sizeRadius = GetComponent<CharacterController>().radius;
     }
 
     private void FixedUpdate()
     {
+        if (dead || lobotimzed) return;
+        ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        SetAIState();
+        // SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
     }
@@ -256,7 +259,9 @@ public class Ogre : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        attackStateCoroutine = null;
         timeLastPrimary = Time.time;
+        aiState = AIMovementState.Chasing;
     }
 
     /// <summary>
@@ -392,30 +397,15 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -450,7 +440,7 @@ public class Ogre : Enemy
 
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
             AIMove();
             AILook();
@@ -491,7 +481,7 @@ public class Ogre : Enemy
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -554,6 +544,8 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
+                // Since TransitionToState checks for inProcess, we need to set it to false here, to transition to the next state
+                inProcess = false;
                 TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
@@ -570,7 +562,7 @@ public class Ogre : Enemy
         inProcess = false;
         if (debugging)
         {
-            StartPath(false);
+            StartPath();
         }
     }
 
@@ -601,7 +593,7 @@ public class Ogre : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -625,7 +617,7 @@ public class Ogre : Enemy
                 AIMove();
                 if (debugging)
                 {
-                    UpdatePath(false);
+                    UpdatePath();
                 }
             }
         }
@@ -652,7 +644,7 @@ public class Ogre : Enemy
             AIMove();
             if (debugging)
             {
-                UpdatePath(false);
+                UpdatePath();
             }
         }
         AILook();
@@ -688,7 +680,6 @@ public class Ogre : Enemy
             {
                 StartCoroutine(BeginSecondary());
             }
-            points.RemoveSurroundingEnemy(this);
             return true;
         }
         return false;

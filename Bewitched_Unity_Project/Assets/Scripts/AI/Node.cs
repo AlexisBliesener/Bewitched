@@ -20,8 +20,8 @@ public class Node
     [Tooltip("Z position multiplied by 10")]
     [SerializeField] private int zPos;
 
-    [Tooltip("Cost of a node")]
-    [SerializeField] private int nodeCost;
+    [Tooltip("Dictionary of characters to node costs")]
+    Dictionary<Character, int> nodeCosts = new Dictionary<Character, int>();
 
     [Tooltip("List of vertices")]
     [SerializeField] private List<Vertex> vertices = new List<Vertex>();
@@ -50,7 +50,6 @@ public class Node
         xPos = x;
         zPos = z;
         yPos = y;
-        nodeCost = 0;
         nodeSeparation = nodeDistance;
     }
 
@@ -156,10 +155,22 @@ public class Node
     /// <summary>
     /// Gets the node cost
     /// </summary>
+    /// <param name="enemy"> The enemy searching through this node </param>
     /// <returns> Cost of the node </returns>
-    public int GetCost()
+    public int GetCost(Enemy enemy = null)
     {
-        return nodeCost;
+        int cost = 0;
+        int priority;
+        if (enemy == null) priority = 10;
+        else priority = enemy.priority;
+        foreach (Character character in nodeCosts.Keys)
+        {
+            if (priority >= character.priority && enemy != character) // Only add costs if higher/equal priority and not this
+            {
+                cost += nodeCosts[character];
+            }
+        }
+        return cost;
     }
 
     /// <summary>
@@ -196,18 +207,20 @@ public class Node
     /// <summary>
     /// Add a cost to a node
     /// </summary>
+    /// <param name="character"> Character to add a cost with </param>
     /// <param name="cost"> Cost to add </param>
-    public void AddCost(int cost)
+    public void AddCost(Character character, int cost)
     {
-        nodeCost += cost;
+        if (nodeCosts.ContainsKey(character)) nodeCosts[character] += cost;
+        else nodeCosts[character] = cost;
     }
 
     /// <summary>
-    /// Resets the node cost
+    /// Resets the node costs
     /// </summary>
     public void ResetCost()
     {
-        nodeCost = 0;
+        nodeCosts = new Dictionary<Character, int>();
     }
 
     /// <summary>

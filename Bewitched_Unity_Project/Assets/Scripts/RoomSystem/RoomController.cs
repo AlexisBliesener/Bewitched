@@ -45,6 +45,8 @@ public class RoomController : MonoBehaviour
     private RoomState currentState = RoomState.Inactive;
     [Tooltip("The state of the door (lock/unlock)")]
     private DoorState doorState = DoorState.Unlocked;
+    [SerializeField,Tooltip("Is this an event room? If true, the room will not be cleared when the enemy is defeated")]
+    private bool isEventRoom = false;
     // Enum for door state, this is used to prevent multiple lock/unlock calls
     private enum DoorState
     {
@@ -189,6 +191,7 @@ public class RoomController : MonoBehaviour
     private void DetectEnemiesInBounds()
     {
 
+        if (isEventRoom) return;
         Collider[] colliders = Physics.OverlapBox(transform.position + roomBounds.center, roomBounds.size * 0.5f, transform.rotation, enemyLayerMask);
 
         foreach (Collider collider in colliders)
@@ -206,6 +209,7 @@ public class RoomController : MonoBehaviour
     /// </summary>
     private void ActivateEnemies()
     {
+        if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
             if (enemy != null)
@@ -221,6 +225,7 @@ public class RoomController : MonoBehaviour
     /// </summary>
     private void DeactivateEnemies()
     {
+        if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
             if (enemy != null)
@@ -301,6 +306,8 @@ public class RoomController : MonoBehaviour
         // we will remove any enemy that is null (Died/destoryed)
         roomEnemies.RemoveAll(enemy => enemy == null);
 
+        // If this is an event enemy, we will not clear the room
+        if (isEventRoom) return;
         // Check if any enemies are still active
         bool hasActiveEnemies = roomEnemies.Any(enemy => enemy.activeInHierarchy);
 

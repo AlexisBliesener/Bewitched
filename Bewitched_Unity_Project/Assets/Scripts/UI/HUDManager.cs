@@ -77,8 +77,8 @@ public class HUDManager : MonoBehaviour
 
         // resizing the icons
         LayoutElement layout = upgradeObject.AddComponent<LayoutElement>();
-        layout.preferredWidth = 100;
-        layout.preferredHeight = 100;
+        layout.preferredWidth = 10;
+        layout.preferredHeight = 10;
 
         // Stacking 
         RectTransform rt = upgradeObject.GetComponent<RectTransform>();
@@ -87,7 +87,7 @@ public class HUDManager : MonoBehaviour
         rt.pivot = new Vector2(0.5f, 1f);
 
         int count = upgradeDict[upgradeID].childCount - 1;
-        float overlap = 20f;
+        float overlap = 15f;
 
         rt.anchoredPosition = new Vector2(0, -count * overlap);
         upgradeObject.transform.SetAsFirstSibling();

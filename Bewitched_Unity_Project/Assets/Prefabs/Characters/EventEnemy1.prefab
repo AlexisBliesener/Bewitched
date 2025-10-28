@@ -42,10 +42,8 @@ GameObject:
   - component: {fileID: 6640083818887975464}
   - component: {fileID: 3235209060278389753}
   - component: {fileID: 3658127197087543663}
-  - component: {fileID: 6869636079888407182}
   - component: {fileID: 3862486846740890311}
   - component: {fileID: 5797441428398634537}
-  - component: {fileID: 3914265374028854697}
   - component: {fileID: 191969954075269605}
   - component: {fileID: 6691992593587386689}
   - component: {fileID: 3942806193874285845}
@@ -109,28 +107,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!195 &6869636079888407182
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242306305238571520}
-  m_Enabled: 0
-  m_AgentTypeID: 0
-  m_Radius: 2
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 2
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 5
-  m_BaseOffset: 2.5
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &3862486846740890311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,26 +224,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &3914265374028854697
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242306305238571520}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58700d50d40cd2142b00f69d9792b0c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  environment:
-    serializedVersion: 2
-    m_Bits: 0
-  debugging: 0
-  pointObjPrefab: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
-  minAttackTime: 0
-  maxAttackTime: 2
-  resetCostlyAreaDistance: 1
 --- !u!114 &191969954075269605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,10 +254,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dev: 0
   primaryAnimationDelay: []
   secondaryAnimationDelay: 0.5
-  animator: {fileID: 0}
-  characterController: {fileID: 3658127197087543663}
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
+  hitStunMult: 1
 --- !u!114 &3942806193874285845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -709,6 +668,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventsPlaying: []
   character: {fileID: 0}
+  isEventEnemy: 0
 --- !u!1001 &8902482844816750369
 PrefabInstance:
   m_ObjectHideFlags: 0
