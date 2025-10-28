@@ -544,6 +544,8 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
+                // Since TransitionToState checks for inProcess, we need to set it to false here, to transition to the next state
+                inProcess = false;
                 TransitionToState(AIMovementState.Chasing);
                 yield break;
             }

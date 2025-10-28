@@ -44,10 +44,11 @@ public class BreakWallMoment : MonoBehaviour
     private void OnCutsceneFinished(PlayableDirector directors)
     {
         // Kill ogre? 
-        PlayerController.instance.currentCharacter.health.SubHealth(PlayerController.instance.currentCharacter.health.GetMaxHealth());
-        Destroy(director.gameObject);
-        PlayerController.instance.SetAllowMovement(true);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
+        PlayerController.instance.currentCharacter.health.SetCurrentHealth(0);
+        PlayerController.instance.SetAllowMovement(true);
+        DestroyImmediate(director.gameObject);
+        Destroy(this);
     }
     /// <summary>
     /// This is called when the cut scene is started
@@ -66,7 +67,7 @@ public class BreakWallMoment : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponent<DefaultHitbox>() != null)
+        if (other.GetComponent<DefaultHitbox>() != null && this.enabled)
         {
             director.gameObject.SetActive(true);
         }

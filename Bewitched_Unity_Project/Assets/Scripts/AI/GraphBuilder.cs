@@ -702,6 +702,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!searching)
                 {
                     Enemy enemy = enemyQueue.Dequeue();
+                    if (enemy == null) continue;
                     enemy.FindPath();
                     while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
                     {

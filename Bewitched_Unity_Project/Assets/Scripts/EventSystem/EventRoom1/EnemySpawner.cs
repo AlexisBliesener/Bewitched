@@ -64,6 +64,8 @@ public class EnemySpawner : MonoBehaviour
     /// <returns></returns>
     public IEnumerator SpawnFinalEnemies()
     {
+        // Make the player invulnerable
+        PlayerController.instance.currentCharacter.health.SetInvincible(true);
         // First we will set all the enemies to be killed by one hit 
         foreach (GameObject enemyGameObject in roomController.roomEnemies)
         {
@@ -98,6 +100,7 @@ public class EnemySpawner : MonoBehaviour
             Enemy enemy = Instantiate(enemyPrefab, spawnPoint.transform.position, spawnPoint.transform.rotation, gameObject.transform).GetComponent<Enemy>();
             yield return null; // wait for one frame to make sure the enemy is spawned and called (Start) function on the enemy since the enemy is calling the AiState to Patrol
             enemy.aiState = Enemy.AIMovementState.Blocked;
+            enemy.sightRange = 150;
             enemy.health.OnDeath += OnEnemyDeath;
             roomController.AddEnemy(enemy.gameObject);
         }
@@ -159,6 +162,8 @@ public class EnemySpawner : MonoBehaviour
         Enemy enemy = Instantiate(enemyPrefab, enemyPlaceHolder.transform.position, enemyPlaceHolder.transform.rotation, gameObject.transform).GetComponent<Enemy>();
         // we will stop the ai to make the enemy jumping down from the stands
         enemy.aiState = Enemy.AIMovementState.Blocked;
+        // To make the goblin that jumps down to see the player
+        enemy.sightRange = 150;
         enemy.health.OnDeath += OnEnemyDeath;
         roomController.AddEnemy(enemy.gameObject);
         StartCoroutine(HandleJumpDown(enemy, index));

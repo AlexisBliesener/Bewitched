@@ -148,10 +148,11 @@ public class EventSystemRoom1 : MonoBehaviour
                 break;
             case FightState.Finished:
                 // we will check if all enemies are dead, if so, we will enable the wall script so the player can walk and break the wall
-                if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 0)
-                {
+                // 1 as the event enemy is already included in the count
+                // if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
+                // {
                     wall.enabled = true;
-                }
+                // }
                 break;
         }
     }
