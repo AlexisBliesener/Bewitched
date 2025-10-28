@@ -292,7 +292,7 @@ public class PossessionAbility : MonoBehaviour
     {
         if(currentCharacter != eleth)
         {
-            RespawnEleth();
+            StartCoroutine(RespawnEleth());
         }
 
         PlayerController.instance.SetAllowMovement(false);
@@ -346,7 +346,7 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
-                RespawnEleth();
+               StartCoroutine( RespawnEleth() );
             }
             else
             {

@@ -17,8 +17,6 @@ public class Hag : Character
     [SerializeField] float knockbackAmount = 2;
     [Tooltip("Blink Distance")]
     [SerializeField] float blinkDistance = 10;
-    [Tooltip("Wall Layermask")]
-    [SerializeField] LayerMask environment;
     [SerializeField] GameObject knockBackCone;
     [SerializeField, Tooltip("Objects to disable when eleth is possessing an enemy")]
     private GameObject[] objectsToDisable;
