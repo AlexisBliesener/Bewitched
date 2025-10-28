@@ -48,6 +48,28 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
+    /// Set the trigger to enter the leap animation
+    /// </summary>
+    public void SetEnterLeap()
+    {
+        animator.SetTrigger("EnterLeap");
+    }
+
+    /// <summary>
+    /// Gets if the goblin is currently in the primary windup animation
+    /// </summary>
+    /// <returns></returns>
+    public bool GetInPrimaryWindup()
+    {
+        AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
+        if (clip[0].clip.name == ("GoblinPrimaryWindup"))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Returns the primary attack windup speed multiplier
     /// </summary>
     /// <returns>primary attack windup speed multiplier</returns>
@@ -81,7 +103,7 @@ public class GoblinAnimator : CharacterAnimator
         if(GetComponentInParent<Goblin>().IsPlayerControlling())
             return primaryComboSpeedMultPlayer[comboStep];
         else
-            return primaryComboSpeedMultEnemy[comboStep];
+            return primaryComboSpeedMultEnemy[0];
     }
 
     /// <summary>
@@ -143,7 +165,24 @@ public class GoblinAnimator : CharacterAnimator
 
         if (newState == "PrimaryAttack")
         {
+            ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
+            if (GetComponentInParent<Goblin>().IsPlayerControlling())
+            {
+                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
+                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
+                animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultPlayer[2]);
+                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
+            }
+            else
+            {
+                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
+                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
+                animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultEnemy[2]);
+                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
+            }
+            canChange = false;
+            currentAnimationState = newState;
         }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
@@ -214,7 +253,7 @@ public class GoblinAnimator : CharacterAnimator
                 if (GetComponentInParent<Goblin>().IsPlayerControlling())
                     yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultPlayer[comboNum]);
                 else
-                    yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultEnemy[comboNum]);
+                    yield return new WaitForSeconds(primaryAnimationDelay[0] / primaryComboSpeedMultEnemy[0]);
                 break;
             case "SecondaryAttack":
                 if (GetComponentInParent<Goblin>().IsPlayerControlling())
