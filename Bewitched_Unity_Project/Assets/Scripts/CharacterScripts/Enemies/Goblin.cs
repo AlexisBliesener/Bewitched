@@ -106,6 +106,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
+        if (!playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
         ManageSurrounding();
@@ -887,7 +888,6 @@ public class Goblin : Enemy
             }
         }
         AILook();
-        CreateLocalSurroundingArea();
     }
 
     /// <summary>
@@ -1010,7 +1010,6 @@ public class Goblin : Enemy
                 StartCoroutine(BeginSecondary());
                 // Coordinate other goblin attack here
             }
-            ResetSurroundingArea();
             return true;
         }
         else

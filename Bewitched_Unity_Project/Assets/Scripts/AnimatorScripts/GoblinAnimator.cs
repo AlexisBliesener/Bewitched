@@ -40,7 +40,6 @@ public class GoblinAnimator : CharacterAnimator
     public bool GetInLeap()
     {
         AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
-        Debug.Log(gameObject + ", clip name: " + clip[0].clip.name);
         if(clip[0].clip.name == ("GoblinLeap"))
         {
             return true;

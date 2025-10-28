@@ -161,7 +161,11 @@ public class GraphBuilder : MonoBehaviour
         {
             foreach (Node node in shownNodes.Keys)
             {
-                shownNodes[node].GetComponent<Renderer>().material.color = Color.Lerp(Color.white, Color.red, node.GetCost() / 25);
+                Color color;
+                int cost = node.GetCost();
+                if (cost < 0) color = Color.Lerp(Color.blue, Color.white, 50 - Mathf.Abs(cost) / 50f);
+                else color = Color.Lerp(Color.white, Color.red, cost / 50f);
+                shownNodes[node].GetComponent<Renderer>().material.color = color;
             }
         }
 
@@ -859,16 +863,16 @@ public class GraphBuilder : MonoBehaviour
     /// Gets all nodes within a certain radius of a position
     /// </summary>
     /// <param name="position"> Center of circle </param>
-    /// <param name="radius"> Radius of circle </param>
+    /// <param name="maxRadius"> Radius to include of circle </param>
     /// <returns> All nodes in the circle </returns>
-    public List<List<int>> GetNodesInRadius(GameObject user, float radius)
+    public List<List<int>> GetNodesInRadius(GameObject user, float maxRadius)
     {
         List<List<int>> includedNodes = new List<List<int>>();
 
         int xPos = (int)(user.transform.position.x * 10);
         int zPos = (int)(user.transform.position.z * 10);
 
-        int convRadius = (int)(radius * 10);
+        int convRadius = (int)(maxRadius * 10);
 
         for (int x = xPos - convRadius; x <= xPos + convRadius; x++)
         {
@@ -880,9 +884,9 @@ public class GraphBuilder : MonoBehaviour
                     {
                         foreach (int y in nodeDictionary[x][z].Keys)
                         {
-                            Vector3 dist = nodeDictionary[x][z][y].GetPosition(user) - user.transform.position;
+                            float dist = Vector3.Distance(nodeDictionary[x][z][y].GetPosition(user), user.transform.position);
 
-                            if (dist.sqrMagnitude < radius)
+                            if (dist < maxRadius)
                             {
                                 List<int> positions = new List<int>();
                                 positions.Add(x);

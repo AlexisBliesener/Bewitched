@@ -678,7 +678,6 @@ public class Ogre : Enemy
             {
                 StartCoroutine(BeginSecondary());
             }
-            ResetSurroundingArea();
             return true;
         }
         return false;
