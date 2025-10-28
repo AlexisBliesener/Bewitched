@@ -540,7 +540,6 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
-            ResetSurroundingArea();
             return true;
         }
         else

@@ -932,7 +932,6 @@ public abstract class Enemy : Character
     public void TransitionToState(AIMovementState state)
     {
         if (aiState == state || inProcess) return; // If no transition, do nothing
-        ResetSurroundingArea();
 
         if (aiState == AIMovementState.Patrolling) // Reset path
         {
@@ -979,7 +978,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void CreateLocalSurroundingArea()
     {
-        if (aiState == AIMovementState.Blocked || attackingPrimary || attackingSecondary || stunned || dead)
+        if (dead)
         {
             if (surroundingCostlyNodes.Count > 0)
             {
@@ -990,6 +989,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
         {
+            int numSet = 0;
             ResetSurroundingArea();
             float totalDist = minimumSurroundingDistance + sizeRadius;
             List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
@@ -1000,7 +1000,8 @@ public abstract class Enemy : Character
                 float ratio = (totalDist - dist) / totalDist;
                 node.AddCost(this, (int)(25 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(10 * ratio);
+                surroundingCostlyNodes[position] = (int)(25 * ratio);
+                numSet++;
             }
             previousCostlyPosition = transform.position;
         }
@@ -1011,8 +1012,10 @@ public abstract class Enemy : Character
     /// </summary>
     public void ResetSurroundingArea()
     {
+        int numReset = 0;
         foreach (List<int> position in surroundingCostlyNodes.Keys)
         {
+            numReset++;
             GraphBuilder.instance.AddNodeCost(position, this, -surroundingCostlyNodes[position]);
         }
         surroundingCostlyNodes = new Dictionary<List<int>, int>();
@@ -1024,7 +1027,16 @@ public abstract class Enemy : Character
     public void ManageSurrounding()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius) SurroundingPoints.instance.AddSurroundingEnemy(this);
-        else SurroundingPoints.instance.RemoveSurroundingEnemy(this);
+        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius)
+        {
+            SurroundingPoints.instance.AddSurroundingEnemy(this);
+            if (playerControlling) ResetSurroundingArea();
+            else CreateLocalSurroundingArea();
+        }
+        else
+        {
+            SurroundingPoints.instance.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
+        }
     }
 }
