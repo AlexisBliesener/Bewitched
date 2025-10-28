@@ -128,11 +128,13 @@ public class EventSystemRoom1 : MonoBehaviour
                 {
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     enemyEvent.GetEnemy().canPossess = true;
+                    enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
                     return;
                 }
                 // if it passes the dizzy duration, make the enemy not possessable, and add health to the enemy event
                 // and make the enemy to be able to attack again
                 enemyEvent.GetEnemy().canPossess = false;
+                enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Chasing;
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
                 fightState = FightState.Fighting;
                 enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);
