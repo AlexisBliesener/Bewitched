@@ -161,15 +161,17 @@ public class Guard : Enemy
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
+        sizeRadius = GetComponent<CharacterController>().radius;
 
         targetPointIndex = 0;
         outGoing = false;
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+        ManageSurrounding();
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
         SetAIState();
@@ -322,30 +324,15 @@ public class Guard : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetComponent<SurroundingPoints>().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -391,7 +378,7 @@ public class Guard : Enemy
     public void SetPatrollingPoint()
     {
         walkPoint = patrolPoints[targetPointIndex];
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -553,7 +540,6 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
-            points.RemoveSurroundingEnemy(this);
             return true;
         }
         else

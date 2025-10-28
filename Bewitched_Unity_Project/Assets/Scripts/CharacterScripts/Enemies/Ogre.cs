@@ -80,11 +80,13 @@ public class Ogre : Enemy
         SetBaseStats();
         SetPatrolOrigin();
         isEventEnemy = TryGetComponent<EventEnemy>(out var e);
+        sizeRadius = GetComponent<CharacterController>().radius;
     }
 
     private void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+        ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
         SetAIState();
         SetBehavior();
@@ -393,30 +395,15 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -492,7 +479,7 @@ public class Ogre : Enemy
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -689,7 +676,6 @@ public class Ogre : Enemy
             {
                 StartCoroutine(BeginSecondary());
             }
-            points.RemoveSurroundingEnemy(this);
             return true;
         }
         return false;

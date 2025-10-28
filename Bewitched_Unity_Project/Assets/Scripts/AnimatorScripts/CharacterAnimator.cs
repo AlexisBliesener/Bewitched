@@ -75,10 +75,20 @@ public class CharacterAnimator : MonoBehaviour
         // Idle/run switching
         if (characterController != null)
         {
-            if (characterController.velocity.magnitude < 0.05f)
-                SwitchState("Idle",  character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            if(PlayerController.instance.currentCharacter == character)
+            {
+                if (characterController.velocity.magnitude < 0.05f)
+                    SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                else
+                    SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            }
             else
-                SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            {
+                if (characterController.velocity.magnitude < 0.05f)
+                    SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                else
+                    SwitchState("Run", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            }
         }
     }
 
@@ -153,7 +163,10 @@ public class CharacterAnimator : MonoBehaviour
 
         if (newState == "PrimaryAttack")
         {
+            ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
+            canChange = false;
+            currentAnimationState = newState;
         }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
@@ -231,7 +244,10 @@ public class CharacterAnimator : MonoBehaviour
         switch (animation)
         {
             case "PrimaryAttack":
-                yield return new WaitForSeconds(primaryAnimationDelay[comboNum]);
+                if (PlayerController.instance.currentCharacter == character)
+                    yield return new WaitForSeconds(primaryAnimationDelay[comboNum]);
+                else
+                    yield return new WaitForSeconds(primaryAnimationDelay[0]);
                 break;
             case "SecondaryAttack":
                 yield return new WaitForSeconds(secondaryAnimationDelay);

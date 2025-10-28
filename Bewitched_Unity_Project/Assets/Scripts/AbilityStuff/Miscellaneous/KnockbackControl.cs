@@ -31,10 +31,17 @@ public class KnockbackControl : MonoBehaviour
         if (impact.magnitude > 0.2) character.Move(impact * Time.deltaTime);
         else if (gettingKnockback)
         {
-            StartCoroutine(GetComponent<Character>().EnableMovement());
             gettingKnockback = false;
         }
         // consumes the impact energy each cycle:
-        impact = Vector3.Lerp(impact, Vector3.zero, 5 * Time.deltaTime);
+        impact -= impact.normalized * mass * GetComponent<Character>().deceleration * Time.deltaTime;
+    }
+
+    /// <summary>
+    /// Resets the impact
+    /// </summary>
+    public void ResetImpact()
+    {
+        impact = Vector3.zero;
     }
 }
