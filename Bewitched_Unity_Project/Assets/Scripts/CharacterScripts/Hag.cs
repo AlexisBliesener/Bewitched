@@ -119,7 +119,7 @@ public class Hag : Character
     /// Fires death animation and music
     /// Stops movement
     /// </summary>
-    protected override void OnDeath()
+    protected override void OnDeath(GameObject enemyGameObject)
     {
         AnimateDeath();
         //This is temporary until we implement the big "You Died" UI Banner thing.

@@ -35,7 +35,10 @@ public class EnemyHealth : HealthController
                 finalDamage = Adrenaline.instance.GetModifiedDamage(amt);
             }
             ShowMiniHealthBar(true, GetCharacter());
-            StartCoroutine(characterAnimator.SetHit());
+            if (characterAnimator != null)
+            {
+                StartCoroutine(characterAnimator.SetHit());
+            }
         }
         base.SubHealth(finalDamage);
     }

@@ -88,7 +88,7 @@ public class Ogre : Enemy
         if (dead || lobotimzed) return;
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        SetAIState();
+        // SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
     }
@@ -259,7 +259,9 @@ public class Ogre : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        attackStateCoroutine = null;
         timeLastPrimary = Time.time;
+        aiState = AIMovementState.Chasing;
     }
 
     /// <summary>
@@ -542,6 +544,8 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
+                // Since TransitionToState checks for inProcess, we need to set it to false here, to transition to the next state
+                inProcess = false;
                 TransitionToState(AIMovementState.Chasing);
                 yield break;
             }

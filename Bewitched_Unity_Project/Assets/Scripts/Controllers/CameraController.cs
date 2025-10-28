@@ -248,6 +248,7 @@ public class CameraController : MonoBehaviour
 
     public void PlayerHitBy(GameObject hitBy)
     {
+        if (combatCamScript == null || hitBy == null) return;
         combatCamScript.PlayerHitBy(hitBy);
     }
 }

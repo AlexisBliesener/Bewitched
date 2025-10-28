@@ -359,7 +359,7 @@ public abstract class Character : MonoBehaviour
     /// <summary>
     /// OnDeath is called when the character dies.
     /// </summary>
-    protected virtual void OnDeath()
+    protected virtual void OnDeath(GameObject enemyGameObject)
     {
         StopAllCoroutines();
         Die();

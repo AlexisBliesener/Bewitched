@@ -84,6 +84,7 @@ public class CharacterAnimator : MonoBehaviour
             }
             else
             {
+                if (character == null) return;
                 if (characterController.velocity.magnitude < 0.05f)
                     SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
                 else
