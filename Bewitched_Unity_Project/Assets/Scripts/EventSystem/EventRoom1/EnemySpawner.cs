@@ -67,6 +67,7 @@ public class EnemySpawner : MonoBehaviour
         // First we will set all the enemies to be killed by one hit 
         foreach (GameObject enemyGameObject in roomController.roomEnemies)
         {
+            if (enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             Enemy enemy = enemyGameObject.GetComponent<Enemy>();
             enemy.health.SetCurrentHealth(1);
             enemy.sightRange = 150;
@@ -209,6 +210,7 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void OnDestroy()
     {
+        if (roomController == null) return;
         foreach (GameObject enemy in roomController.roomEnemies)
         {
             enemy.GetComponent<Enemy>().health.OnDeath -= OnEnemyDeath;
@@ -220,6 +222,7 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void Activate()
     {
+        if (roomController == null) return;
         // Set all the enimies to patrolling (This is only for the enimies that are spawned on start)
         foreach (GameObject enemy in roomController.roomEnemies)
         {

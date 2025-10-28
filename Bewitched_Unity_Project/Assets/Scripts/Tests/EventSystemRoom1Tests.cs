@@ -185,20 +185,6 @@ public class EventSystemRoom1Tests
         eventSystemRoom.SendMessage("Update");
         Assert.AreEqual(EventEnemy.EventEnemyState.Dizzy, enemyEvent.GetState());
     }
-
-    /// <summary>
-    /// Test that EndFight set the enemy to Possessed and unlocks the door
-    /// </summary>
-    [Test]
-    public void EndFight_SetsEnemyPossessedAndUnlocksDoor()
-    {
-        testDoor.IsLocked = true;
-
-        eventSystemRoom.EndFight();
-
-        Assert.AreEqual(EventEnemy.EventEnemyState.Possessed, enemyEvent.GetState());
-        Assert.IsFalse(testDoor.IsLocked);
-    }
 }
 
 

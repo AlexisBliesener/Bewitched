@@ -41,13 +41,13 @@ public class BreakWallMoment : MonoBehaviour
     /// <summary>
     /// This is called when the cut scene is finished 
     /// </summary>
-    private void OnCutsceneFinished(PlayableDirector director)
+    private void OnCutsceneFinished(PlayableDirector directors)
     {
-        PlayerController.instance.SetAllowMovement(true);
-        PlayerController.instance.currentCharacter.gameObject.SetActive(true);
         // Kill ogre? 
         PlayerController.instance.currentCharacter.health.SubHealth(PlayerController.instance.currentCharacter.health.GetMaxHealth());
         Destroy(director.gameObject);
+        PlayerController.instance.SetAllowMovement(true);
+        PlayerController.instance.currentCharacter.gameObject.SetActive(true);
     }
     /// <summary>
     /// This is called when the cut scene is started
@@ -59,7 +59,7 @@ public class BreakWallMoment : MonoBehaviour
         // we will kill all the enemies on the arena 
         foreach (GameObject enemyGameObject in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
         {
-            if (enemyGameObject == null) continue;
+            if (enemyGameObject == null || enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             Enemy enemy = enemyGameObject.GetComponent<Enemy>();
             enemy.health.SetCurrentHealth(0);
         }
