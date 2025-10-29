@@ -101,6 +101,7 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        CreateLocalInvalidArea();
         ManageSurrounding();
         if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
@@ -128,8 +129,6 @@ public class Goblin : Enemy
         {
             animator.SetPrimaryMovementNeeded(false);
         }
-
-        CreateLocalInvalidArea();
     }
 
     /// <summary>
@@ -267,7 +266,7 @@ public class Goblin : Enemy
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     animator.ExitLeap();
@@ -404,6 +403,7 @@ public class Goblin : Enemy
 
         tempLockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     /// <summary>
@@ -655,6 +655,7 @@ public class Goblin : Enemy
         SetMovementValues(true);
         attackState = AttackState.Neutral;
         attackStateCoroutine = null;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
 
@@ -978,12 +979,14 @@ public class Goblin : Enemy
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
         float remaining = points.GetAvailableAttackPoints();
+        bool primaryAvailable = false;
 
-        if (CheckPrimaryUsable() && primaryAICost > remaining)
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
+            primaryAvailable = true;
         }
-        if (CheckSecondaryUsable() && secondaryAICost > remaining)
+        if (CheckSecondaryUsable() && secondaryAICost <= remaining)
         {
             if (goblins.Count >= 1) // Only do this if other goblins are around
             {
@@ -991,11 +994,11 @@ public class Goblin : Enemy
             }
         }
 
-        if (totalOdds > 0)
+        if (totalOdds > 0) // Attack happens in here
         {
             int cost;
             float choice = Random.Range(0, totalOdds);
-            if (choice <= primaryAttackChance) // Primary attack selected
+            if (choice <= primaryAttackChance && primaryAvailable) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
                 cost = primaryAICost;
@@ -1006,6 +1009,7 @@ public class Goblin : Enemy
                 // Plan other goblin attack here and add to cost ahead of time
                 cost = secondaryAICost;
             }
+            points.AddAttackingEnemy(this, cost);
             return cost;
         }
         else

@@ -10,6 +10,8 @@ public abstract class Enemy : Character
     [Header("Enemy AI Settings")]
     [Tooltip("Determines the enemy's mental state atm")]
     public bool lobotimzed = false;
+    [Tooltip("If the enemy can attack")]
+    public bool cantAttack = false;
     [Tooltip("Minimum Stopping Distance"), Range(0, 10)]
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
@@ -558,8 +560,12 @@ public abstract class Enemy : Character
                 attackingSecondary = false;
                 timeLastSecondary = Time.time;
             }
-            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
-            else aiState = AIMovementState.Chasing;
+            SetMovementValues(true);
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+                SurroundingPoints.instance.RemoveAttackingEnemy(this);
+            }
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -1035,8 +1041,9 @@ public abstract class Enemy : Character
         }
         else
         {
+            if (dist < currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius && !playerControlling) CreateLocalSurroundingArea();
+            else ResetSurroundingArea();
             SurroundingPoints.instance.RemoveSurroundingEnemy(this);
-            ResetSurroundingArea();
         }
     }
 }

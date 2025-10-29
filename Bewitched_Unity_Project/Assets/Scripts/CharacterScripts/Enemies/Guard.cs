@@ -531,9 +531,10 @@ public class Guard : Enemy
     {
         if (dead || lobotimzed) return 0;
         float totalOdds = 0;
+        float remaining = points.GetAvailableAttackPoints();
 
         // For now keep as just primary, once more combat is done then if being attacked it will block
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
         }
@@ -541,6 +542,7 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
+            points.AddAttackingEnemy(this, primaryAICost);
             return primaryAICost;
         }
         else

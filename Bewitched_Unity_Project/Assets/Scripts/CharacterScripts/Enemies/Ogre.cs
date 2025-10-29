@@ -259,6 +259,7 @@ public class Ogre : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
         timeLastPrimary = Time.time;
     }
 
@@ -316,18 +317,11 @@ public class Ogre : Enemy
 
         SetMovementValues(true);
         attackState = AttackState.Neutral;
-        if (playerControlling)
-        {
-            StartCoroutine(EnableMovement());
-        }
-        else
-        {
-            aiState = AIMovementState.Chasing;
-            attackState = AttackState.Neutral;
-        }
+        SetMovementValues(true);
 
         attackStateCoroutine = null;
         attackingSecondary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
     //Override of OnDamaged to handle the OgreHit sound effect
     protected override void OnDamaged(float f)
@@ -655,12 +649,13 @@ public class Ogre : Enemy
     {
         if (dead || lobotimzed) return 0;
         float totalOdds = 0;
+        float remaining = points.GetAvailableAttackPoints();
 
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
         }
-        if (CheckSecondaryUsable()) // In the future use this if being attacked by player
+        if (CheckSecondaryUsable() && secondaryAICost <= remaining) // In the future use this if being attacked by player
         {
             totalOdds += secondaryAttackChance;
         }
@@ -669,16 +664,19 @@ public class Ogre : Enemy
         {
             // Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
+            int cost;
             if (choice <= primaryAttackChance) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
-                return primaryAICost;
+                cost = primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
-                return secondaryAICost;
+                cost = secondaryAICost;
             }
+            points.AddAttackingEnemy(this, cost);
+            return cost;
         }
         return 0;
     }

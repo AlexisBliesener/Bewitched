@@ -293,6 +293,11 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns the stunned status
+    /// </summary>
+    public bool IsStunned => stunned;
+
+    /// <summary>
     /// Returns the Cinemachine Combat camera associated with this character.
     /// </summary>
     /// <returns>The FreeLook Cinemachine camera.</returns>
@@ -454,7 +459,7 @@ public abstract class Character : MonoBehaviour
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
             {
-                PlayerController.instance.SetAllowMovement(false);
+                if (this == PlayerController.instance.currentCharacter) PlayerController.instance.SetAllowMovement(false);
                 yield return null;
             }
             if (attackingPrimary) // Reset primary and secondary abilities
@@ -467,7 +472,13 @@ public abstract class Character : MonoBehaviour
                 attackingSecondary = false;
                 timeLastSecondary = Time.time;
             }
-            PlayerController.instance.SetAllowMovement(true);
+
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+            }
+
+            StartCoroutine(EnableMovement());
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -650,10 +661,10 @@ public abstract class Character : MonoBehaviour
     /// Checks if the enemy is winding up or approaching (no other attacks can be started then)
     /// </summary>
     /// <returns> True if other enemies can attack </returns>
-    public bool OtherEnemyCanAttack()
+    public bool InAttackStartup()
     {
-        if (attackState == AttackState.Windup || attackState == AttackState.Approaching) return false;
-        return true;
+        if (attackState == AttackState.Windup || attackState == AttackState.Approaching) return true;
+        return false;
     }
 
     /// <summary>
@@ -852,8 +863,6 @@ public abstract class Character : MonoBehaviour
     {
         if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
-            Debug.Log(hit.gameObject);
-            Debug.Log("Adding force");
 
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;

@@ -53,6 +53,9 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Character the player is currently")]
     private Character currentPlayer;
 
+    [Tooltip("Currently attacking enemies and their attack costs")]
+    Dictionary<Character, int> attackingEnemies = new Dictionary<Character, int>();
+
     private void Awake()
     {
         timeLastRoomSwap = Time.time;
@@ -181,13 +184,14 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (enemy.IsNeutral() && !enemy.lobotimzed && !enemy.IsDead && !enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
+                if (enemy.IsNeutral() && !enemy.lobotimzed && !enemy.IsDead && !enemy.IsStunned && !enemy.cantAttack && !enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (!enemy.OtherEnemyCanAttack())
+                if (enemy.InAttackStartup())
                 {
+                    Debug.Log("Can't attack due to: " + enemy);
                     return; // For now just keep returning until no enemies are attacking
                 }
             }
@@ -197,12 +201,11 @@ public class SurroundingPoints : MonoBehaviour
                 while (tempEnemies.Count > 0)
                 {
                     Enemy chosen = tempEnemies.Dequeue();
-                    float cost = chosen.AttackFromSurrounding(this);
+                    int cost = chosen.AttackFromSurrounding(this);
 
                     if (cost > 0)
                     {
                         Debug.Log("Chosen enemy: " + chosen);
-                        
                         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                         timeLastAttack = Time.time;
                         break;
@@ -219,5 +222,32 @@ public class SurroundingPoints : MonoBehaviour
     public int GetAvailableAttackPoints()
     {
         return attackPoints;
+    }
+
+    /// <summary>
+    /// Adds an enemy to attacking enemies
+    /// </summary>
+    /// <param name="enemy"> Enemy to add </param>
+    /// <param name="cost"> Cost of attack </param>
+    public void AddAttackingEnemy(Character enemy, int cost)
+    {
+        if (!attackingEnemies.ContainsKey(enemy))
+        {
+            attackingEnemies[enemy] = cost;
+            attackPoints -= cost;
+        }
+    }
+
+    /// <summary>
+    /// Removes an enemy from attacking enemies
+    /// </summary>
+    /// <param name="enemy"> Enemy to remove </param>
+    public void RemoveAttackingEnemy(Character enemy)
+    {
+        if (attackingEnemies.ContainsKey(enemy))
+        {
+            attackPoints += attackingEnemies[enemy];
+            attackingEnemies.Remove(enemy);
+        }
     }
 }
