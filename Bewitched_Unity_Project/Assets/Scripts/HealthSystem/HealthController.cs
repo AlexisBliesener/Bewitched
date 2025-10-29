@@ -41,11 +41,14 @@ public class HealthController : MonoBehaviour
 
     /// Timestamp of last received damage (set by this controller)
     public float TimeLastHit { get; private set; } = -Mathf.Infinity;
-
+    [Tooltip("Called when the character's health changes, it will pass the current health and max health")]
     public event Action<float, float> OnHealthChanged; // current, max
+    [Tooltip("Called when the character is damaged, it will pass the amount of health damaged")]
     public event Action<float> OnDamaged; // amount
+    [Tooltip("Called when the character is healed, it will pass the amount of health healed")]
     public event Action<float> OnHealed; // amount
-    public event Action OnDeath;
+    [Tooltip("Called when the character dies, it will pass the game object of the character")]
+    public event Action<GameObject> OnDeath;
 
     private void Awake()
     {
@@ -67,7 +70,7 @@ public class HealthController : MonoBehaviour
                 NotifyHealthChanged();
                 if (IsDead)
                 {
-                    OnDeath?.Invoke();
+                    OnDeath?.Invoke(gameObject);
                 }
             }
         }
@@ -88,7 +91,7 @@ public class HealthController : MonoBehaviour
     {
         CurrentHealth = Mathf.Clamp(current, 0f, maxHealth);
         NotifyHealthChanged();
-        if (IsDead) OnDeath?.Invoke();
+        if (IsDead) OnDeath?.Invoke(gameObject);
     }
     /// <summary>
     /// Set current health to max health.
@@ -122,7 +125,7 @@ public class HealthController : MonoBehaviour
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();
-        if (IsDead) OnDeath?.Invoke();
+        if (IsDead) OnDeath?.Invoke(gameObject);
         else
         {
             TimeLastHit = Time.time;
@@ -141,7 +144,7 @@ public class HealthController : MonoBehaviour
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
         if (CurrentHealth != old) NotifyHealthChanged();
-        if (IsDead) OnDeath?.Invoke();
+        if (IsDead) OnDeath?.Invoke(gameObject);
     }
     /// <summary>
     /// Heal the character.

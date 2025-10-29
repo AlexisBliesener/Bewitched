@@ -25,6 +25,8 @@ public class CharacterAnimator : MonoBehaviour
     protected float idleSpeedMult = 1f;
     [SerializeField, Tooltip("Death animation speed multiplier."), Range(0.1f, 10f)]
     protected float deathSpeedMult = 1f;
+    [SerializeField, Tooltip("Hit stum animation speed multiplier."), Range(0.1f, 10f)]
+    protected float hitStunMult = 1f;
 
 
     [Tooltip("The possible animation states this animator can enter")]
@@ -58,9 +60,9 @@ public class CharacterAnimator : MonoBehaviour
             animator.SetFloat("IdleSpeedMult", idleSpeedMult);
             animator.SetFloat("WalkSpeedMult", walkSpeedMult);
             animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+            animator.SetFloat("HitSpeedMult", hitStunMult);
         }
     }
-
 
     protected virtual void Update()
     {
@@ -73,10 +75,44 @@ public class CharacterAnimator : MonoBehaviour
         // Idle/run switching
         if (characterController != null)
         {
-            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
-                SwitchState("Idle",  character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            if(PlayerController.instance.currentCharacter == character)
+            {
+                if (characterController.velocity.magnitude < 0.05f)
+                    SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                else
+                    SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            }
             else
-                SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            {
+                if (character == null) return;
+                if (characterController.velocity.magnitude < 0.05f)
+                    SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                else
+                    SwitchState("Run", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+            }
+        }
+    }
+
+    public float GetHitStunMult()
+    {
+        return hitStunMult;
+    }
+
+    public IEnumerator SetHit()
+    {
+        ResetAllTriggers();
+        animator.SetFloat("HitSpeedMult", hitStunMult);
+        canChange = false;
+        if(character == PlayerController.instance.currentCharacter)
+        {
+            PlayerController.instance.SetAllowMovement(false);
+        }
+        animator.SetTrigger("Hit");
+        yield return new WaitForSeconds(0.12f / hitStunMult);
+        canChange = true;
+        if (character == PlayerController.instance.currentCharacter)
+        {
+            PlayerController.instance.SetAllowMovement(true);
         }
     }
 
@@ -128,7 +164,10 @@ public class CharacterAnimator : MonoBehaviour
 
         if (newState == "PrimaryAttack")
         {
+            ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
+            canChange = false;
+            currentAnimationState = newState;
         }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
@@ -178,6 +217,7 @@ public class CharacterAnimator : MonoBehaviour
         animator.ResetTrigger("PrimaryAttack");
         animator.ResetTrigger("SecondaryAttack");
         animator.ResetTrigger("Death");
+        animator.ResetTrigger("Hit");
     }
 
     /// <summary>
@@ -205,7 +245,10 @@ public class CharacterAnimator : MonoBehaviour
         switch (animation)
         {
             case "PrimaryAttack":
-                yield return new WaitForSeconds(primaryAnimationDelay[comboNum]);
+                if (PlayerController.instance.currentCharacter == character)
+                    yield return new WaitForSeconds(primaryAnimationDelay[comboNum]);
+                else
+                    yield return new WaitForSeconds(primaryAnimationDelay[0]);
                 break;
             case "SecondaryAttack":
                 yield return new WaitForSeconds(secondaryAnimationDelay);

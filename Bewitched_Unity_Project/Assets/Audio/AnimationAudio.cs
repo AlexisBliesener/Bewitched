@@ -253,7 +253,7 @@ public class AnimationAudio : MonoBehaviour
     /// <summary>
     /// Function used to stop all animation audio sound effects when the character dies
     /// </summary>
-    void OnDeath()
+    void OnDeath(GameObject enemyGameObject)
     {
         foreach (var ev in animEvents.Values)
         {
