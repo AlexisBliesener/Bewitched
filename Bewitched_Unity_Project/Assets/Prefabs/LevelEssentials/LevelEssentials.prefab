@@ -373,13 +373,17 @@ MonoBehaviour:
   playerBuffs: {fileID: 3751507528405304438}
   primaryCooldownDisplay: {fileID: 0}
   secondaryCooldownDisplay: {fileID: 0}
+  closeSphereRadius: 2
+  closeSphereDistance: 3
+  farSphereRadius: 4
+  farSphereDistance: 8
   pauseMenu: {fileID: 0}
   interactUI: {fileID: 0}
   exitDoor: {fileID: 0}
-  movementInput: {x: 0, y: 0}
-  direction: {x: 0, y: 0, z: 0}
   playerZone: {fileID: 0}
   surface: {fileID: 0}
+  movementInput: {x: 0, y: 0}
+  direction: {x: 0, y: 0, z: 0}
 --- !u!114 &3751507528405304438
 MonoBehaviour:
   m_ObjectHideFlags: 0
