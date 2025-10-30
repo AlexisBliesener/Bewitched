@@ -518,7 +518,10 @@ public class GraphBuilder : MonoBehaviour
     /// <returns></returns>
     public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination)
     {
+        float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         searching = true;
+        float furthestNodeDistance = 0;
+        Dictionary<Node, List<float>> nodeScores = new Dictionary<Node, List<float>>();
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         Node origin = FindClosestNode(originPos);
@@ -530,7 +533,6 @@ public class GraphBuilder : MonoBehaviour
             enemy.SetUsingSearch(false);
             enemy.SetPath(null);
             enemy.ValidatePoint(); // Quick set path state to unset
-            StartCoroutine(RetryPath(enemy));
             yield break;
         }
 
@@ -540,17 +542,25 @@ public class GraphBuilder : MonoBehaviour
         path.SetOrigin(origin);
         openSet.Enqueue(origin, 0);
         List<Node> closedSet = new List<Node>();
-        Dictionary<Vector3, float> gscore = new Dictionary<Vector3, float>();
+        Dictionary<Node, float> gscore = new Dictionary<Node, float>();
 
-        gscore[origin.GetPosition()] = 0;
+        gscore[origin] = 0;
 
-        Dictionary<Vector3, float> fscore = new Dictionary<Vector3, float>();
-        fscore[origin.GetPosition()] = Vector3.Distance(origin.GetPosition(), destination);
+        Dictionary<Node, float> fscore = new Dictionary<Node, float>();
+        fscore[origin] = Vector3.Distance(origin.GetPosition(), destination);
 
         while (!openSet.IsEmpty())
         {
             Node current = openSet.Dequeue();
             closedSet.Add(current);
+
+            if (nodeScores.ContainsKey(current)) nodeScores[current].Add(fscore[current]);
+            else
+            {
+                List<float> score = new List<float>();
+                score.Add(fscore[current]);
+                nodeScores[current] = score;
+            }
 
             nodesSearched++;
 
@@ -568,6 +578,24 @@ public class GraphBuilder : MonoBehaviour
                     yield break;
                 }
 
+                Debug.Log("Maximum distance: " + maxSearchDistance + ", furthest distance: " + furthestNodeDistance);
+
+                Node maxSearchedNode = null;
+                int maxSearches = 0;
+                foreach (Node node in nodeScores.Keys)
+                {
+                    if (nodeScores[node].Count > maxSearches)
+                    {
+                        maxSearches = nodeScores[node].Count;
+                        maxSearchedNode = node;
+                    }
+                }
+                Debug.Log("Max searched node was at: " + maxSearchedNode.GetPosition() + " with " + maxSearches);
+                foreach (float cost in nodeScores[maxSearchedNode])
+                {
+                    Debug.Log("Cost: " + cost);
+                }
+
                 yield break;
             }
 
@@ -575,28 +603,47 @@ public class GraphBuilder : MonoBehaviour
             {
                 Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
-                if (closedSet.Contains(neighbor))
+                float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
+   
+                if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
+
+                if (closedSet.Contains(neighbor) || neighborDistanceFromOrigin >= maxSearchDistance)
                     continue;
 
-                float tentativeGScore = gscore[current.GetPosition()] +
+                if (neighborDistanceFromOrigin > furthestNodeDistance) furthestNodeDistance = neighborDistanceFromOrigin;
+
+                float tentativeGScore = gscore[current] +
                         Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
 
                 float neighborGScore;
-                if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
+                if (!gscore.TryGetValue(neighbor, out neighborGScore))
                     neighborGScore = float.PositiveInfinity;
 
-                if (tentativeGScore < neighborGScore) // Node must be valid as well
+                if (tentativeGScore < neighborGScore)
                 {
                     path.SetPathVertex(neighbor, vertex);
-                    gscore[neighbor.GetPosition()] = tentativeGScore;
-                    fscore[neighbor.GetPosition()] = gscore[neighbor.GetPosition()] + Vector3.Distance(neighbor.GetPosition(), destination);
+                    float val;
+                    float fVal = tentativeGScore + Vector3.Distance(neighbor.GetPosition(), destination);
 
-                    openSet.Enqueue(neighbor, (int)fscore[neighbor.GetPosition()]);
+                    if (!fscore.ContainsKey(neighbor)) val = Mathf.Infinity;
+                    else val = fscore[neighbor];
+
+                    if (fVal < val - 0.1f)
+                    {
+                        gscore[neighbor] = tentativeGScore;
+                        fscore[neighbor] = fVal;
+                        if (val != Mathf.Infinity)
+                        {
+                            openSet.Replace(neighbor, (int)val, (int)fVal);
+                        }
+                        else openSet.Enqueue(neighbor, (int)fVal);
+                    }
                 }
             }
 
             if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
             {
+                Debug.Log("Skipping frame, searched " + nodesSearched + " nodes.");
                 yield return null; // Go to next frame
             }
         }
@@ -703,16 +750,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!searching)
                 {
                     Enemy enemy = enemyQueue.Dequeue();
-                    enemy.FindPath();
-                    while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
-                    {
-                        if (!enemy.IsFindingPath())
-                        {
-                            agentAttempts++;
-                            if (agentAttempts <= maxAgentAttempts) enemy.FindPath();
-                        }
-                        yield return null;
-                    }
+                    yield return StartCoroutine(enemy.FindPath());
                 }
                 yield return null;
             }

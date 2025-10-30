@@ -103,7 +103,11 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
+
+        float timeStarted = Time.time;
+        Debug.Log("Starting search");
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position));
+        Debug.Log("Ending search after " + (Time.time - timeStarted) + " seconds");
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
 
@@ -191,7 +195,6 @@ public class SurroundingPoints : MonoBehaviour
 
                 if (enemy.InAttackStartup())
                 {
-                    Debug.Log("Can't attack due to: " + enemy);
                     return; // For now just keep returning until no enemies are attacking
                 }
             }

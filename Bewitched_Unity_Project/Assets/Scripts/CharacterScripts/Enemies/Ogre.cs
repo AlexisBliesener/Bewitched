@@ -377,27 +377,28 @@ public class Ogre : Enemy
     /// <summary>
     /// Finds a path and starts searching depending on the AI state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
+
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -455,7 +456,7 @@ public class Ogre : Enemy
     /// Override function for setting a patrol point
     /// This version uses a point of origin separate from the Ogre to place a point
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         // Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
@@ -473,7 +474,7 @@ public class Ogre : Enemy
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>

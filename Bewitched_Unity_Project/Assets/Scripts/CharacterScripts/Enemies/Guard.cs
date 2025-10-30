@@ -311,28 +311,28 @@ public class Guard : Enemy
     /// <summary>
     /// Handles finding a path in the graph based on the state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
 
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -375,10 +375,10 @@ public class Guard : Enemy
     /// Override function for setting a patrol point
     /// This version uses a pre-made list of points and selects points in sequence for a route
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         walkPoint = patrolPoints[targetPointIndex];
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -481,6 +481,7 @@ public class Guard : Enemy
             }
         }
         AILook();
+
     }
 
     /// <summary>

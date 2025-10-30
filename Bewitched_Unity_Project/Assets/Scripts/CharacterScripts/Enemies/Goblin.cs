@@ -107,6 +107,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
+        //Debug.Log(debugAIInfo);
 
         SetAIState();
 
@@ -688,28 +689,28 @@ public class Goblin : Enemy
     /// <summary>
     /// Handles finding a path in the graph based on the state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
 
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -756,7 +757,7 @@ public class Goblin : Enemy
     /// Override function for setting a patrol point
     /// This version uses a point of origin separate from the Goblin to place points
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
         float randomZ = Random.Range(-patrolRange, patrolRange);
@@ -764,7 +765,7 @@ public class Goblin : Enemy
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -849,7 +850,7 @@ public class Goblin : Enemy
         StopIdleAudio();
         lookAtPlayer = false;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             AIMove();
             if (debugging)
@@ -868,7 +869,7 @@ public class Goblin : Enemy
         StopIdleAudio();
         lookAtPlayer = true;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
             {
@@ -888,7 +889,7 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             // Debug.Log("Moving: " + gameObject);
             AIMove();

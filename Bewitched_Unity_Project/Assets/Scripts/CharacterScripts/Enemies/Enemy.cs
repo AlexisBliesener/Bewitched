@@ -251,7 +251,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetDebugString()
     {
-        debugAIInfo = "Character: " + gameObject.ToString() + ", state: " + aiState.ToString() + ", attack status: " + attackState + ", inProcess = " + inProcess.ToString();
+        debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
 
     /// <summary>
@@ -744,9 +744,9 @@ public abstract class Enemy : Character
     /// <summary>
     /// Virtual function to find a path based on current state
     /// </summary>
-    public virtual void FindPath()
+    public virtual IEnumerator FindPath()
     {
-
+        yield break;
     }
 
     /// <summary>
@@ -813,6 +813,7 @@ public abstract class Enemy : Character
     /// <returns> True if set, false otherwise </returns>
     public bool HasSetPath()
     {
+        Debug.Log("Checking enemy path: " + gameObject);
         if (pathState == PathState.Set) return true;
         return false;
     }
@@ -948,7 +949,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Surrounding)
@@ -963,7 +963,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Blocked)
