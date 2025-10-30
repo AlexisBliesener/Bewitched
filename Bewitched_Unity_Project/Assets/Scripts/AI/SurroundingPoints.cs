@@ -105,9 +105,7 @@ public class SurroundingPoints : MonoBehaviour
         else origin = enemy.transform.position;
 
         float timeStarted = Time.time;
-        Debug.Log("Starting search");
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position));
-        Debug.Log("Ending search after " + (Time.time - timeStarted) + " seconds");
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
 

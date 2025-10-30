@@ -520,8 +520,6 @@ public class GraphBuilder : MonoBehaviour
     {
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         searching = true;
-        float furthestNodeDistance = 0;
-        Dictionary<Node, List<float>> nodeScores = new Dictionary<Node, List<float>>();
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         Node origin = FindClosestNode(originPos);
@@ -554,14 +552,6 @@ public class GraphBuilder : MonoBehaviour
             Node current = openSet.Dequeue();
             closedSet.Add(current);
 
-            if (nodeScores.ContainsKey(current)) nodeScores[current].Add(fscore[current]);
-            else
-            {
-                List<float> score = new List<float>();
-                score.Add(fscore[current]);
-                nodeScores[current] = score;
-            }
-
             nodesSearched++;
 
             if (targetNode == current) // If in range, add node to path and end
@@ -578,24 +568,6 @@ public class GraphBuilder : MonoBehaviour
                     yield break;
                 }
 
-                Debug.Log("Maximum distance: " + maxSearchDistance + ", furthest distance: " + furthestNodeDistance);
-
-                Node maxSearchedNode = null;
-                int maxSearches = 0;
-                foreach (Node node in nodeScores.Keys)
-                {
-                    if (nodeScores[node].Count > maxSearches)
-                    {
-                        maxSearches = nodeScores[node].Count;
-                        maxSearchedNode = node;
-                    }
-                }
-                Debug.Log("Max searched node was at: " + maxSearchedNode.GetPosition() + " with " + maxSearches);
-                foreach (float cost in nodeScores[maxSearchedNode])
-                {
-                    Debug.Log("Cost: " + cost);
-                }
-
                 yield break;
             }
 
@@ -609,8 +581,6 @@ public class GraphBuilder : MonoBehaviour
 
                 if (closedSet.Contains(neighbor) || neighborDistanceFromOrigin >= maxSearchDistance)
                     continue;
-
-                if (neighborDistanceFromOrigin > furthestNodeDistance) furthestNodeDistance = neighborDistanceFromOrigin;
 
                 float tentativeGScore = gscore[current] +
                         Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
