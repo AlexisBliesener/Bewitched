@@ -4826,6 +4826,7 @@ MonoBehaviour:
   - {fileID: 1543904295}
   - {fileID: 1378700930}
   - {fileID: 203428226}
+  isEventRoom: 0
 --- !u!65 &543811105
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -38063,6 +38064,7 @@ MonoBehaviour:
       - keys: 
         values: []
   testing: 0
+  showGraph: 0
   testDestinationObj: {fileID: 0}
   testingEnemy: {fileID: 0}
   testSearchedNode: {fileID: 4472510761286776874, guid: c5f1c2d73050eef4bb0e369c5b9172ac, type: 3}
@@ -40466,22 +40468,6 @@ PrefabInstance:
     - target: {fileID: 3235153052762053323, guid: b9829b0350d5330458c1890649c958d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622491283417705140, guid: b9829b0350d5330458c1890649c958d6, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.85
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622491283417705140, guid: b9829b0350d5330458c1890649c958d6, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.85
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622491283417705140, guid: b9829b0350d5330458c1890649c958d6, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 235
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622491283417705140, guid: b9829b0350d5330458c1890649c958d6, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -197
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
