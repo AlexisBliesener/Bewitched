@@ -114,6 +114,12 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("List of node objects created to show graph")]
     Dictionary<Node, GameObject> shownNodes = new Dictionary<Node, GameObject>();
 
+    [Tooltip("Dictionary of enemies with their searching status")]
+    Dictionary<Enemy, bool> enemySearches = new Dictionary<Enemy, bool>();
+
+    [Tooltip("Number of active searchers")]
+    private int numSearchers = 0;
+
     private Coroutine searchRoutine = null;
 
     // Start is called before the first frame update
@@ -514,12 +520,14 @@ public class GraphBuilder : MonoBehaviour
     /// Made it an enumerator so we can split the search across frames for quicker handling
     /// </summary>
     /// <param name="enemy"> Enemy looking for path </param>
+    /// <param name="originPos"> Origin position of search </param>
     /// <param name="destination"> Destination location </param>
+    /// <param name="targetChar"> Target character (if any) to ignore invalid area radius of </param>
     /// <returns></returns>
-    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination)
+    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, Character targetChar = null)
     {
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
-        searching = true;
+        enemySearches[enemy] = true;
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         Node origin = FindClosestNode(originPos);
@@ -531,6 +539,7 @@ public class GraphBuilder : MonoBehaviour
             enemy.SetUsingSearch(false);
             enemy.SetPath(null);
             enemy.ValidatePoint(); // Quick set path state to unset
+            enemySearches[enemy] = false;
             yield break;
         }
 
@@ -559,7 +568,7 @@ public class GraphBuilder : MonoBehaviour
                 path.SetDestination(current);
                 path.CalculatePath();
                 enemy.SetPath(path);
-                searching = false;
+                enemySearches[enemy] = false;
                 enemy.SetUsingSearch(false);
 
                 if (!enemy.ValidatePoint())
@@ -613,12 +622,10 @@ public class GraphBuilder : MonoBehaviour
 
             if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
             {
-                Debug.Log("Skipping frame, searched " + nodesSearched + " nodes.");
                 yield return null; // Go to next frame
             }
         }
 
-        searching = false;
         enemy.SetUsingSearch(false);
         enemy.SetPath(null);
         enemy.ValidatePoint(); // Quick set path state to unset
@@ -696,11 +703,10 @@ public class GraphBuilder : MonoBehaviour
     {
         if (testing) yield break;
         int iter = 1;
-        int agentAttempts = 1;
 
         while (true)
         {
-            enemyQueue = new PriorityQueue<Enemy>();
+            int tempNumSearchers = 0;
             List<GameObject> enemies = new List<GameObject>();
             if (RoomSystem.Instance.GetActiveRoomController())
             {
@@ -711,19 +717,14 @@ public class GraphBuilder : MonoBehaviour
             {
                 if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
                 {
-                    enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+                    if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
+                    {
+                        StartCoroutine(enemy.FindPath());
+                    }
+                    tempNumSearchers++;
                 }
             }
-
-            while (!enemyQueue.IsEmpty())
-            {
-                if (!searching)
-                {
-                    Enemy enemy = enemyQueue.Dequeue();
-                    yield return StartCoroutine(enemy.FindPath());
-                }
-                yield return null;
-            }
+            numSearchers = tempNumSearchers;
             iter++;
             yield return null;
         }

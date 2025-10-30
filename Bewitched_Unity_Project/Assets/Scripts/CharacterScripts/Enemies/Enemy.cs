@@ -813,7 +813,6 @@ public abstract class Enemy : Character
     /// <returns> True if set, false otherwise </returns>
     public bool HasSetPath()
     {
-        Debug.Log("Checking enemy path: " + gameObject);
         if (pathState == PathState.Set) return true;
         return false;
     }

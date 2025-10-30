@@ -150,7 +150,7 @@ public abstract class Character : MonoBehaviour
     protected Vector3 previousCostlyPosition;
 
     [Tooltip("Threshold distance before resetting costly area")]
-    protected float invalidAreaResetThreshold = 0.5f;
+    protected float invalidAreaResetThreshold = 0.25f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
