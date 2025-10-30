@@ -11,26 +11,17 @@ using UnityEngine.AI;
 /// </summary>
 public class SurroundingPoints : MonoBehaviour
 {
+    // Singleton
+    public static SurroundingPoints instance { get; private set; }
+
     [Tooltip("The Environment Layer")]
     public LayerMask environment;
 
     [Tooltip("Turns on debug mode")]
     [SerializeField] bool debugging = false;
 
-    [Tooltip("Debugging Prefab")]
-    [SerializeField] GameObject pointObjPrefab;
-
-    [Tooltip("Dictionary of Points to Characters Using Them")]
-    Dictionary<GameObject, Enemy> points = new Dictionary<GameObject, Enemy>();
-
-    [Tooltip("Parent point")]
-    GameObject parentPoint;
-
     [Tooltip("If the Points are Active")]
     bool pointsActive = false;
-
-    [Tooltip("Radius of points")]
-    float pointRadius;
 
     [Tooltip("List of enemies in surrounding range")]
     List<Enemy> surroundingEnemies = new List<Enemy>();
@@ -47,15 +38,6 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("The time the last attack occured")]
     float timeLastAttack;
 
-    [Tooltip("List of nodes that are costly")]
-    List<List<int>> costlyNodes = new List<List<int>>();
-
-    [Tooltip("Position the last costly area was made")]
-    Vector3 lastCostlyPosition = Vector3.zero;
-
-    [Tooltip("Distance for node reset")]
-    [SerializeField] float resetCostlyAreaDistance = 1;
-
     [Tooltip("The time between a room switching before enemies can attack")]
     float roomSwapEnemyWaitTime = 3;
 
@@ -65,19 +47,21 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Time since room swap")]
     private float timeLastRoomSwap;
 
-    private void Start()
+    [Tooltip("Character the player is currently")]
+    private Character currentPlayer;
+
+    private void Awake()
     {
         timeLastRoomSwap = Time.time;
+        instance = this;
+        Init();
     }
 
     private void Update()
     {
-        if (pointsActive)
-        {
-            HandlePointsEachFrame();
-            HandleSurroundAttack();
-            CreateLocalCostlyArea();
-        }
+        currentPlayer = PlayerController.instance.currentCharacter;
+
+        HandleSurroundAttack();
 
         if (RoomSystem.Instance.GetActiveRoomController() != activeRoom)
         {
@@ -87,192 +71,37 @@ public class SurroundingPoints : MonoBehaviour
     }
 
     /// <summary>
-    /// Handles point validity and position
-    /// Run every frame in Update
-    /// </summary>
-    public void HandlePointsEachFrame()
-    {
-        if (parentPoint)
-        {
-            parentPoint.transform.position = transform.position;
-        }
-
-        List<GameObject> resetters = new List<GameObject>();
-        int i = 0;
-
-        foreach (GameObject point in points.Keys)
-        {
-            Enemy enemy = points[point];
-            if (enemy)
-            {
-                if (!PointAccessibleByParent(point))
-                {
-                    points[point].RemoveTargetPoint();
-                    resetters.Add(point);
-                }
-            }
-            i++;
-        }
-
-        foreach (GameObject j in resetters)
-        {
-            points[j] = null;
-        }
-    }
-
-    /// <summary>
     /// Create all surrounding points around the player
     /// </summary>
-    /// <param name="numPoints"> Number of points to make </param>
-    /// <param name="radius"> Radius of point placement </param>
-    public void Init(int numPoints, float minRadius, float maxRadius)
+    public void Init()
     {
         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
         timeLastAttack = Time.time;
 
-        pointRadius = maxRadius; // Use max radius so enemies go around
-
         surroundingEnemies = new List<Enemy>();
-        parentPoint = new GameObject("Parent Point");
-        for (int i = 0; i < numPoints; i++)
-        {
-            GameObject point;
-            if (debugging)
-            {
-                point = Instantiate(pointObjPrefab, parent: parentPoint.transform, worldPositionStays: true);
-                point.name = "point" + (i + 1);
-            }
-            else
-            {
-                point = new GameObject("point" + (i + 1));
-            }
-            point.transform.SetParent(parentPoint.transform, worldPositionStays: true);
-
-            float radius = Random.Range(minRadius, maxRadius);
-
-            point.transform.localPosition = new Vector3(radius * Mathf.Sin(Mathf.Deg2Rad * i * 360 / numPoints), 0, radius * Mathf.Cos(Mathf.Deg2Rad * i * 360 / numPoints));
-            points[point] = null;
-        }
         pointsActive = true;
     }
 
     /// <summary>
-    /// Checks if there is a line between the point and parent unhindered by the environment
+    /// Finds a path to the player and modifies the destination to be around the middle of the surrounding range
     /// </summary>
-    /// <param name="point"> Point to check </param>
-    /// <returns> True if unhindered point </returns>
-    public bool PointAccessibleByParent(GameObject point)
-    {
-        Vector3 direction = (point.transform.position - parentPoint.transform.position).normalized;
-        float distance = Vector3.Distance(parentPoint.transform.position, point.transform.position);
-
-        if (Physics.Raycast(transform.position, direction, distance, environment)) // If environment between points
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Called when switching out of body, destroys all points
-    /// </summary>
-    public void DestroyPoints()
-    {
-        Destroy(parentPoint);
-        parentPoint = null;
-        foreach (GameObject point in points.Keys)
-        {
-            // Set each enemy's point to null
-            if (points[point])
-            {
-                points[point].RemoveTargetPoint();
-            }
-            Destroy(point);
-        }
-        points = new Dictionary<GameObject, Enemy>();
-        surroundingEnemies = new List<Enemy>();
-        pointsActive = false;
-    }
-
-    /// <summary>
-    /// Finds the closest available point, removing enemies from their points if they are of the same type and closer
-    /// </summary>
-    /// <param name="enemy"> Enemy using the function </param>
+    /// <param name="enemy"> Enemy finding a path </param>
+    /// <param name="backtrack"> If retreating or surrounding, finds a path from further back </param>
     /// <returns></returns>
-    public GameObject AssignPoint(Enemy enemy)
+    public IEnumerator FindPathToPlayer(Enemy enemy, bool backtrack)
     {
-        if (enemy == null) return null;
-
-        List<GameObject> finiteCopy = new List<GameObject>(points.Keys);
-        float closestDist = Mathf.Infinity;
-        GameObject closestPoint = null;
-        Enemy competition = null;
-
-        foreach (GameObject point in finiteCopy)
+        Vector3 origin;
+        if (backtrack)
         {
-            if (!pointsActive) { return null; } 
-
-            // Check if position is accessible by parent
-            if (PointAccessibleByParent(point))
-            {
-                float distance = (point.transform.position - enemy.transform.position).magnitude;
-
-                if (distance < closestDist) // If the point is closer
-                {
-                    if (points[point]) // If not null
-                    {
-                        Enemy tempCompetition = points[point];
-                        if (enemy == tempCompetition)
-                        {
-                            competition = tempCompetition;
-                            closestPoint = point;
-                            closestDist = distance;
-                        }
-                        else if (enemy.GetType() == tempCompetition.GetType()) // If the same type - same relative priority
-                        {
-                            if (distance < (tempCompetition.transform.position - point.transform.position).magnitude) // If this is closer
-                            {
-                                competition = tempCompetition;
-                                closestPoint = point;
-                                closestDist = distance;
-                            }
-                        }
-                        else if (enemy.pathfindingPriority < tempCompetition.pathfindingPriority) // If not the same type, compare priority
-                        {
-                            competition = tempCompetition;
-                            closestPoint = point;
-                            closestDist = distance;
-                        }
-                    }
-                    else // If null, hold onto it
-                    {
-                        closestDist = distance;
-                        closestPoint = point;
-                        competition = null;
-                    }
-                }
-            }
+            Vector3 awayFromPlayer = (enemy.transform.position - currentPlayer.transform.position).normalized;
+            origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
+        else origin = enemy.transform.position;
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position));
 
-        if (closestPoint)
-        {
-            if (points.ContainsKey(closestPoint))
-            {
-                foreach (var item in points.Where(kvp => kvp.Value == enemy).ToList()) // If enemy assigned different point
-                {
-                    points[item.Key] = null; // Assign old points null
-                }
+        if (!enemy.HasSetPath()) yield break; // End if no path is found
 
-                points[closestPoint] = enemy;
-
-                if (competition) // If removing another character, make character assign a new point
-                {
-                    competition.RemoveTargetPoint();
-                }
-            }
-        }
-        return closestPoint;
+        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
     }
 
     /// <summary>
@@ -349,52 +178,42 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (!enemy.IsNeutral() || enemy.lobotimzed) // If coming across an enemy in an attack dont attack
+                if (enemy.IsNeutral() && !enemy.lobotimzed && !enemy.IsDead && !enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
-                    startAttackTime = Random.Range(minAttackTime, maxAttackTime);
-                    timeLastAttack = Time.time;
-                    return;
+                    tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
-                tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
+
+                if (!enemy.IsNeutral())
+                {
+                    return; // For now just keep returning until no enemies are attacking
+                }
             }
 
-            Enemy chosen = tempEnemies.Dequeue();
-            while (!chosen.AttackFromSurrounding(this) && tempEnemies.Count > 0)
+            if (tempEnemies.Count > 0)
             {
-                chosen = tempEnemies.Dequeue();
-            }
+                while (tempEnemies.Count > 0)
+                {
+                    Enemy chosen = tempEnemies.Dequeue();
 
-            startAttackTime = Random.Range(minAttackTime, maxAttackTime);
-            timeLastAttack = Time.time;
+                    if (chosen.AttackFromSurrounding(this))
+                    {
+                        Debug.Log("Chosen enemy: " + chosen);
+                        startAttackTime = Random.Range(minAttackTime, maxAttackTime);
+                        timeLastAttack = Time.time;
+                        break;
+                    }
+                }
+            }
         }
     }
 
     /// <summary>
-    /// Creates a costly area around the player that enemies will avoid entering
+    /// Checks if the surrounding points contains an enemy
     /// </summary>
-    public void CreateLocalCostlyArea()
+    /// <param name="enemy"> Enemy to add </param>
+    /// <returns> True if it is in there, false otherwise </returns>
+    public bool IsSurrounding(Enemy enemy)
     {
-        if (Vector3.Distance(transform.position, lastCostlyPosition) > resetCostlyAreaDistance)
-        {
-            ResetCostlyArea();
-
-            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, pointRadius + 1.5f);
-            foreach (List<int> position in costlyNodes)
-            {
-                GraphBuilder.instance.AddNodeCost(position, (int)Mathf.Pow(GetComponent<Character>().sizeRadius,2));
-            }
-            lastCostlyPosition = transform.position;
-        }
-    }
-
-    /// <summary>
-    /// Resets the costly area values
-    /// </summary>
-    public void ResetCostlyArea()
-    {
-        foreach (List<int> position in costlyNodes)
-        {
-            GraphBuilder.instance.AddNodeCost(position, -(int)Mathf.Pow(GetComponent<Character>().sizeRadius, 2));
-        }
+        return surroundingEnemies.Contains(enemy);
     }
 }

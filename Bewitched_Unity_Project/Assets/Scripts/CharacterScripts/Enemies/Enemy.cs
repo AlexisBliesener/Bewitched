@@ -62,7 +62,7 @@ public abstract class Enemy : Character
     protected float moveToTargetDistance;
 
 
-    
+
     [Tooltip("Point that the Enemy runs to while chasing/surrounding"), HideIf("debugging")]
     protected GameObject surroundPoint;
 
@@ -91,6 +91,12 @@ public abstract class Enemy : Character
 
     protected NavPath currentPath;
 
+    /// <summary>
+    /// Path getter function
+    /// </summary>
+    /// <returns> The path for this enemy </returns>
+    public NavPath GetNavPath() { return currentPath; }
+
     protected bool reachedWalkpoint = true;
 
     protected bool lookAtPlayer = false;
@@ -101,6 +107,10 @@ public abstract class Enemy : Character
     [Tooltip("Corner node index we are currently on in our path")]
     protected int currentCornerIndex = 0;
 
+    protected string debugAIInfo;
+
+    [Tooltip("Dictionary of costly nodes with the cost they have been given")]
+    Dictionary<List<int>, int> surroundingCostlyNodes = new Dictionary<List<int>, int>();
 
     protected bool overrideBlock = false;
 
@@ -154,10 +164,6 @@ public abstract class Enemy : Character
     [SerializeField, NaughtyAttributes.ReadOnly] protected bool playerControlling = false; // flag for determining actions (player or AI)
     [Tooltip("Pathfinding Priority"), ShowIf("dev")]
     public int pathfindingPriority;
-    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
-    public LayerMask ground;
-    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
-    public LayerMask environment;
     //Just so code in update isn't called after the enemy is dead
     protected bool dead = false;
 
@@ -228,7 +234,7 @@ public abstract class Enemy : Character
     private void Update()
     {
         // keep the which character is the player updated
-        if(playerController != null)
+        if (playerController != null)
         {
             currentPlayer = playerController.currentCharacter;
         }
@@ -236,6 +242,14 @@ public abstract class Enemy : Character
         {
             Debug.LogWarning("Player controller is not set!");
         }
+    }
+
+    /// <summary>
+    /// Sets the debug info string
+    /// </summary>
+    public void SetDebugString()
+    {
+        debugAIInfo = "Character: " + gameObject.ToString() + ", state: " + aiState.ToString() + ", attack status: " + attackState + ", inProcess = " + inProcess.ToString();
     }
 
     /// <summary>
@@ -320,7 +334,7 @@ public abstract class Enemy : Character
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward,  new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
@@ -399,7 +413,7 @@ public abstract class Enemy : Character
         dead = true;
         if (playerControlling)
         {
-            if(GrandFinale.instance.GetActive())
+            if (GrandFinale.instance.GetActive())
             {
                 GrandFinale.instance.Explode(0f, true);
             }
@@ -547,19 +561,19 @@ public abstract class Enemy : Character
             if (playerControlling) PlayerController.instance.SetAllowMovement(true);
             else aiState = AIMovementState.Chasing;
             stunned = false;
-            Destroy(hitStunActual); 
+            Destroy(hitStunActual);
             hitStunActual = null;
         }
     }
 
     public virtual void Chase()
     {
-        
+
     }
 
     public virtual void Patrol()
     {
-       
+
     }
 
     public virtual bool SetWalkPoint()
@@ -691,7 +705,7 @@ public abstract class Enemy : Character
 
         pathVisualizer.SetPosition(0, transform.position);
 
-        for (int i = currentCornerIndex-1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
+        for (int i = currentCornerIndex - 1; i < currentPath.GetCornerNodes().Count - currentCornerIndex; i++)
         {
             if (i >= 0)
             {
@@ -829,7 +843,7 @@ public abstract class Enemy : Character
     {
         return pathfindingPriority;
     }
-    
+
     /// <summary>
     /// Checks if the enemy is surrounding
     /// </summary>
@@ -930,10 +944,6 @@ public abstract class Enemy : Character
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
-            if (state == AIMovementState.Surrounding)
-            {
-                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
-            }
         }
         else if (aiState == AIMovementState.Surrounding)
         {
@@ -941,7 +951,6 @@ public abstract class Enemy : Character
             {
                 pathState = PathState.Unset;
             }
-            currentPlayer.GetSurroundingPoints().RemoveSurroundingEnemy(this);
         }
         else if (aiState == AIMovementState.Retreating)
         {
@@ -950,10 +959,6 @@ public abstract class Enemy : Character
                 pathState = PathState.Unset;
                 // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
-            if (state == AIMovementState.Surrounding)
-            {
-                currentPlayer.GetSurroundingPoints().AddSurroundingEnemy(this);
-            }
         }
         else if (aiState == AIMovementState.Blocked)
         {
@@ -961,5 +966,77 @@ public abstract class Enemy : Character
         }
 
         aiState = state;
+    }
+
+    /// <summary>
+    /// Returns alive state of enemy
+    /// </summary>
+    public bool IsDead => dead;
+
+    /// <summary>
+    /// Creates a costly area around the enemy that other enemies will avoid entering
+    /// </summary>
+    public void CreateLocalSurroundingArea()
+    {
+        if (dead)
+        {
+            if (surroundingCostlyNodes.Count > 0)
+            {
+                ResetSurroundingArea();
+            }
+            return;
+        }
+
+        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
+        {
+            int numSet = 0;
+            ResetSurroundingArea();
+            float totalDist = minimumSurroundingDistance + sizeRadius;
+            List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
+            foreach (List<int> position in nodes)
+            {
+                Node node = GraphBuilder.instance.GetNodeFromPosition(position);
+                float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
+                float ratio = (totalDist - dist) / totalDist;
+                node.AddCost(this, (int)(25 * ratio));
+
+                surroundingCostlyNodes[position] = (int)(25 * ratio);
+                numSet++;
+            }
+            previousCostlyPosition = transform.position;
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly surrounding area values
+    /// </summary>
+    public void ResetSurroundingArea()
+    {
+        int numReset = 0;
+        foreach (List<int> position in surroundingCostlyNodes.Keys)
+        {
+            numReset++;
+            GraphBuilder.instance.AddNodeCost(position, this, -surroundingCostlyNodes[position]);
+        }
+        surroundingCostlyNodes = new Dictionary<List<int>, int>();
+    }
+
+    /// <summary>
+    /// Adds or removes an enemy from the surrounding points
+    /// </summary>
+    public void ManageSurrounding()
+    {
+        float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
+        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius)
+        {
+            SurroundingPoints.instance.AddSurroundingEnemy(this);
+            if (playerControlling) ResetSurroundingArea();
+            else CreateLocalSurroundingArea();
+        }
+        else
+        {
+            SurroundingPoints.instance.RemoveSurroundingEnemy(this);
+            ResetSurroundingArea();
+        }
     }
 }

@@ -25,12 +25,6 @@ public class CameraOrbit : MonoBehaviour
             {
                 // Start at the very beginning of the path
                 dolly.m_PathPosition = path.MinPos;
-
-                if (path is CinemachineSmoothPath smoothPath)
-                {
-                    Vector3 firstPos = smoothPath.transform.TransformPoint(smoothPath.m_Waypoints[0].position);
-                    virtualCam.transform.position = firstPos;
-                }
             }
         }
     }

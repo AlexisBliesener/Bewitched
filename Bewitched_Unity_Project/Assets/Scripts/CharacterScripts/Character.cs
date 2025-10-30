@@ -41,6 +41,9 @@ public abstract class Character : MonoBehaviour
 
     [Tooltip("Weight of the character"), Range(0, 50)]
     public float weight = 10;
+    [Tooltip("Push force modifer"), Range(0, 0.5f)]
+    public float pushForceModifer = 0.1f;
+
     [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
     public float sizeRadius = 1.5f; 
@@ -52,6 +55,8 @@ public abstract class Character : MonoBehaviour
     public float maxSurroundingRadius = 5;
     [Tooltip("Team of the character")]
     public int teamID;
+    [Tooltip("The priority of this character")]
+    public int priority = 1;
     [SerializeField, Tooltip("The shoulder offset the camera has from the character")]
     private Vector3 shoulderOffset = new Vector3(1f, 2.5f, 0f);
 
@@ -108,7 +113,6 @@ public abstract class Character : MonoBehaviour
     public float[] primaryComboResetTime;
     [Tooltip("Primary combo min time to wait to hit the next combo")]
     public float[] primaryComboMinTime;
-    private SurroundingPoints surroundingPoints;
 
     [Tooltip("Character to lock onto")]
     protected Character lockedCharacter = null;
@@ -139,15 +143,19 @@ public abstract class Character : MonoBehaviour
     List<List<int>> costlyNodes = new List<List<int>>();
 
     [Tooltip("Position the character was last time the nodes were reset")]
-    Vector3 previousCostlyPosition;
+    protected Vector3 previousCostlyPosition;
 
     [Tooltip("Threshold distance before resetting costly area")]
-    float invalidAreaResetThreshold = 0.5f;
+    protected float invalidAreaResetThreshold = 0.5f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
     [Tooltip("Layer mask for the characters")]
     public LayerMask characters;
+    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
+    public LayerMask ground;
+    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
+    public LayerMask environment;
     [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf("dev")]
     private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf("dev")]
@@ -351,9 +359,8 @@ public abstract class Character : MonoBehaviour
     /// <summary>
     /// OnDeath is called when the character dies.
     /// </summary>
-    protected virtual void OnDeath()
+    protected virtual void OnDeath(GameObject enemyGameObject)
     {
-        DeactivateSurroundingPoints();
         StopAllCoroutines();
         Die();
         // Stop all coroutines destroy all objects too
@@ -595,43 +602,6 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
-    /// Create surrounding points for AI navigation
-    /// </summary>
-    public void ActivateSurroundingPoints()
-    {
-        if (!surroundingPoints)
-        {
-            gameObject.TryGetComponent<SurroundingPoints>(out surroundingPoints);
-        }
-
-        if (surroundingPoints != null)
-        {
-            surroundingPoints.Init(numSurroundingPoints, minSurroundingRadius, maxSurroundingRadius);
-        }
-    }
-
-    /// <summary>
-    /// Destroy the surrounding points when inactive
-    /// </summary>
-    public void DeactivateSurroundingPoints()
-    {
-        if(surroundingPoints != null)
-        {
-            surroundingPoints.DestroyPoints();
-        }
-    }
-
-    /// <summary>
-    /// Finds the closest available surrounding point
-    /// </summary>
-    /// <param name="enemy"> Enemy searching for a point </param>
-    /// <returns></returns>
-    public GameObject FindClosestSurroundingPoint(Enemy enemy)
-    {
-        return surroundingPoints.AssignPoint(enemy);
-    }
-
-    /// <summary>
     /// Deflects the user's current velocity towards a different direction
     /// </summary>
     /// <param name="direction"> Direction to deflect towards </param>
@@ -822,18 +792,6 @@ public abstract class Character : MonoBehaviour
         }
         dodging = false;
     }
-    /// <summary>
-    /// Gets the surrounding points component, if it's not found it will get it from the game object
-    /// </summary>
-    /// <returns> The surrounding points component </returns>
-    public SurroundingPoints GetSurroundingPoints()
-    {
-        if (surroundingPoints == null)
-        {
-            surroundingPoints = GetComponent<SurroundingPoints>();
-        }
-        return surroundingPoints;
-    }
 
     /// <summary>
     /// Creates a costly area around the player that enemies will avoid entering
@@ -847,7 +805,7 @@ public abstract class Character : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, (int)(sizeRadius * sizeRadius));
+                GraphBuilder.instance.AddNodeCost(position, this, 25);
             }
             previousCostlyPosition = transform.position;
         }
@@ -860,7 +818,7 @@ public abstract class Character : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, -(int)(sizeRadius * sizeRadius));
+            GraphBuilder.instance.AddNodeCost(position, this, -25);
         }
     }
     /// <summary>
@@ -874,5 +832,24 @@ public abstract class Character : MonoBehaviour
             characterController = GetComponent<CharacterController>();
         }
         return characterController;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
+        {
+            Debug.Log(hit.gameObject);
+            Debug.Log("Adding force");
+
+            float force = weight * velocity.magnitude * pushForceModifer;
+            Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
+            knockback.AddImpact(direction, force);
+            velocity -= direction * force * deceleration * Time.deltaTime;
+        }
+
+        if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
+        {
+            GetComponent<KnockbackControl>().ResetImpact();
+        }
     }
 }

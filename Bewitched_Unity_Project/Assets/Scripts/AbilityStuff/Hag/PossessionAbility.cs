@@ -292,7 +292,7 @@ public class PossessionAbility : MonoBehaviour
     {
         if(currentCharacter != eleth)
         {
-            RespawnEleth();
+            StartCoroutine(RespawnEleth());
         }
 
         PlayerController.instance.SetAllowMovement(false);
@@ -346,7 +346,7 @@ public class PossessionAbility : MonoBehaviour
         {
             if (context.started)
             {
-                RespawnEleth();
+               StartCoroutine( RespawnEleth() );
             }
             else
             {
@@ -599,7 +599,6 @@ public class PossessionAbility : MonoBehaviour
             currentCharacter.SetControlled(false);
         }
         
-        currentCharacter.DeactivateSurroundingPoints();
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
@@ -655,7 +654,6 @@ public class PossessionAbility : MonoBehaviour
             timePossessing = Time.time;
         }
         currentCharacter = newCharacter;
-        currentCharacter.ActivateSurroundingPoints();
         PlayerController.instance.currentCharacter = newCharacter;
 
         if(currentCharacter.GetComponent<CharacterController>() != null )

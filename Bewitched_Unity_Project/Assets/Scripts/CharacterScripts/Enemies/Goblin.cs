@@ -5,7 +5,6 @@ using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
 using UnityEngine;
-using UnityEngine.AI;
 
 
 public class Goblin : Enemy
@@ -95,6 +94,7 @@ public class Goblin : Enemy
         SetBaseStats();
         SetDebuggingValues();
         SetPatrolOrigin();
+        sizeRadius = GetComponent<CharacterController>().radius;
 
         aiState = AIMovementState.Patrolling;
     }
@@ -104,11 +104,15 @@ public class Goblin : Enemy
         if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
+        SetDebugString();
+        if (!playerControlling) Debug.Log(debugAIInfo);
+
         SetAIState();
+        ManageSurrounding();
 
         SetBehavior();
 
-        if(playerControlling)
+        if (playerControlling)
         {
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
@@ -117,7 +121,7 @@ public class Goblin : Enemy
             lockedCharacter = currentPlayer;
         }
 
-        if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
         }
@@ -137,29 +141,37 @@ public class Goblin : Enemy
     {
         if (gameObject != null)
         {
-            if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
+            if (playerControlling)
             {
-                if(playerControlling)
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
+
                     health.SubHealth(primaryAttackCost);
-                }
-                
-                currentPrimaryComboStep += 1;
-                if (currentPrimaryComboStep >= primaryComboSteps)
-                {
-                    currentPrimaryComboStep = 0;
-                }
 
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                currentPrimaryComboStep = -1;
                 timeLastPrimary = Time.time;
-
-                characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                characterAnimator.SwitchState("PrimaryAttack", 0);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
                 PrimaryAttack();
             }
-
         }
     }
-    
+
     public override void PrimaryAttack()
     {
         hitCharacter = false;
@@ -194,8 +206,9 @@ public class Goblin : Enemy
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
-        
     }
+
+
 
     /// <summary>
     /// Starts the windup for the knife
@@ -205,11 +218,10 @@ public class Goblin : Enemy
     {
         inCounter = false;
         attackState = AttackState.Windup;
-        float timeStarted = Time.time;
         // save the current position to use the y value later
         targetPos = transform.position;
-
-        while(!animator.GetInLeap())
+        float windupStart = Time.time;
+        while (Time.time  - windupStart < 0.708 / animator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -221,6 +233,8 @@ public class Goblin : Enemy
             }
             yield return null;
         }
+        animator.SetEnterLeap();
+
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
@@ -250,7 +264,7 @@ public class Goblin : Enemy
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis *3f /4f;
+            timeLastPrimary = Time.time + chaseTime * dis * 3f / 4f;
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
@@ -259,10 +273,10 @@ public class Goblin : Enemy
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     animator.ExitLeap();
                 }
-                
+
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
-                    if(!triggerSet)
+                    if (!triggerSet)
                     {
                         animator.ExitLeap();
                         triggerSet = true;
@@ -303,7 +317,6 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        if (!playerControlling) { currentPrimaryComboStep = 0; }
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         targetPos = Vector3.negativeInfinity;
@@ -315,11 +328,16 @@ public class Goblin : Enemy
             yield return null;
         }
 
+        float timeStart = Time.time;
         if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
-                yield return new WaitForSeconds(0.1f);
+                while (Time.time - timeStart > 0.1f)
+                {
+                    SetMovementValues(false);
+                    yield return null;
+                }
             }
         }
 
@@ -354,7 +372,6 @@ public class Goblin : Enemy
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
-        if (!playerControlling) { currentPrimaryComboStep = 0; }
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         float hitboxStartTime = Time.time;
@@ -364,7 +381,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if(!playerControlling)
+        if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
@@ -624,15 +641,6 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (tempLockedCharacter)
-        {
-            tempLockedCharacter.SetAttacker(null);
-            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
-            {
-                enemy.SetTargeted(false);
-            }
-        }
-
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
 
@@ -646,6 +654,7 @@ public class Goblin : Enemy
         timeLastSecondary = Time.time;
 
         SetMovementValues(true);
+        attackState = AttackState.Neutral;
         attackStateCoroutine = null;
     }
 
@@ -692,30 +701,15 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            surroundPoint = currentPlayer.GetSurroundingPoints().AssignPoint(this);
-            if (surroundPoint)
-            {
-                pathState = PathState.Searching;
-                StartCoroutine(GraphBuilder.instance.AStarSearch(this, surroundPoint.transform.position));
-            }
+            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -770,7 +764,7 @@ public class Goblin : Enemy
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, walkPoint));
+        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -896,7 +890,7 @@ public class Goblin : Enemy
         lookAtPlayer = true;
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-           // Debug.Log("Moving: " + gameObject);
+            // Debug.Log("Moving: " + gameObject);
             AIMove();
             if (debugging)
             {
@@ -981,8 +975,6 @@ public class Goblin : Enemy
     /// <returns> True if attacking, false otherwise </returns>
     public override bool AttackFromSurrounding(SurroundingPoints points)
     {
-        if (playerControlling) return false;
-
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
 
@@ -1003,14 +995,13 @@ public class Goblin : Enemy
             float choice = Random.Range(0, totalOdds);
             if (choice <= primaryAttackChance) // Primary attack selected
             {
-                StartCoroutine( BeginPrimary());
+                StartCoroutine(BeginPrimary());
             }
             else
             {
-                StartCoroutine( BeginSecondary());
+                StartCoroutine(BeginSecondary());
                 // Coordinate other goblin attack here
             }
-            points.RemoveSurroundingEnemy(this);
             return true;
         }
         else

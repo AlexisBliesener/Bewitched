@@ -122,7 +122,6 @@ public class MiniHealthBar : MonoBehaviour
 
         // Subscribe to updates
         healthController.OnHealthChanged += SetValues;
-        healthController.OnDeath += HandleDeath;
 
         mainCamera = Camera.main;
         canvas = GameObject.FindGameObjectWithTag("MiniBars").GetComponent<Canvas>();
@@ -138,14 +137,5 @@ public class MiniHealthBar : MonoBehaviour
     {
         slider.maxValue = maxHealth;
         slider.value = newHealth;
-    }
-
-    // <summary>
-    // Handle the death of the character by destroying the health bar.
-    // </summary>
-    private void HandleDeath()
-    {
-        // the game object is destroyed in the HealthController so we don't need to do it here
-        // I didn't remove the function so we can still use it in the future
     }
 }

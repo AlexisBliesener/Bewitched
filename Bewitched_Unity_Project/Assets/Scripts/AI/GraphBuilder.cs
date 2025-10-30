@@ -72,8 +72,11 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("If an enemy is searching currently")]
     bool searching = false;
 
-    [Tooltip("If we are testing")]
+    [Tooltip("If we are testing the search")]
     [SerializeField] bool testing = false;
+
+    [Tooltip("If we are showing the graph")]
+    [SerializeField] bool showGraph = false;
 
     [Tooltip("Destination marker object")]
     [SerializeField] GameObject testDestinationObj;
@@ -108,6 +111,9 @@ public class GraphBuilder : MonoBehaviour
     [Tooltip("Line renderer for path debugging")]
     [SerializeField] LineRenderer lineRenderer;
 
+    [Tooltip("List of node objects created to show graph")]
+    Dictionary<Node, GameObject> shownNodes = new Dictionary<Node, GameObject>();
+
     private Coroutine searchRoutine = null;
 
     // Start is called before the first frame update
@@ -121,6 +127,25 @@ public class GraphBuilder : MonoBehaviour
     /// </summary>
     void Awake()
     {
+        if (showGraph)
+        {
+            foreach (SerializableDictionary<int, SerializableDictionary<int, Node>> mini1 in nodeDictionary.Values)
+            {
+                foreach (SerializableDictionary<int, Node> mini2 in mini1.Values)
+                {
+                    foreach (Node node in mini2.Values)
+                    {
+                        GameObject inst = Instantiate(testSearchedNode, transform);
+                        Vector3 pos = node.GetPosition();
+                        pos.y += 5;
+                        inst.transform.localPosition = pos;
+
+                        shownNodes[node] = inst;
+                    }
+                }
+            }
+        }
+
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -132,6 +157,18 @@ public class GraphBuilder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (showGraph)
+        {
+            foreach (Node node in shownNodes.Keys)
+            {
+                Color color;
+                int cost = node.GetCost();
+                if (cost < 0) color = Color.Lerp(Color.blue, Color.white, 50 - Mathf.Abs(cost) / 50f);
+                else color = Color.Lerp(Color.white, Color.red, cost / 50f);
+                shownNodes[node].GetComponent<Renderer>().material.color = color;
+            }
+        }
+
         if (searchRoutine == null)
         {
             searchRoutine = StartCoroutine(HandleSearching());
@@ -478,12 +515,12 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="enemy"> Enemy looking for path </param>
     /// <param name="destination"> Destination location </param>
     /// <returns></returns>
-    public IEnumerator AStarSearch(Enemy enemy, Vector3 destination)
+    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination)
     {
         searching = true;
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
-        Node origin = FindClosestNode(enemy.transform.position);
+        Node origin = FindClosestNode(originPos);
         Node targetNode = FindClosestNode(destination);
 
         if (origin == null || targetNode == null)
@@ -541,7 +578,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
@@ -654,7 +691,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj != null && enemyObj.activeSelf && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
                 }
@@ -665,6 +702,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!searching)
                 {
                     Enemy enemy = enemyQueue.Dequeue();
+                    if (enemy == null) continue;
                     enemy.FindPath();
                     while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
                     {
@@ -690,15 +728,6 @@ public class GraphBuilder : MonoBehaviour
     public void TestAStarSearch()
     {
         createdObjects = new List<GameObject>();
-
-        if (costlyOrigin)
-        {
-            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
-            foreach (List<int> positions in costlyNodes)
-            {
-                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(costlyAreaCost);
-            }
-        }
 
         lineRenderer.positionCount = 0;
 
@@ -743,14 +772,11 @@ public class GraphBuilder : MonoBehaviour
             closedSet.Add(current);
             numSearched++;
 
-            Debug.Log("Current Node: " + current.GetPosition(enemy.gameObject).ToString() + " and hash code: " + current.GetHashCode().ToString() + " and cost: " + current.GetCost());
-            Debug.Log("It's y position: " + current.GetYPos());
-
             GameObject testNode = Instantiate(testSearchedNode);
             testNode.transform.position = current.GetPosition(enemy.gameObject);
             testNode.transform.position = new Vector3(testNode.transform.position.x, testNode.transform.position.y + 1, testNode.transform.position.z);
 
-            float costMagnitude = current.GetCost() / 1000;
+            float costMagnitude = current.GetCost(enemy) / 1000;
             Renderer objRenderer = testNode.GetComponent<Renderer>();
             objRenderer.material.color = new Color(costMagnitude, costMagnitude, costMagnitude);
 
@@ -788,7 +814,7 @@ public class GraphBuilder : MonoBehaviour
                     continue;
 
                 float tentativeGScore = gscore[current.GetPosition()] +
-                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost();
+                        Vector3.Distance(current.GetPosition(), neighbor.GetPosition()) + neighbor.GetCost(enemy);
 
                 float neighborGScore;
                 if (!gscore.TryGetValue(neighbor.GetPosition(), out neighborGScore))
@@ -820,14 +846,6 @@ public class GraphBuilder : MonoBehaviour
             Destroy(obj);
         }
 
-        if (costlyOrigin)
-        {
-            List<List<int>> costlyNodes = GetNodesInRadius(costlyOrigin, costlyRadius);
-            foreach (List<int> positions in costlyNodes)
-            {
-                nodeDictionary[positions[0]][positions[1]][positions[2]].AddCost(-costlyAreaCost);
-            }
-        }
         lineRenderer.positionCount = 0;
     }
 
@@ -846,16 +864,16 @@ public class GraphBuilder : MonoBehaviour
     /// Gets all nodes within a certain radius of a position
     /// </summary>
     /// <param name="position"> Center of circle </param>
-    /// <param name="radius"> Radius of circle </param>
+    /// <param name="maxRadius"> Radius to include of circle </param>
     /// <returns> All nodes in the circle </returns>
-    public List<List<int>> GetNodesInRadius(GameObject user, float radius)
+    public List<List<int>> GetNodesInRadius(GameObject user, float maxRadius)
     {
         List<List<int>> includedNodes = new List<List<int>>();
 
         int xPos = (int)(user.transform.position.x * 10);
         int zPos = (int)(user.transform.position.z * 10);
 
-        int convRadius = (int)(radius * 10);
+        int convRadius = (int)(maxRadius * 10);
 
         for (int x = xPos - convRadius; x <= xPos + convRadius; x++)
         {
@@ -867,9 +885,9 @@ public class GraphBuilder : MonoBehaviour
                     {
                         foreach (int y in nodeDictionary[x][z].Keys)
                         {
-                            Vector3 dist = nodeDictionary[x][z][y].GetPosition(user) - user.transform.position;
+                            float dist = Vector3.Distance(nodeDictionary[x][z][y].GetPosition(user), user.transform.position);
 
-                            if (dist.sqrMagnitude < radius)
+                            if (dist < maxRadius)
                             {
                                 List<int> positions = new List<int>();
                                 positions.Add(x);
@@ -886,13 +904,24 @@ public class GraphBuilder : MonoBehaviour
     }
 
     /// <summary>
+    /// Gets a node based on a position
+    /// </summary>
+    /// <param name="position"> Position </param>
+    /// <returns> Node at the position </returns>
+    public Node GetNodeFromPosition(List<int> position)
+    {
+        return nodeDictionary[position[0]][position[1]][position[2]];
+    }
+
+    /// <summary>
     /// Adds a cost to a node based on the node position
     /// </summary>
     /// <param name="position"> Position values of node </param>
+    /// <param name="character"> Character setting a cost </param>
     /// <param name="cost"> Cost to add to node </param>
-    public void AddNodeCost(List<int> position, int cost)
+    public void AddNodeCost(List<int> position, Character character, int cost)
     {
-        nodeDictionary[position[0]][position[1]][position[2]].AddCost(cost);
+        nodeDictionary[position[0]][position[1]][position[2]].AddCost(character, cost);
     }
 
     /// <summary>
