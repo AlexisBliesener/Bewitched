@@ -216,6 +216,10 @@ public class DefaultHitbox : MonoBehaviour
                     {
                         EventInstance inst = RuntimeManager.CreateInstance(evRef);
                         inst.setParameterByName("Type", (float)damageType);
+                        if (character == PlayerController.instance.currentCharacter) {
+                            inst.setParameterByNameWithLabel("NoDuck", "True");
+                            Debug.LogError("NO DUCK");
+                        }
                         inst.start();
                         inst.release();
                     }
