@@ -383,9 +383,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-       // Vector3 dir = currentCharacter.transform.forward;
-        Vector3 dir = new Vector3( movementInput.x, 0, movementInput.y);
-        dir = Camera.main.transform.InverseTransformVector(dir);
+        Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.TransformDirection(dir);
 
         Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
