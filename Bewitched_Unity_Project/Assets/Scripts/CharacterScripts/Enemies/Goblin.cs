@@ -221,6 +221,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
         float windupStart = Time.time;
+        bool leapEntered = false;
         while (Time.time  - windupStart < 0.708 / animator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
@@ -231,9 +232,14 @@ public class Goblin : Enemy
                 Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
+
+            if(!leapEntered && Time.time - windupStart > 0.708 / animator.GetPrimaryWindupMult() * 0.75f)
+            {
+                leapEntered = true;
+                animator.SetEnterLeap();
+            }
             yield return null;
         }
-        animator.SetEnterLeap();
 
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }

@@ -78,7 +78,7 @@ public class GoblinAnimator : CharacterAnimator
         if (GetComponentInParent<Goblin>().IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
-            return primaryWindupSpeedMultPlayer;
+            return primaryWindupSpeedMultEnemy;
     }
 
     /// <summary>
