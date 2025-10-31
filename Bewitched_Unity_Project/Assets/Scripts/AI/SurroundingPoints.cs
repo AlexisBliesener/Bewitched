@@ -178,6 +178,35 @@ public class SurroundingPoints : MonoBehaviour
         return sameEnemies;
     }
 
+    public bool EnemyCanAttack(Enemy enemy)
+    {
+        if (!enemy.IsNeutral()) return false;
+        if (enemy.lobotimzed) return false;
+        if (enemy.IsDead) return false;
+        if (enemy.IsStunned) return false;
+        if (enemy.cantAttack) return false;
+        if (enemy.IsPlayerControlling()) return false;
+
+        Vector3 viewportPoint = Camera.main.WorldToViewportPoint(enemy.transform.position);
+
+        bool inView = viewportPoint.z > 0 &&
+                      viewportPoint.x > 0 && viewportPoint.x < 1 &&
+                      viewportPoint.y > 0 && viewportPoint.y < 1;
+
+        if (!inView) return false;
+
+        Vector3 camPos = Camera.main.transform.position;
+        Vector3 direction = (camPos - enemy.transform.position).normalized;
+        float maxDistance = Vector3.Distance(camPos, enemy.transform.position);
+
+        RaycastHit hit;
+        if (Physics.Raycast(camPos, direction, out hit, maxDistance, environment))
+        {
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// Tells an enemy in the surrounding list to attack
     /// </summary>
@@ -188,7 +217,7 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (enemy.IsNeutral() && !enemy.lobotimzed && !enemy.IsDead && !enemy.IsStunned && !enemy.cantAttack && !enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
+                if (EnemyCanAttack(enemy)) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
