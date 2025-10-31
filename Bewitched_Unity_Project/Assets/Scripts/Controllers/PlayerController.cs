@@ -1,16 +1,6 @@
-using Cinemachine;
-using FMOD.Studio;
-using FMODUnity;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.TextCore.Text;
-using static UnityEngine.UI.Image;
 
 public class PlayerController : MonoBehaviour
 {
@@ -44,6 +34,16 @@ public class PlayerController : MonoBehaviour
     public CooldownDisplay primaryCooldownDisplay;
     [Tooltip("Secondary Cooldown UI")]
     public CooldownDisplay secondaryCooldownDisplay;
+
+    [Header("Targeting variables")]
+    [SerializeField, Tooltip("The radius of the close dectection sphere")]
+    private float closeSphereRadius = 2f;
+    [SerializeField, Tooltip("The distance away from the player of the close dectection sphere")]
+    private float closeSphereDistance = 3f;
+    [SerializeField, Tooltip("The radius of the far dectection sphere")]
+    private float farSphereRadius = 4f;
+    [SerializeField, Tooltip("The distance away from the player of the far dectection sphere")]
+    private float farSphereDistance = 8f;
 
     [Header("Pause UI")]
     public GameObject pauseMenu;
@@ -383,7 +383,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 dir = currentCharacter.transform.forward;
+       // Vector3 dir = currentCharacter.transform.forward;
+        Vector3 dir = new Vector3( movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.InverseTransformVector(dir);
+
+        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
@@ -393,7 +397,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 3f, 2f, dir, 0f, enemyLayerMask);
+        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * closeSphereDistance, closeSphereRadius, dir, 0f, enemyLayerMask);
 
         Enemy target = null;
         float targetDistance = Mathf.Infinity;
@@ -413,7 +417,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 8f, 4f, dir, 0f, enemyLayerMask);
+            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * farSphereDistance, farSphereDistance, dir, 0f, enemyLayerMask);
             if (hits.Length > 0)
             {
                 foreach (RaycastHit hit in hits)
