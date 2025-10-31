@@ -146,7 +146,6 @@ public class Goblin : Enemy
                 {
 
                     health.SubHealth(primaryAttackCost);
-
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
                     {
