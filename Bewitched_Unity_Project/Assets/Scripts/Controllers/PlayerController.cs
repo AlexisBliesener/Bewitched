@@ -385,6 +385,9 @@ public class PlayerController : MonoBehaviour
     {
        // Vector3 dir = currentCharacter.transform.forward;
         Vector3 dir = new Vector3( movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.InverseTransformVector(dir);
+
+        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
