@@ -36,6 +36,8 @@ public class ShopManager : MonoBehaviour
     [Header("Pop-ups")]
     [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
     public GameObject NoSoulText;
+    [Tooltip("Pop up description for when the player hovers over an upgrade.")]
+    public GameObject DescriptionGO;
 
     /// <summary>
     /// It sets the instance of the ShopManager class. And allow only one instance of the class.
