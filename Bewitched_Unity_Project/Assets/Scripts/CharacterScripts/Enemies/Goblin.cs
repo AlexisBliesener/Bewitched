@@ -22,6 +22,7 @@ public class Goblin : Enemy
     [SerializeField] AttackStatusEffects spinEffects;
     [Tooltip("Knife Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects[] knifeEffects;
+
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
     [SerializeField] float knifeDuration = 0.25f;
@@ -29,6 +30,7 @@ public class Goblin : Enemy
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };
+
     [Header("Dash Settings for Goblin")]
     [Tooltip("Dash Speed"), Range(0, 100)]
     [SerializeField] float dashSpeed = 50;
@@ -38,6 +40,7 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
     [Tooltip("Offset of the hitbox forward"), Range(0, 10)]
     [SerializeField] private float offSetForward = 0.5f;
+
     [Header("Spin Settings for Goblin")]
     [Tooltip("Spin Damage"), Range(0, 200)]
     [SerializeField] float spinDamage = 30;
@@ -270,7 +273,7 @@ public class Goblin : Enemy
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis * 3f / 4f;
+            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
@@ -280,7 +283,7 @@ public class Goblin : Enemy
                     animator.ExitLeap();
                 }
 
-                if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
+                if (Time.time - timeStarted >= counterWindowLength  * chaseTime * dis ) //  not dodgable
                 {
                     if (!triggerSet)
                     {
@@ -288,16 +291,14 @@ public class Goblin : Enemy
                         triggerSet = true;
                     }
 
-                    //   dodgable = false;
                     if (counterIndicatorVFX != null)
                     {
                         DestroyCounterIndicator();
                         if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
                 }
-                else // First 3 quarters, attack is dodgable
+                else // attack is dodgable
                 {
-                    //    dodgable = true;
                     if (counterIndicatorVFX == null)
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);

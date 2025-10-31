@@ -48,11 +48,14 @@ public abstract class Enemy : Character
     [Header("Attack Settings")]
     [Tooltip("Chance for AI primary attack"), Range(0, 1)]
     public float primaryAttackChance = .5f;
-
     [Tooltip("Chance for AI secondary attack"), Range(0, 1)]
     public float secondaryAttackChance = .5f;
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
     public float lowHealthThresholdPercentage = 30;
+    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 1)]
+    protected float counterWindowLength;
+
+
     protected PlayerController playerController;
 
     protected Hag hag;
