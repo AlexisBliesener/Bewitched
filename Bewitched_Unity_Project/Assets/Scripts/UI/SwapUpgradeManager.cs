@@ -20,6 +20,8 @@ public class SwapUpgradeManager : MonoBehaviour
     public GameObject SwapUpgradeUI;
     [Tooltip("The Shop: Buy Upgrade Screen")]
     public GameObject buyUpgradeUI;
+    [Tooltip("Pop up description for when the player hovers over an upgrade.")]
+    public GameObject DescriptionGO;
 
 
     [Header("List of Upgrades Acquired")]
@@ -30,7 +32,7 @@ public class SwapUpgradeManager : MonoBehaviour
     [Tooltip("List of placeholder buttons for the upgrades that can be swapped")]
     private Button[] swapUpgradeButtons;
     [Tooltip("The first button to be selected when menu is opened.")]
-public GameObject firstButton;
+    public GameObject firstButton;
     [Tooltip("The first button to be selected when the Shop: Buy Upgrade menu is opened.")]
     public GameObject buyUpgradeButton;
 
@@ -192,7 +194,54 @@ public GameObject firstButton;
 
             });
 
+            EventTrigger trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event (controller highlight or hover)
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event (leaving the button)
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
         }
+    }
+
+    private void ShowDescription(string text)
+    {
+        if (DescriptionGO == null)
+        {
+            Debug.LogWarning("DescriptionGO not assigned!");
+            return;
+        }
+
+        DescriptionGO.SetActive(true);
+
+        TMP_Text descriptionText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
+        if (descriptionText != null)
+        {
+            descriptionText.text = text;
+        }
+        else
+        {
+            Debug.LogWarning("No TMP_Text found inside DescriptionGO!");
+        }
+    }
+
+    private void HideDescription()
+    {
+        if (DescriptionGO == null) return;
+
+        TMP_Text descriptionText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
+        if (descriptionText != null) descriptionText.text = "";
     }
 
     /// <summary>

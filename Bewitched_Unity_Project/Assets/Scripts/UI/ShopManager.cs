@@ -135,6 +135,7 @@ public class ShopManager : MonoBehaviour
         SellUI.gameObject.SetActive(false);
         BuyUI.gameObject.SetActive(true);
         StartCoroutine(SetFirstButtonDelay());
+        HideDescription();
     }
 
     /// <summary>
@@ -145,6 +146,7 @@ public class ShopManager : MonoBehaviour
         BuyUI.gameObject.SetActive(false);
         SellUI.gameObject.SetActive(true);
         StartCoroutine(SetFirstButtonDelay());
+        HideDescription();
     }
 
     /// <summary>
@@ -156,7 +158,7 @@ public class ShopManager : MonoBehaviour
         {
             DropSystem.Instance.OnShopAlterInteract -= UpdateBuyOptions;
         }
-
+        HideDescription();
         EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
@@ -414,6 +416,10 @@ public class ShopManager : MonoBehaviour
         popup.SetActive(false);
     }
 
+    /// <summary>
+    /// Show the Description game object, 
+    /// text gets filled in with the selected upgrades description.
+    /// </summary>
     private void ShowDescription(string text)
     {
         if (DescriptionGO == null)
@@ -433,6 +439,9 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Hide the Description game object when no upgrade is selected.
+    /// </summary>
     private void HideDescription()
     {
         if (DescriptionGO == null) return;
