@@ -236,6 +236,27 @@ public class ShopManager : MonoBehaviour
                     ShowPopup(NoSoulText, 3f);
                 }
             });
+
+            // Description Events
+            EventTrigger trigger = buyUpgradeButtons[i].GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = buyUpgradeButtons[i].gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event (controller highlight or hover)
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(option.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event (leaving the button)
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
+
         }
     }
 
@@ -346,6 +367,26 @@ public class ShopManager : MonoBehaviour
 
             });
 
+            // Description Events
+            EventTrigger trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
+
         }
 
         // keep menu and exit button active
@@ -371,6 +412,32 @@ public class ShopManager : MonoBehaviour
         popup.SetActive(true);
         yield return new WaitForSecondsRealtime(seconds);
         popup.SetActive(false);
+    }
+
+    private void ShowDescription(string text)
+    {
+        if (DescriptionGO == null)
+        {
+            Debug.LogWarning("DescriptionGO not assigned.");
+            return;
+        }
+        DescriptionGO.SetActive(true);
+        TMP_Text descText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
+        if (descText != null)
+        {
+            descText.text = text;
+        }
+        else
+        {
+            Debug.LogWarning("No TMP_Text found inside DescriptionGO");
+        }
+    }
+
+    private void HideDescription()
+    {
+        if (DescriptionGO == null) return;
+
+        DescriptionGO.SetActive(false);
     }
 
     /// <summary>
