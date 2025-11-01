@@ -422,7 +422,6 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
-        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
