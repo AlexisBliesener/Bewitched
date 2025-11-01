@@ -181,6 +181,9 @@ public abstract class Character : MonoBehaviour
     public GameObject counterIndicatorVFXPrefab;
     [Tooltip("Character Controller component")]
     private CharacterController characterController;
+
+    public bool animateMove = false;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>

@@ -77,7 +77,7 @@ public class CharacterAnimator : MonoBehaviour
         {
             if(PlayerController.instance.currentCharacter == character)
             {
-                if (characterController.velocity.magnitude < 0.05f)
+                if (PlayerController.instance.movementInput.magnitude < 0.05f)
                     SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
                 else
                     SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
@@ -85,7 +85,7 @@ public class CharacterAnimator : MonoBehaviour
             else
             {
                 if (character == null) return;
-                if (characterController.velocity.magnitude < 0.05f)
+                if (!character.animateMove)
                     SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
                 else
                     SwitchState("Run", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());

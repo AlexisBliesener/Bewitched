@@ -263,15 +263,17 @@ public abstract class Enemy : Character
         debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
 
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
         if (aiState == AIMovementState.PlayerControlled) return;
-
+        
         if (currentPath == null) // No path, decelerate to 0
         {
+            animateMove = false;
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
@@ -282,6 +284,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
+            animateMove = true;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
@@ -323,11 +326,12 @@ public abstract class Enemy : Character
 
         if (velocity.magnitude < 0.01f)
         {
+            animateMove = false;
             velocity = Vector3.zero;
         }
 
         velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
-
+        animateMove = true;
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
