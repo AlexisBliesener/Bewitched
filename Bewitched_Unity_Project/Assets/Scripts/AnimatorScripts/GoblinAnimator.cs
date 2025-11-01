@@ -197,11 +197,13 @@ public class GoblinAnimator : CharacterAnimator
         switch (newState)
         {
             case "Idle":
+                Debug.Log("set idle");
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
+                Debug.Log("set run");
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;

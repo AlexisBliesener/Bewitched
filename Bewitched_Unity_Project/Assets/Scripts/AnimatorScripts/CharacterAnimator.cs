@@ -77,18 +77,26 @@ public class CharacterAnimator : MonoBehaviour
         {
             if(PlayerController.instance.currentCharacter == character)
             {
-                if (PlayerController.instance.movementInput.magnitude < 0.05f)
+                if (PlayerController.instance.movementInput.magnitude < 0.1f)
+                {
                     SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
                 else
+                {
                     SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
             }
             else
             {
                 if (character == null) return;
                 if (!character.animateMove)
+                {
                     SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
                 else
+                {
                     SwitchState("Run", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
             }
         }
     }
@@ -182,12 +190,13 @@ public class CharacterAnimator : MonoBehaviour
         switch (newState)
         {
             case "Idle":
+                Debug.Log("set idle");
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
-                animator.SetFloat("WalkSpeedMult", walkSpeedMult);
+                Debug.Log("set run");
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;

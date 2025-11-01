@@ -269,6 +269,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
+        animateMove = true;
         if (aiState == AIMovementState.PlayerControlled) return;
         
         if (currentPath == null) // No path, decelerate to 0
@@ -284,7 +285,6 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            animateMove = true;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
@@ -304,7 +304,6 @@ public abstract class Enemy : Character
         }
 
         Vector3 desiredVelocity;
-
 
         desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
 
@@ -331,7 +330,6 @@ public abstract class Enemy : Character
         }
 
         velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
-        animateMove = true;
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
