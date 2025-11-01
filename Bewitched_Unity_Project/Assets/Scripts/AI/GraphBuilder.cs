@@ -715,9 +715,21 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj != null && enemyObj.activeSelf && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
+                        enemyQueue.Enqueue(enemy, enemy.pathfindingPriority);
+                }
+            }
+
+            while (!enemyQueue.IsEmpty())
+            {
+                if (!searching)
+                {
+                    Enemy enemy = enemyQueue.Dequeue();
+                    if (enemy == null) continue;
+                    enemy.FindPath();
+                    while (!enemy.HasSetPath() && agentAttempts <= maxAgentAttempts)
                     {
                         StartCoroutine(enemy.FindPath());
                     }

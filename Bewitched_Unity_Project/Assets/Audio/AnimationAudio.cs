@@ -162,6 +162,12 @@ public class AnimationAudio : MonoBehaviour
         AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev, true, (anim.intParameter == 1) ? character.gameObject : null);
         if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
         if (isEventEnemy) ev.setParameterByNameWithLabel("Event", "True");
+        /*
+        if (anim.animatorClipInfo.clip.name == "GoblinPrimaryAttack" && possessed)
+        {
+            Debug.LogError("PRIMARY");
+        }
+        */
     }
 
     /// <summary>
@@ -253,7 +259,7 @@ public class AnimationAudio : MonoBehaviour
     /// <summary>
     /// Function used to stop all animation audio sound effects when the character dies
     /// </summary>
-    void OnDeath()
+    void OnDeath(GameObject enemyGameObject)
     {
         foreach (var ev in animEvents.Values)
         {

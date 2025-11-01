@@ -88,7 +88,7 @@ public class Ogre : Enemy
         if (dead || lobotimzed) return;
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        SetAIState();
+        // SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
     }
@@ -260,7 +260,9 @@ public class Ogre : Enemy
         lockedCharacter = null;
         attackingPrimary = false;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
+        attackStateCoroutine = null;
         timeLastPrimary = Time.time;
+        aiState = AIMovementState.Chasing;
     }
 
     /// <summary>
@@ -322,21 +324,6 @@ public class Ogre : Enemy
         attackStateCoroutine = null;
         attackingSecondary = false;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
-    }
-    //Override of OnDamaged to handle the OgreHit sound effect
-    protected override void OnDamaged(float f)
-    {
-        base.OnDamaged(f);
-        if(AudioManager.TryGetReference("OgreHit", out EventReference evRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.setParameterByName("Damage", f / health.GetMaxHealth());
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
-            ev.start();
-            ev.release();
-        }
     }
 
     /// <summary>
@@ -537,6 +524,8 @@ public class Ogre : Enemy
         {
             if (LookForPlayer())
             {
+                // Since TransitionToState checks for inProcess, we need to set it to false here, to transition to the next state
+                inProcess = false;
                 TransitionToState(AIMovementState.Chasing);
                 yield break;
             }
@@ -682,21 +671,49 @@ public class Ogre : Enemy
         return 0;
     }
     /// <summary>
-    /// Override of Enemy.Die to handle the ogre's death sound effect.
+    /// Override to handle event enemy
     /// </summary>
-    public override void Die()
+    /// <param name="damage"></param>
+    public override void DoHitSoundEffect(float damage)
     {
+        if (deathEventReference.IsNull) return;
         //Stopping any playing sound effects on death.
         if (idleAudio.isValid())
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
-        //Play Ogre's Death sound effect
-        if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
         {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
         }
-        base.Die();
+    }
+    
+    /// <summary>
+    /// Override of DoDeathSoundEffect to handle event enemy audio 
+    /// </summary>
+    protected override void DoDeathSoundEffect()
+    {
+        if (deathEventReference.IsNull) return;
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
+        }
     }
 }
