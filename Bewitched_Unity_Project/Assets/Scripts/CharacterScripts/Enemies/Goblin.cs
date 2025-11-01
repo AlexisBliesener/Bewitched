@@ -1010,21 +1010,6 @@ public class Goblin : Enemy
         }
     }
 
-    public override void Die()
-    {
-        //Stopping any playing sound effects on death.
-        if (idleAudio.isValid())
-        {
-            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        }
-        //Play Goblin's Death sound effect
-        if (AudioManager.TryPlayInstance("GoblinDeath", out EventInstance ev, true, gameObject))
-        {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-        }
-        base.Die();
-    }
-
     /// <summary>
     /// Set possessed to be true/false
     /// </summary>
@@ -1032,20 +1017,5 @@ public class Goblin : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
-    }
-
-    //Override to implement Goblin's hit sound effect
-    protected override void OnDamaged(float amount)
-    {
-        base.OnDamaged(amount);
-        if (AudioManager.TryGetReference("GoblinHit", out EventReference eventRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(eventRef);
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.setParameterByName("Damage", amount / health.GetMaxHealth());
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.start();
-            ev.release();
-        }
     }
 }
