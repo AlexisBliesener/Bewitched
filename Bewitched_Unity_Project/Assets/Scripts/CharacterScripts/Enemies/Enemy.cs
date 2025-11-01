@@ -11,6 +11,8 @@ public abstract class Enemy : Character
     [Header("Enemy AI Settings")]
     [Tooltip("Determines the enemy's mental state atm")]
     public bool lobotimzed = false;
+    [Tooltip("If the enemy can attack")]
+    public bool cantAttack = false;
     [Tooltip("Minimum Stopping Distance"), Range(0, 10)]
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
@@ -255,7 +257,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetDebugString()
     {
-        debugAIInfo = "Character: " + gameObject.ToString() + ", state: " + aiState.ToString() + ", attack status: " + attackState + ", inProcess = " + inProcess.ToString();
+        debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
 
     /// <summary>
@@ -565,8 +567,12 @@ public abstract class Enemy : Character
                 attackingSecondary = false;
                 timeLastSecondary = Time.time;
             }
-            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
-            else aiState = AIMovementState.Chasing;
+            SetMovementValues(true);
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+                SurroundingPoints.instance.RemoveAttackingEnemy(this);
+            }
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -745,9 +751,9 @@ public abstract class Enemy : Character
     /// <summary>
     /// Virtual function to find a path based on current state
     /// </summary>
-    public virtual void FindPath()
+    public virtual IEnumerator FindPath()
     {
-
+        yield break;
     }
 
     /// <summary>
@@ -832,10 +838,10 @@ public abstract class Enemy : Character
     /// A function called by the surrounding points to make an enemy attack
     /// </summary>
     /// <param name="points"> Points the request came from </param>
-    /// <returns> True if attack is done, false otherwise </returns>
-    public virtual bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public virtual int AttackFromSurrounding(SurroundingPoints points)
     {
-        return false;
+        return 0;
     }
     /// <summary>
     ///  Returns whether the player is currently controlling this enemy.
@@ -949,7 +955,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Surrounding)
@@ -964,7 +969,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Blocked)
@@ -1005,9 +1009,9 @@ public abstract class Enemy : Character
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
                 float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
                 float ratio = (totalDist - dist) / totalDist;
-                node.AddCost(this, (int)(25 * ratio));
+                node.AddCost(this, (int)(10 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(25 * ratio);
+                surroundingCostlyNodes[position] = (int)(10 * ratio);
                 numSet++;
             }
             previousCostlyPosition = transform.position;
@@ -1042,8 +1046,9 @@ public abstract class Enemy : Character
         }
         else
         {
+            if (dist < currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius && !playerControlling) CreateLocalSurroundingArea();
+            else ResetSurroundingArea();
             SurroundingPoints.instance.RemoveSurroundingEnemy(this);
-            ResetSurroundingArea();
         }
     }
     /// <summary>
