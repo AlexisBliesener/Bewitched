@@ -17,6 +17,8 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("The Environment Layer")]
     public LayerMask environment;
 
+    public bool useOnlyVisibleEnemies = true;
+
     [Tooltip("Maximum number of attack points available")]
     public int maxAttackPoints = 10;
 
@@ -103,11 +105,7 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
-
-        float timeStarted = Time.time;
-        Debug.Log("Search began for " + enemy.gameObject);
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, currentPlayer));
-        Debug.Log("Search ran for " + enemy.gameObject + " in " + (Time.time - timeStarted) + " seconds");
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
 
@@ -187,6 +185,8 @@ public class SurroundingPoints : MonoBehaviour
         if (enemy.cantAttack) return false;
         if (enemy.IsPlayerControlling()) return false;
 
+        if (!useOnlyVisibleEnemies) return true;
+
         Vector3 viewportPoint = Camera.main.WorldToViewportPoint(enemy.transform.position);
 
         bool inView = viewportPoint.z > 0 &&
@@ -237,7 +237,6 @@ public class SurroundingPoints : MonoBehaviour
 
                     if (cost > 0)
                     {
-                        Debug.Log("Chosen enemy: " + chosen);
                         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                         timeLastAttack = Time.time;
                         break;
