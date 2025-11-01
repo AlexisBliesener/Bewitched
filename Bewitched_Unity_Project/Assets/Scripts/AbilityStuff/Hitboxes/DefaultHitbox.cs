@@ -216,9 +216,8 @@ public class DefaultHitbox : MonoBehaviour
                     {
                         EventInstance inst = RuntimeManager.CreateInstance(evRef);
                         inst.setParameterByName("Type", (float)damageType);
-                        if (character == PlayerController.instance.currentCharacter) {
+                        if ((character == PlayerController.instance.currentCharacter&&soundEffectKey=="Hit")||(character is Hag && soundEffectKey=="Death")) {
                             inst.setParameterByNameWithLabel("NoDuck", "True");
-                            Debug.LogError("NO DUCK");
                         }
                         inst.start();
                         inst.release();
