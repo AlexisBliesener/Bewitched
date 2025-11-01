@@ -156,8 +156,9 @@ public class Node
     /// Gets the node cost
     /// </summary>
     /// <param name="enemy"> The enemy searching through this node </param>
+    /// <param name="target"> The target to ignore nodes for </param>
     /// <returns> Cost of the node </returns>
-    public int GetCost(Enemy enemy = null)
+    public int GetCost(Enemy enemy = null, Character target = null)
     {
         int cost = 0;
         int priority;
@@ -165,7 +166,7 @@ public class Node
         else priority = enemy.priority;
         foreach (Character character in nodeCosts.Keys)
         {
-            if (priority >= character.priority && enemy != character) // Only add costs if higher/equal priority and not this
+            if (priority >= character.priority && enemy != character && character != target) // Only add costs if higher/equal priority and not this
             {
                 cost += nodeCosts[character];
             }

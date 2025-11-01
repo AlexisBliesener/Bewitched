@@ -183,6 +183,7 @@ public class DefaultHitbox : MonoBehaviour
             {
                 if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible() && character.teamID != user.teamID)
                 {
+                    if (character is Enemy) (character as Enemy).DoHitSoundEffect(damage);
                     character.health.SubHealth(damage);
 
                     if(character == PlayerController.instance.currentCharacter)
@@ -215,6 +216,9 @@ public class DefaultHitbox : MonoBehaviour
                     {
                         EventInstance inst = RuntimeManager.CreateInstance(evRef);
                         inst.setParameterByName("Type", (float)damageType);
+                        if ((character == PlayerController.instance.currentCharacter&&soundEffectKey=="Hit")||(character is Hag && soundEffectKey=="Death")) {
+                            inst.setParameterByNameWithLabel("NoDuck", "True");
+                        }
                         inst.start();
                         inst.release();
                     }
@@ -287,6 +291,7 @@ public class DefaultHitbox : MonoBehaviour
             {
                 impactEffects.ApplyStatusEffects(user, hitChar, this);
                 hitChar.health.SubHealth(slamDamage);
+
             }
         }
 

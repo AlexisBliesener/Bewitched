@@ -32,6 +32,7 @@ public class KnockbackControl : MonoBehaviour
         else if (gettingKnockback)
         {
             gettingKnockback = false;
+            ResetImpact();
         }
         // consumes the impact energy each cycle:
         impact -= impact.normalized * mass * GetComponent<Character>().deceleration * Time.deltaTime;

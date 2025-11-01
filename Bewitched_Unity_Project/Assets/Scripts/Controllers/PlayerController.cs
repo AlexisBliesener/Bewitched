@@ -1,16 +1,6 @@
-using Cinemachine;
-using FMOD.Studio;
-using FMODUnity;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.TextCore.Text;
-using static UnityEngine.UI.Image;
 
 public class PlayerController : MonoBehaviour
 {
@@ -393,7 +383,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 dir = currentCharacter.transform.forward;
+        Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.TransformDirection(dir);
+
+        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);

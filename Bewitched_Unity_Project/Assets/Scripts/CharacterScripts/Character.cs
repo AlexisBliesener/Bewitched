@@ -46,7 +46,7 @@ public abstract class Character : MonoBehaviour
 
     [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
-    public float sizeRadius = 1.5f; 
+    public float sizeRadius = 1.5f;
     [Tooltip("Number of Points to Surround")]
     public int numSurroundingPoints = 8;
     [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
@@ -63,14 +63,18 @@ public abstract class Character : MonoBehaviour
     [Header("Attack Settings")]
     [Tooltip("Attack Delay"), Range(0, 10)]
     public float attackDelay = 1;
-    [Tooltip("Cooldown After Primary Ability"), Range(0,10)]
+    [Tooltip("Cooldown After Primary Ability"), Range(0, 10)]
     public float primaryCooldown = 5;
     [SerializeField, Tooltip("The amount of health this character will use when using their primary attack"), Range(0, 100)]
     protected int primaryAttackCost;
+    [SerializeField, Tooltip("The AI cost of the primary attack"), Range(0, 10)]
+    protected int primaryAICost;
     [Tooltip("Cooldown After Secondary Ability"), Range(0, 10)]
     public float secondaryCooldown = 5;
     [SerializeField, Tooltip("The amount of health this character will use when using their secondary attack"), Range(0, 100)]
     protected int secondaryAttackCost;
+    [SerializeField, Tooltip("The AI cost of the secondary attack"), Range(0, 10)]
+    protected int secondaryAICost;
     [Tooltip("Primary Attack Range"), Range(0, 10)]
     public float primaryAttackRange;
     [Tooltip("The reference to the health controller"), HideInInspector]
@@ -146,7 +150,7 @@ public abstract class Character : MonoBehaviour
     protected Vector3 previousCostlyPosition;
 
     [Tooltip("Threshold distance before resetting costly area")]
-    protected float invalidAreaResetThreshold = 0.5f;
+    protected float invalidAreaResetThreshold = 0.25f;
 
     protected bool stunned = false;
     [Header("Debug/Dev Options"), ShowIf("dev")]
@@ -289,6 +293,11 @@ public abstract class Character : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns the stunned status
+    /// </summary>
+    public bool IsStunned => stunned;
+
+    /// <summary>
     /// Returns the Cinemachine Combat camera associated with this character.
     /// </summary>
     /// <returns>The FreeLook Cinemachine camera.</returns>
@@ -349,7 +358,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     protected virtual void OnDamaged(float amount)
     {
-        
+
     }
 
     /// <summary>
@@ -450,7 +459,7 @@ public abstract class Character : MonoBehaviour
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
             {
-                PlayerController.instance.SetAllowMovement(false);
+                if (this == PlayerController.instance.currentCharacter) PlayerController.instance.SetAllowMovement(false);
                 yield return null;
             }
             if (attackingPrimary) // Reset primary and secondary abilities
@@ -463,7 +472,13 @@ public abstract class Character : MonoBehaviour
                 attackingSecondary = false;
                 timeLastSecondary = Time.time;
             }
-            PlayerController.instance.SetAllowMovement(true);
+
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+            }
+
+            StartCoroutine(EnableMovement());
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -477,7 +492,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual void HandleHitStun()
     {
-        
+
     }
 
     public void SetPrimaryStatus(bool val)
@@ -491,7 +506,7 @@ public abstract class Character : MonoBehaviour
     }
 
     public void SetBaseStats()
-    { 
+    {
         baseMovementSpeed = movementSpeed;
         basePrimaryCooldown = primaryCooldown;
         baseSecondaryCooldown = secondaryCooldown;
@@ -513,7 +528,7 @@ public abstract class Character : MonoBehaviour
     public virtual void PrimaryAttack()
     {
     }
-    
+
     /// <summary>
     /// Virutal function that is called on any characters secondary attack started
     /// </summary>
@@ -536,7 +551,7 @@ public abstract class Character : MonoBehaviour
     {
         if (gameObject != null)
         {
-            if(currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
+            if (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep])
             {
                 if (PlayerController.instance.currentCharacter == this)
                 {
@@ -639,6 +654,16 @@ public abstract class Character : MonoBehaviour
     public bool IsNeutral()
     {
         if (attackState == AttackState.Neutral) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the enemy is winding up or approaching (no other attacks can be started then)
+    /// </summary>
+    /// <returns> True if other enemies can attack </returns>
+    public bool InAttackStartup()
+    {
+        if (attackState == AttackState.Windup || attackState == AttackState.Approaching) return true;
         return false;
     }
 
@@ -805,7 +830,7 @@ public abstract class Character : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, this, 25);
+                GraphBuilder.instance.AddNodeCost(position, this, 50);
             }
             previousCostlyPosition = transform.position;
         }
@@ -818,7 +843,7 @@ public abstract class Character : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, this, -25);
+            GraphBuilder.instance.AddNodeCost(position, this, -50);
         }
     }
     /// <summary>
@@ -838,13 +863,13 @@ public abstract class Character : MonoBehaviour
     {
         if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
-            Debug.Log(hit.gameObject);
-            Debug.Log("Adding force");
 
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
+            direction.y = 0;
+            direction = direction.normalized;
             knockback.AddImpact(direction, force);
-            velocity -= direction * force * deceleration * Time.deltaTime;
+            GetComponent<KnockbackControl>().AddImpact(-direction, force);
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
