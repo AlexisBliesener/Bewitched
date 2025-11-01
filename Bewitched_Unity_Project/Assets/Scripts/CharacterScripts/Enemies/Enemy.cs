@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
 using UnityEngine;
 
@@ -169,8 +170,13 @@ public abstract class Enemy : Character
     public int pathfindingPriority;
     //Just so code in update isn't called after the enemy is dead
     protected bool dead = false;
+    
+    [Header("Audio")]
+    [Tooltip("The Event Reference for this enemy's hit sound effect")]
+    [SerializeField] protected EventReference hitEventReference;
+    [Tooltip("The event reference for this enemy's death sound effect")]
+    [SerializeField]protected EventReference deathEventReference;
 
-    //The sound effect for the spin attack
     //FMOD Event for idle sound effects
     protected EventInstance idleAudio;
 
@@ -414,6 +420,7 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
+        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -1040,6 +1047,48 @@ public abstract class Enemy : Character
         {
             SurroundingPoints.instance.RemoveSurroundingEnemy(this);
             ResetSurroundingArea();
+        }
+    }
+    /// <summary>
+    /// Plays the hit sound effect assigned to this enemy. Created as a work around
+    /// for enemy ability cost.
+    /// </summary>
+    /// <param name="damage">The amount of damage taken</param>
+    public virtual void DoHitSoundEffect(float damage)
+    {
+        if (hitEventReference.IsNull) return;
+        if (health.CurrentHealth - damage <= 0)
+        {
+            DoDeathSoundEffect();
+            return;
+        }
+        EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
+        RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+        ev.setParameterByName("Damage", damage / health.GetMaxHealth());
+        ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+        ev.start();
+        ev.release();
+
+    }
+    /// <summary>
+    /// Plays the death sound effect of this enemy
+    /// </summary>
+    protected virtual void DoDeathSoundEffect()
+    {
+        if (deathEventReference.IsNull) return;
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
         }
     }
 }

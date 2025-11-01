@@ -331,21 +331,6 @@ public class Ogre : Enemy
         attackStateCoroutine = null;
         attackingSecondary = false;
     }
-    //Override of OnDamaged to handle the OgreHit sound effect
-    protected override void OnDamaged(float f)
-    {
-        base.OnDamaged(f);
-        if(AudioManager.TryGetReference("OgreHit", out EventReference evRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.setParameterByName("Damage", f / health.GetMaxHealth());
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
-            ev.start();
-            ev.release();
-        }
-    }
 
     /// <summary>
     /// Runs the proper function based on the state of the AI
@@ -685,21 +670,49 @@ public class Ogre : Enemy
         return false;
     }
     /// <summary>
-    /// Override of Enemy.Die to handle the ogre's death sound effect.
+    /// Override to handle event enemy
     /// </summary>
-    public override void Die()
+    /// <param name="damage"></param>
+    public override void DoHitSoundEffect(float damage)
     {
+        if (deathEventReference.IsNull) return;
         //Stopping any playing sound effects on death.
         if (idleAudio.isValid())
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
-        //Play Ogre's Death sound effect
-        if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
         {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
         }
-        base.Die();
+    }
+    
+    /// <summary>
+    /// Override of DoDeathSoundEffect to handle event enemy audio 
+    /// </summary>
+    protected override void DoDeathSoundEffect()
+    {
+        if (deathEventReference.IsNull) return;
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
+        }
     }
 }
