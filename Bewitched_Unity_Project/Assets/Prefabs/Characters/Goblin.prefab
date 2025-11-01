@@ -137,8 +137,10 @@ MonoBehaviour:
   attackDelay: 0.92
   primaryCooldown: 0
   primaryAttackCost: 5
+  primaryAICost: 3
   secondaryCooldown: 0.25
   secondaryAttackCost: 20
+  secondaryAICost: 4
   primaryAttackRange: 1
   health: {fileID: 7573160092936169644}
   canPossess: 1
@@ -168,8 +170,9 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 21300000, guid: d6f3abf455e654e4ba22dfe133ac915c, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
-  attackState: 0
+  attackState: 3
   lobotimzed: 0
+  cantAttack: 0
   minStopDistance: 1.5
   seenBuffer: 0.5
   surroundingToChaseRadius: 4
