@@ -23,9 +23,10 @@ public class EventSystemRoom1 : MonoBehaviour
     private enum FightState
     {
         Waiting,
-        Fighting,
-        Ending,
-        LastEnemies,
+        Fighting, // This is when the cut scene is done and the event enemy is fighting
+        Ending, // This is when the event enemy will be avaliable to possess, for a short time if not possessed, the state will change to fighting
+        LastEnemies, // Wil spawn the last enemies (they will jump down from the stands)
+        WaitingForCleanup, // This is when the player is killing all the goblins after they jump down from the stands. When this is done, the state will change to finished
         Finished
     }
     [Tooltip("The current fight state")]
@@ -44,9 +45,6 @@ public class EventSystemRoom1 : MonoBehaviour
 
     [SerializeField, Tooltip("The door to open when the event enemy is possessed")]
     private IDoor door;
-
-    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]
-
 
     private void Start()
     {
@@ -144,15 +142,16 @@ public class EventSystemRoom1 : MonoBehaviour
                 // Start making the enemies jump down
                 StartCoroutine(enemySpawner.SpawnFinalEnemies());
                 // Enable the wall script so the player can walk and break the wall
-                fightState = FightState.Finished;
+                fightState = FightState.WaitingForCleanup;
                 break;
-            case FightState.Finished:
+            case FightState.WaitingForCleanup:
                 // we will check if all enemies are dead, if so, we will enable the wall script so the player can walk and break the wall
                 // 1 as the event enemy is already included in the count
-                // if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
-                // {
+                if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
+                {
                     wall.enabled = true;
-                // }
+                    fightState = FightState.Finished;
+                }
                 break;
         }
     }
