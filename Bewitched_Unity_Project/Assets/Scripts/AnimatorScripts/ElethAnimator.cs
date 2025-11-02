@@ -91,12 +91,13 @@ public class ElethAnimator : CharacterAnimator
         }
 
         // Idle/run switching
-        if (characterController != null)
+        if (PlayerController.instance.movementInput.magnitude < 0.1f)
         {
-            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
-                SwitchState("Idle");
-            else
-                SwitchState("Run");
+            SwitchState("Idle");
+        }
+        else
+        {
+            SwitchState("Run");
         }
     }
 
