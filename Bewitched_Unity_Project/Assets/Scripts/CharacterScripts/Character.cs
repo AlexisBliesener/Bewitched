@@ -883,6 +883,7 @@ public abstract class Character : MonoBehaviour
 
     private void Update()
     {
-        characterController.Move(Vector3.up * Physics.gravity.y * Time.deltaTime);
+        // hold down characters
+        characterController.Move(Vector3.up * 10 * Physics.gravity.y * Time.deltaTime);
     }
 }
