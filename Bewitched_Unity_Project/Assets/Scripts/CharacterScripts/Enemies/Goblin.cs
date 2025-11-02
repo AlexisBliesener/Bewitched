@@ -344,6 +344,7 @@ public class Goblin : Enemy
                     yield return null;
                 }
             }
+            animator.EndPrimary();
         }
 
         SetMovementValues(true);
@@ -406,6 +407,11 @@ public class Goblin : Enemy
             {
                 enemy.SetTargeted(false);
             }
+        }
+
+        if(!playerControlling)
+        {
+            animator.EndPrimary();
         }
 
         tempLockedCharacter = null;

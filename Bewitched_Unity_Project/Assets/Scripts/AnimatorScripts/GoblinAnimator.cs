@@ -133,14 +133,22 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+        if(PlayerController.instance.currentCharacter == character)
         {
-            character.ResetPrimaryComboStep();
+            if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+            {
+                character.ResetPrimaryComboStep();
+            }
         }
 
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
+    }
+
+    public void EndPrimary()
+    {
+        canChange = true;
     }
 
     /// <summary>
@@ -197,13 +205,11 @@ public class GoblinAnimator : CharacterAnimator
         switch (newState)
         {
             case "Idle":
-                Debug.Log("set idle");
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
-                Debug.Log("set run");
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;
