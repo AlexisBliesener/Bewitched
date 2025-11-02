@@ -271,6 +271,12 @@ public abstract class Enemy : Character
     {
         animateMove = true;
         if (aiState == AIMovementState.PlayerControlled) return;
+
+        if (pathState != PathState.Set)
+        {
+            animateMove = false;
+            return;
+        }
         
         if (currentPath == null) // No path, decelerate to 0
         {
@@ -915,7 +921,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetAIState()
     {
-        if (overrideBlock || aiState != AIMovementState.Blocked)
+        if ((overrideBlock || aiState != AIMovementState.Blocked )  && aiState != AIMovementState.Retreating)
         {
             if (overrideBlock)
             {
@@ -929,10 +935,10 @@ public abstract class Enemy : Character
                 {
                     TransitionToState(AIMovementState.Chasing);
                 }
-                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
-                {
-                    TransitionToState(AIMovementState.Retreating);
-                }
+                //else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                //{
+                //    TransitionToState(AIMovementState.Retreating);
+                //}
                 else
                 {
                     TransitionToState(AIMovementState.Surrounding);

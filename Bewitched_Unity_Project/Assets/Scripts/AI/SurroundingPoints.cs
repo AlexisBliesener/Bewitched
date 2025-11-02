@@ -112,6 +112,15 @@ public class SurroundingPoints : MonoBehaviour
         enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
     }
 
+    public IEnumerator FindPathToRetreat(Enemy enemy)
+    {
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, enemy.transform.position));
+
+        if (!enemy.HasSetPath()) yield break; // End if no path is found
+
+        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
+    }
+
     /// <summary>
     /// Adds enemy to surrounding enemy list
     /// </summary>

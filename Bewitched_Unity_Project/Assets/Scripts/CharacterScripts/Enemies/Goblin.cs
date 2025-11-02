@@ -351,12 +351,15 @@ public class Goblin : Enemy
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+        
 
         if (tempLockedCharacter)
         {
             tempLockedCharacter.SetAttacker(null);
             if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
+                Debug.Log("retreat set");
                 enemy.SetTargeted(false);
             }
         }
@@ -400,6 +403,7 @@ public class Goblin : Enemy
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
 
         if (tempLockedCharacter)
         {
@@ -710,6 +714,10 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Retreating)
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             Retreat();
         }
     }
@@ -743,7 +751,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 
@@ -931,6 +939,10 @@ public class Goblin : Enemy
                 UpdatePath();
             }
         }
+
+        aiState = AIMovementState.Chasing;
+        pathState = PathState.Unset;
+
         AILook();
 
     }
