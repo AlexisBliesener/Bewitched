@@ -33,12 +33,6 @@ public abstract class Enemy : Character
     [Tooltip("Walk Point Range"), Range(0, 50)]
     public float patrolRange;
 
-    [Tooltip("Minimum distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float minimumSurroundingDistance = 3;
-
-    [Tooltip("Maxium distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float maximumSurroundingDistance = 5;
-
     [Header("Time/Delay Settings")]
 
     [Tooltip("Time before searching"), Range(0, 10)]
@@ -915,11 +909,11 @@ public abstract class Enemy : Character
             if (LookForPlayer())
             {
                 // Check distance first - if it is greater than surrounding then chase
-                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maxSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Chasing);
                 }
-                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= minSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Retreating);
                 }
@@ -998,7 +992,7 @@ public abstract class Enemy : Character
         {
             int numSet = 0;
             ResetSurroundingArea();
-            float totalDist = minimumSurroundingDistance + sizeRadius;
+            float totalDist = maxSurroundingRadius + sizeRadius;
             List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
             foreach (List<int> position in nodes)
             {
@@ -1034,7 +1028,7 @@ public abstract class Enemy : Character
     public void ManageSurrounding()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius)
+        if (dist <= currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius && dist >= currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius)
         {
             SurroundingPoints.instance.AddSurroundingEnemy(this);
             if (playerControlling) ResetSurroundingArea();
