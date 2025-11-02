@@ -841,12 +841,20 @@ public abstract class Character : MonoBehaviour
         {
             ResetInvalidArea();
 
-            costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
-            foreach (List<int> position in costlyNodes)
+            if (GraphBuilder.instance != null)
             {
-                GraphBuilder.instance.AddNodeCost(position, this, 50);
+                costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
+                foreach (List<int> position in costlyNodes)
+                {
+                    GraphBuilder.instance.AddNodeCost(position, this, 50);
+                }
+                previousCostlyPosition = transform.position;
             }
-            previousCostlyPosition = transform.position;
+            else
+            {
+                Debug.LogWarning("The Graph Builder instance is not set!");
+            }
+
         }
     }
 
