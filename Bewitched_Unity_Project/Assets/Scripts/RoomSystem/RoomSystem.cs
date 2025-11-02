@@ -224,7 +224,6 @@ public class RoomSystem : MonoBehaviour
         {
             if (room.roomController != null)
             {
-                Debug.Log(room.roomName + room.roomController.GetRoomBounds());
                 if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
                 {
                     return room.roomController;
