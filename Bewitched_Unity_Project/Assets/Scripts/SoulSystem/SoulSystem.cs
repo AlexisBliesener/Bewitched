@@ -27,6 +27,9 @@ public class SoulSystem : MonoBehaviour
         // Only one instance of SoulSystem should be there
         if (Instance != null && Instance != this)
         {
+            // Get the reference of the UI and set it to the old instance
+            Instance.soulCountText = soulCountText;
+            Instance.UpdateUI();
             Destroy(gameObject);
             return;
         }
@@ -55,20 +58,15 @@ public class SoulSystem : MonoBehaviour
     public void UseSoulCurrency(int amount)
     {
         soulCount = Mathf.Max(0, soulCount - amount);   
-
-        //Update HUD Soul Count
-        if (soulCountText != null)
-        {
-            soulCountText.text = soulCount.ToString();
-        }
-        else
-        {
-            Debug.LogWarning("There is no soul text assigned!");
-        }
+        UpdateUI();
     }
 
     // <summary> Reset souls to 0</summary>
-    public void ResetSouls() => soulCount = 0;
+    public void ResetSouls()
+    {
+        soulCount = 0;
+        UpdateUI();
+    }
     // <summary> Set the soul prefab to use for spawning (This is used for the test cases) </summary>
     public void SetSoulPrefab(GameObject soulPrefab) => this.soulPrefab = soulPrefab;
     // <summary> Get the soul prefab to use for spawning (This is used for the test cases) </summary>
@@ -78,6 +76,13 @@ public class SoulSystem : MonoBehaviour
     public void AddSouls(int amount)
     {
         soulCount += amount;
+        UpdateUI();
+    }
+    /// <summary>
+    /// Update the UI with the current soul count
+    /// </summary>
+    public void UpdateUI()
+    {
         if (soulCountText != null)
         {
             soulCountText.text = soulCount.ToString();
