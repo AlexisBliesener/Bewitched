@@ -51,11 +51,14 @@ public abstract class Enemy : Character
     [Header("Attack Settings")]
     [Tooltip("Chance for AI primary attack"), Range(0, 1)]
     public float primaryAttackChance = .5f;
-
     [Tooltip("Chance for AI secondary attack"), Range(0, 1)]
     public float secondaryAttackChance = .5f;
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
     public float lowHealthThresholdPercentage = 30;
+    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 1)]
+    protected float counterWindowLength;
+
+
     protected PlayerController playerController;
 
     protected Hag hag;
@@ -260,15 +263,24 @@ public abstract class Enemy : Character
         debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
 
+
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
+        animateMove = true;
         if (aiState == AIMovementState.PlayerControlled) return;
 
+        if (pathState != PathState.Set)
+        {
+            animateMove = false;
+            return;
+        }
+        
         if (currentPath == null) // No path, decelerate to 0
         {
+            animateMove = false;
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
@@ -279,6 +291,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
+            animateMove = false;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
@@ -298,7 +311,6 @@ public abstract class Enemy : Character
         }
 
         Vector3 desiredVelocity;
-
 
         desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
 
@@ -320,11 +332,11 @@ public abstract class Enemy : Character
 
         if (velocity.magnitude < 0.01f)
         {
+            animateMove = false;
             velocity = Vector3.zero;
         }
 
         velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
-
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
@@ -398,7 +410,6 @@ public abstract class Enemy : Character
     /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
-        StopAllCoroutines();
         playerControlling = val;
         if (val)
         {
@@ -419,7 +430,6 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
-        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -911,7 +921,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetAIState()
     {
-        if (overrideBlock || aiState != AIMovementState.Blocked)
+        if ((overrideBlock || aiState != AIMovementState.Blocked )  && aiState != AIMovementState.Retreating)
         {
             if (overrideBlock)
             {
@@ -924,10 +934,6 @@ public abstract class Enemy : Character
                 if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
                 {
                     TransitionToState(AIMovementState.Chasing);
-                }
-                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
-                {
-                    TransitionToState(AIMovementState.Retreating);
                 }
                 else
                 {
