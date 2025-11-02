@@ -895,6 +895,13 @@ public abstract class Character : MonoBehaviour
     private void Update()
     {
         // hold down characters
-        characterController.Move(Vector3.up * 100 * Physics.gravity.y * Time.deltaTime);
+        if (characterController != null)
+        {
+            characterController.Move(Vector3.up * 100 * Physics.gravity.y * Time.deltaTime);
+        }
+        else
+        {
+            Debug.LogWarning("Character controller is not set!");
+        }
     }
 }
