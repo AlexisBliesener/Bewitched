@@ -146,6 +146,10 @@ public class GoblinAnimator : CharacterAnimator
         SwitchState(newState);
     }
 
+    /// <summary>
+    /// Called when the goblin ends its primary attack
+    /// Allows the animator to change states
+    /// </summary>
     public void EndPrimary()
     {
         canChange = true;

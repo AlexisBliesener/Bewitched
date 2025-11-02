@@ -181,8 +181,8 @@ public abstract class Character : MonoBehaviour
     public GameObject counterIndicatorVFXPrefab;
     [Tooltip("Character Controller component")]
     private CharacterController characterController;
-
-    public bool animateMove = false;
+    [Tooltip("Tells the animator to set the run animation if this is true, or idle animation when false, can be overriden by the animator")]
+    protected bool animateMove = false;
 
     /// <summary>
     /// The different attacking states a character can have
@@ -293,6 +293,17 @@ public abstract class Character : MonoBehaviour
     public GameObject[] GetModel()
     {
         return modelPieces;
+    }
+
+    /// <summary>
+    /// Returns if the animator should set run or idle state
+    /// run when true
+    /// idle when false
+    /// </summary>
+    /// <returns>Which movement state the animator should set</returns>
+    public bool GetAnimateMove()
+    {
+        return animateMove;
     }
 
     /// <summary>

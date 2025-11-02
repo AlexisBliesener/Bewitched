@@ -935,10 +935,6 @@ public abstract class Enemy : Character
                 {
                     TransitionToState(AIMovementState.Chasing);
                 }
-                //else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
-                //{
-                //    TransitionToState(AIMovementState.Retreating);
-                //}
                 else
                 {
                     TransitionToState(AIMovementState.Surrounding);

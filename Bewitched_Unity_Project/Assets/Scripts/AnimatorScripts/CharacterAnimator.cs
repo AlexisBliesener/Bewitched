@@ -89,7 +89,7 @@ public class CharacterAnimator : MonoBehaviour
             else
             {
                 if (character == null) return;
-                if (!character.animateMove)
+                if (!character.GetAnimateMove())
                 {
                     SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
                 }
@@ -190,13 +190,11 @@ public class CharacterAnimator : MonoBehaviour
         switch (newState)
         {
             case "Idle":
-                Debug.Log("set idle");
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
-                Debug.Log("set run");
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
