@@ -99,17 +99,14 @@ public class ElethAnimator : CharacterAnimator
         // prevent walk and run animations from clipping into walls
         if(currentAnimationState == "Sprint")
         {
-            character.GetCharacterController().radius = 1.2f;
-            character.GetCharacterController().center = new Vector3(0,0.4f,0.3f);
+            character.GetCharacterController().center = new Vector3(0,0.4f,0.8f);
         }
         else if(currentAnimationState == "Run")
         {
-            character.GetCharacterController().radius = 1f;
-            character.GetCharacterController().center = new Vector3(0, 0.4f, 0f);
+            character.GetCharacterController().center = new Vector3(0, 0.4f, 0.2f);
         }
         else
         {
-            character.GetCharacterController().radius = 0.8f;
             character.GetCharacterController().center = new Vector3(0, 0.4f, 0f);
         }
 
