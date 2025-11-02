@@ -37,6 +37,11 @@ public class Hag : Character
         SetBaseStats();
     }
 
+    private void FixedUpdate()
+    {
+        CreateLocalInvalidArea();
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -127,8 +132,8 @@ public class Hag : Character
 
         //Stops all non-UI events. WitchDeath event also mutes all other sound effects
         RuntimeManager.GetBus("bus:/Music/LevelMusic").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
         AudioManager.TryPlayOneShot("WitchDeath");
+        AudioManager.TryPlaySnapshot("GameOver");
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
         //Wait until the sound effect is over before returning to the main menu
