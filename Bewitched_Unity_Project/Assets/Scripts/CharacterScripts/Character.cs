@@ -805,7 +805,7 @@ public abstract class Character : MonoBehaviour
             costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
             foreach (List<int> position in costlyNodes)
             {
-                GraphBuilder.instance.AddNodeCost(position, this, 25);
+                GraphBuilder.instance.AddNodeCost(position, this, 50);
             }
             previousCostlyPosition = transform.position;
         }
@@ -818,7 +818,7 @@ public abstract class Character : MonoBehaviour
     {
         foreach (List<int> position in costlyNodes)
         {
-            GraphBuilder.instance.AddNodeCost(position, this, -25);
+            GraphBuilder.instance.AddNodeCost(position, this, -50);
         }
     }
     /// <summary>

@@ -257,7 +257,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
-        if (aiState == AIMovementState.PlayerControlled) return;
+        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
 
         if (currentPath == null) // No path, decelerate to 0
         {
