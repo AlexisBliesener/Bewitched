@@ -158,19 +158,11 @@ public class GrandFinale : MonoBehaviour, IDrop
         if (explodePlayer)
         {
             ExplodePlayer();
-            Debug.Log("player explode");
         }
         else
         {
             if (Time.time - timePossessing > enemyExplosionTime[stackNum])
-            {
                 ExplodeEnemy();
-                Debug.Log("mew111");
-            }
-            else
-            {
-                Debug.Log("mew");
-            }
         }
     }
 
