@@ -880,4 +880,9 @@ public abstract class Character : MonoBehaviour
             GetComponent<KnockbackControl>().ResetImpact();
         }
     }
+
+    private void Update()
+    {
+        characterController.Move(Vector3.up * Physics.gravity.y * Time.deltaTime);
+    }
 }

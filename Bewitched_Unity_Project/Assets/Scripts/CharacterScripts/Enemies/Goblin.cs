@@ -363,6 +363,7 @@ public class Goblin : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
 
         yield break;
     }

@@ -403,7 +403,6 @@ public abstract class Enemy : Character
     /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
-        StopAllCoroutines();
         playerControlling = val;
         if (val)
         {
