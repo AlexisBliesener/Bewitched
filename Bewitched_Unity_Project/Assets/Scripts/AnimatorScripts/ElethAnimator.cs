@@ -96,6 +96,23 @@ public class ElethAnimator : CharacterAnimator
 
     protected override void Update()
     {
+        // prevent walk and run animations from clipping into walls
+        if(currentAnimationState == "Sprint")
+        {
+            character.GetCharacterController().radius = 1.2f;
+            character.GetCharacterController().center = new Vector3(0,0.4f,0.3f);
+        }
+        else if(currentAnimationState == "Run")
+        {
+            character.GetCharacterController().radius = 1f;
+            character.GetCharacterController().center = new Vector3(0, 0.4f, 0f);
+        }
+        else
+        {
+            character.GetCharacterController().radius = 0.8f;
+            character.GetCharacterController().center = new Vector3(0, 0.4f, 0f);
+        }
+
         if (animator == null)
         {
             Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
