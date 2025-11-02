@@ -113,6 +113,20 @@ public class SurroundingPoints : MonoBehaviour
     }
 
     /// <summary>
+    /// Finds a path for when the enemy needs to retreat
+    /// Currently sets path to the enemies current position
+    /// </summary>
+    /// <param name="enemy">Enemy finding a path</param>
+    public IEnumerator FindPathToRetreat(Enemy enemy)
+    {
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, enemy.transform.position));
+
+        if (!enemy.HasSetPath()) yield break; // End if no path is found
+
+        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
+    }
+
+    /// <summary>
     /// Adds enemy to surrounding enemy list
     /// </summary>
     /// <param name="enemy"> Enemy to add </param>
