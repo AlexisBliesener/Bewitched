@@ -146,7 +146,7 @@ public class RoomController : MonoBehaviour
         }
         // We will check if we already killed the last enemy, if not we will check if the room is still active (The last enemy is still make the room acitve ), 
         // if so we will check if the last enemy is the player (possessed), and last we will check if the player is out of the current room 
-        if (!lastEnemyKilled && currentState == RoomState.Active && roomEnemies.Count == 1 && roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
+        if ( !isEventRoom && !lastEnemyKilled && currentState == RoomState.Active && roomEnemies.Count == 1 && roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
         {
             if (IsPlayerOutOfRoom())
             {
