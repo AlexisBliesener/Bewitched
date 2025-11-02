@@ -683,14 +683,29 @@ public class Goblin : Enemy
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine( FindPath() );
+            }
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine( FindPath() );
+            }
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
@@ -715,7 +730,12 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            }
+            
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {

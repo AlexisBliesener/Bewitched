@@ -285,6 +285,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
+            animateMove = false;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
