@@ -1,6 +1,7 @@
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 
 public class PlayerController : MonoBehaviour
 {
@@ -120,11 +121,18 @@ public class PlayerController : MonoBehaviour
         characterController = currentCharacter.GetComponent<CharacterController>();
     }
 
+    private bool sprinting = false;
+
     private void FixedUpdate()
     {
         TargetEnemy();
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
+
+        if(currentCharacter == oldHag && sprinting)
+        {
+            speed = oldHag.GetSprintSpeed();
+        }
 
         if (allowMovement)
         {
@@ -303,24 +311,37 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private float timeInteractStarted = 0;
     /// <summary>
     /// This is called when the player interacts with the interactable object
     /// It will trigger the pickup event
     /// </summary>
     public void Interact(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.canceled)
         {
-            if (nearbyInteractable != null)
+            if (!sprinting)
             {
-                nearbyInteractable.Interact();
-                // Hide the interact UI since the interact action has been performed
-                HideInteractUI();
-                return;
+                if (nearbyInteractable != null)
+                {
+                    nearbyInteractable.Interact();
+                    // Hide the interact UI since the interact action has been performed
+                    HideInteractUI();
+                    return;
+                }
+                if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
             }
-            if (exitDoor != null)
+            sprinting = false;
+        }
+        else if(context.performed)
+        {
+            if (currentCharacter == oldHag)
             {
-                exitDoor.OpenDoor();
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
+                sprinting = true;
             }
         }
     }

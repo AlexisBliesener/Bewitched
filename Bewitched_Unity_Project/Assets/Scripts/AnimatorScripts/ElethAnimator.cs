@@ -31,8 +31,18 @@ public class ElethAnimator : CharacterAnimator
         animationStates.Add("Possession");
         animationStates.Remove("PrimaryAttack");
         animationStates.Remove("SecondaryAttack");
+        animationStates.Add("Sprint");
 
         animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
+    }
+
+    public void ToggleSprint()
+    {
+        if(currentAnimationState == "Run")
+        {
+            currentAnimationState = "Sprint";
+            animator.SetTrigger("Sprint");
+        }
     }
 
     /// <summary>
@@ -48,6 +58,8 @@ public class ElethAnimator : CharacterAnimator
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
+
+        if (currentAnimationState == "Sprint" && newState == "Run") return;
 
         currentAnimationState = newState;
         ResetAllTriggers();

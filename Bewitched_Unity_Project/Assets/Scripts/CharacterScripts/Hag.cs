@@ -9,6 +9,8 @@ public class Hag : Character
     //This is just a basic character class for now just for testing stuff with the hag.
 
     [Header("Hag Settings")]
+    [SerializeField, Tooltip("Sprint speed of eleth")]
+    private float sprintSpeed;
     [Tooltip("Knockback Radius")]
     [SerializeField] float knockbackAngle = 50;
     [Tooltip("Knockback Range")]
@@ -57,6 +59,11 @@ public class Hag : Character
         {
             Debug.LogError("Eleth doesn't have a CharacterController component!");
         }
+    }
+
+    public float GetSprintSpeed()
+    {
+        return sprintSpeed;
     }
 
     public override IEnumerator BeginPrimary()
