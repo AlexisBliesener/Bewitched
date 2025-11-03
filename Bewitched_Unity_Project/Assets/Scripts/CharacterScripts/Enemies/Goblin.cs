@@ -1,9 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 
@@ -189,11 +190,12 @@ public class Goblin : Enemy
         }
 
         Character tempLockedChar = lockedCharacter;
+
         attackingPrimary = true;
 
         if (playerControlling)
         {
-            if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 inPrimaryWindup = true;
                 attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
@@ -272,6 +274,19 @@ public class Goblin : Enemy
             float timeStarted = Time.time;
             timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
+
+            if (playerControlling)
+            {
+                if (tempLockedCharacter != null)
+                {
+                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - this.gameObject.transform.position, chaseTime * dis);
+                }
+                else
+                {
+                    CameraController.instance.OnAttack(this.gameObject.transform.forward, chaseTime * dis);
+                }
+            }
+
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
@@ -382,6 +397,11 @@ public class Goblin : Enemy
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
+
+        if (playerControlling)
+        {
+           CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
+        }
 
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
@@ -557,6 +577,11 @@ public class Goblin : Enemy
         desiredVelocity.y = 0;
         desiredVelocity = desiredVelocity.normalized * spinSpeed;
 
+        if (playerControlling)
+        {
+            CameraController.instance.OnAttack(desiredVelocity, CameraController.instance.GetGoblinSecondaryRotateTime());
+        }
+
         Vector3 drift;
 
         float accelerationTime;
@@ -585,6 +610,7 @@ public class Goblin : Enemy
         float timeSinceBegan = 0;
 
         float distanceTravelled = 0;
+        bool cameraRotationStopped = false;
         while (distanceTravelled < distance)
         {
             if (slowTime && Time.time - timeStarted < 0.05f)
@@ -621,11 +647,21 @@ public class Goblin : Enemy
             RaycastHit hit;
             if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
             {
+                if(!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
                 float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
                 GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
             }
             else if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, characters))
             {
+                if (!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
                 float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
                 GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
             }

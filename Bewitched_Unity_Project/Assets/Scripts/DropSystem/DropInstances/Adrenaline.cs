@@ -147,7 +147,7 @@ public class Adrenaline : MonoBehaviour, IDrop
     /// <param name="newCharacter">The new character to switch control to</param>
     public void OnCharacterControlChange(Character newCharacter)
     {
-        if (newCharacter != null && newCharacter != PlayerController.instance.oldHag)
+        if (active && newCharacter != null && newCharacter != PlayerController.instance.oldHag)
         {
             ApplyAdrenalineRush();
             if (HUDManager.Instance != null && HUDManager.Instance.upgradeDict.ContainsKey(upgradeID))
