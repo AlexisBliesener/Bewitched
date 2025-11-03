@@ -1,6 +1,7 @@
 using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
@@ -8,9 +9,8 @@ public class CombatCam : MonoBehaviour
 {
     private CinemachineFreeLook combatCam;
 
-    private bool inHitBy = false;
-    private bool rotatingToThreat = false;
-    private bool inOnAttack = false;
+    public bool inHitBy = false;
+    public bool inOnAttack = false;
 
     private void Awake()
     {
@@ -19,8 +19,8 @@ public class CombatCam : MonoBehaviour
 
     public IEnumerator PlayerHitBy(GameObject hitBy)
     {
+        StopAllRotates();
         inHitBy = true;
-        StopAllCoroutines();
 
         Vector3 toEnemy = hitBy.transform.position - PlayerController.instance.currentCharacter.transform.position;
 
@@ -35,65 +35,78 @@ public class CombatCam : MonoBehaviour
         inHitBy = false;
     }
 
+    private void StopAllRotates()
+    {
+        StopAllCoroutines();
+        inOnAttack = false;
+        inHitBy = false;
+    }
+
     private void FixedUpdate()
     {
-
-
         StartCoroutine(RotateToBiggestThreat(CameraController.instance.GetThreatWeight(), CameraController.instance.GetDistWeight(), CameraController.instance.GetMaxDistance(), RoomSystem.Instance.GetCurrentRoomEnemies(), SurroundingPoints.instance.GetAttackingEnemies()));
     }
 
     public IEnumerator OnAttack(Vector3 forwardDir, float approachTime)
     {
-        inOnAttack = true;
+        if(!inHitBy)
+        {
+            StopAllRotates();
+            inOnAttack = true;
 
-        forwardDir.y = 0;
+            forwardDir.y = 0;
 
-        float degrees = Vector3.SignedAngle(Vector3.forward, forwardDir, Vector3.up);
+            float degrees = Vector3.SignedAngle(Vector3.forward, forwardDir, Vector3.up);
 
-        if (degrees < 0) degrees += 360;
+            if (degrees < 0) degrees += 360;
 
-        yield return StartCoroutine(RotateCamera(degrees, approachTime));
-        inOnAttack = false;
+            yield return StartCoroutine(RotateCamera(degrees, approachTime));
+            inOnAttack = false;
+        }
     }
 
     public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<GameObject> enemies, Dictionary<Character, int> attackingEnemies)
     {
-        if (!inHitBy && !inOnAttack && !rotatingToThreat && enemies != null)
+        if (!inHitBy && !inOnAttack )
         {
-            rotatingToThreat = true;
-            Enemy topPriority = null;
-            float priority = Mathf.NegativeInfinity;
-            foreach (GameObject enemy in enemies)
+            StopAllRotates();
+            if (enemies != null)
             {
-                Enemy enemyComponent = enemy.GetComponent<Enemy>();
-                float distance = Vector3.Distance(PlayerController.instance.currentCharacter.transform.position, enemy.transform.position);
-                float threat = enemyComponent.priority;
-                if (attackingEnemies.ContainsKey(enemyComponent))
+                Enemy topPriority = null;
+                float priority = Mathf.NegativeInfinity;
+                foreach (GameObject enemy in enemies)
                 {
-                    threat += attackingEnemies[enemyComponent];
+                    if (enemy == null) continue;
+                    Enemy enemyComponent = enemy.GetComponent<Enemy>();
+                    if(enemyComponent == PlayerController.instance.currentCharacter) continue;
+                    float distance = Vector3.Distance(PlayerController.instance.currentCharacter.transform.position, enemy.transform.position);
+                    float threat = enemyComponent.priority;
+                    if (attackingEnemies.ContainsKey(enemyComponent))
+                    {
+                        threat += attackingEnemies[enemyComponent];
+                    }
+
+                    float currentPriority = (threat * threatWeight) + (maxDistance - distance) * distWeight;
+                    if (topPriority == null || currentPriority > priority)
+                    {
+                        topPriority = enemyComponent;
+                        priority = currentPriority;
+                    }
                 }
 
-                float currentPriority = (threat * threatWeight) + (maxDistance - distance) * distWeight;
-                if (topPriority == null || currentPriority > priority)
+                if (topPriority != null)
                 {
-                    topPriority = enemyComponent;
-                    priority = currentPriority;
+                    Vector3 toEnemy = topPriority.transform.position - PlayerController.instance.currentCharacter.transform.position;
+
+                    toEnemy.y = 0;
+
+                    float degrees = Vector3.SignedAngle(Vector3.forward, toEnemy, Vector3.up);
+
+                    if (degrees < 0) degrees += 360;
+
+                    yield return StartCoroutine(RotateCamera(degrees, 0.01f));
                 }
             }
-
-            if(topPriority != null)
-            {
-                Vector3 toEnemy = topPriority.transform.position - PlayerController.instance.currentCharacter.transform.position;
-
-                toEnemy.y = 0;
-
-                float degrees = Vector3.SignedAngle(Vector3.forward, toEnemy, Vector3.up);
-
-                if (degrees < 0) degrees += 360;
-
-                yield return StartCoroutine(RotateCamera(degrees, 0.01f));
-            }
-            rotatingToThreat = false;
         }
     }
 
