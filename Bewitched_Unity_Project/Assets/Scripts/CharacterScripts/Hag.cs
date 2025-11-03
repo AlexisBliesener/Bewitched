@@ -59,11 +59,6 @@ public class Hag : Character
         }
     }
 
-    private void FixedUpdate()
-    {
-        CreateLocalInvalidArea();
-    }
-
     public override IEnumerator BeginPrimary()
     {
        yield return null;
