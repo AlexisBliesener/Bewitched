@@ -72,7 +72,7 @@ public class CombatCam : MonoBehaviour
                 degrees += 360;
             }
 
-            yield return StartCoroutine(RotateCamera(degrees, approachTime));
+            yield return StartCoroutine(RotateCamera(degrees, 0.5f, approachTime));
             inOnAttack = false;
         }
     }
@@ -87,7 +87,11 @@ public class CombatCam : MonoBehaviour
 
         if (degrees < 0) degrees += 360;
 
-        yield return StartCoroutine(RotateCamera(degrees, duration));
+        float dist = toEnemy.magnitude;
+
+        dist = Mathf.Clamp(dist, 0f, 5f);
+
+        yield return StartCoroutine(RotateCamera(degrees, 1f - dist/5f, duration));
     }
 
     public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<GameObject> enemies, Dictionary<Character, int> attackingEnemies)
@@ -127,12 +131,15 @@ public class CombatCam : MonoBehaviour
         }
     }
 
-    private IEnumerator RotateCamera(float degrees, float time)
+    private IEnumerator RotateCamera(float degrees, float normalizedVal, float time)
     {
-        float startingValue = combatCam.m_XAxis.Value;
+        float startingValueX = combatCam.m_XAxis.Value;
+        float startingValueY = combatCam.m_YAxis.Value;
+
         for (int i = 1; i < 51; i++)
         {
-            combatCam.m_XAxis.Value = Mathf.LerpAngle(startingValue, degrees, i / 50f);
+            combatCam.m_XAxis.Value = Mathf.LerpAngle(startingValueX, degrees, i / 50f);
+            combatCam.m_YAxis.Value = Mathf.Lerp(startingValueY, normalizedVal, i / 50f);
             yield return new WaitForSeconds(time / 50f);
         }
     }
