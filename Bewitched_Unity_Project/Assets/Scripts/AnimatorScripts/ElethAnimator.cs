@@ -36,6 +36,9 @@ public class ElethAnimator : CharacterAnimator
         animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
     }
 
+    /// <summary>
+    /// Turns on the sprint animation from the run animation
+    /// </summary>
     public void ToggleSprint()
     {
         if(currentAnimationState == "Run")

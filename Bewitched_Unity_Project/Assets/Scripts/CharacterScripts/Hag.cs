@@ -61,6 +61,10 @@ public class Hag : Character
         }
     }
 
+    /// <summary>
+    /// Returns the speed that eleth sprints at
+    /// </summary>
+    /// <returns>sprint speed</returns>
     public float GetSprintSpeed()
     {
         return sprintSpeed;

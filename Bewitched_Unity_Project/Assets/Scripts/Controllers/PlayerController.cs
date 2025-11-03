@@ -75,8 +75,10 @@ public class PlayerController : MonoBehaviour
     private float speed;
 
     private bool allowMovement = true;
+    [Tooltip("If true eleth is currently sprints, false if not")]
+    private bool sprinting = false;
 
-   // private bool dodging = false;
+    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -120,8 +122,6 @@ public class PlayerController : MonoBehaviour
 
         characterController = currentCharacter.GetComponent<CharacterController>();
     }
-
-    private bool sprinting = false;
 
     private void FixedUpdate()
     {
@@ -291,7 +291,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private float timeInteractStarted = 0;
     /// <summary>
     /// This is called when the player interacts with the interactable object
     /// It will trigger the pickup event
