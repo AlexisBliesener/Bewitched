@@ -36,8 +36,10 @@ public class ShopManager : MonoBehaviour
     [Header("Pop-ups")]
     [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
     public GameObject NoSoulText;
-    [Tooltip("Pop up description for when the player hovers over an upgrade.")]
-    public GameObject DescriptionGO;
+    [Tooltip("Pop up description game object for when the player hovers over an upgrade.")]
+    public GameObject descriptionGO;
+    [Tooltip("Description text, child of descriptionGO.")]
+    private TMP_Text descriptionText;
 
     /// <summary>
     /// It sets the instance of the ShopManager class. And allow only one instance of the class.
@@ -51,6 +53,12 @@ public class ShopManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Get Description text
+        if (descriptionGO != null)
+        {
+            descriptionText = descriptionGO.GetComponentInChildren<TMP_Text>(true);
+        }
     }
 
     /// <summary>
@@ -422,20 +430,19 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void ShowDescription(string text)
     {
-        if (DescriptionGO == null)
+        if (descriptionGO == null)
         {
-            Debug.LogWarning("DescriptionGO not assigned.");
+            Debug.LogWarning("descriptionGO not assigned.");
             return;
         }
-        DescriptionGO.SetActive(true);
-        TMP_Text descText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
-        if (descText != null)
+        descriptionGO.SetActive(true);
+        if (descriptionText != null)
         {
-            descText.text = text;
+            descriptionText.text = text;
         }
         else
         {
-            Debug.LogWarning("No TMP_Text found inside DescriptionGO");
+            Debug.LogWarning("No TMP_Text found inside descriptionGO");
         }
     }
 
@@ -444,9 +451,9 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void HideDescription()
     {
-        if (DescriptionGO == null) return;
+        if (descriptionGO == null) return;
 
-        DescriptionGO.SetActive(false);
+        descriptionGO.SetActive(false);
     }
 
     /// <summary>

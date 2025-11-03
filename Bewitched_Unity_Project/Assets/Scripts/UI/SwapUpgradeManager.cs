@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// This has to be attached to the SwapUpgradeUI gameObject,
+/// This has to be attached to the swapUpgradeUI gameObject,
 /// which contains the elements of the pop-up screen.
 /// Should only show up if the player already has 5 upgrades and wants to select a new one.
 /// Pressing the swappable upgrade auto-swaps it (no confirm button)
@@ -17,11 +17,13 @@ public class SwapUpgradeManager : MonoBehaviour
 {
     [Header("Screens")]
     [Tooltip("The Swap Upgrade Screen")]
-    public GameObject SwapUpgradeUI;
+    public GameObject swapUpgradeUI;
     [Tooltip("The Shop: Buy Upgrade Screen")]
     public GameObject buyUpgradeUI;
-    [Tooltip("Pop up description for when the player hovers over an upgrade.")]
-    public GameObject DescriptionGO;
+    [Tooltip("Pop up description game object for when the player hovers over an upgrade.")]
+    public GameObject descriptionGO;
+    [Tooltip("Description text, child of descriptionGO.")]
+    private TMP_Text descriptionText;
 
 
     [Header("List of Upgrades Acquired")]
@@ -54,7 +56,7 @@ public class SwapUpgradeManager : MonoBehaviour
         }
 
         // Get swap upgrade placeholder buttons
-        swapUpgradeButtons = SwapUpgradeUI.GetComponentsInChildren<Button>(true);
+        swapUpgradeButtons = swapUpgradeUI.GetComponentsInChildren<Button>(true);
         if (swapUpgradeButtons.Length == 5)
         {
             UpdateSwappableUpgrades();
@@ -63,6 +65,12 @@ public class SwapUpgradeManager : MonoBehaviour
         {
             Debug.LogWarning("Upgrade Swap UI does not have 5 buttons/upgrades.");
         }
+
+        // Get description text
+        if (descriptionGO != null)
+        {
+            descriptionText = descriptionGO.GetComponentInChildren<TMP_Text>(true);
+        }
     }
 
     /// <summary>
@@ -70,7 +78,7 @@ public class SwapUpgradeManager : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
-        SwapUpgradeUI.SetActive(true);
+        swapUpgradeUI.SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
@@ -214,33 +222,35 @@ public class SwapUpgradeManager : MonoBehaviour
             trigger.triggers.Add(deselectEntry);
         }
     }
-
+    /// <summary>
+    /// Show Description of upgrade that is currently selected
+    /// </summary>
     private void ShowDescription(string text)
     {
-        if (DescriptionGO == null)
+        if (descriptionGO == null)
         {
-            Debug.LogWarning("DescriptionGO not assigned!");
+            Debug.LogWarning("descriptionGO not assigned!");
             return;
         }
 
-        DescriptionGO.SetActive(true);
+        descriptionGO.SetActive(true);
 
-        TMP_Text descriptionText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
         if (descriptionText != null)
         {
             descriptionText.text = text;
         }
         else
         {
-            Debug.LogWarning("No TMP_Text found inside DescriptionGO!");
+            Debug.LogWarning("No TMP_Text found inside descriptionGO!");
         }
     }
-
+    /// <summary>
+    /// Hide Description of upgrade when deselected
+    /// </summary>
     private void HideDescription()
     {
-        if (DescriptionGO == null) return;
+        if (descriptionGO == null) return;
 
-        TMP_Text descriptionText = DescriptionGO.GetComponentInChildren<TMP_Text>(true);
         if (descriptionText != null) descriptionText.text = "";
     }
 
