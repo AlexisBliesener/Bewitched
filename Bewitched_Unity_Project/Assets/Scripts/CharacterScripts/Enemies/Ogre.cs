@@ -89,6 +89,11 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = 0;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+
         if (dead || lobotimzed) return;
 
         ManageSurrounding();
