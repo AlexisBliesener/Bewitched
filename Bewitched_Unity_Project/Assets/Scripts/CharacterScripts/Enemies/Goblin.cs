@@ -106,15 +106,6 @@ public class Goblin : Enemy
     {
         CreateLocalInvalidArea();
         ManageSurrounding();
-        if (dead || lobotimzed) return;
-        currentPlayer = playerController.GetCurrentCharacter();
-
-        SetDebugString();
-        //Debug.Log(debugAIInfo);
-
-        SetAIState();
-
-        SetBehavior();
 
         if (playerControlling)
         {
@@ -124,6 +115,16 @@ public class Goblin : Enemy
         {
             lockedCharacter = currentPlayer;
         }
+
+        if (dead || lobotimzed) return;
+        currentPlayer = playerController.GetCurrentCharacter();
+
+        SetDebugString();
+
+        SetAIState();
+        ManageSurrounding();
+
+        SetBehavior();
 
         if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
@@ -208,8 +209,6 @@ public class Goblin : Enemy
             attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
     }
-
-
 
     /// <summary>
     /// Starts the windup for the knife
@@ -618,7 +617,22 @@ public class Goblin : Enemy
                 rotationalVelocity = spinRotationalSpeed;
             }
 
-            GetCharacterController().Move(velocity * Time.deltaTime);
+            // Check for impact before moving and adjust as needed
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
+            {
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, characters))
+            {
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else
+            {
+                GetCharacterController().Move(velocity * Time.deltaTime);
+            }
             transform.Rotate(Vector3.up, rotationalVelocity * Time.deltaTime);
 
             distanceTravelled += velocity.magnitude * Time.deltaTime;
@@ -912,13 +926,10 @@ public class Goblin : Enemy
 
         if (pathState == PathState.Set || currentPath != null)
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
         AILook();

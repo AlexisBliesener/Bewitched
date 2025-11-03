@@ -56,12 +56,6 @@ public class PlayerController : MonoBehaviour
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
 
-    [Tooltip("Player Modifier Volume")]
-    [SerializeField] NavMeshModifierVolume playerZone;
-
-    [Tooltip("Navmesh Surface")]
-    [SerializeField] NavMeshSurface surface;
-
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
@@ -406,7 +400,7 @@ public class PlayerController : MonoBehaviour
             foreach (RaycastHit hit in hits)
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                 {
                     target = enemy;
                     targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
@@ -422,7 +416,7 @@ public class PlayerController : MonoBehaviour
                 foreach (RaycastHit hit in hits)
                 {
                     Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                     {
                         target = enemy;
                         targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
