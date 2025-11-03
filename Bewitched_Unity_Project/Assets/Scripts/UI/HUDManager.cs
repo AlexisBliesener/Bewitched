@@ -25,7 +25,7 @@ public class HUDManager : MonoBehaviour
     public bool HasExactUpgrade(string id) => upgradeDict.ContainsKey(id);
 
     [Tooltip("Tracking by DropData ID")]
-    private Dictionary<string, Transform> upgradeDict = new Dictionary<string, Transform>();
+    public Dictionary<string, Transform> upgradeDict = new Dictionary<string, Transform>();
 
     /// <summary>
     /// It sets the instance of the HUDManager class,

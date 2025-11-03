@@ -6,7 +6,7 @@ public class SampleCommonDrop : MonoBehaviour, IDrop
 {
     public int stackNum { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
 
     }

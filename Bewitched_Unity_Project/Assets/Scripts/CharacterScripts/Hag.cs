@@ -9,6 +9,8 @@ public class Hag : Character
     //This is just a basic character class for now just for testing stuff with the hag.
 
     [Header("Hag Settings")]
+    [SerializeField, Tooltip("Sprint speed of eleth")]
+    private float sprintSpeed;
     [Tooltip("Knockback Radius")]
     [SerializeField] float knockbackAngle = 50;
     [Tooltip("Knockback Range")]
@@ -37,6 +39,11 @@ public class Hag : Character
         SetBaseStats();
     }
 
+    private void FixedUpdate()
+    {
+        CreateLocalInvalidArea();
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -52,6 +59,15 @@ public class Hag : Character
         {
             Debug.LogError("Eleth doesn't have a CharacterController component!");
         }
+    }
+
+    /// <summary>
+    /// Returns the speed that eleth sprints at
+    /// </summary>
+    /// <returns>sprint speed</returns>
+    public float GetSprintSpeed()
+    {
+        return sprintSpeed;
     }
 
     public override IEnumerator BeginPrimary()
@@ -127,8 +143,8 @@ public class Hag : Character
 
         //Stops all non-UI events. WitchDeath event also mutes all other sound effects
         RuntimeManager.GetBus("bus:/Music/LevelMusic").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        RuntimeManager.GetBus("bus:/SoundEffects/InGame").stopAllEvents(FMOD.Studio.STOP_MODE.IMMEDIATE);
         AudioManager.TryPlayOneShot("WitchDeath");
+        AudioManager.TryPlaySnapshot("GameOver");
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
         //Wait until the sound effect is over before returning to the main menu
