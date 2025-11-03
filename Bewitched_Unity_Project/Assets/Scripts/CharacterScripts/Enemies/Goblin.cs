@@ -579,7 +579,7 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
-            CameraController.instance.OnAttack(desiredVelocity, 0.2f);
+            CameraController.instance.OnAttack(desiredVelocity, CameraController.instance.GetGoblinSecondaryRotateTime());
         }
 
         Vector3 drift;
