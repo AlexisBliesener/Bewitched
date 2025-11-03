@@ -47,8 +47,6 @@ public abstract class Character : MonoBehaviour
     [Header("Surrounding Settings")]
     [Tooltip("Character Hitbox Radius")]
     public float sizeRadius = 1.5f; 
-    [Tooltip("Number of Points to Surround")]
-    public int numSurroundingPoints = 8;
     [Tooltip("Minimum Radius of Surrounding Points (For AI Navigation)")]
     public float minSurroundingRadius = 2;
     [Tooltip("Maximum Radius of Surrounding Points (For AI Navigation)")]
@@ -838,9 +836,6 @@ public abstract class Character : MonoBehaviour
     {
         if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
-            Debug.Log(hit.gameObject);
-            Debug.Log("Adding force");
-
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
             knockback.AddImpact(direction, force);

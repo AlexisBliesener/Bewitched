@@ -1772,9 +1772,8 @@ MonoBehaviour:
   weight: 10
   pushForceModifer: 0.15
   sizeRadius: 3
-  numSurroundingPoints: 8
   minSurroundingRadius: 3
-  maxSurroundingRadius: 20
+  maxSurroundingRadius: 30
   teamID: 2
   priority: 0
   shoulderOffset: {x: 1, y: 2.5, z: 0}
@@ -1814,11 +1813,11 @@ MonoBehaviour:
   seenBuffer: 0.5
   surroundingToChaseRadius: 4
   chaseToSurroundingRadius: 0.1
-  sightRange: 10
+  sightRange: 50
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
-  timeBeforeSearch: 5
+  timeBeforeSearch: 0
   attackDelayAI: 0
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
@@ -1827,12 +1826,12 @@ MonoBehaviour:
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0
-  aiState: 0
+  aiState: 1
   debugging: 0
   destinationMarkerPrefab: {fileID: 5315505615428339954, guid: 0350eec9aed97954b8aa31ea0c177f3f, type: 3}
   pathVisualizer: {fileID: 0}
   playerControlling: 0
-  pathfindingPriority: 3
+  pathfindingPriority: 1
   hitEventReference:
     Guid:
       Data1: 992620511

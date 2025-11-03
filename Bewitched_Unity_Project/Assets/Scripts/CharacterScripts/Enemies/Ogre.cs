@@ -86,12 +86,17 @@ public class Ogre : Enemy
     private void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        // SetAIState();
+        SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+
+        SetDebugString();
+        if (!playerControlling) Debug.Log(debugAIInfo);
     }
+
     /// <summary>
     /// Starts the primary attack for the ogre
     /// </summary>
@@ -123,6 +128,46 @@ public class Ogre : Enemy
         // Debug.Log("Starting swing");
         attackStateCoroutine = StartCoroutine(BatWindup());
     }
+
+    /// <summary>
+    /// Starts the primary attack
+    /// Chooses between windup and regular hit
+    /// </summary>
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null)
+        {
+            if (playerControlling)
+            {
+                if (currentPrimaryComboStep == -1)
+                {
+
+                    health.SubHealth(primaryAttackCost);
+
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                currentPrimaryComboStep = -1;
+                timeLastPrimary = Time.time;
+                characterAnimator.SwitchState("PrimaryAttack", 0);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                PrimaryAttack();
+            }
+        }
+    }
+
     /// <summary>
     /// Starts the secondary attack for the ogre
     /// </summary>
@@ -225,6 +270,7 @@ public class Ogre : Enemy
         pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
+        batHitbox.transform.Rotate(new Vector3(0, 2 * batSwingAngle / 3, 0));
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivotHitbox.AttachHitbox(batHitboxHitbox);
@@ -597,13 +643,10 @@ public class Ogre : Enemy
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
 

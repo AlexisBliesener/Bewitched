@@ -869,13 +869,10 @@ public class Goblin : Enemy
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
         AILook();

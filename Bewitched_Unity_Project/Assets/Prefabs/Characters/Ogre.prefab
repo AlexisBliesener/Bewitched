@@ -646,7 +646,6 @@ MonoBehaviour:
   weight: 10
   pushForceModifer: 0.15
   sizeRadius: 1.5
-  numSurroundingPoints: 8
   minSurroundingRadius: 3
   maxSurroundingRadius: 6
   teamID: 2
@@ -682,17 +681,15 @@ MonoBehaviour:
   secondaryFireIcon: {fileID: 21300000, guid: 85dd53280ef138649b2847c71c0fb1ba, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
-  attackState: 0
+  attackState: 3
   lobotimzed: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
-  surroundingToChaseRadius: 6
-  chaseToSurroundingRadius: 4
   sightRange: 10
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
-  timeBeforeSearch: 5
+  timeBeforeSearch: 2.5
   attackDelayAI: 0
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
