@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Handles the "Adrenaline" upgrade,
@@ -31,6 +32,14 @@ public class Adrenaline : MonoBehaviour, IDrop
 
     [Tooltip("Time when the buff was activated")]
     private float buffActivatedTime = -Mathf.Infinity;
+    [Tooltip("The ID of the upgrade")]
+    private string upgradeID;
+    [Tooltip("The icons to flash")]
+    private Image[] upgradeIcons;
+    [SerializeField, Tooltip("Flash speed at the start of the buff")]
+    private float startFlashSpeed = 3f;
+    [SerializeField, Tooltip("Flash speed when the buff is almost over")]
+    private float endFlashSpeed = 8f;
 
     #region Saving/Loading
 
@@ -97,9 +106,14 @@ public class Adrenaline : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Adrenaline effect
     /// </summary>
-    public void Activate()
+    /// <param name="dropData">The drop data of the upgrade</param>
+    public void Activate(DropData dropData = null)
     {
         active = true;
+        if (dropData != null)
+        {
+            upgradeID = dropData.GetID();
+        }
     }
     /// <summary>
     /// Deactivates the Adrenaline effect
@@ -112,11 +126,18 @@ public class Adrenaline : MonoBehaviour, IDrop
 
     private void Update()
     {
+        if (!buffActive) return;
+        float elapsed = Time.time - buffActivatedTime;
+        float remaining = buffDuration - elapsed;
         // Check if buff should expire
-        if (buffActive && Time.time - buffActivatedTime >= buffDuration)
+        if (remaining <= 0)
         {
             buffActive = false;
+            ChangeImageAlpha(1f);
+            return;
         }
+        float progress = Mathf.Clamp01(elapsed /buffDuration);
+        FlashIcons(progress, elapsed);
     }
 
     /// <summary>
@@ -129,6 +150,44 @@ public class Adrenaline : MonoBehaviour, IDrop
         if (newCharacter != null && newCharacter != PlayerController.instance.oldHag)
         {
             ApplyAdrenalineRush();
+            if (HUDManager.Instance != null && HUDManager.Instance.upgradeDict.ContainsKey(upgradeID))
+            {
+                upgradeIcons = HUDManager.Instance.upgradeDict[upgradeID].gameObject.GetComponentsInChildren<Image>();
+                ChangeImageAlpha(1f);
+            }
+
+        }
+    }
+    /// <summary>
+    /// Flash the icons, in upgradeicons 
+    /// </summary>
+    /// <param name="progress">How much progress to make the icons flash</param>
+    /// <param name="elapsed">How much time has passed since the last flash</param>
+    private void FlashIcons(float progress, float elapsed)
+    {
+        if (upgradeIcons == null || upgradeIcons.Length == 0) return;
+        float speed = Mathf.Lerp(startFlashSpeed, endFlashSpeed, progress);
+        float min  = Mathf.Lerp(0.1f,  0.9f,  progress);
+        float phase = Mathf.PingPong(elapsed * speed, 1f);
+        float alpha = Mathf.Lerp(1f, min, phase);
+
+        ChangeImageAlpha(alpha);
+    }
+    
+    /// <summary>
+    /// Change the alpha of the icons, in upgradeicons (To make the flashing effect)
+    /// </summary>
+    /// <param name="alpha">how much alpha to set</param>
+    private void ChangeImageAlpha(float alpha)
+    {
+        if (upgradeIcons == null) return;
+
+        for (int i = 0; i < upgradeIcons.Length; i++)
+        {
+            Image img = upgradeIcons[i];
+            if (img == null) continue;
+
+            img.color = new Color(img.color.r, img.color.g, img.color.b, alpha);
         }
     }
 
