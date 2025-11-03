@@ -86,7 +86,7 @@ public class DropData
     /// </summary>
     public void Activate()
     {
-        GetDropScriptComponent().Activate();
+        GetDropScriptComponent().Activate(this);
     }
     /// <summary>
     /// Deactivate the drop

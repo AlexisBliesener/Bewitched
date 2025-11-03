@@ -85,7 +85,7 @@ public class ClearFocus : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Clear Focus upgrade.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
         ApplyUpgrade();
