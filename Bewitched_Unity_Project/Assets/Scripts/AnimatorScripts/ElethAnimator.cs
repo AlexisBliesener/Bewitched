@@ -57,25 +57,25 @@ public class ElethAnimator : CharacterAnimator
             case "Idle":
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
-                PlayerController.instance.SetAllowMovement(true);
+                // PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Run":
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
-                PlayerController.instance.SetAllowMovement(true);
+                // PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Death":
                 animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-                PlayerController.instance.SetAllowMovement(true);
+                // PlayerController.instance.SetAllowMovement(true);
                 animator.SetTrigger("Death");
                 canChange = false;
                 break;
             case "Possession":
                 animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
                 animator.SetTrigger("Possession");
-                PlayerController.instance.SetAllowMovement(false);
+                // PlayerController.instance.SetAllowMovement(false);
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(possessionAttackLength));
                 break;
@@ -91,12 +91,13 @@ public class ElethAnimator : CharacterAnimator
         }
 
         // Idle/run switching
-        if (characterController != null)
+        if (PlayerController.instance.movementInput.magnitude < 0.1f)
         {
-            if (characterController.velocity.x == 0 && characterController.velocity.z == 0)
-                SwitchState("Idle");
-            else
-                SwitchState("Run");
+            SwitchState("Idle");
+        }
+        else
+        {
+            SwitchState("Run");
         }
     }
 

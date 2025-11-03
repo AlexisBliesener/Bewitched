@@ -37,6 +37,11 @@ public class Hag : Character
         SetBaseStats();
     }
 
+    private void FixedUpdate()
+    {
+        CreateLocalInvalidArea();
+    }
+
     protected override void Awake()
     {
         base.Awake();

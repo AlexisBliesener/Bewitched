@@ -586,6 +586,7 @@ public class GraphBuilder : MonoBehaviour
 
                 float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
 
+   
                 if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
 
                 if (closedSet.Contains(neighbor) || neighborDistanceFromOrigin >= maxSearchDistance)
@@ -719,7 +720,7 @@ public class GraphBuilder : MonoBehaviour
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
-                        enemy.FindPath();
+                        StartCoroutine(enemy.FindPath());
                     }
                     tempNumSearchers++;
                 }

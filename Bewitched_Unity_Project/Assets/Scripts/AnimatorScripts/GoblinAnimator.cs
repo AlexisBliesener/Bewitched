@@ -78,7 +78,7 @@ public class GoblinAnimator : CharacterAnimator
         if (GetComponentInParent<Goblin>().IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
-            return primaryWindupSpeedMultPlayer;
+            return primaryWindupSpeedMultEnemy;
     }
 
     /// <summary>
@@ -133,14 +133,26 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+        if(PlayerController.instance.currentCharacter == character)
         {
-            character.ResetPrimaryComboStep();
+            if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+            {
+                character.ResetPrimaryComboStep();
+            }
         }
 
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
+    }
+
+    /// <summary>
+    /// Called when the goblin ends its primary attack
+    /// Allows the animator to change states
+    /// </summary>
+    public void EndPrimary()
+    {
+        canChange = true;
     }
 
     /// <summary>

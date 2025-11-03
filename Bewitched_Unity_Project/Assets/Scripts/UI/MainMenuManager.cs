@@ -109,5 +109,9 @@ public class MainMenuManager : MonoBehaviour
     public void LoadLevel(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetSouls();
+        }
     }
 }

@@ -22,6 +22,7 @@ public class Goblin : Enemy
     [SerializeField] AttackStatusEffects spinEffects;
     [Tooltip("Knife Effects"), ShowIf("dev")]
     [SerializeField] AttackStatusEffects[] knifeEffects;
+
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
     [SerializeField] float knifeDuration = 0.25f;
@@ -29,6 +30,7 @@ public class Goblin : Enemy
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };
+
     [Header("Dash Settings for Goblin")]
     [Tooltip("Dash Speed"), Range(0, 100)]
     [SerializeField] float dashSpeed = 50;
@@ -38,6 +40,7 @@ public class Goblin : Enemy
     [SerializeField] float dashDamage = 30;
     [Tooltip("Offset of the hitbox forward"), Range(0, 10)]
     [SerializeField] private float offSetForward = 0.5f;
+
     [Header("Spin Settings for Goblin")]
     [Tooltip("Spin Damage"), Range(0, 200)]
     [SerializeField] float spinDamage = 30;
@@ -101,6 +104,9 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        CreateLocalInvalidArea();
+        ManageSurrounding();
+
         if (playerControlling)
         {
             lockedCharacter = PlayerController.instance.GetLockedTarget();
@@ -128,8 +134,6 @@ public class Goblin : Enemy
         {
             animator.SetPrimaryMovementNeeded(false);
         }
-
-        CreateLocalInvalidArea();
     }
 
     /// <summary>
@@ -146,7 +150,6 @@ public class Goblin : Enemy
                 {
 
                     health.SubHealth(primaryAttackCost);
-
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
                     {
@@ -218,6 +221,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
         float windupStart = Time.time;
+        bool leapEntered = false;
         while (Time.time  - windupStart < 0.708 / animator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
@@ -228,9 +232,14 @@ public class Goblin : Enemy
                 Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
+
+            if(!leapEntered && Time.time - windupStart > 0.708 / animator.GetPrimaryWindupMult() * 0.75f)
+            {
+                leapEntered = true;
+                animator.SetEnterLeap();
+            }
             yield return null;
         }
-        animator.SetEnterLeap();
 
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
@@ -261,17 +270,17 @@ public class Goblin : Enemy
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis * 3f / 4f;
+            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     animator.ExitLeap();
                 }
 
-                if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
+                if (Time.time - timeStarted >= counterWindowLength  * chaseTime * dis ) //  not dodgable
                 {
                     if (!triggerSet)
                     {
@@ -279,16 +288,14 @@ public class Goblin : Enemy
                         triggerSet = true;
                     }
 
-                    //   dodgable = false;
                     if (counterIndicatorVFX != null)
                     {
                         DestroyCounterIndicator();
                         if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
                     }
                 }
-                else // First 3 quarters, attack is dodgable
+                else // attack is dodgable
                 {
-                    //    dodgable = true;
                     if (counterIndicatorVFX == null)
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
@@ -336,24 +343,29 @@ public class Goblin : Enemy
                     yield return null;
                 }
             }
+            animator.EndPrimary();
         }
 
         SetMovementValues(true);
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+        
 
         if (tempLockedCharacter)
         {
             tempLockedCharacter.SetAttacker(null);
             if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
+                Debug.Log("retreat set");
                 enemy.SetTargeted(false);
             }
         }
 
         lockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
 
         yield break;
     }
@@ -390,6 +402,7 @@ public class Goblin : Enemy
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
 
         if (tempLockedCharacter)
         {
@@ -400,8 +413,14 @@ public class Goblin : Enemy
             }
         }
 
+        if(!playerControlling)
+        {
+            animator.EndPrimary();
+        }
+
         tempLockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     /// <summary>
@@ -668,6 +687,7 @@ public class Goblin : Enemy
         SetMovementValues(true);
         attackState = AttackState.Neutral;
         attackStateCoroutine = null;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
 
@@ -681,18 +701,37 @@ public class Goblin : Enemy
 
         if (aiState == AIMovementState.Patrolling) // If patrolling
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine( FindPath() );
+            }
             Patrol();
         }
         else if (aiState == AIMovementState.Chasing)
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine( FindPath() );
+            }
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            // Set path if there is none
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             Surround();
         }
         else if (aiState == AIMovementState.Retreating)
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             Retreat();
         }
     }
@@ -700,28 +739,33 @@ public class Goblin : Enemy
     /// <summary>
     /// Handles finding a path in the graph based on the state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
 
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            }
+            
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            if (pathState != PathState.Searching) StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 
@@ -768,7 +812,7 @@ public class Goblin : Enemy
     /// Override function for setting a patrol point
     /// This version uses a point of origin separate from the Goblin to place points
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         float randomX = Random.Range(-patrolRange, patrolRange);
         float randomZ = Random.Range(-patrolRange, patrolRange);
@@ -776,7 +820,7 @@ public class Goblin : Enemy
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
         walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -861,7 +905,7 @@ public class Goblin : Enemy
         StopIdleAudio();
         lookAtPlayer = false;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             AIMove();
             if (debugging)
@@ -880,7 +924,7 @@ public class Goblin : Enemy
         StopIdleAudio();
         lookAtPlayer = true;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             AIMove();
             if (debugging)
@@ -897,7 +941,7 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if (pathState == PathState.Set || currentPath != null)
         {
             // Debug.Log("Moving: " + gameObject);
             AIMove();
@@ -906,6 +950,10 @@ public class Goblin : Enemy
                 UpdatePath();
             }
         }
+
+        aiState = AIMovementState.Chasing;
+        pathState = PathState.Unset;
+
         AILook();
 
     }
@@ -981,17 +1029,21 @@ public class Goblin : Enemy
     /// Handles Goblin attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
         List<Goblin> goblins = points.GetEnemiesSameType(this);
+        float remaining = points.GetAvailableAttackPoints();
+        bool primaryAvailable = false;
 
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
+            primaryAvailable = true;
         }
-        if (CheckSecondaryUsable())
+        if (CheckSecondaryUsable() && secondaryAICost <= remaining)
         {
             if (goblins.Count >= 1) // Only do this if other goblins are around
             {
@@ -999,23 +1051,27 @@ public class Goblin : Enemy
             }
         }
 
-        if (totalOdds > 0)
+        if (totalOdds > 0) // Attack happens in here
         {
+            int cost;
             float choice = Random.Range(0, totalOdds);
-            if (choice <= primaryAttackChance) // Primary attack selected
+            if (choice <= primaryAttackChance && primaryAvailable) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
+                cost = primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
-                // Coordinate other goblin attack here
+                // Plan other goblin attack here and add to cost ahead of time
+                cost = secondaryAICost;
             }
-            return true;
+            points.AddAttackingEnemy(this, cost);
+            return cost;
         }
         else
         {
-            return false;
+            return 0;
         }
     }
 

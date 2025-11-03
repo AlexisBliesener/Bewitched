@@ -311,28 +311,28 @@ public class Guard : Enemy
     /// <summary>
     /// Handles finding a path in the graph based on the state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
 
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -375,10 +375,10 @@ public class Guard : Enemy
     /// Override function for setting a patrol point
     /// This version uses a pre-made list of points and selects points in sequence for a route
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         walkPoint = patrolPoints[targetPointIndex];
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -481,6 +481,7 @@ public class Guard : Enemy
             }
         }
         AILook();
+
     }
 
     /// <summary>
@@ -523,13 +524,15 @@ public class Guard : Enemy
     /// Handles Guard attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
+        float remaining = points.GetAvailableAttackPoints();
 
         // For now keep as just primary, once more combat is done then if being attacked it will block
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
         }
@@ -537,11 +540,12 @@ public class Guard : Enemy
         if (totalOdds > 0)
         {
             PrimaryAttack();
-            return true;
+            points.AddAttackingEnemy(this, primaryAICost);
+            return primaryAICost;
         }
         else
         {
-            return false;
+            return 0;
         }
     }
 }

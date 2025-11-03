@@ -33,8 +33,6 @@ public class GrandFinale : MonoBehaviour, IDrop
     private LayerMask characters;
     [SerializeField, Tooltip("The environment layer mask.")]
     private LayerMask environment;
-    [SerializeField, Tooltip("The Eleth character reference.")]
-    private Character eleth;
     [SerializeField, Tooltip("The RectTransform of the enemy's health bar.")]
     private RectTransform enemyHealthBar;
     [SerializeField, Tooltip("The prefab of the explosion VFX")]
@@ -42,8 +40,8 @@ public class GrandFinale : MonoBehaviour, IDrop
 
     [Tooltip("Whether the effect is currently active.")]
     private bool active = false;
-    [Tooltip("If true, the enemy died in the explosion and the player should not be damaged.")]
-    private bool diedInExplosion = false;
+    [Tooltip("This is to check if the character did call explode function before so the player will not be damaged.")]
+    private Character lastExplodedCharater;
 
     [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
@@ -137,7 +135,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Grand Finale effect.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }
@@ -156,6 +154,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// <param name="explodePlayer">If true, damages the player instead of enemies.</param>
     public void Explode(float timePossessing, bool explodePlayer)
     {
+        if (lastExplodedCharater == PlayerController.instance.currentCharacter) return;
         if (explodePlayer)
         {
             ExplodePlayer();
@@ -204,8 +203,8 @@ public class GrandFinale : MonoBehaviour, IDrop
                 CheckCharacterBehindEnvironment(hitChar.transform) &&
                 hitChar.teamID != PlayerController.instance.currentCharacter.teamID)
             {
-                float dist = (hitChar.transform.position - transform.position).magnitude;
-                Vector3 direction = (hitChar.transform.position - transform.position).normalized;
+                float dist = (hitChar.transform.position - PlayerController.instance.currentCharacter.transform.position).magnitude;
+                Vector3 direction = (hitChar.transform.position - PlayerController.instance.currentCharacter.transform.position).normalized;
 
                 float dmg = Mathf.Lerp(
                     explosionMinDamage[stackNum],
@@ -214,7 +213,8 @@ public class GrandFinale : MonoBehaviour, IDrop
                 );
 
                 hitChar.health.SubHealth(dmg);
-                if (!hitChar.GetComponent<Enemy>().IsPlayerControlling())
+                Enemy enemy = hitChar.GetComponent<Enemy>();
+                if (enemy != null && !enemy.IsPlayerControlling())
                     hitChar.health.ShowMiniHealthBar(true, hitChar);
 
                 // Knockback disabled but can be re-added here
@@ -223,12 +223,14 @@ public class GrandFinale : MonoBehaviour, IDrop
             }
         }
 
-        diedInExplosion = true;
-        PlayerController.instance.currentCharacter.Die();
-
+        lastExplodedCharater = PlayerController.instance.currentCharacter;
+        if (PlayerController.instance.currentCharacter != PlayerController.instance.GetHag())
+        {
+            PlayerController.instance.currentCharacter.Die();
+        }
         // Switch back to Hag
         PlayerController.instance.currentCharacter.SetControlled(false);
-        PossessionAbility.CharacterControlChangeEvent?.Invoke(eleth);
+        PossessionAbility.CharacterControlChangeEvent?.Invoke(PlayerController.instance.GetHag());
     }
 
     /// <summary>
@@ -236,7 +238,6 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// </summary>
     private void ExplodePlayer()
     {
-        if (diedInExplosion) return;
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
         PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[stackNum]);
     }
@@ -248,8 +249,8 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// <returns>True if visible, false if blocked.</returns>
     public bool CheckCharacterBehindEnvironment(Transform pos)
     {
-        float dist = (pos.position - transform.position).magnitude;
-        return !Physics.Raycast(transform.position, pos.position - transform.position, dist, environment);
+        float dist = (pos.position - PlayerController.instance.currentCharacter.transform.position).magnitude;
+        return !Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, pos.position - PlayerController.instance.currentCharacter.transform.position, dist, environment);
     }
 
 }

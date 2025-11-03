@@ -318,6 +318,7 @@ public class Ogre : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
         attackStateCoroutine = null;
         aiState = AIMovementState.Chasing;
     }
@@ -379,18 +380,11 @@ public class Ogre : Enemy
 
         SetMovementValues(true);
         attackState = AttackState.Neutral;
-        if (playerControlling)
-        {
-            StartCoroutine(EnableMovement());
-        }
-        else
-        {
-            aiState = AIMovementState.Chasing;
-            attackState = AttackState.Neutral;
-        }
+        SetMovementValues(true);
 
         attackStateCoroutine = null;
         attackingSecondary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     /// <summary>
@@ -431,27 +425,28 @@ public class Ogre : Enemy
     /// <summary>
     /// Finds a path and starts searching depending on the AI state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
+
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
         }
     }
 
@@ -509,7 +504,7 @@ public class Ogre : Enemy
     /// Override function for setting a patrol point
     /// This version uses a point of origin separate from the Ogre to place a point
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         // Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
@@ -527,7 +522,7 @@ public class Ogre : Enemy
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -697,16 +692,18 @@ public class Ogre : Enemy
     /// Handles Ogre attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
+        float remaining = points.GetAvailableAttackPoints();
 
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
         }
-        if (CheckSecondaryUsable()) // In the future use this if being attacked by player
+        if (CheckSecondaryUsable() && secondaryAICost <= remaining) // In the future use this if being attacked by player
         {
             totalOdds += secondaryAttackChance;
         }
@@ -715,17 +712,21 @@ public class Ogre : Enemy
         {
             // Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
+            int cost;
             if (choice <= primaryAttackChance) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
+                cost = primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
+                cost = secondaryAICost;
             }
-            return true;
+            points.AddAttackingEnemy(this, cost);
+            return cost;
         }
-        return false;
+        return 0;
     }
     /// <summary>
     /// Override to handle event enemy
