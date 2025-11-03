@@ -326,11 +326,15 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     public IEnumerator ScreamWindup()
     {
-        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-        else aiState = AIMovementState.Blocked;
+        SetMovementValues(false);
         attackState = AttackState.Windup;
 
-        yield return new WaitForSeconds(screamWindupDuration);
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < screamWindupDuration)
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
 
         attackStateCoroutine = StartCoroutine(HandleScream());
     }
@@ -351,10 +355,9 @@ public class Ogre : Enemy
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
-            if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
+            if (collider.gameObject.TryGetComponent(out Character character) && character != this)
             {
-                // Debug.Log("Scream hit character " + character);
-                screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
+                screamEffects.ApplyStatusEffects(this, character, null);
             }
         }
 
