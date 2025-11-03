@@ -64,6 +64,20 @@ public class ElethAnimator : CharacterAnimator
 
         if (currentAnimationState == "Sprint" && newState == "Run") return;
 
+        if (currentAnimationState == "Possession")
+        {
+            PlayerController.instance.SetAllowMovement(true);
+        }
+        else if (newState == "Possession")
+        {
+            PlayerController.instance.SetAllowMovement(false);
+        }
+        else if (newState == "Death")
+        {
+            PlayerController.instance.SetAllowMovement(false);
+        }
+
+
         currentAnimationState = newState;
         ResetAllTriggers();
 
@@ -72,25 +86,21 @@ public class ElethAnimator : CharacterAnimator
             case "Idle":
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
-                // PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Run":
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
-                // PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Death":
                 animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-                // PlayerController.instance.SetAllowMovement(true);
                 animator.SetTrigger("Death");
                 canChange = false;
                 break;
             case "Possession":
                 animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
                 animator.SetTrigger("Possession");
-                // PlayerController.instance.SetAllowMovement(false);
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(possessionAttackLength));
                 break;
