@@ -73,6 +73,9 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
+    [Tooltip("If in windup for primary")]
+    bool inPrimaryWindup = false;
+
     void Start()
     {
         SetPlayerInfo();
@@ -85,6 +88,7 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
+        Debug.Log(currentPrimaryComboStep + " ");
         if (dead || lobotimzed) return;
 
         ManageSurrounding();
@@ -102,18 +106,8 @@ public class Ogre : Enemy
     /// </summary>
     public override void PrimaryAttack()
     {
-        
         hitCharacter = false;
-        if (playerControlling)
-        {
-            PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-        else
-        {
-            lockedCharacter = currentPlayer;
-            aiState = AIMovementState.Blocked;
-        }
+        SetMovementValues(false);
 
         if (lockedCharacter)
         {
@@ -125,8 +119,17 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
-        // Debug.Log("Starting swing");
-        attackStateCoroutine = StartCoroutine(BatWindup());
+
+        if (playerControlling)
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(BatWindup());
+        }
+        else
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(BatWindup());
+        }
     }
 
     /// <summary>
@@ -273,15 +276,26 @@ public class Ogre : Enemy
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
-        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
-        Vector3 startFoward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward; ;
+        Vector3 endForward;
+        Vector3 startForward;
+
+        if (currentPrimaryComboStep == -1)
+        {
+            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+        else
+        {
+            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
 
         pivot.SetActive(true);
 
         while (timeSinceStarted < batSwingDuration)
         {
             SetMovementValues(false);
-            pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
+            pivot.transform.forward = Vector3.Lerp(startForward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
             yield return null;
         }

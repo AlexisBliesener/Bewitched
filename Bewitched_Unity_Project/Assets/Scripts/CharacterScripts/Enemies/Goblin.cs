@@ -207,8 +207,6 @@ public class Goblin : Enemy
         }
     }
 
-
-
     /// <summary>
     /// Starts the windup for the knife
     /// </summary>
