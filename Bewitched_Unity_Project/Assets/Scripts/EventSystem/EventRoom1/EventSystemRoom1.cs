@@ -92,6 +92,8 @@ public class EventSystemRoom1 : MonoBehaviour
         
         director = cutScene.GetComponent<PlayableDirector>();
         if (hud != null) { hud.SetActive(false); }
+        //Change to combat music
+        AudioManager.ChangeMusicParameter("InCombat", "True");
     }
     /// <summary>
     /// Handle the fight state changes
@@ -160,14 +162,6 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     public void EndFight()
     {
-        if(AudioManager.manager != null)
-        {
-            AudioManager.ChangeMusicParameter("End", "True");
-        }
-        else
-        {
-            Debug.LogWarning("Audio Manager instance is not set!");
-        }
             
         fightState = FightState.LastEnemies;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
@@ -229,8 +223,6 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
         }
-        //Change to combat music
-        AudioManager.ChangeMusicParameter("InCombat", "True");
     }
 }
 
