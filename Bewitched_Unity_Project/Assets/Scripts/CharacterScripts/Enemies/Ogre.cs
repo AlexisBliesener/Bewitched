@@ -84,6 +84,7 @@ public class Ogre : Enemy
         SetPatrolOrigin();
         isEventEnemy = TryGetComponent<EventEnemy>(out var e);
         sizeRadius = GetComponent<CharacterController>().radius;
+
     }
 
     private void FixedUpdate()
