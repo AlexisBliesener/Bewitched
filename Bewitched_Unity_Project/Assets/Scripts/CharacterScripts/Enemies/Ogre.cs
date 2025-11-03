@@ -397,7 +397,7 @@ public class Ogre : Enemy
         if (playerControlling || inProcess) return;
         // Debug.Log(aiState);
 
-        if (aiState == AIMovementState.Patrolling)
+        if (aiState == AIMovementState.Patrolling && !isEventEnemy)
         {
             if (!idleAudio.isValid())
             {
@@ -406,7 +406,7 @@ public class Ogre : Enemy
             }
             Patrol();
         }
-        else if (aiState == AIMovementState.Chasing)
+        else if (aiState == AIMovementState.Chasing || (aiState == AIMovementState.Patrolling && isEventEnemy))
         {
             StopIdleAudio();
             Chase();
@@ -459,7 +459,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine( FindPath() );
         }
 
 
@@ -630,6 +630,12 @@ public class Ogre : Enemy
     {
         lookAtPlayer = false;
 
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            StartCoroutine(FindPath());
+        }
+
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             AIMove();
@@ -649,7 +655,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine(FindPath());
         }
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -674,7 +680,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine(FindPath());
         }
         lookAtPlayer = true;
 
