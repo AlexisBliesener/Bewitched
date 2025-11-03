@@ -18,6 +18,15 @@ public class CameraController : MonoBehaviour
     [SerializeField, Tooltip("Duration in seconds to prevent camera switching during transitions.")]
     private const float TRANSITION_TIME = 2;
 
+    [SerializeField, Tooltip("The weight of the threat of the enemy holds in camera assistance")]
+    private int threatWeight;
+
+    [SerializeField, Tooltip("The weight of the distance of the enemy holds in camera assistance")]
+    private int distWeight;
+
+    [SerializeField, Tooltip("The max distance a threat should be considered in")]
+    private float maxDistance;
+
     [SerializeField, Tooltip("The free-look Cinemachine camera used for combat view.")]
     private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine virtual camera used for aiming (shoulder view).")]
@@ -50,6 +59,21 @@ public class CameraController : MonoBehaviour
     {
         inCombat = val;
         UpdateCam();
+    }
+
+    public int GetThreatWeight()
+    {
+        return threatWeight;
+    }
+
+    public int GetDistWeight()
+    {
+        return distWeight;
+    }
+
+    public float GetMaxDistance()
+    {
+        return maxDistance;
     }
 
     public CombatCam GetCombatCamScript()
@@ -249,6 +273,6 @@ public class CameraController : MonoBehaviour
     public void PlayerHitBy(GameObject hitBy)
     {
         if (combatCamScript == null || hitBy == null) return;
-        combatCamScript.PlayerHitBy(hitBy);
+        StartCoroutine( combatCamScript.PlayerHitBy(hitBy) );
     }
 }
