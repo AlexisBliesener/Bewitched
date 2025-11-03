@@ -1,9 +1,7 @@
 using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
 public class CombatCam : MonoBehaviour
 {
@@ -19,20 +17,23 @@ public class CombatCam : MonoBehaviour
 
     public IEnumerator PlayerHitBy(GameObject hitBy)
     {
-        StopAllRotates();
-        inHitBy = true;
+        if(!CameraController.GetIsAiming())
+        {
+            StopAllRotates();
+            inHitBy = true;
 
-        Vector3 toEnemy = hitBy.transform.position - PlayerController.instance.currentCharacter.transform.position;
+            Vector3 toEnemy = hitBy.transform.position - PlayerController.instance.currentCharacter.transform.position;
 
-        toEnemy.y = 0;
+            toEnemy.y = 0;
 
-        float degrees = Vector3.SignedAngle(Vector3.forward, toEnemy, Vector3.up);
+            float degrees = Vector3.SignedAngle(Vector3.forward, toEnemy, Vector3.up);
 
-        if (degrees < 0) degrees += 360;
+            if (degrees < 0) degrees += 360;
 
-        yield return StartCoroutine(RotateCamera(degrees, 0.1f));
+            yield return StartCoroutine(RotateCamera(degrees, 0.1f));
 
-        inHitBy = false;
+            inHitBy = false;
+        }
     }
 
     private void StopAllRotates()
@@ -44,12 +45,16 @@ public class CombatCam : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (CameraController.GetIsAiming())
+        {
+            StopAllRotates();
+        }
         StartCoroutine(RotateToBiggestThreat(CameraController.instance.GetThreatWeight(), CameraController.instance.GetDistWeight(), CameraController.instance.GetMaxDistance(), RoomSystem.Instance.GetCurrentRoomEnemies(), SurroundingPoints.instance.GetAttackingEnemies()));
     }
 
     public IEnumerator OnAttack(Vector3 forwardDir, float approachTime)
     {
-        if(!inHitBy)
+        if(!inHitBy && !CameraController.GetIsAiming())
         {
             StopAllRotates();
             inOnAttack = true;
@@ -67,7 +72,7 @@ public class CombatCam : MonoBehaviour
 
     public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<GameObject> enemies, Dictionary<Character, int> attackingEnemies)
     {
-        if (!inHitBy && !inOnAttack )
+        if (!inHitBy && !inOnAttack && !CameraController.GetIsAiming())
         {
             StopAllRotates();
             if (enemies != null)

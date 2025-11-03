@@ -170,6 +170,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
+
     /// <summary>
     /// Toggles aiming mode and updates the camera/crosshair state.
     /// </summary>
