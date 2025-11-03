@@ -1,6 +1,7 @@
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 
 public class PlayerController : MonoBehaviour
 {
@@ -68,8 +69,10 @@ public class PlayerController : MonoBehaviour
     private float speed;
 
     private bool allowMovement = true;
+    [Tooltip("If true eleth is currently sprints, false if not")]
+    private bool sprinting = false;
 
-   // private bool dodging = false;
+    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -120,60 +123,45 @@ public class PlayerController : MonoBehaviour
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
+        if(currentCharacter == oldHag && sprinting)
+        {
+            speed = oldHag.GetSprintSpeed();
+        }
+
         if (allowMovement)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
-                if (CameraController.GetIsAiming())
+                Vector3 desiredVelocity = direction * speed;
+                desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
+                desiredVelocity.y = 0f; // Prevent tilting
+                desiredVelocity = desiredVelocity.normalized * speed;
+                float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
+                velocity.x += xChange;
+
+                if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+                float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
+                velocity.z += zChange;
+
+                if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
+
+
+                if (velocity.magnitude > speed)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
-                    {
-                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.fixedDeltaTime;
-                    }
-                    else
-                    {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                    velocity = velocity.normalized * speed;
                 }
-                else
+
+                if (velocity.magnitude < 0.01f)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    desiredVelocity = desiredVelocity.normalized * speed;
-                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
-                    velocity.x += xChange;
+                    velocity = Vector3.zero;
+                }
 
-                    if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+                velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
 
-                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
-                    velocity.z += zChange;
-
-                    if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
-
-
-                    if (velocity.magnitude > speed)
-                    {
-                        velocity = velocity.normalized * speed;
-                    }
-
-                    if (velocity.magnitude < 0.01f)
-                    {
-                        velocity = Vector3.zero;
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                characterController.Move(velocity * Time.fixedDeltaTime);
+                if (!CameraController.GetIsAiming())
+                {
                     if (velocity.sqrMagnitude > 0.01f)
                     {
                         Quaternion targetRotation = Quaternion.LookRotation(new Vector3(velocity.x, 0, velocity.z));
@@ -303,18 +291,30 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void Interact(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.canceled)
         {
-            if (nearbyInteractable != null)
+            if (!sprinting)
             {
-                nearbyInteractable.Interact();
-                // Hide the interact UI since the interact action has been performed
-                HideInteractUI();
-                return;
+                if (nearbyInteractable != null)
+                {
+                    nearbyInteractable.Interact();
+                    // Hide the interact UI since the interact action has been performed
+                    HideInteractUI();
+                    return;
+                }
+                if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
             }
-            if (exitDoor != null)
+            sprinting = false;
+        }
+        else if(context.performed)
+        {
+            if (currentCharacter == oldHag)
             {
-                exitDoor.OpenDoor();
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
+                sprinting = true;
             }
         }
     }
