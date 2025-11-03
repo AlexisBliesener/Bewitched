@@ -27,6 +27,9 @@ public class CameraController : MonoBehaviour
     [SerializeField, Tooltip("The max distance a threat should be considered in")]
     private float maxDistance;
 
+    [SerializeField, Tooltip("The time to wait after overriding camera movement to start general prioritizing assistance again")]
+    private float timeWaitToPriorityRotate = 1f;
+
     [SerializeField, Tooltip("The free-look Cinemachine camera used for combat view.")]
     private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine virtual camera used for aiming (shoulder view).")]
@@ -69,6 +72,11 @@ public class CameraController : MonoBehaviour
     public int GetDistWeight()
     {
         return distWeight;
+    }
+
+    public float GetTimeWaitToPriorityRotate()
+    {
+        return timeWaitToPriorityRotate;
     }
 
     public float GetMaxDistance()
@@ -157,6 +165,13 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    private bool looking = false;
+
+    public bool GetLooking()
+    {
+        return looking;
+    }
+
     /// <summary>
     /// Handles camera rotation based on player input.
     /// Updates the yaw using mouse/gamepad look input.
@@ -164,7 +179,15 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        if(aiming)
+        if(context.started)
+        {
+            looking = true;
+        }
+        else if(context.canceled)
+        {
+            looking = false;
+        }
+        if (aiming)
         {
             aimCamScript.Look(context);
         }

@@ -577,6 +577,12 @@ public class Goblin : Enemy
         desiredVelocity.y = 0;
         desiredVelocity = desiredVelocity.normalized * spinSpeed;
 
+        if (playerControlling)
+        {
+            Debug.Log(desiredVelocity);
+            CameraController.instance.OnAttack(desiredVelocity, 1f);
+        }
+
         Vector3 drift;
 
         float accelerationTime;
