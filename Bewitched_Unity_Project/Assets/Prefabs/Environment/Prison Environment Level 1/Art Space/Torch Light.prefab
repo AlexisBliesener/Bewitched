@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 508127283767109078}
   - component: {fileID: 6310092896472241991}
   - component: {fileID: 8631987338434154554}
+  - component: {fileID: 5392033938589527265}
   m_Layer: 0
   m_Name: Point Light (30)
   m_TagString: Untagged
@@ -151,6 +152,25 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+--- !u!114 &5392033938589527265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6201747214710159340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdb53dbfcc2c1474fb999af08add6a03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  torchLight: {fileID: 0}
+  minimumIntensity: 18
+  maximumIntensity: 21
+  minimumVariance: 3
+  maximumVariance: 15
+  minimumCycleDuration: 0.08
+  maximumCycleDuration: 0.2
 --- !u!1001 &4735124807301488409
 PrefabInstance:
   m_ObjectHideFlags: 0
