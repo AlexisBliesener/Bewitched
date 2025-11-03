@@ -400,7 +400,7 @@ public class PlayerController : MonoBehaviour
             foreach (RaycastHit hit in hits)
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                 {
                     target = enemy;
                     targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
@@ -416,7 +416,7 @@ public class PlayerController : MonoBehaviour
                 foreach (RaycastHit hit in hits)
                 {
                     Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                     {
                         target = enemy;
                         targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);

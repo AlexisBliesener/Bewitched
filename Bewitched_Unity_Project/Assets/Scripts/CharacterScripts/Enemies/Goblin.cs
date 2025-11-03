@@ -101,6 +101,15 @@ public class Goblin : Enemy
 
     protected void FixedUpdate()
     {
+        if (playerControlling)
+        {
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+        }
+
         if (dead || lobotimzed) return;
         currentPlayer = playerController.GetCurrentCharacter();
 
@@ -110,15 +119,6 @@ public class Goblin : Enemy
         ManageSurrounding();
 
         SetBehavior();
-
-        if (playerControlling)
-        {
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-        else
-        {
-            lockedCharacter = currentPlayer;
-        }
 
         if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
@@ -600,7 +600,22 @@ public class Goblin : Enemy
                 rotationalVelocity = spinRotationalSpeed;
             }
 
-            GetCharacterController().Move(velocity * Time.deltaTime);
+            // Check for impact before moving and adjust as needed
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
+            {
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, characters))
+            {
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else
+            {
+                GetCharacterController().Move(velocity * Time.deltaTime);
+            }
             transform.Rotate(Vector3.up, rotationalVelocity * Time.deltaTime);
 
             distanceTravelled += velocity.magnitude * Time.deltaTime;

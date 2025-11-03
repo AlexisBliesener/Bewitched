@@ -834,13 +834,13 @@ public abstract class Character : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
+        if (attackState == AttackState.Neutral && velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
 
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, 5 * force);
+            GetComponent<KnockbackControl>().AddImpact(-direction, weight * force);
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
