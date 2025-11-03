@@ -73,19 +73,19 @@ public class MainMenuManager : MonoBehaviour
     {
         CloseAllScreens();
         screen.SetActive(true);
-        if (screen.name == "MenuMain")
+        if (screen == mainScreen)
         {
             EventSystem.current.SetSelectedGameObject(mainButton);
         }
-        else if (screen.name == "Compendium")
+        else if (screen == compendiumScreen)
         {
             EventSystem.current.SetSelectedGameObject(compendiumButton);
         }
-        else if (screen.name == "UpgradeLog")
+        else if (screen == upgradeScreen)
         {
             EventSystem.current.SetSelectedGameObject(upgradeButton);
         }
-        else if (screen.name == "Settings")
+        else if (screen == settingsScreen)
         {
             EventSystem.current.SetSelectedGameObject(settingsButton);
         }
