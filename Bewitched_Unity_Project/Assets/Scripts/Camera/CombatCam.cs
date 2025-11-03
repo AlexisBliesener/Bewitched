@@ -30,7 +30,7 @@ public class CombatCam : MonoBehaviour
         }
     }
 
-    private void StopAllRotates()
+    public void StopAllRotates()
     {
         StopAllCoroutines();
         inOnAttack = false;

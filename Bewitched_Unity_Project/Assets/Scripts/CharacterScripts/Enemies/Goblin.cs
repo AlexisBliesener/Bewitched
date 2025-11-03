@@ -579,8 +579,7 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
-            Debug.Log(desiredVelocity);
-            CameraController.instance.OnAttack(desiredVelocity, 1f);
+            CameraController.instance.OnAttack(desiredVelocity, 0.2f);
         }
 
         Vector3 drift;
@@ -611,6 +610,7 @@ public class Goblin : Enemy
         float timeSinceBegan = 0;
 
         float distanceTravelled = 0;
+        bool cameraRotationStopped = false;
         while (distanceTravelled < distance)
         {
             if (slowTime && Time.time - timeStarted < 0.05f)
@@ -647,11 +647,21 @@ public class Goblin : Enemy
             RaycastHit hit;
             if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
             {
+                if(!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
                 float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
                 GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
             }
             else if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, characters))
             {
+                if (!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
                 float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
                 GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
             }

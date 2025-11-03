@@ -305,4 +305,10 @@ public class CameraController : MonoBehaviour
         if (combatCamScript == null ) return;
         StartCoroutine(combatCamScript.OnAttack(forwardDir, approachTime));
     }
+
+    public void StopRotations()
+    {
+        if (combatCamScript == null) return;
+        combatCamScript.StopAllRotates();
+    }
 }
