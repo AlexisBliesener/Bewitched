@@ -53,27 +53,27 @@
         "m_Bits": 256
     },
     "combatCam": {
-        "instanceID": -156028
+        "instanceID": -66824
     },
     "aimCam": {
-        "instanceID": -156006
+        "instanceID": -66802
     },
     "exploreCam": {
-        "instanceID": -156088
+        "instanceID": -66884
     },
     "attackEffects": [],
     "effectJSONs": [],
     "primaryFireIcon": {
-        "instanceID": 22006
+        "instanceID": 110018
     },
     "secondaryFireIcon": {
-        "instanceID": 22008
+        "instanceID": 110020
     },
     "hitStunPrefab": {
-        "instanceID": 18372
+        "instanceID": 96650
     },
     "counterIndicatorVFXPrefab": {
-        "instanceID": 18374
+        "instanceID": 96652
     },
     "attackState": 0,
     "lobotimzed": false,
@@ -96,16 +96,16 @@
     "counterWindowLength": 0.0,
     "moveToTargetDistance": 0.0,
     "perfectCounterTimeMaterial": {
-        "instanceID": 22010
+        "instanceID": 32408
     },
     "defaultMaterial": {
-        "instanceID": 18376
+        "instanceID": 32190
     },
     "pathState": 0,
     "aiState": 0,
     "debugging": false,
     "destinationMarkerPrefab": {
-        "instanceID": 18380
+        "instanceID": 96654
     },
     "pathVisualizer": {
         "instanceID": 0
@@ -131,16 +131,16 @@
         "Path": "event:/SoundEffects/Character/Ogre/OgreDeath"
     },
     "batHitboxPrefab": {
-        "instanceID": 22012
+        "instanceID": 110022
     },
     "batPivot": {
-        "instanceID": 22014
+        "instanceID": 110024
     },
     "batSwingEffects": {
-        "instanceID": 22016
+        "instanceID": 110026
     },
     "slamHitboxPrefab": {
-        "instanceID": 22018
+        "instanceID": 110028
     },
     "slamBatEffects": {
         "instanceID": 0
@@ -149,12 +149,12 @@
         "instanceID": 0
     },
     "screamEffects": {
-        "instanceID": 22020
+        "instanceID": 110030
     },
     "batSwingDamage": 30.0,
-    "batSwingAngle": 60.0,
-    "batSwingDuration": 1.0,
-    "batWindupPeriod": 0.5,
+    "batSwingAngle": 120.0,
+    "batSwingDuration": 0.5,
+    "batWindupPeriod": 1.25,
     "ogreJumpGravity": 40.0,
     "ogreJumpSpeed": 25.0,
     "ogreJumpBatDamage": 50.0,
@@ -162,7 +162,7 @@
     "ogreJumpKnockbackMinimum": 20.0,
     "ogreJumpKnockbackMaximum": 70.0,
     "ogreJumpSlamImpactRange": 8.0,
-    "screamRange": 8.0,
+    "screamRange": 30.0,
     "screamWindupDuration": 0.5,
     "minSittingTime": 3.0,
     "maxSittingTime": 7.0,
