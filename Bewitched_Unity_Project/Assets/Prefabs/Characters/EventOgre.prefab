@@ -1811,8 +1811,6 @@ MonoBehaviour:
   lobotimzed: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
-  surroundingToChaseRadius: 4
-  chaseToSurroundingRadius: 0.1
   sightRange: 50
   maxSightAngle: 70
   hearingRange: 2
@@ -1854,9 +1852,9 @@ MonoBehaviour:
   slamImpactEffects: {fileID: 0}
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
   batSwingDamage: 30
-  batSwingAngle: 60
-  batSwingDuration: 1
-  batWindupPeriod: 0.5
+  batSwingAngle: 120
+  batSwingDuration: 0.25
+  batWindupPeriod: 1.25
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50

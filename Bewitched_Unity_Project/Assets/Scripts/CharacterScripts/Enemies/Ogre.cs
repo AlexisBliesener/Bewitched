@@ -188,7 +188,6 @@ public class Ogre : Enemy
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = 0;
-        // For now wait 0.25 seconds, in future wait for animation trigger
         while (timeStarted < batWindupPeriod)
         {
             timeStarted += Time.deltaTime;
@@ -270,18 +269,18 @@ public class Ogre : Enemy
         pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
-        batHitbox.transform.Rotate(new Vector3(0, 2 * batSwingAngle / 3, 0));
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
-        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
-        Vector3 startFoward = transform.forward;
+        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
+        Vector3 startFoward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward; ;
 
         pivot.SetActive(true);
 
         while (timeSinceStarted < batSwingDuration)
         {
+            SetMovementValues(false);
             pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
             yield return null;
@@ -306,7 +305,6 @@ public class Ogre : Enemy
         lockedCharacter = null;
         attackingPrimary = false;
         attackStateCoroutine = null;
-        timeLastPrimary = Time.time;
         aiState = AIMovementState.Chasing;
     }
 
