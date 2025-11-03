@@ -165,7 +165,8 @@ public class RoomController : MonoBehaviour
 
         ActivateEnemies();
         LockDoors();
-
+        //Change to combat music. If it's event room, wait till cutscene is over
+        if(roomEnemies.Count!=0&& !isEventRoom) AudioManager.ChangeMusicParameter("InCombat", "True");
         OnPlayerEntered?.Invoke(this);
     }
 
@@ -180,7 +181,8 @@ public class RoomController : MonoBehaviour
 
         ChangeState(RoomState.Cleared);
         UnlockDoors();
-
+        //change to out of combat music
+        AudioManager.ChangeMusicParameter("InCombat", "False");
         OnRoomCleared?.Invoke(this);
     }
 

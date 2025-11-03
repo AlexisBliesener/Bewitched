@@ -91,7 +91,7 @@ public class EventSystemRoom1 : MonoBehaviour
         }
         
         director = cutScene.GetComponent<PlayableDirector>();
-        if (hud != null) {hud.SetActive(false);}
+        if (hud != null) { hud.SetActive(false); }
     }
     /// <summary>
     /// Handle the fight state changes
@@ -229,7 +229,8 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
         }
-
+        //Change to combat music
+        AudioManager.ChangeMusicParameter("InCombat", "True");
     }
 }
 
