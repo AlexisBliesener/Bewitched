@@ -537,7 +537,18 @@ public class Goblin : Enemy
 
         if (direction == Vector3.zero) // If first use, set desiredVelocity alone and have AI pause
         {
-            if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
+            float delayTimeStarted = Time.time;
+            while (!playerControlling && Time.time - delayTimeStarted < attackDelayAI)
+            {
+                SetMovementValues(false);
+                yield return null;
+            }
+
+            if (playerControlling) // Sets the target correctly at the moment before the spin
+            {
+                Enemy target = PlayerController.instance.GetLockedTarget();
+                tempLockedCharacter = target;
+            }
 
             if (tempLockedCharacter)
             {
