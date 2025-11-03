@@ -275,4 +275,10 @@ public class CameraController : MonoBehaviour
         if (combatCamScript == null || hitBy == null) return;
         StartCoroutine( combatCamScript.PlayerHitBy(hitBy) );
     }
+
+    public void OnAttack(Vector3 forwardDir, float approachTime)
+    {
+        if (combatCamScript == null ) return;
+        StartCoroutine(combatCamScript.OnAttack(forwardDir, approachTime));
+    }
 }

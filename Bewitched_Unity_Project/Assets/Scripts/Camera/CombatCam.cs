@@ -10,6 +10,7 @@ public class CombatCam : MonoBehaviour
 
     private bool inHitBy = false;
     private bool rotatingToThreat = false;
+    private bool inOnAttack = false;
 
     private void Awake()
     {
@@ -36,12 +37,28 @@ public class CombatCam : MonoBehaviour
 
     private void FixedUpdate()
     {
-       StartCoroutine(RotateToBiggestThreat(CameraController.instance.GetThreatWeight(), CameraController.instance.GetDistWeight(), CameraController.instance.GetMaxDistance(), RoomSystem.Instance.GetCurrentRoomEnemies(), SurroundingPoints.instance.GetAttackingEnemies()));
+
+
+        StartCoroutine(RotateToBiggestThreat(CameraController.instance.GetThreatWeight(), CameraController.instance.GetDistWeight(), CameraController.instance.GetMaxDistance(), RoomSystem.Instance.GetCurrentRoomEnemies(), SurroundingPoints.instance.GetAttackingEnemies()));
+    }
+
+    public IEnumerator OnAttack(Vector3 forwardDir, float approachTime)
+    {
+        inOnAttack = true;
+
+        forwardDir.y = 0;
+
+        float degrees = Vector3.SignedAngle(Vector3.forward, forwardDir, Vector3.up);
+
+        if (degrees < 0) degrees += 360;
+
+        yield return StartCoroutine(RotateCamera(degrees, approachTime));
+        inOnAttack = false;
     }
 
     public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<GameObject> enemies, Dictionary<Character, int> attackingEnemies)
     {
-        if (!inHitBy && !rotatingToThreat && enemies != null)
+        if (!inHitBy && !inOnAttack && !rotatingToThreat && enemies != null)
         {
             rotatingToThreat = true;
             Enemy topPriority = null;
