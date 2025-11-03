@@ -89,7 +89,6 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
-        Debug.Log(currentPrimaryComboStep + " ");
         if (dead || lobotimzed) return;
 
         ManageSurrounding();
@@ -99,7 +98,7 @@ public class Ogre : Enemy
         CreateLocalInvalidArea();
 
         SetDebugString();
-        if (!playerControlling) Debug.Log(debugAIInfo);
+        //if (!playerControlling) Debug.Log(debugAIInfo);
     }
 
     /// <summary>

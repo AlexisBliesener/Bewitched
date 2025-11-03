@@ -556,6 +556,8 @@ public class GraphBuilder : MonoBehaviour
         Dictionary<Node, float> fscore = new Dictionary<Node, float>();
         fscore[origin] = Vector3.Distance(origin.GetPosition(), destination);
 
+        Dictionary<Node, bool> validSizedNodes = new Dictionary<Node, bool>();
+
         while (!openSet.IsEmpty())
         {
             Node current = openSet.Dequeue();
@@ -584,9 +586,23 @@ public class GraphBuilder : MonoBehaviour
             {
                 Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
+                if (validSizedNodes.ContainsKey(neighbor))
+                {
+                    if (!validSizedNodes[neighbor]) continue; // Node has been checked and is invalid
+                }
+                else if (Physics.CheckSphere(neighbor.GetPosition(enemy.gameObject), enemy.sizeRadius, wallLayer))
+                {
+                    validSizedNodes[neighbor] = false; // Node is checked for the first time, it is invalid
+                    continue;
+                }
+                else
+                {
+                    validSizedNodes[neighbor] = true; // Node is checked for the first time, it is valid
+                }
+
+                validSizedNodes[neighbor] = true;
                 float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
 
-   
                 if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
 
                 if (closedSet.Contains(neighbor) || neighborDistanceFromOrigin >= maxSearchDistance)
