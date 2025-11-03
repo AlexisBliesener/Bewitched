@@ -84,7 +84,7 @@ public class BackupPlan : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Backup Plan upgrade.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
         ApplyUpgrade();

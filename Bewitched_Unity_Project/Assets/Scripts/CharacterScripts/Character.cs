@@ -107,12 +107,12 @@ public abstract class Character : MonoBehaviour
 
     [Tooltip("The step that the character is in there primary combo, -1 to indicate the character is currently not attacking with primary")]
     protected int currentPrimaryComboStep = -1;
-    [Tooltip("The amount of combo steps that this character has on their primary attack")]
-    protected int primaryComboSteps;
     [Tooltip("The script that controls chaning animation states")]
     protected CharacterAnimator characterAnimator;
 
     [Header("Primary Combo Stats")]
+    [Tooltip("The amount of combo steps that this character has on their primary attack")]
+    public int primaryComboSteps;
     [Tooltip("Primary Cooldown Reset Time")]
     public float[] primaryComboResetTime;
     [Tooltip("Primary combo min time to wait to hit the next combo")]
@@ -883,15 +883,14 @@ public abstract class Character : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
+        if (attackState == AttackState.Neutral && velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
-
             float force = weight * velocity.magnitude * pushForceModifer;
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
             direction.y = 0;
             direction = direction.normalized;
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, force);
+            GetComponent<KnockbackControl>().AddImpact(-direction, weight * velocity.magnitude);
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact

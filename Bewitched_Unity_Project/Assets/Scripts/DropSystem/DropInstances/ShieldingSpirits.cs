@@ -95,7 +95,7 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the ShieldingSpirits effect
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }

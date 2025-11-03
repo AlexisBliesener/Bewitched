@@ -31,8 +31,21 @@ public class ElethAnimator : CharacterAnimator
         animationStates.Add("Possession");
         animationStates.Remove("PrimaryAttack");
         animationStates.Remove("SecondaryAttack");
+        animationStates.Add("Sprint");
 
         animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
+    }
+
+    /// <summary>
+    /// Turns on the sprint animation from the run animation
+    /// </summary>
+    public void ToggleSprint()
+    {
+        if(currentAnimationState == "Run")
+        {
+            currentAnimationState = "Sprint";
+            animator.SetTrigger("Sprint");
+        }
     }
 
     /// <summary>
@@ -49,6 +62,22 @@ public class ElethAnimator : CharacterAnimator
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
 
+        if (currentAnimationState == "Sprint" && newState == "Run") return;
+
+        if (currentAnimationState == "Possession")
+        {
+            PlayerController.instance.SetAllowMovement(true);
+        }
+        else if (newState == "Possession")
+        {
+            PlayerController.instance.SetAllowMovement(false);
+        }
+        else if (newState == "Death")
+        {
+            PlayerController.instance.SetAllowMovement(false);
+        }
+
+
         currentAnimationState = newState;
         ResetAllTriggers();
 
@@ -57,25 +86,21 @@ public class ElethAnimator : CharacterAnimator
             case "Idle":
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
-                PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Run":
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
-                PlayerController.instance.SetAllowMovement(true);
                 canChange = true;
                 break;
             case "Death":
                 animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-                PlayerController.instance.SetAllowMovement(true);
                 animator.SetTrigger("Death");
                 canChange = false;
                 break;
             case "Possession":
                 animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
                 animator.SetTrigger("Possession");
-                PlayerController.instance.SetAllowMovement(false);
                 canChange = false;
                 StartCoroutine(WaitForEndAnimation(possessionAttackLength));
                 break;
@@ -84,6 +109,20 @@ public class ElethAnimator : CharacterAnimator
 
     protected override void Update()
     {
+        // prevent walk and run animations from clipping into walls
+        if(currentAnimationState == "Sprint")
+        {
+            character.GetCharacterController().center = new Vector3(0,0.4f,0.8f);
+        }
+        else if(currentAnimationState == "Run")
+        {
+            character.GetCharacterController().center = new Vector3(0, 0.4f, 0.2f);
+        }
+        else
+        {
+            character.GetCharacterController().center = new Vector3(0, 0.4f, 0f);
+        }
+
         if (animator == null)
         {
             Debug.LogWarning($"[{nameof(CharacterAnimator)}] No animator assigned on {gameObject.name}");
