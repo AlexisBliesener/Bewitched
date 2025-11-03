@@ -243,6 +243,11 @@ public class Goblin : Enemy
             yield return null;
         }
 
+        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
+        {
+            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
@@ -263,7 +268,7 @@ public class Goblin : Enemy
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
-                // Move just before environment hit point
+                // Move just before environment/character hit point
                 dis = hit.distance;
                 targetPos = hit.point - direction * (sizeRadius + offSetForward);
             }
@@ -347,11 +352,11 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        float timeStart = Time.time;
         if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
+                float timeStart = Time.time;
                 while (Time.time - timeStart > 0.1f)
                 {
                     SetMovementValues(false);
@@ -557,7 +562,18 @@ public class Goblin : Enemy
 
         if (direction == Vector3.zero) // If first use, set desiredVelocity alone and have AI pause
         {
-            if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
+            float delayTimeStarted = Time.time;
+            while (!playerControlling && Time.time - delayTimeStarted < attackDelayAI)
+            {
+                SetMovementValues(false);
+                yield return null;
+            }
+
+            if (playerControlling) // Sets the target correctly at the moment before the spin
+            {
+                Enemy target = PlayerController.instance.GetLockedTarget();
+                tempLockedCharacter = target;
+            }
 
             if (tempLockedCharacter)
             {

@@ -890,7 +890,7 @@ public abstract class Character : MonoBehaviour
             direction.y = 0;
             direction = direction.normalized;
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, weight * force);
+            GetComponent<KnockbackControl>().AddImpact(-direction, weight * velocity.magnitude);
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact

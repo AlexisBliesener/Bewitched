@@ -89,7 +89,11 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
-        Debug.Log(currentPrimaryComboStep + " ");
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = 0;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+
         if (dead || lobotimzed) return;
 
         ManageSurrounding();
@@ -99,7 +103,7 @@ public class Ogre : Enemy
         CreateLocalInvalidArea();
 
         SetDebugString();
-        if (!playerControlling) Debug.Log(debugAIInfo);
+        //if (!playerControlling) Debug.Log(debugAIInfo);
     }
 
     /// <summary>
