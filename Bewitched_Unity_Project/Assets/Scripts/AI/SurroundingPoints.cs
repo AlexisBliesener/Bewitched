@@ -197,7 +197,6 @@ public class SurroundingPoints : MonoBehaviour
 
                     if (chosen.AttackFromSurrounding(this))
                     {
-                        Debug.Log("Chosen enemy: " + chosen);
                         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                         timeLastAttack = Time.time;
                         break;
