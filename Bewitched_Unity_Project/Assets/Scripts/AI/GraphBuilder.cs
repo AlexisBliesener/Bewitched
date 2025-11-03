@@ -39,7 +39,7 @@ public class GraphBuilder : MonoBehaviour
     [SerializeField, Tooltip("Maximum height to scan for floors")]
     private float maxFloorHeight = 50f;
 
-    [SerializeField,Tooltip("Minimum height difference between floors")]
+    [SerializeField, Tooltip("Minimum height difference between floors")]
     private float minFloorSeparation = 2f;
 
     [Tooltip("Mesh Filter")]
@@ -226,7 +226,7 @@ public class GraphBuilder : MonoBehaviour
         List<Vector3> vertices = new List<Vector3>();
 
         int validNodes = 0;
-        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x+=pointDistance)
+        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x += pointDistance)
         {
             SerializableDictionary<int, SerializableDictionary<int, Node>> zPositions = new SerializableDictionary<int, SerializableDictionary<int, Node>>();
             nodeDictionary[x] = zPositions;
@@ -254,7 +254,7 @@ public class GraphBuilder : MonoBehaviour
                 {
                     zPositions.Remove(z);
                 }
-                
+
             }
 
             if (zPositions.Count == 0)
@@ -324,14 +324,14 @@ public class GraphBuilder : MonoBehaviour
                 nodeDictionary[x - pointDistance][z + pointDistance][y].AssignVertex(vertex);
             }
         }
-        
+
         // Vertical connections (between floors at same X,Z)
         foreach (int otherY in nodeDictionary[x][z].Keys)
         {
             if (otherY != y)
             {
                 float heightDifference = Mathf.Abs((otherY - y) / 10f);
-                
+
                 // Only connect floors that are close vertically (within minFloorSeparation)
                 if (heightDifference >= minFloorSeparation && heightDifference <= minFloorSeparation * 3f)
                 {
@@ -428,7 +428,7 @@ public class GraphBuilder : MonoBehaviour
             return null;
 
         if (xPos == -1 || zPos == -1 || yPos == -1) return null;
-        
+
         return nodeDictionary[xPos][zPos][yPos];
 
     }
@@ -585,6 +585,7 @@ public class GraphBuilder : MonoBehaviour
                 Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
                 float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
+
    
                 if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
 
@@ -646,7 +647,7 @@ public class GraphBuilder : MonoBehaviour
         int lower = values[0];
         int higher = values[values.Count - 1];
 
-        foreach(int i in values)
+        foreach (int i in values)
         {
             if (i == targetNum)
             {
@@ -715,7 +716,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
@@ -806,7 +807,7 @@ public class GraphBuilder : MonoBehaviour
 
                 for (int i = 0; i < path.GetCornerNodes().Count; i++)
                 {
-                    lineRenderer.SetPosition(i+1, new Vector3(path.GetCornerNodes()[i].GetPosition().x, enemy.transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
+                    lineRenderer.SetPosition(i + 1, new Vector3(path.GetCornerNodes()[i].GetPosition().x, enemy.transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
                 }
 
                 yield return new WaitForSeconds(5);

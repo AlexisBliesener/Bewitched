@@ -18,7 +18,7 @@ public class DropSystemTests
 
         public int stackNum { get; set; }
 
-        public void Activate()
+        public void Activate(DropData dropData = null)
         {
             wasActivated = true;
         }
