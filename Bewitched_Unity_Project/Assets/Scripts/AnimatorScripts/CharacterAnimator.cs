@@ -32,7 +32,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
     {
-            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump"
+            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump", "Hit"
     };
 
     [Tooltip("The current animation state of the character")]
@@ -108,10 +108,11 @@ public class CharacterAnimator : MonoBehaviour
 
     public IEnumerator SetHit()
     {
+        currentAnimationState = "Hit";
         ResetAllTriggers();
         animator.SetFloat("HitSpeedMult", hitStunMult);
         canChange = false;
-        if(character == PlayerController.instance.currentCharacter)
+        if (character == PlayerController.instance.currentCharacter)
         {
             PlayerController.instance.SetAllowMovement(false);
         }
