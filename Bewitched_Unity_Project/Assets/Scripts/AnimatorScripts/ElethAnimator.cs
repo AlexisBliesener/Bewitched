@@ -46,6 +46,11 @@ public class ElethAnimator : CharacterAnimator
             currentAnimationState = "Sprint";
             animator.SetTrigger("Sprint");
         }
+        else
+        {
+            currentAnimationState = "Run";
+            animator.SetTrigger("Run");
+        }
     }
 
     /// <summary>

@@ -170,6 +170,12 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryMovementNeeded
     m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
+    m_EventTreshold: 0
+  - m_ConditionMode: 1
+    m_ConditionEvent: PrimaryAttack
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 2050908450882468606}
   m_Solo: 0
@@ -240,7 +246,7 @@ AnimatorStateTransition:
   m_TransitionDuration: 0.25
   m_TransitionOffset: 0
   m_ExitTime: 0.85
-  m_HasExitTime: 1
+  m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
@@ -371,7 +377,7 @@ AnimatorStateTransition:
   m_TransitionDuration: 0.25
   m_TransitionOffset: 0
   m_ExitTime: 0.8909091
-  m_HasExitTime: 1
+  m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
@@ -494,6 +500,9 @@ AnimatorStateTransition:
     m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: PrimaryMovementNeeded
+    m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7234677145946729491}
@@ -669,31 +678,31 @@ AnimatorController:
     m_Controller: {fileID: 9100000}
   - m_Name: PrimaryComboOneSpeedMult
     m_Type: 1
-    m_DefaultFloat: 0
+    m_DefaultFloat: 1
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
   - m_Name: PrimaryComboTwoSpeedMult
     m_Type: 1
-    m_DefaultFloat: 0
+    m_DefaultFloat: 1
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
   - m_Name: PrimaryWindupSpeedMult
     m_Type: 1
-    m_DefaultFloat: 0
+    m_DefaultFloat: 1
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
   - m_Name: SecondaryWindupSpeedMult
     m_Type: 1
-    m_DefaultFloat: 0
+    m_DefaultFloat: 1
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
   - m_Name: SecondaryAttackSpeedMult
     m_Type: 1
-    m_DefaultFloat: 0
+    m_DefaultFloat: 1
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
@@ -729,6 +738,9 @@ AnimatorStateTransition:
     m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: PrimaryMovementNeeded
+    m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7234677145946729491}
@@ -1221,6 +1233,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryMovementNeeded
     m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 2050908450882468606}
   m_Solo: 0
@@ -1230,7 +1245,7 @@ AnimatorStateTransition:
   m_TransitionDuration: 0.25
   m_TransitionOffset: 0
   m_ExitTime: 0.9240506
-  m_HasExitTime: 1
+  m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
