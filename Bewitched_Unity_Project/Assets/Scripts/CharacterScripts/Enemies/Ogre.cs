@@ -141,24 +141,26 @@ public class Ogre : Enemy
             }
         }
 
+        Character tempLockedCharacter = lockedCharacter;
+
         attackingPrimary = true;
 
         if (playerControlling)
         {
-            if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+            if (!playerControlling || (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
             {
                 inPrimaryWindup = true;
-                attackStateCoroutine = StartCoroutine(BatWindup());
+                attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
             }
             else
             {
-                attackStateCoroutine = StartCoroutine(SwingBat());
+                attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
             }
         }
         else
         {
             inPrimaryWindup = true;
-            attackStateCoroutine = StartCoroutine(BatWindup());
+            attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
         }
     }
 
@@ -225,32 +227,33 @@ public class Ogre : Enemy
     /// This version looks to the right of the locked character (will alternate in the future)
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator BatWindup()
+    public IEnumerator BatWindup(Character tempLockedCharacter)
     {
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = 0;
-        while (animator != null && timeStarted < 1.125 / animator.GetPrimaryWindupMult())
+        Debug.Log(animator.GetPrimaryWindupMult());
+        while (timeStarted < 1.125f / animator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
             yield return null;
         }
-        attackStateCoroutine = StartCoroutine(BatApproach());
+        attackStateCoroutine = StartCoroutine(BatApproach(tempLockedCharacter));
     }
 
     /// <summary>
     /// Handles the approach for the bat swing
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator BatApproach()
+    public IEnumerator BatApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            float dis = Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position);
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
 
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
+            Vector3 targetPos = tempLockedCharacter.transform.position - (tempLockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
             targetPos.y = transform.position.y;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);
@@ -270,7 +273,7 @@ public class Ogre : Enemy
                         counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
+                    if (tempLockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
@@ -280,7 +283,7 @@ public class Ogre : Enemy
                         counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
+                    if (tempLockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 yield return null;
             }
@@ -288,8 +291,9 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
-        if(animator != null)
+        if (animator != null)
         {
+            Debug.Log("set swing");
             animator.SetSwing();
         }
         else
@@ -297,7 +301,7 @@ public class Ogre : Enemy
             Debug.LogWarning("Animator not set!");
         }
 
-        attackStateCoroutine = StartCoroutine(SwingBat());
+        attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
         yield break;
     }
 
@@ -305,7 +309,7 @@ public class Ogre : Enemy
     /// Handles the swing for the bat
     /// </summary>
     /// <returns> Time </returns>
-    private IEnumerator SwingBat()
+    private IEnumerator SwingBat(Character tempLockedCharacter)
     {
         if (batHitboxPrefab == null || batPivot == null)
         {
@@ -355,10 +359,10 @@ public class Ogre : Enemy
         SetMovementValues(true);
         attackState = AttackState.Neutral;
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
