@@ -777,22 +777,19 @@ public class Ogre : Enemy
     /// <param name="damage"></param>
     public override void DoHitSoundEffect(float damage)
     {
-        if (deathEventReference.IsNull) return;
-        //Stopping any playing sound effects on death.
-        if (idleAudio.isValid())
+        if (hitEventReference.IsNull) return;
+        if (health.CurrentHealth - damage <= 0)
         {
-            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            DoDeathSoundEffect();
+            return;
         }
-        //Play Goblin's Death sound effect
-        if (!deathEventReference.IsNull)
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
-            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
-            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.start();
-            ev.release();
-        }
+        EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
+        RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+        ev.setParameterByName("Damage", damage / health.GetMaxHealth());
+        ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+        ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+        ev.start();
+        ev.release();
     }
     
     /// <summary>
@@ -806,7 +803,7 @@ public class Ogre : Enemy
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
-        //Play Goblin's Death sound effect
+        //Play Death sound effect
         if (!deathEventReference.IsNull)
         {
             EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);

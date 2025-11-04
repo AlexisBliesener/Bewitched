@@ -66,6 +66,12 @@ public class AnimationAudio : MonoBehaviour
     void OnDestroy()
     {
         character.health.OnDeath -= OnDeath;
+        //Failsafe
+        if(animEvents.Count!=0) foreach(var ev in animEvents.Values)
+            {
+                ev.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                ev.release();
+            } 
     }
 
     /// <summary>
