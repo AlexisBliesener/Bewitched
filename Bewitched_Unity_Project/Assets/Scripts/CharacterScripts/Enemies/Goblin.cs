@@ -123,7 +123,6 @@ public class Goblin : Enemy
         SetDebugString();
 
         SetAIState();
-        ManageSurrounding();
 
         SetBehavior();
 
@@ -804,12 +803,7 @@ public class Goblin : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
-            }
-            
+             yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
@@ -870,7 +864,7 @@ public class Goblin : Enemy
         float randomZ = Random.Range(-patrolRange, patrolRange);
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
+        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint, this).GetPosition(gameObject);
 
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
