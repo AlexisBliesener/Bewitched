@@ -234,7 +234,6 @@ public class CameraController : MonoBehaviour
         combatCam.Priority = 2;
         aimCam.Priority = 1;
 
-        UpdateCam();
     }
 
     /// <summary>
@@ -244,6 +243,7 @@ public class CameraController : MonoBehaviour
     {
         yield return new WaitForSeconds(TRANSITION_TIME);
         transitioning = false;
+        UpdateCam();
     }
 
     public void PlayerHitBy(GameObject hitBy)
