@@ -46,8 +46,8 @@ public class NavPath
     public NavPath(Enemy enemy)
     {
         distance = 0;
-        origin = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
-        destination = GraphBuilder.instance.FindClosestNode(enemy.transform.position);
+        origin = GraphBuilder.instance.FindClosestNode(enemy.transform.position, enemy);
+        destination = GraphBuilder.instance.FindClosestNode(enemy.transform.position, enemy);
         parentNodes = new Dictionary<Node, Vertex>();
         pathComplete = true;
     }
@@ -216,7 +216,8 @@ public class NavPath
 
     public void AdjustPath(Character currentPlayer, Enemy enemy)
     {
-        float goalDistance = currentPlayer.sizeRadius + (currentPlayer.maxSurroundingRadius + currentPlayer.minSurroundingRadius) / 2;
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + (enemy.maxSurroundingRadius + enemy.minSurroundingRadius) / 2;
+        Debug.Log("Goal distance: " + goalDistance + ", current distance: " + Vector3.Distance(enemy.transform.position, currentPlayer.transform.position));
         float minScore = Mathf.Infinity;
         Node bestNode = null;
 
@@ -226,9 +227,9 @@ public class NavPath
         foreach (Node node in positions)
         {
             float dist = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
-            float score = (float)(0.1 * node.GetCost() + Mathf.Abs(dist - goalDistance));
+            float score = Mathf.Abs(dist - goalDistance);
 
-            if (score < minScore)
+            if (score < minScore && dist > currentPlayer.sizeRadius + enemy.sizeRadius + enemy.minSurroundingRadius)
             {
                 minScore = score;
                 bestNode = node;
@@ -243,6 +244,7 @@ public class NavPath
         }
 
         destination = bestNode;
+        Debug.Log("Destination distance: " + Vector3.Distance(bestNode.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position));
         if (!newCorners.Contains(bestNode)) newCorners.Add(bestNode);
         corners = newCorners;
         positions = newPositions;
