@@ -39,7 +39,7 @@ public class GraphBuilder : MonoBehaviour
     [SerializeField, Tooltip("Maximum height to scan for floors")]
     private float maxFloorHeight = 50f;
 
-    [SerializeField,Tooltip("Minimum height difference between floors")]
+    [SerializeField, Tooltip("Minimum height difference between floors")]
     private float minFloorSeparation = 2f;
 
     [Tooltip("Mesh Filter")]
@@ -226,7 +226,7 @@ public class GraphBuilder : MonoBehaviour
         List<Vector3> vertices = new List<Vector3>();
 
         int validNodes = 0;
-        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x+=pointDistance)
+        for (int x = (int)(-buildLength * 5); x < (int)(buildLength * 5); x += pointDistance)
         {
             SerializableDictionary<int, SerializableDictionary<int, Node>> zPositions = new SerializableDictionary<int, SerializableDictionary<int, Node>>();
             nodeDictionary[x] = zPositions;
@@ -254,7 +254,7 @@ public class GraphBuilder : MonoBehaviour
                 {
                     zPositions.Remove(z);
                 }
-                
+
             }
 
             if (zPositions.Count == 0)
@@ -324,14 +324,14 @@ public class GraphBuilder : MonoBehaviour
                 nodeDictionary[x - pointDistance][z + pointDistance][y].AssignVertex(vertex);
             }
         }
-        
+
         // Vertical connections (between floors at same X,Z)
         foreach (int otherY in nodeDictionary[x][z].Keys)
         {
             if (otherY != y)
             {
                 float heightDifference = Mathf.Abs((otherY - y) / 10f);
-                
+
                 // Only connect floors that are close vertically (within minFloorSeparation)
                 if (heightDifference >= minFloorSeparation && heightDifference <= minFloorSeparation * 3f)
                 {
@@ -403,34 +403,38 @@ public class GraphBuilder : MonoBehaviour
     /// Finds the closest node to a point
     /// </summary>
     /// <param name="position"> Position to search from </param>
+    /// <param name="searcher"> Enemy searching for node </param>
     /// <returns> Closest node if it exists </returns>
-    public Node FindClosestNode(Vector3 position)
+    public Node FindClosestNode(Vector3 position, Enemy searcher)
     {
         if (nodeDictionary == null || nodeDictionary.Count == 0)
             return null;
 
-        int xInt = Mathf.RoundToInt(position.x * 10);
-        List<int> xList = new List<int>(nodeDictionary.Keys);
-        int xPos = BinaryCoordinateSearch(xInt, xList);
-        if (!nodeDictionary.ContainsKey(xPos))
-            return null;
+        if (searcher)
+        {
+            float radius = 2;
+            Node closest = null;
+            float closestDist = Mathf.Infinity;
+            while (closest == null && radius < 7)
+            {
+                List<List<int>> nodes = GetNodesInRadius(position, radius);
+                foreach (List<int> positionVal in nodes)
+                {
+                    Vector3 positionVec = new Vector3(positionVal[0] / 10f, positionVal[2] / 10f, positionVal[1] / 10f);
 
-        int zInt = Mathf.RoundToInt(position.z * 10);
-        List<int> zList = new List<int>(nodeDictionary[xPos].Keys);
-        int zPos = BinaryCoordinateSearch(zInt, zList);
-        if (!nodeDictionary[xPos].ContainsKey(zPos))
-            return null;
-
-        int yInt = Mathf.RoundToInt(position.y * 10);
-        List<int> yList = new List<int>(nodeDictionary[xPos][zPos].Keys);
-        int yPos = BinaryCoordinateSearch(yInt, yList);
-        if (!nodeDictionary[xPos][zPos].ContainsKey(yPos))
-            return null;
-
-        if (xPos == -1 || zPos == -1 || yPos == -1) return null;
-        
-        return nodeDictionary[xPos][zPos][yPos];
-
+                    float dist = Vector3.Distance(positionVec, position);
+                    
+                    if (closestDist > dist && nodeDictionary[positionVal[0]][positionVal[1]][positionVal[2]].GetEnvironmentDistance() > searcher.sizeRadius)
+                    {
+                        closest = nodeDictionary[positionVal[0]][positionVal[1]][positionVal[2]];
+                        closestDist = dist;
+                    }
+                }
+                radius += 2;
+            }
+            return closest;
+        }
+        return null;
     }
 
     //public NavPath AStarSearch(Enemy enemy, Vector3 destination)
@@ -522,16 +526,17 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="enemy"> Enemy looking for path </param>
     /// <param name="originPos"> Origin position of search </param>
     /// <param name="destination"> Destination location </param>
+    /// <param name="goalDistance"> Goal distance to search for acceptable point </param>
     /// <param name="targetChar"> Target character (if any) to ignore invalid area radius of </param>
     /// <returns></returns>
-    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, Character targetChar = null)
+    public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, float goalDistance = -1, Character targetChar = null)
     {
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         enemySearches[enemy] = true;
 
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
-        Node origin = FindClosestNode(originPos);
-        Node targetNode = FindClosestNode(destination);
+        Node origin = FindClosestNode(originPos, enemy);
+        Node targetNode = FindClosestNode(destination, enemy);
 
         if (origin == null || targetNode == null)
         {
@@ -542,7 +547,6 @@ public class GraphBuilder : MonoBehaviour
             enemySearches[enemy] = false;
             yield break;
         }
-
         int nodesSearched = 0;
 
         NavPath path = new NavPath();
@@ -563,7 +567,7 @@ public class GraphBuilder : MonoBehaviour
 
             nodesSearched++;
 
-            if (targetNode == current) // If in range, add node to path and end
+            if (targetNode == current || (goalDistance != -1 && Vector3.Distance(current.GetPosition(), destination) < goalDistance)) // If in range, add node to path and end
             {
                 path.SetDestination(current);
                 path.CalculatePath();
@@ -574,9 +578,7 @@ public class GraphBuilder : MonoBehaviour
                 if (!enemy.ValidatePoint())
                 {
                     StartCoroutine(RetryPath(enemy));
-                    yield break;
                 }
-
                 yield break;
             }
 
@@ -584,8 +586,10 @@ public class GraphBuilder : MonoBehaviour
             {
                 Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
+                if (neighbor.GetEnvironmentDistance() < enemy.sizeRadius) continue;
+
                 float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
-   
+
                 if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
 
                 if (closedSet.Contains(neighbor) || neighborDistanceFromOrigin >= maxSearchDistance)
@@ -620,7 +624,11 @@ public class GraphBuilder : MonoBehaviour
                 }
             }
 
-            if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
+            float nodesSearchThreshold;
+            if (numSearchers > 0) nodesSearchThreshold = nodesSearchedPerFrame / numSearchers;
+            else nodesSearchThreshold = nodesSearchedPerFrame;
+
+            if (nodesSearched % nodesSearchThreshold == 0) // If we have reached the threshold
             {
                 yield return null; // Go to next frame
             }
@@ -629,6 +637,7 @@ public class GraphBuilder : MonoBehaviour
         enemy.SetUsingSearch(false);
         enemy.SetPath(null);
         enemy.ValidatePoint(); // Quick set path state to unset
+        enemySearches[enemy] = false;
         StartCoroutine(RetryPath(enemy));
         yield break;
 
@@ -646,7 +655,7 @@ public class GraphBuilder : MonoBehaviour
         int lower = values[0];
         int higher = values[values.Count - 1];
 
-        foreach(int i in values)
+        foreach (int i in values)
         {
             if (i == targetNum)
             {
@@ -715,7 +724,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj != null && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
@@ -754,9 +763,9 @@ public class GraphBuilder : MonoBehaviour
         int numSearched = 0;
         Debug.Log("called");
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
-        Node origin = FindClosestNode(enemy.transform.position);
+        Node origin = FindClosestNode(enemy.transform.position, enemy);
 
-        Node targetNode = FindClosestNode(destination);
+        Node targetNode = FindClosestNode(destination, enemy);
 
         if (origin == null || targetNode == null)
         {
@@ -806,7 +815,7 @@ public class GraphBuilder : MonoBehaviour
 
                 for (int i = 0; i < path.GetCornerNodes().Count; i++)
                 {
-                    lineRenderer.SetPosition(i+1, new Vector3(path.GetCornerNodes()[i].GetPosition().x, enemy.transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
+                    lineRenderer.SetPosition(i + 1, new Vector3(path.GetCornerNodes()[i].GetPosition().x, enemy.transform.position.y, path.GetCornerNodes()[i].GetPosition().z));
                 }
 
                 yield return new WaitForSeconds(5);
@@ -875,12 +884,12 @@ public class GraphBuilder : MonoBehaviour
     /// <param name="position"> Center of circle </param>
     /// <param name="maxRadius"> Radius to include of circle </param>
     /// <returns> All nodes in the circle </returns>
-    public List<List<int>> GetNodesInRadius(GameObject user, float maxRadius)
+    public List<List<int>> GetNodesInRadius(Vector3 position, float maxRadius)
     {
         List<List<int>> includedNodes = new List<List<int>>();
 
-        int xPos = (int)(user.transform.position.x * 10);
-        int zPos = (int)(user.transform.position.z * 10);
+        int xPos = (int)(position.x * 10);
+        int zPos = (int)(position.z * 10);
 
         int convRadius = (int)(maxRadius * 10);
 
@@ -894,7 +903,7 @@ public class GraphBuilder : MonoBehaviour
                     {
                         foreach (int y in nodeDictionary[x][z].Keys)
                         {
-                            float dist = Vector3.Distance(nodeDictionary[x][z][y].GetPosition(user), user.transform.position);
+                            float dist = Vector3.Distance(nodeDictionary[x][z][y].GetPosition(), position);
 
                             if (dist < maxRadius)
                             {

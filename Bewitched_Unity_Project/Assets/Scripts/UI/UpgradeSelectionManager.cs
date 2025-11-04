@@ -125,14 +125,38 @@ public class UpgradeSelectionManager : MonoBehaviour
         DropData[] options = { option1, option2, option3 };
         for (int i = 0; i < 3; i++)
         {
-            TMP_Text buttonText = upgradeOptionButtons[i].GetComponentInChildren<TMP_Text>(true);
-            if (buttonText != null)
+            // Attach button title and description
+            TMP_Text[] buttonText = upgradeOptionButtons[i].GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in buttonText)
             {
-                buttonText.text = options[i].GetDropName();
+                if (t != null)
+                {
+                    if (t.name == "Title")
+                    {
+                        t.text = options[i].GetDropName();
+                    }
+                    else if (t.name == "Description")
+                    {
+                        t.text = options[i].GetDescription();
+                    }
+
+                }
+                else
+                {
+                    Debug.LogWarning($"Cannot attach drop name {options[i].GetDropName()} and drop description {options[i].GetDescription()} to button");
+                }
+            }
+            
+            // Attach button icon
+            GameObject iconGO = upgradeOptionButtons[i].transform.GetChild(0).gameObject;
+            Image iconSprite = iconGO.GetComponent<Image>();
+            if (iconGO.name == "Icon")
+            {
+                iconSprite.sprite = options[i].GetIcon();
             }
             else
             {
-                Debug.LogWarning($"Cannot attach drop name {options[i].GetDropName()} to button");
+                Debug.LogWarning($"Cannot attach drop icon {options[i].GetDropName()} to button");
             }
 
             upgradeOptionButtons[i].onClick.RemoveAllListeners();

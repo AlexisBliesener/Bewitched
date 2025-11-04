@@ -44,7 +44,7 @@ public class SurroundingPoints : MonoBehaviour
     float timeLastAttack;
 
     [Tooltip("The time between a room switching before enemies can attack")]
-    float roomSwapEnemyWaitTime = 3;
+    [SerializeField] float roomSwapEnemyWaitTime = 3;
 
     [Tooltip("Active room for enemies")]
     RoomController activeRoom = null;
@@ -90,6 +90,11 @@ public class SurroundingPoints : MonoBehaviour
         surroundingEnemies = new List<Enemy>();
     }
 
+    public Dictionary<Character, int> GetAttackingEnemies()
+    {
+        return attackingEnemies;
+    }
+
     /// <summary>
     /// Finds a path to the player and modifies the destination to be around the middle of the surrounding range
     /// </summary>
@@ -105,11 +110,10 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, currentPlayer));
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
-
-        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
     }
 
     /// <summary>
@@ -119,11 +123,10 @@ public class SurroundingPoints : MonoBehaviour
     /// <param name="enemy">Enemy finding a path</param>
     public IEnumerator FindPathToRetreat(Enemy enemy)
     {
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, enemy.transform.position));
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
-
-        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
     }
 
     /// <summary>
@@ -213,8 +216,7 @@ public class SurroundingPoints : MonoBehaviour
         Vector3 direction = (camPos - enemy.transform.position).normalized;
         float maxDistance = Vector3.Distance(camPos, enemy.transform.position);
 
-        RaycastHit hit;
-        if (Physics.Raycast(camPos, direction, out hit, maxDistance, environment))
+        if (Physics.Raycast(camPos, direction, maxDistance, environment))
         {
             return false;
         }

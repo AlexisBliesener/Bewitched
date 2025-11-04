@@ -73,6 +73,9 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
+    [Tooltip("If in windup for primary")]
+    bool inPrimaryWindup = false;
+
     void Start()
     {
         SetPlayerInfo();
@@ -81,34 +84,35 @@ public class Ogre : Enemy
         SetPatrolOrigin();
         isEventEnemy = TryGetComponent<EventEnemy>(out var e);
         sizeRadius = GetComponent<CharacterController>().radius;
+
     }
 
     private void FixedUpdate()
     {
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = 0;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+
         if (dead || lobotimzed) return;
+
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        // SetAIState();
+        SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+
+        SetDebugString();
+        //if (!playerControlling) Debug.Log(debugAIInfo);
     }
+
     /// <summary>
     /// Starts the primary attack for the ogre
     /// </summary>
     public override void PrimaryAttack()
     {
-        
         hitCharacter = false;
-        if (playerControlling)
-        {
-            PlayerController.instance.SetAllowMovement(false);
-            lockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-        else
-        {
-            lockedCharacter = currentPlayer;
-            aiState = AIMovementState.Blocked;
-        }
+        SetMovementValues(false);
 
         if (lockedCharacter)
         {
@@ -120,9 +124,58 @@ public class Ogre : Enemy
         }
 
         attackingPrimary = true;
-        // Debug.Log("Starting swing");
-        attackStateCoroutine = StartCoroutine(BatWindup());
+
+        if (playerControlling)
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(BatWindup());
+        }
+        else
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(BatWindup());
+        }
     }
+
+    /// <summary>
+    /// Starts the primary attack
+    /// Chooses between windup and regular hit
+    /// </summary>
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null)
+        {
+            if (playerControlling)
+            {
+                if (currentPrimaryComboStep == -1)
+                {
+
+                    health.SubHealth(primaryAttackCost);
+
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                currentPrimaryComboStep = -1;
+                timeLastPrimary = Time.time;
+                characterAnimator.SwitchState("PrimaryAttack", 0);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                PrimaryAttack();
+            }
+        }
+    }
+
     /// <summary>
     /// Starts the secondary attack for the ogre
     /// </summary>
@@ -143,7 +196,6 @@ public class Ogre : Enemy
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = 0;
-        // For now wait 0.25 seconds, in future wait for animation trigger
         while (timeStarted < batWindupPeriod)
         {
             timeStarted += Time.deltaTime;
@@ -229,14 +281,26 @@ public class Ogre : Enemy
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
-        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
-        Vector3 startFoward = transform.forward;
+        Vector3 endForward;
+        Vector3 startForward;
+
+        if (currentPrimaryComboStep == -1)
+        {
+            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+        else
+        {
+            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
 
         pivot.SetActive(true);
 
         while (timeSinceStarted < batSwingDuration)
         {
-            pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
+            SetMovementValues(false);
+            pivot.transform.forward = Vector3.Lerp(startForward, endForward, timeSinceStarted / batSwingDuration);
             timeSinceStarted += Time.deltaTime;
             yield return null;
         }
@@ -261,7 +325,6 @@ public class Ogre : Enemy
         attackingPrimary = false;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
         attackStateCoroutine = null;
-        timeLastPrimary = Time.time;
         aiState = AIMovementState.Chasing;
     }
 
@@ -283,11 +346,15 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     public IEnumerator ScreamWindup()
     {
-        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-        else aiState = AIMovementState.Blocked;
+        SetMovementValues(false);
         attackState = AttackState.Windup;
 
-        yield return new WaitForSeconds(screamWindupDuration);
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < screamWindupDuration)
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
 
         attackStateCoroutine = StartCoroutine(HandleScream());
     }
@@ -308,10 +375,9 @@ public class Ogre : Enemy
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
-            if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
+            if (collider.gameObject.TryGetComponent(out Character character) && character != this)
             {
-                // Debug.Log("Scream hit character " + character);
-                screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
+                screamEffects.ApplyStatusEffects(this, character, null);
             }
         }
 
@@ -335,7 +401,7 @@ public class Ogre : Enemy
         if (playerControlling || inProcess) return;
         // Debug.Log(aiState);
 
-        if (aiState == AIMovementState.Patrolling)
+        if (aiState == AIMovementState.Patrolling && !isEventEnemy)
         {
             if (!idleAudio.isValid())
             {
@@ -344,7 +410,7 @@ public class Ogre : Enemy
             }
             Patrol();
         }
-        else if (aiState == AIMovementState.Chasing)
+        else if (aiState == AIMovementState.Chasing || (aiState == AIMovementState.Patrolling && isEventEnemy))
         {
             StopIdleAudio();
             Chase();
@@ -397,7 +463,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine( FindPath() );
         }
 
 
@@ -452,11 +518,11 @@ public class Ogre : Enemy
             float randomZ = Random.Range(-patrolRange, patrolRange);
 
             walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint, this).GetPosition(gameObject);
         }
         else
         {
-            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin, this).GetPosition(gameObject);
         }
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
@@ -568,6 +634,12 @@ public class Ogre : Enemy
     {
         lookAtPlayer = false;
 
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            StartCoroutine(FindPath());
+        }
+
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             AIMove();
@@ -587,18 +659,15 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine(FindPath());
         }
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
 
@@ -615,7 +684,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine(FindPath());
         }
         lookAtPlayer = true;
 
