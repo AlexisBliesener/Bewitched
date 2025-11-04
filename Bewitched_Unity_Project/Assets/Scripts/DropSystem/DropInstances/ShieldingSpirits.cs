@@ -32,6 +32,8 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
     [Header("UI References")]
     [SerializeField, Tooltip("Slider for the shield amount")]
     private Slider shieldSlider;
+    [SerializeField, Tooltip("gameobject for the enemy health bar")]
+    private GameObject enemyHealthSlider;
 
     #region Saving/Loading
 
@@ -93,7 +95,7 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the ShieldingSpirits effect
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }
@@ -158,6 +160,10 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
             {
                 shieldSlider.gameObject.SetActive(false);
             }
+            if (enemyHealthSlider == null)
+            {
+                Debug.LogWarning("Enemy health slider UI prefab is null on Shielding Spirits upgrade!");
+            }
             return;
         }
 
@@ -180,6 +186,10 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
         float duration = shieldDurations[Mathf.Min(stackNum, shieldDurations.Length - 1)];
         float initialHealth = target.health.GetHealth();
         float maxShieldedHealth = initialHealth + shieldAmount;
+        if (enemyHealthSlider != null)
+        {
+            enemyHealthSlider.gameObject.SetActive(false);
+        }
         if (shieldSlider != null)
         {
             shieldSlider.gameObject.SetActive(true);
@@ -198,7 +208,12 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
             {
                 float currentHealth = target.health.GetHealth();
                 float currentShield = Mathf.Clamp(currentHealth - initialHealth, 0f, shieldAmount);
-                shieldSlider.value = currentShield;
+                float timeRemaining = Mathf.Clamp01(1f - ((Time.time - startTime) / duration));
+                shieldSlider.value = shieldAmount * Mathf.Min(timeRemaining, currentShield / shieldAmount);
+                if (shieldSlider.value <= 0f)
+                {
+                    break;
+                }
             }
             yield return null;
         }
@@ -209,6 +224,10 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
         if (shieldSlider != null)
         {
             shieldSlider.gameObject.SetActive(false);
+        }
+        if (enemyHealthSlider != null)
+        {
+            enemyHealthSlider.gameObject.SetActive(true);
         }
     }
 

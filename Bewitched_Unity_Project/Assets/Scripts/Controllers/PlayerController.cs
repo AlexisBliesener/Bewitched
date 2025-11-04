@@ -1,16 +1,9 @@
-using Cinemachine;
-using FMOD.Studio;
-using FMODUnity;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.TextCore.Text;
-using static UnityEngine.UI.Image;
+using UnityEngine.InputSystem.Interactions;
+using UnityEngine.InputSystem.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -34,6 +27,8 @@ public class PlayerController : MonoBehaviour
     [Header("UI Settings")]
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
+    [SerializeField, Tooltip("The ui input module used for input")] 
+    private InputSystemUIInputModule UIInput;
 
     [Header("Buff Holder")]
     [Tooltip("Buff Component")]
@@ -45,6 +40,16 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Secondary Cooldown UI")]
     public CooldownDisplay secondaryCooldownDisplay;
 
+    [Header("Targeting variables")]
+    [SerializeField, Tooltip("The radius of the close dectection sphere")]
+    private float closeSphereRadius = 2f;
+    [SerializeField, Tooltip("The distance away from the player of the close dectection sphere")]
+    private float closeSphereDistance = 3f;
+    [SerializeField, Tooltip("The radius of the far dectection sphere")]
+    private float farSphereRadius = 4f;
+    [SerializeField, Tooltip("The distance away from the player of the far dectection sphere")]
+    private float farSphereDistance = 8f;
+
     [Header("Pause UI")]
     public GameObject pauseMenu;
     [Header("Interact UI")]
@@ -55,12 +60,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
-
-    [Tooltip("Player Modifier Volume")]
-    [SerializeField] NavMeshModifierVolume playerZone;
-
-    [Tooltip("Navmesh Surface")]
-    [SerializeField] NavMeshSurface surface;
 
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
@@ -74,8 +73,12 @@ public class PlayerController : MonoBehaviour
     private float speed;
 
     private bool allowMovement = true;
+    [Tooltip("If true eleth is currently sprints, false if not")]
+    private bool sprinting = false;
+    [Tooltip("If ui has been clicked before interact was clicked")]
+    private bool uiClicked = false;
 
-   // private bool dodging = false;
+    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -120,66 +123,80 @@ public class PlayerController : MonoBehaviour
         characterController = currentCharacter.GetComponent<CharacterController>();
     }
 
+    private void OnEnable()
+    {
+        if (UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed += UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
+    }
+
+    private void OnDisable()
+    {
+        if(UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
+    }
+
+    private void UIClicked(InputAction.CallbackContext context)
+    {
+        uiClicked = true;
+    }
+
     private void FixedUpdate()
     {
         TargetEnemy();
         HandleCooldownUI();
         speed = currentCharacter.movementSpeed;
 
+        if(currentCharacter == oldHag && sprinting)
+        {
+            speed = oldHag.GetSprintSpeed();
+        }
+
         if (allowMovement)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
-                if (CameraController.GetIsAiming())
+                Vector3 desiredVelocity = direction * speed;
+                desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
+                desiredVelocity.y = 0f; // Prevent tilting
+                desiredVelocity = desiredVelocity.normalized * speed;
+                float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
+                velocity.x += xChange;
+
+                if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+                float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
+                velocity.z += zChange;
+
+                if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
+
+
+                if (velocity.magnitude > speed)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
-                    {
-                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.fixedDeltaTime;
-                    }
-                    else
-                    {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                    velocity = velocity.normalized * speed;
                 }
-                else
+
+                if (velocity.magnitude < 0.01f)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    desiredVelocity = desiredVelocity.normalized * speed;
-                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
-                    velocity.x += xChange;
+                    velocity = Vector3.zero;
+                }
 
-                    if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+                velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
 
-                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
-                    velocity.z += zChange;
-
-                    if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
-
-
-                    if (velocity.magnitude > speed)
-                    {
-                        velocity = velocity.normalized * speed;
-                    }
-
-                    if (velocity.magnitude < 0.01f)
-                    {
-                        velocity = Vector3.zero;
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                characterController.Move(velocity * Time.fixedDeltaTime);
+                if (!CameraController.GetIsAiming())
+                {
                     if (velocity.sqrMagnitude > 0.01f)
                     {
                         Quaternion targetRotation = Quaternion.LookRotation(new Vector3(velocity.x, 0, velocity.z));
@@ -309,18 +326,34 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void Interact(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.canceled)
         {
-            if (nearbyInteractable != null)
+            if (!sprinting && !uiClicked)
             {
-                nearbyInteractable.Interact();
-                // Hide the interact UI since the interact action has been performed
-                HideInteractUI();
-                return;
+                if (nearbyInteractable != null)
+                {
+                    nearbyInteractable.Interact();
+                    // Hide the interact UI since the interact action has been performed
+                    HideInteractUI();
+                    return;
+                }
+                if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
             }
-            if (exitDoor != null)
+            else
             {
-                exitDoor.OpenDoor();
+                uiClicked = false;
+            }
+            sprinting = false;
+        }
+        else if(context.performed)
+        {
+            if (currentCharacter == oldHag)
+            {
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
+                sprinting = true;
             }
         }
     }
@@ -383,7 +416,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TargetEnemy()
     {
-        Vector3 dir = currentCharacter.transform.forward;
+        Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.TransformDirection(dir);
+
+        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
@@ -393,7 +429,7 @@ public class PlayerController : MonoBehaviour
 
         if (lockedCharacter == currentCharacter) lockedCharacter = null;
 
-        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 3f, 2f, dir, 0f, enemyLayerMask);
+        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * closeSphereDistance, closeSphereRadius, dir, 0f, enemyLayerMask);
 
         Enemy target = null;
         float targetDistance = Mathf.Infinity;
@@ -403,7 +439,7 @@ public class PlayerController : MonoBehaviour
             foreach (RaycastHit hit in hits)
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                 {
                     target = enemy;
                     targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
@@ -413,13 +449,13 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * 8f, 4f, dir, 0f, enemyLayerMask);
+            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * farSphereDistance, farSphereDistance, dir, 0f, enemyLayerMask);
             if (hits.Length > 0)
             {
                 foreach (RaycastHit hit in hits)
                 {
                     Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
                     {
                         target = enemy;
                         targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);

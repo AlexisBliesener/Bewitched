@@ -186,9 +186,47 @@ public class AudioManager : MonoBehaviour
     void CheckClick(InputAction.CallbackContext context)
     {
         if (EventSystem.current.currentSelectedGameObject == null) return;
-        if(EventSystem.current.currentSelectedGameObject.TryGetComponent<Button>(out var button) && !button.gameObject.CompareTag("NoClick"))
+        if (EventSystem.current.currentSelectedGameObject.TryGetComponent<Button>(out var button) && !button.gameObject.CompareTag("NoClick"))
         {
             TryPlayOneShot("Click");
+        }
+    }
+    /// <summary>
+    /// Tries to play a snapshot of the given name
+    /// </summary>
+    /// <param name="snapshotName">The name of the snapshot to play</param>
+    /// <returns>True if snapshot was successfully started, false otherwise</returns>
+    public static bool TryPlaySnapshot(string snapshotName)
+    {
+        if (manager.refSheet.snapshotRefs.TryGetValue(snapshotName, out EventReference evRef))
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(evRef);
+            if (!manager.activeSnapshots.TryAdd(snapshotName, ev))
+            {
+                Debug.LogError($"{snapshotName} is already active!");
+                return false;
+            }
+            ev.start();
+            ev.release();
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// Stops the snapshot of the given name if it is playing
+    /// </summary>
+    /// <param name="snapshotName">The name of the snapshot</param>
+    /// <param name="allowFadeout">Whether or not to allow fadeout, defaults to true</param>
+    public static void StopSnapshot(string snapshotName,bool allowFadeout=true)
+    {
+        if (manager.activeSnapshots.TryGetValue(snapshotName, out EventInstance snapshot))
+        {
+            snapshot.stop(allowFadeout? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+            manager.activeSnapshots.Remove(snapshotName);
+        }
+        else
+        {
+            Debug.LogError("No Snapshot of the given name is playing!");
         }
     }
 }

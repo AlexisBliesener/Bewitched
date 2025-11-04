@@ -89,7 +89,7 @@ public class SmarterControl : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Smarter Control effect, enabling lower health decay rate.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }
