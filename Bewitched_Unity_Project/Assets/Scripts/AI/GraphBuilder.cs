@@ -586,21 +586,8 @@ public class GraphBuilder : MonoBehaviour
             {
                 Node neighbor = nodeDictionary[vertex.GetNode(current).Item1][vertex.GetNode(current).Item2][vertex.GetNode(current).Item3];
 
-                if (validSizedNodes.ContainsKey(neighbor))
-                {
-                    if (!validSizedNodes[neighbor]) continue; // Node has been checked and is invalid
-                }
-                else if (Physics.CheckSphere(neighbor.GetPosition(enemy.gameObject), enemy.sizeRadius, wallLayer))
-                {
-                    validSizedNodes[neighbor] = false; // Node is checked for the first time, it is invalid
-                    continue;
-                }
-                else
-                {
-                    validSizedNodes[neighbor] = true; // Node is checked for the first time, it is valid
-                }
+                if (neighbor.GetEnvironmentDistance() < enemy.sizeRadius) continue;
 
-                validSizedNodes[neighbor] = true;
                 float neighborDistanceFromOrigin = (neighbor.GetPosition() - origin.GetPosition()).magnitude;
 
                 if (neighbor.GetCost(enemy) < 0) Debug.Log("NEGATIVE COST - POTENTIALLY INFINITE SEARCH");
@@ -637,7 +624,11 @@ public class GraphBuilder : MonoBehaviour
                 }
             }
 
-            if (nodesSearched % nodesSearchedPerFrame == 0) // If we have reached the threshold
+            float nodesSearchThreshold;
+            if (numSearchers > 0) nodesSearchThreshold = nodesSearchedPerFrame / numSearchers;
+            else nodesSearchThreshold = nodesSearchedPerFrame;
+
+            if (nodesSearched % nodesSearchThreshold == 0) // If we have reached the threshold
             {
                 yield return null; // Go to next frame
             }
@@ -646,6 +637,7 @@ public class GraphBuilder : MonoBehaviour
         enemy.SetUsingSearch(false);
         enemy.SetPath(null);
         enemy.ValidatePoint(); // Quick set path state to unset
+        enemySearches[enemy] = false;
         StartCoroutine(RetryPath(enemy));
         yield break;
 
