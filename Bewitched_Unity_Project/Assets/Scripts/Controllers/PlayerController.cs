@@ -125,12 +125,26 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        UIInput.actionsAsset["UI/Submit"].performed += UIClicked;
+        if (UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed += UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
     }
 
     private void OnDisable()
     {
-        UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
+        if(UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
     }
 
     private void UIClicked(InputAction.CallbackContext context)
