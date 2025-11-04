@@ -32,6 +32,12 @@ public class OgreAnimator : CharacterAnimator
         base.ResetAllTriggers();
     }
 
+    public void SetSwing()
+    {
+        ResetAllTriggers();
+        animator.SetTrigger("Swing");
+    }
+
     /// <summary>
     /// Returns the primary attack windup speed multiplier
     /// </summary>
@@ -107,25 +113,25 @@ public class OgreAnimator : CharacterAnimator
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
 
-        if (newState == "PrimaryAttack")
-        {
-            ResetAllTriggers();
-            animator.SetTrigger("PrimaryAttack");
-            if (GetComponentInParent<Ogre>().IsPlayerControlling())
-            {
-                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
-                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
-                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
-            }
-            else
-            {
-                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
-                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
-                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
-            }
-            canChange = false;
-            currentAnimationState = newState;
-        }
+        //if (newState == "PrimaryAttack")
+        //{
+        //    ResetAllTriggers();
+        //    animator.SetTrigger("PrimaryAttack");
+        //    if (GetComponentInParent<Ogre>().IsPlayerControlling())
+        //    {
+        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
+        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
+        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
+        //    }
+        //    else
+        //    {
+        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
+        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
+        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
+        //    }
+        //    canChange = false;
+        //    currentAnimationState = newState;
+        //}
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;

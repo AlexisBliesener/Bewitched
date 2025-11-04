@@ -130,6 +130,8 @@ public class Ogre : Enemy
         hitCharacter = false;
         SetMovementValues(false);
 
+        if (inPrimaryWindup) return;
+
         if (lockedCharacter)
         {
             lockedCharacter.SetAttacker(this);
@@ -143,8 +145,15 @@ public class Ogre : Enemy
 
         if (playerControlling)
         {
-            inPrimaryWindup = true;
-            attackStateCoroutine = StartCoroutine(BatWindup());
+            if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+            {
+                inPrimaryWindup = true;
+                attackStateCoroutine = StartCoroutine(BatWindup());
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(SwingBat());
+            }
         }
         else
         {
@@ -183,11 +192,15 @@ public class Ogre : Enemy
             }
             else
             {
-                currentPrimaryComboStep = 0;
-                timeLastPrimary = Time.time;
-                characterAnimator.SwitchState("PrimaryAttack", 0);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
-                PrimaryAttack();
+                if (!attackingPrimary)
+                {
+                    attackingPrimary = true;
+                    currentPrimaryComboStep = 0;
+                    timeLastPrimary = Time.time;
+                    characterAnimator.SwitchState("PrimaryAttack", 0);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                    PrimaryAttack();
+                }
             }
         }
     }
@@ -270,6 +283,7 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
+        animator.SetSwing();
         attackStateCoroutine = StartCoroutine(SwingBat());
         yield break;
     }
