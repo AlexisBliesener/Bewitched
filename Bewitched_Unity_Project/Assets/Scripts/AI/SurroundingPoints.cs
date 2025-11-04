@@ -90,6 +90,11 @@ public class SurroundingPoints : MonoBehaviour
         surroundingEnemies = new List<Enemy>();
     }
 
+    public Dictionary<Character, int> GetAttackingEnemies()
+    {
+        return attackingEnemies;
+    }
+
     /// <summary>
     /// Finds a path to the player and modifies the destination to be around the middle of the surrounding range
     /// </summary>

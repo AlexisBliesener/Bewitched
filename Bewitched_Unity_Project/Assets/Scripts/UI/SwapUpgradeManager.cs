@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// This has to be attached to the SwapUpgradeUI gameObject,
+/// This has to be attached to the swapUpgradeUI gameObject,
 /// which contains the elements of the pop-up screen.
 /// Should only show up if the player already has 5 upgrades and wants to select a new one.
 /// Pressing the swappable upgrade auto-swaps it (no confirm button)
@@ -17,9 +17,13 @@ public class SwapUpgradeManager : MonoBehaviour
 {
     [Header("Screens")]
     [Tooltip("The Swap Upgrade Screen")]
-    public GameObject SwapUpgradeUI;
+    public GameObject swapUpgradeUI;
     [Tooltip("The Shop: Buy Upgrade Screen")]
     public GameObject buyUpgradeUI;
+    [Tooltip("Pop up description game object for when the player hovers over an upgrade.")]
+    public GameObject descriptionGO;
+    [Tooltip("Description text, child of descriptionGO.")]
+    private TMP_Text descriptionText;
 
 
     [Header("List of Upgrades Acquired")]
@@ -30,7 +34,7 @@ public class SwapUpgradeManager : MonoBehaviour
     [Tooltip("List of placeholder buttons for the upgrades that can be swapped")]
     private Button[] swapUpgradeButtons;
     [Tooltip("The first button to be selected when menu is opened.")]
-public GameObject firstButton;
+    public GameObject firstButton;
     [Tooltip("The first button to be selected when the Shop: Buy Upgrade menu is opened.")]
     public GameObject buyUpgradeButton;
 
@@ -52,7 +56,7 @@ public GameObject firstButton;
         }
 
         // Get swap upgrade placeholder buttons
-        swapUpgradeButtons = SwapUpgradeUI.GetComponentsInChildren<Button>(true);
+        swapUpgradeButtons = swapUpgradeUI.GetComponentsInChildren<Button>(true);
         if (swapUpgradeButtons.Length == 5)
         {
             UpdateSwappableUpgrades();
@@ -61,6 +65,12 @@ public GameObject firstButton;
         {
             Debug.LogWarning("Upgrade Swap UI does not have 5 buttons/upgrades.");
         }
+
+        // Get description text
+        if (descriptionGO != null)
+        {
+            descriptionText = descriptionGO.GetComponentInChildren<TMP_Text>(true);
+        }
     }
 
     /// <summary>
@@ -68,7 +78,7 @@ public GameObject firstButton;
     /// </summary>
     private void OnEnable()
     {
-        SwapUpgradeUI.SetActive(true);
+        swapUpgradeUI.SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
@@ -192,7 +202,56 @@ public GameObject firstButton;
 
             });
 
+            EventTrigger trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event (controller highlight or hover)
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event (leaving the button)
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
         }
+    }
+    /// <summary>
+    /// Show Description of upgrade that is currently selected
+    /// </summary>
+    private void ShowDescription(string text)
+    {
+        if (descriptionGO == null)
+        {
+            Debug.LogWarning("descriptionGO not assigned!");
+            return;
+        }
+
+        descriptionGO.SetActive(true);
+
+        if (descriptionText != null)
+        {
+            descriptionText.text = text;
+        }
+        else
+        {
+            Debug.LogWarning("No TMP_Text found inside descriptionGO!");
+        }
+    }
+    /// <summary>
+    /// Hide Description of upgrade when deselected
+    /// </summary>
+    private void HideDescription()
+    {
+        if (descriptionGO == null) return;
+
+        if (descriptionText != null) descriptionText.text = "";
     }
 
     /// <summary>
