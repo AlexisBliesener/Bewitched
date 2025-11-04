@@ -328,6 +328,14 @@ public class PlayerController : MonoBehaviour
     {
         if (context.canceled)
         {
+            if (sprinting)
+            {
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
+            }
+            sprinting = false;
+        }
+        else if(context.performed)
+        {
             if (!sprinting && !uiClicked)
             {
                 if (nearbyInteractable != null)
@@ -335,9 +343,7 @@ public class PlayerController : MonoBehaviour
                     nearbyInteractable.Interact();
                     // Hide the interact UI since the interact action has been performed
                     HideInteractUI();
-                    return;
-                }
-                if (exitDoor != null)
+                }else if (exitDoor != null)
                 {
                     exitDoor.OpenDoor();
                 }
@@ -346,10 +352,6 @@ public class PlayerController : MonoBehaviour
             {
                 uiClicked = false;
             }
-            sprinting = false;
-        }
-        else if(context.performed)
-        {
             if (currentCharacter == oldHag)
             {
                 oldHag.GetComponent<ElethAnimator>().ToggleSprint();
