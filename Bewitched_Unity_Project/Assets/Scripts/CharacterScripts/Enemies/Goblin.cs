@@ -864,7 +864,9 @@ public class Goblin : Enemy
         float randomZ = Random.Range(-patrolRange, patrolRange);
 
         walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-        walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint, this).GetPosition(gameObject);
+        Node node = GraphBuilder.instance.FindClosestNode(walkPoint, this);
+        if (node == null) yield break;
+        walkPoint = node.GetPosition(gameObject);
 
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
