@@ -843,7 +843,7 @@ public abstract class Character : MonoBehaviour
 
             if (GraphBuilder.instance != null)
             {
-                costlyNodes = GraphBuilder.instance.GetNodesInRadius(gameObject, sizeRadius);
+                costlyNodes = GraphBuilder.instance.GetNodesInRadius(transform.position, sizeRadius);
                 foreach (List<int> position in costlyNodes)
                 {
                     GraphBuilder.instance.AddNodeCost(position, this, 50);
