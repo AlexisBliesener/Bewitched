@@ -48,8 +48,10 @@ public class AttackStatusEffects : MonoBehaviour
     [SerializeField] float timeStopDuration = 0;
 
     [Header("Hitstun settings")]
-    [Tooltip("The duration of the hitstun")]
-    [SerializeField] float stunDuration = 0;
+    [Tooltip("The duration of the hitstun when the player attacks")]
+    [SerializeField] float stunDurationPlayer = 0;
+    [Tooltip("The duration of the hitstun when the enemy attacks")]
+    [SerializeField] float stunDurationEnemy = 0;
 
     #region Saving/Loading
 
@@ -176,7 +178,16 @@ public class AttackStatusEffects : MonoBehaviour
 
     public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)
     {
-        character.StartCoroutine(character.StartHitStun(stunDuration));
+        //character.StartCoroutine(character.StartHitStun(stunDurationPlayer));
+        //Strider 11/2/2025: now differientiates between player and enemy when asigning hitstun
+        if (character == PlayerController.instance.currentCharacter)
+        {
+            character.StartCoroutine(character.StartHitStun(stunDurationEnemy));
+        }
+        else
+        {
+            character.StartCoroutine(character.StartHitStun(stunDurationPlayer));
+        }
     }
 
     /// <summary>

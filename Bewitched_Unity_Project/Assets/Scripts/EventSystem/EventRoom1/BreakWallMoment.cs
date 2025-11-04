@@ -74,6 +74,15 @@ public class BreakWallMoment : MonoBehaviour
             Enemy enemy = enemyGameObject.GetComponent<Enemy>();
             enemy.health.SetCurrentHealth(0);
         }
+        //End the level music
+        if(AudioManager.manager != null)
+        {
+            AudioManager.ChangeMusicParameter("End", "True");
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is not set!");
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
