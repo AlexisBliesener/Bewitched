@@ -1687,9 +1687,9 @@ GameObject:
   - component: {fileID: 6044467882372482969}
   - component: {fileID: 7740881351330511549}
   - component: {fileID: 8254770659915325466}
-  - component: {fileID: 117850362752069624}
   - component: {fileID: 4111359890160889130}
   - component: {fileID: 8915028995297244279}
+  - component: {fileID: 8811159475293775536}
   m_Layer: 7
   m_Name: EventOgre
   m_TagString: Enemy
@@ -1890,28 +1890,6 @@ MonoBehaviour:
   offsetAttackIndicator: {x: 0.5, y: 3.5, z: 0}
   offsetPivotBat: {x: 0, y: -3, z: 0}
   offsetForTargetPosition: 5
---- !u!114 &117850362752069624
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7357877285543014215}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dev: 0
-  primaryAnimationDelay:
-  - 0
-  - 0
-  - 0
-  secondaryAnimationDelay: 0.5
-  walkSpeedMult: 1
-  idleSpeedMult: 1
-  deathSpeedMult: 1
-  hitStunMult: 1
 --- !u!114 &4111359890160889130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1945,6 +1923,38 @@ MonoBehaviour:
   flashSpeed: 1.5
   healthBarUI: {fileID: 0}
   flashingEffect: {fileID: 0}
+--- !u!114 &8811159475293775536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7357877285543014215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d25fae28dde38df49b31ba95c4174d21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dev: 0
+  primaryAnimationDelay:
+  - 0.5
+  secondaryAnimationDelay: 0.5
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
+  hitStunMult: 1
+  primaryWindupSpeedMultPlayer: 2
+  primaryWindupSpeedMultEnemy: 0.7
+  primaryComboSpeedMultPlayer:
+  - 1
+  - 1
+  primaryComboSpeedMultEnemy:
+  - 0.7
+  - 0.7
+  secondaryWindupSpeedMultPlayer: 1
+  secondaryWindupSpeedMultEnemy: 1
+  secondaryAttackSpeedMultPlayer: 1
+  secondaryAttackSpeedMultEnemy: 1
 --- !u!1 &7435417678766970335
 GameObject:
   m_ObjectHideFlags: 0
@@ -2922,15 +2932,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1469296119169685471, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.0000004768372
+      value: 0.0000015894573
       objectReference: {fileID: 0}
     - target: {fileID: 1469296119169685471, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 1469296119169685471, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -5.6666613
       objectReference: {fileID: 0}
     - target: {fileID: 1469296119169685471, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3098,15 +3108,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8467123507559486921, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.0000004768372
+      value: 0.0000015894573
       objectReference: {fileID: 0}
     - target: {fileID: 8467123507559486921, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8467123507559486921, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -5.6666613
       objectReference: {fileID: 0}
     - target: {fileID: 8467123507559486921, guid: 8b6dd7803da5d3b48964078b5214c377, type: 3}
       propertyPath: m_LocalRotation.w
