@@ -140,7 +140,7 @@ public class HealthController : MonoBehaviour
             OnDamaged?.Invoke(amt);
         }
 
-        if (characterAnimator != null)
+        if (GetComponent<Character>() != PlayerController.instance.currentCharacter &&  characterAnimator != null)
         {
             StartCoroutine(characterAnimator.SetHit());
         }
