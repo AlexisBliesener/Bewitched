@@ -724,7 +724,7 @@ public class GraphBuilder : MonoBehaviour
 
             foreach (GameObject enemyObj in enemies)
             {
-                if (enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemyObj != null && enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
