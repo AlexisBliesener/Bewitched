@@ -1788,10 +1788,12 @@ MonoBehaviour:
   primaryAttackRange: 4
   health: {fileID: 0}
   canPossess: 1
-  primaryComboSteps: 0
+  primaryComboSteps: 2
   primaryComboResetTime:
   - 0.5
+  - 0.5
   primaryComboMinTime:
+  - 0.2
   - 0.2
   characters:
     serializedVersion: 2
@@ -1859,8 +1861,6 @@ MonoBehaviour:
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
   batSwingDamage: 30
   batSwingAngle: 120
-  batSwingDuration: 0.25
-  batWindupPeriod: 1.25
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50
@@ -1869,7 +1869,6 @@ MonoBehaviour:
   ogreJumpKnockbackMaximum: 70
   ogreJumpSlamImpactRange: 8
   screamRange: 30
-  screamWindupDuration: 0.5
   minSittingTime: 3
   maxSittingTime: 7
   offsetAttackIndicator: {x: 0.5, y: 3.5, z: 0}
