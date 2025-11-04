@@ -1,3 +1,4 @@
+using DG.Tweening;
 using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,6 +36,10 @@ public class PossessionAbility : MonoBehaviour
     private GameObject secondaryHealthBar;
     [SerializeField, Tooltip("Crosshair image that changes color based on possession availability.")]
     private Image crossHair;
+    [SerializeField, Range(1,2), Tooltip("The scale of the pulse when the slider is at the max value")]
+    private float pulseScale = 1.15f;
+    [SerializeField, Range(0,1), Tooltip("The time it takes to pulse the slider when it's at the max value")]
+    private float pulseTime = 0.25f;
 
     [Header("Character References")]
     // protected for test purposes
@@ -110,6 +115,8 @@ public class PossessionAbility : MonoBehaviour
     private int possessionCharge;
     [Tooltip("The time eleth has been waiting for another possession ability 'hit' to increase charge")]
     private float possessionChargeTimer;
+    [Tooltip("Is currently in the process of possession")]
+    private bool isPossessing = false;
 
     #region Saving/Loading
     /// <summary>
@@ -202,11 +209,33 @@ public class PossessionAbility : MonoBehaviour
         {
             Debug.LogWarning("The possession collider is not found!");
         }
+        if (possessionAbilitySlider != null)
+        {
+            possessionAbilitySlider.wholeNumbers = false;
+            possessionAbilitySlider.maxValue = hitsToCharge;
+            possessionAbilitySlider.value = possessionAbilitySlider.maxValue;
+            possessionAbilitySlider.onValueChanged.AddListener(OnPossessionSliderChange);
+        }
     }
 
     private void OnDisable()
     {
         CharacterControlChangeEvent -= SwitchCharacter;
+        if (possessionAbilitySlider != null)
+        {
+            possessionAbilitySlider.onValueChanged.RemoveListener(OnPossessionSliderChange);
+        }
+    }
+    /// <summary>
+    /// Handles the slider value change event, it will make it like it pulse once when it's get to the max value
+    /// </summary>
+    private void OnPossessionSliderChange(float value)
+    {
+        if (value < possessionAbilitySlider.maxValue - 0.001f) return;
+
+        // one quick pulse 
+        possessionAbilitySlider.gameObject.transform.DOKill();
+        possessionAbilitySlider.gameObject.transform.DOScale(pulseScale, pulseTime).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);
     }
 
     private void Update()
@@ -378,6 +407,7 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private IEnumerator FirePossession()
     {
+        isPossessing = true;
         // The speed multipler of the possession animation as set in eleths animator controller
         float possessionSpeedMult = eleth.GetComponent<ElethAnimator>().GetPossessionSpeedMult();
         // reset the possession ability charge
@@ -445,6 +475,7 @@ public class PossessionAbility : MonoBehaviour
             yield return new WaitForSeconds(0.2f / possessionSpeedMult);
             Time.timeScale = 1f;
         }
+        isPossessing = false;
     }
     
     /// <summary>
@@ -563,7 +594,12 @@ public class PossessionAbility : MonoBehaviour
     {
         if (possessionAbilitySlider != null)
         {
-            possessionAbilitySlider.value = (int)(((float)possessionCharge / hitsToCharge) * 100);
+            float progresss = possessionCharge;
+            if (possessionCharge < hitsToCharge && possessionChargeTime > 0f && !isPossessing)
+            {
+                progresss += Mathf.Clamp01((Time.time - possessionChargeTimer) / possessionChargeTime); 
+            }
+            possessionAbilitySlider.value = Mathf.Clamp(progresss, 0f, hitsToCharge);
         }
         else
         {

@@ -89,7 +89,11 @@ public class Ogre : Enemy
 
     private void FixedUpdate()
     {
-        Debug.Log(currentPrimaryComboStep + " ");
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = 0;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+
         if (dead || lobotimzed) return;
 
         ManageSurrounding();
@@ -99,7 +103,7 @@ public class Ogre : Enemy
         CreateLocalInvalidArea();
 
         SetDebugString();
-        if (!playerControlling) Debug.Log(debugAIInfo);
+        //if (!playerControlling) Debug.Log(debugAIInfo);
     }
 
     /// <summary>
@@ -514,11 +518,11 @@ public class Ogre : Enemy
             float randomZ = Random.Range(-patrolRange, patrolRange);
 
             walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint, this).GetPosition(gameObject);
         }
         else
         {
-            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin, this).GetPosition(gameObject);
         }
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
