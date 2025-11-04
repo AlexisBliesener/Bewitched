@@ -1,7 +1,9 @@
 using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
+using UnityEngine.InputSystem.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -25,6 +27,8 @@ public class PlayerController : MonoBehaviour
     [Header("UI Settings")]
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
+    [SerializeField, Tooltip("The ui input module used for input")] 
+    private InputSystemUIInputModule UIInput;
 
     [Header("Buff Holder")]
     [Tooltip("Buff Component")]
@@ -71,6 +75,8 @@ public class PlayerController : MonoBehaviour
     private bool allowMovement = true;
     [Tooltip("If true eleth is currently sprints, false if not")]
     private bool sprinting = false;
+    [Tooltip("If ui has been clicked before interact was clicked")]
+    private bool uiClicked = false;
 
     // private bool dodging = false;
 
@@ -115,6 +121,21 @@ public class PlayerController : MonoBehaviour
         currentCharacter = oldHag;
 
         characterController = currentCharacter.GetComponent<CharacterController>();
+    }
+
+    private void OnEnable()
+    {
+        UIInput.actionsAsset["UI/Submit"].performed += UIClicked;
+    }
+
+    private void OnDisable()
+    {
+        UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
+    }
+
+    private void UIClicked(InputAction.CallbackContext context)
+    {
+        uiClicked = true;
     }
 
     private void FixedUpdate()
@@ -293,7 +314,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.canceled)
         {
-            if (!sprinting)
+            if (!sprinting && !uiClicked)
             {
                 if (nearbyInteractable != null)
                 {
@@ -306,6 +327,10 @@ public class PlayerController : MonoBehaviour
                 {
                     exitDoor.OpenDoor();
                 }
+            }
+            else
+            {
+                uiClicked = false;
             }
             sprinting = false;
         }
