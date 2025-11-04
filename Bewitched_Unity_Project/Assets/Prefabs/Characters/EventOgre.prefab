@@ -1322,6 +1322,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4911051384731142775}
   - component: {fileID: 6153213257958067481}
+  - component: {fileID: 2831074388044385295}
   m_Layer: 0
   m_Name: ogreBlockoutFull
   m_TagString: Untagged
@@ -1369,6 +1370,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2831074388044385295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5723054343492948173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c51d35b30aef41d588170b6e0a3b8e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsPlaying: []
+  character: {fileID: 0}
+  isEventEnemy: 0
 --- !u!1 &5723243223715409206
 GameObject:
   m_ObjectHideFlags: 0
