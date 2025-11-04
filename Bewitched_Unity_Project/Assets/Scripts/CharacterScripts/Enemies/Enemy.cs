@@ -922,11 +922,11 @@ public abstract class Enemy : Character
             if (LookForPlayer())
             {
                 // Check distance first - if it is greater than surrounding then chase
-                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maxSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
+                if (Vector3.Distance(transform.position, currentPlayer.transform.position) > maxSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Chasing);
                 }
-                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= minSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
+                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) < minSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Retreating);
                 }
@@ -1004,7 +1004,7 @@ public abstract class Enemy : Character
             int numSet = 0;
             ResetSurroundingArea();
             float totalDist = maxSurroundingRadius + sizeRadius;
-            List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
+            List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(transform.position, totalDist);
             foreach (List<int> position in nodes)
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
@@ -1039,7 +1039,8 @@ public abstract class Enemy : Character
     public void ManageSurrounding()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        if (dist <= currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius && dist >= currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius)
+        //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
+        if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))
         {
             SurroundingPoints.instance.AddSurroundingEnemy(this);
             if (playerControlling) ResetSurroundingArea();
@@ -1047,7 +1048,7 @@ public abstract class Enemy : Character
         }
         else
         {
-            if (dist < currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius && !playerControlling) CreateLocalSurroundingArea();
+            if (dist < currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius && !playerControlling) CreateLocalSurroundingArea();
             else ResetSurroundingArea();
             SurroundingPoints.instance.RemoveSurroundingEnemy(this);
         }
