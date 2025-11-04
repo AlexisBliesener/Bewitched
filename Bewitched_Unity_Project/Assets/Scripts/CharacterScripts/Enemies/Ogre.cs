@@ -210,6 +210,11 @@ public class Ogre : Enemy
     /// </summary>
     public override void SecondaryAttack()
     {
+        if(animator == null)
+        {
+            Debug.Log("Animator is not set!");
+            return;
+        }
         attackingSecondary = true;
         timeLastSecondary = Time.time;
         attackStateCoroutine = StartCoroutine(ScreamWindup());
@@ -225,7 +230,7 @@ public class Ogre : Enemy
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = 0;
-        while (timeStarted < 1.125 / animator.GetPrimaryWindupMult())
+        while (animator != null && timeStarted < 1.125 / animator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
             yield return null;
@@ -283,7 +288,15 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
-        animator.SetSwing();
+        if(animator != null)
+        {
+            animator.SetSwing();
+        }
+        else
+        {
+            Debug.LogWarning("Animator not set!");
+        }
+
         attackStateCoroutine = StartCoroutine(SwingBat());
         yield break;
     }
@@ -381,7 +394,7 @@ public class Ogre : Enemy
         attackState = AttackState.Windup;
 
         float timeStarted = Time.time;
-        while (Time.time - timeStarted < 0.417f / animator.GetSecondaryWindupMult())
+        while (animator != null && Time.time - timeStarted < 0.417f / animator.GetSecondaryWindupMult())
         {
             SetMovementValues(false);
             yield return null;

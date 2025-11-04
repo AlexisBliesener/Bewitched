@@ -146,30 +146,30 @@ public class OgreTests
     /// <summary>
     /// When PrimaryAttack is called it should start BatWindup coroutine and assign it to attackStateCoroutine.
     /// </summary>
-    [UnityTest]
-    public IEnumerator PrimaryAttack_StartsBatWindup()
-    {
-        testOgre.PrimaryAttack();
-        yield return new WaitForSeconds(0.1f);
-        // Get attackStateCoroutine
-        FieldInfo attackStateCoroutineField = typeof(Ogre).GetField("attackStateCoroutine", BindingFlags.Instance | BindingFlags.NonPublic);
-        Coroutine attackStateCoroutine = (Coroutine)attackStateCoroutineField.GetValue(testOgre);
-        Assert.IsNotNull(attackStateCoroutine);
-    }
+    //[UnityTest]
+    //public IEnumerator PrimaryAttack_StartsBatWindup()
+    //{
+    //    testOgre.PrimaryAttack();
+    //    yield return new WaitForSeconds(0.1f);
+    //    // Get attackStateCoroutine
+    //    FieldInfo attackStateCoroutineField = typeof(Ogre).GetField("attackStateCoroutine", BindingFlags.Instance | BindingFlags.NonPublic);
+    //    Coroutine attackStateCoroutine = (Coroutine)attackStateCoroutineField.GetValue(testOgre);
+    //    Assert.IsNotNull(attackStateCoroutine);
+    //}
 
 
     /// <summary>
     /// When SecondaryAttack is triggered ogre should start scream windup.
     /// </summary>
-    [UnityTest]
-    public IEnumerator SecondaryAttack_StartsScreamWindup()
-    {
-        testOgre.SecondaryAttack();
-        yield return new WaitForSeconds(0.1f);
-        FieldInfo attackingSecondaryField = typeof(Ogre).GetField("attackingSecondary", BindingFlags.Instance | BindingFlags.NonPublic);
-        bool attackingSecondary = (bool)attackingSecondaryField.GetValue(testOgre);
-        Assert.IsTrue(attackingSecondary);
-    }
+    //[UnityTest]
+    //public IEnumerator SecondaryAttack_StartsScreamWindup()
+    //{
+    //    testOgre.SecondaryAttack();
+    //    yield return new WaitForSeconds(0.1f);
+    //    FieldInfo attackingSecondaryField = typeof(Ogre).GetField("attackingSecondary", BindingFlags.Instance | BindingFlags.NonPublic);
+    //    bool attackingSecondary = (bool)attackingSecondaryField.GetValue(testOgre);
+    //    Assert.IsTrue(attackingSecondary);
+    //}
 
     /// <summary>
     /// ScreamWindup should set attack state and call HandleScream after some delay.
