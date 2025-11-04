@@ -38,6 +38,9 @@ public class Node
     [Tooltip("The room this node belongs to")]
     [SerializeField] RoomController room;
 
+    [Tooltip("Distance of node to nearest environment")]
+    [SerializeField] float distanceToEnvironment;
+
     /// <summary>
     /// Sets the values for the node
     /// </summary>
@@ -129,6 +132,7 @@ public class Node
             {
                 return false;
             }
+            SetEnvironmentDistance(walls);
             return true;
         }
         return false;
@@ -248,5 +252,32 @@ public class Node
     public int GetYPos()
     {
         return yPos;
+    }
+
+    /// <summary>
+    /// Sets the environment distance
+    /// </summary>
+    /// <param name="environment"> Environment layer </param>
+    public void SetEnvironmentDistance(LayerMask environment)
+    {
+        Collider[] colliders = Physics.OverlapSphere(GetPosition(), 50, environment);
+        float minDistance = 50;
+
+        foreach (Collider collider in colliders)
+        {
+            float dist = Vector3.Distance(collider.transform.position, GetPosition());
+            if (dist < minDistance) minDistance = dist;
+        }
+
+        distanceToEnvironment = minDistance;
+    }
+
+    /// <summary>
+    /// Gets the distance to the environment
+    /// </summary>
+    /// <returns> Gets environment distance </returns>
+    public float GetEnvironmentDistance()
+    {
+        return distanceToEnvironment;
     }
 }

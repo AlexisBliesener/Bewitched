@@ -18,13 +18,20 @@ public class SwapUpgradeManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Swap Upgrade Screen")]
     public GameObject swapUpgradeUI;
+    [Tooltip("The Parent that holds upgrade buttons")]
+    public GameObject upgradesParent;
     [Tooltip("The Shop: Buy Upgrade Screen")]
     public GameObject buyUpgradeUI;
+
+    [Header("Screen Objects")]
     [Tooltip("Pop up description game object for when the player hovers over an upgrade.")]
     public GameObject descriptionGO;
+    [Tooltip("Selected upgrade name text, child of descriptionGO.")]
+    private TMP_Text nameText;
     [Tooltip("Description text, child of descriptionGO.")]
     private TMP_Text descriptionText;
-
+    [Tooltip("Pending upgrade game object, needs to contain the placeholder upgrade details.")]
+    public GameObject pendingGO;
 
     [Header("List of Upgrades Acquired")]
     [Tooltip("List of upgrades that the player has acquired.")]
@@ -56,7 +63,7 @@ public class SwapUpgradeManager : MonoBehaviour
         }
 
         // Get swap upgrade placeholder buttons
-        swapUpgradeButtons = swapUpgradeUI.GetComponentsInChildren<Button>(true);
+        swapUpgradeButtons = upgradesParent.GetComponentsInChildren<Button>(true);
         if (swapUpgradeButtons.Length == 5)
         {
             UpdateSwappableUpgrades();
@@ -66,10 +73,24 @@ public class SwapUpgradeManager : MonoBehaviour
             Debug.LogWarning("Upgrade Swap UI does not have 5 buttons/upgrades.");
         }
 
-        // Get description text
+        // Get name and description text for description screen
         if (descriptionGO != null)
         {
-            descriptionText = descriptionGO.GetComponentInChildren<TMP_Text>(true);
+            TMP_Text[] descTexts = descriptionGO.GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in descTexts)
+            {
+                if (t != null)
+                {
+                    if (t.name == "UpgradeName")
+                    {
+                        nameText = t;
+                    }
+                    else if (t.name == "DescriptionText")
+                    {
+                        descriptionText = t;
+                    }
+                }
+            }
         }
     }
 
@@ -83,6 +104,8 @@ public class SwapUpgradeManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
+
+        UpdateSelectedUpgrade();
     }
 
     /// <summary>
@@ -98,6 +121,50 @@ public class SwapUpgradeManager : MonoBehaviour
         else if (buyUpgradeUI.activeInHierarchy)
         {
             EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
+        }
+    }
+
+    /// <summary>
+    /// Updates pending upgrade display
+    /// </summary>
+    public void UpdateSelectedUpgrade()
+    {
+        if (pendingGO == null)
+        {
+            Debug.LogWarning("pendingGO is not assigned.");
+            return;
+        }
+        DropData pending = DropSystem.Instance != null ? DropSystem.Instance.pendingSwap : null;
+        if (pending == null)
+        {
+            Debug.LogWarning("No pending swap found in DropSystem.");
+            pendingGO.SetActive(false);
+            return;
+        }
+        TMP_Text[] texts = pendingGO.GetComponentsInChildren<TMP_Text>(true);
+        foreach (var text in texts)
+        {
+            if (text.name == "Title")
+            {
+                text.text = pending.GetDropName();
+
+            }
+            else if (text.name == "Description")
+            {
+                text.text = pending.GetDescription();
+            }
+        }
+
+        GameObject iconGO = pendingGO.transform.GetChild(0).gameObject;
+        Image iconSprite = iconGO.GetComponent<Image>();
+
+        if (iconGO != null)
+        {
+            Image iconImage = iconGO.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                iconImage.sprite = pending.GetIcon();
+            }
         }
     }
 
@@ -212,7 +279,7 @@ public class SwapUpgradeManager : MonoBehaviour
             // OnSelect event (controller highlight or hover)
             EventTrigger.Entry selectEntry = new EventTrigger.Entry();
             selectEntry.eventID = EventTriggerType.Select;
-            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDescription()); });
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDropName(), upgrade.GetDescription()); });
             trigger.triggers.Add(selectEntry);
 
             // OnDeselect event (leaving the button)
@@ -222,10 +289,42 @@ public class SwapUpgradeManager : MonoBehaviour
             trigger.triggers.Add(deselectEntry);
         }
     }
+
     /// <summary>
-    /// Show Description of upgrade that is currently selected
+    /// Cancels swap transaction
     /// </summary>
-    private void ShowDescription(string text)
+    public void CancelSwap()
+    {
+        if (DropSystem.Instance == null)
+        {
+            Debug.LogWarning("DropSystem.Instance not found.");
+            return;
+        }
+        DropData pending = DropSystem.Instance.pendingSwap;
+        DropSystem.Instance.pendingSwap = null;
+        CloseScreen();
+        if (buyUpgradeUI != null && buyUpgradeUI.activeInHierarchy)
+        {
+            buyUpgradeUI.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
+        }
+        else if (DropSystem.Instance.upgradeSelectionUI != null)
+        {
+            DropSystem.Instance.upgradeSelectionUI.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(
+                DropSystem.Instance.upgradeSelectionUI.GetComponent<UpgradeSelectionManager>().firstButton
+            );
+        }
+        else
+        {
+            Debug.LogWarning("No UI found to return to after canceling swap.");
+        }
+    }
+
+    /// <summary>
+    /// Show Name and Description of upgrade that is currently selected
+    /// </summary>
+    private void ShowDescription(string upgradeNameText, string descText)
     {
         if (descriptionGO == null)
         {
@@ -235,13 +334,22 @@ public class SwapUpgradeManager : MonoBehaviour
 
         descriptionGO.SetActive(true);
 
-        if (descriptionText != null)
+        if (nameText != null)
         {
-            descriptionText.text = text;
+            nameText.text = upgradeNameText;
         }
         else
         {
-            Debug.LogWarning("No TMP_Text found inside descriptionGO!");
+            Debug.LogWarning("No name TMP_Text found inside descriptionGO!");
+        }
+
+        if (descriptionText != null)
+        {
+            descriptionText.text = descText;
+        }
+        else
+        {
+            Debug.LogWarning("No description TMP_Text found inside descriptionGO!");
         }
     }
     /// <summary>
@@ -251,6 +359,7 @@ public class SwapUpgradeManager : MonoBehaviour
     {
         if (descriptionGO == null) return;
 
+        if (nameText != null) nameText.text = "";
         if (descriptionText != null) descriptionText.text = "";
     }
 
