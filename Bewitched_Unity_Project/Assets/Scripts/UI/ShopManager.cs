@@ -36,6 +36,10 @@ public class ShopManager : MonoBehaviour
     [Header("Pop-ups")]
     [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
     public GameObject NoSoulText;
+    [Tooltip("Pop up description game object for when the player hovers over an upgrade.")]
+    public GameObject descriptionGO;
+    [Tooltip("Description text, child of descriptionGO.")]
+    private TMP_Text descriptionText;
 
     /// <summary>
     /// It sets the instance of the ShopManager class. And allow only one instance of the class.
@@ -49,6 +53,12 @@ public class ShopManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Get Description text
+        if (descriptionGO != null)
+        {
+            descriptionText = descriptionGO.GetComponentInChildren<TMP_Text>(true);
+        }
     }
 
     /// <summary>
@@ -133,6 +143,7 @@ public class ShopManager : MonoBehaviour
         SellUI.gameObject.SetActive(false);
         BuyUI.gameObject.SetActive(true);
         StartCoroutine(SetFirstButtonDelay());
+        HideDescription();
     }
 
     /// <summary>
@@ -143,6 +154,7 @@ public class ShopManager : MonoBehaviour
         BuyUI.gameObject.SetActive(false);
         SellUI.gameObject.SetActive(true);
         StartCoroutine(SetFirstButtonDelay());
+        HideDescription();
     }
 
     /// <summary>
@@ -154,7 +166,7 @@ public class ShopManager : MonoBehaviour
         {
             DropSystem.Instance.OnShopAlterInteract -= UpdateBuyOptions;
         }
-
+        HideDescription();
         EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked;
@@ -234,6 +246,27 @@ public class ShopManager : MonoBehaviour
                     ShowPopup(NoSoulText, 3f);
                 }
             });
+
+            // Description Events
+            EventTrigger trigger = buyUpgradeButtons[i].GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = buyUpgradeButtons[i].gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event (controller highlight or hover)
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(option.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event (leaving the button)
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
+
         }
     }
 
@@ -344,6 +377,26 @@ public class ShopManager : MonoBehaviour
 
             });
 
+            // Description Events
+            EventTrigger trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+            trigger.triggers.Clear();
+
+            // OnSelect event
+            EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener((eventData) => { ShowDescription(upgrade.GetDescription()); });
+            trigger.triggers.Add(selectEntry);
+
+            // OnDeselect event
+            EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+            trigger.triggers.Add(deselectEntry);
+
         }
 
         // keep menu and exit button active
@@ -369,6 +422,38 @@ public class ShopManager : MonoBehaviour
         popup.SetActive(true);
         yield return new WaitForSecondsRealtime(seconds);
         popup.SetActive(false);
+    }
+
+    /// <summary>
+    /// Show the Description game object, 
+    /// text gets filled in with the selected upgrades description.
+    /// </summary>
+    private void ShowDescription(string text)
+    {
+        if (descriptionGO == null)
+        {
+            Debug.LogWarning("descriptionGO not assigned.");
+            return;
+        }
+        descriptionGO.SetActive(true);
+        if (descriptionText != null)
+        {
+            descriptionText.text = text;
+        }
+        else
+        {
+            Debug.LogWarning("No TMP_Text found inside descriptionGO");
+        }
+    }
+
+    /// <summary>
+    /// Hide the Description game object when no upgrade is selected.
+    /// </summary>
+    private void HideDescription()
+    {
+        if (descriptionGO == null) return;
+
+        descriptionGO.SetActive(false);
     }
 
     /// <summary>

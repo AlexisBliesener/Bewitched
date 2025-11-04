@@ -10,14 +10,6 @@ public class EnemyHealth : HealthController
     [SerializeField, Tooltip("Immediately kill this enemy")]
     bool kill;
 
-    [Tooltip("The animator that controls this enemy")]
-    private CharacterAnimator characterAnimator;
-
-    private void Start()
-    {
-        characterAnimator = GetComponent<CharacterAnimator>();
-    }
-
     /// <summary>
     /// Override to show mini health bar when damaged by player
     /// </summary>

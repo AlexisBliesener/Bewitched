@@ -17,12 +17,7 @@ public abstract class Enemy : Character
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
-    [Header("Surrounding Settings")]
-    [Tooltip("Distance from point an enemy can be before switching to chase"), Range(0, 10)]
-    [SerializeField] protected float surroundingToChaseRadius = 2;
 
-    [Tooltip("Distance from point an enemy must reach before switching to surround"), Range(0, 10)]
-    [SerializeField] protected float chaseToSurroundingRadius = 1;
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
     public float sightRange;
@@ -34,12 +29,6 @@ public abstract class Enemy : Character
 
     [Tooltip("Walk Point Range"), Range(0, 50)]
     public float patrolRange;
-
-    [Tooltip("Minimum distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float minimumSurroundingDistance = 3;
-
-    [Tooltip("Maxium distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float maximumSurroundingDistance = 5;
 
     [Header("Time/Delay Settings")]
 
@@ -270,7 +259,7 @@ public abstract class Enemy : Character
     public void AIMove()
     {
         animateMove = true;
-        if (aiState == AIMovementState.PlayerControlled) return;
+        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
 
         if (pathState != PathState.Set)
         {
@@ -474,9 +463,9 @@ public abstract class Enemy : Character
     /// </summary>
     /// <param name="location"> Transform of the character </param>
     /// <returns> True if in range </returns>
-    public bool CheckTargetInRange(Transform location)
+    public bool CheckTargetInRange(Character target)
     {
-        if ((location.position - transform.position).magnitude < sightRange)
+        if ((target.transform.position - transform.position).magnitude < sightRange + target.sizeRadius + sizeRadius)
         {
             return true;
         }
@@ -504,7 +493,7 @@ public abstract class Enemy : Character
     /// <returns> True if player is visible to enemy </returns>
     public bool LookForPlayer()
     {
-        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
+        if (CheckTargetInRange(currentPlayer) && CheckCharacterBehindEnvironment(currentPlayer.transform))
         {
             seenTarget = true;
             lastTargetLocation = currentPlayer.transform.position;
@@ -931,9 +920,13 @@ public abstract class Enemy : Character
             if (LookForPlayer())
             {
                 // Check distance first - if it is greater than surrounding then chase
-                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maxSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Chasing);
+                }
+                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) <= minSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
+                {
+                    TransitionToState(AIMovementState.Retreating);
                 }
                 else
                 {
@@ -1008,7 +1001,7 @@ public abstract class Enemy : Character
         {
             int numSet = 0;
             ResetSurroundingArea();
-            float totalDist = minimumSurroundingDistance + sizeRadius;
+            float totalDist = maxSurroundingRadius + sizeRadius;
             List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
             foreach (List<int> position in nodes)
             {
@@ -1044,7 +1037,7 @@ public abstract class Enemy : Character
     public void ManageSurrounding()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius)
+        if (dist <= currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius && dist >= currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius)
         {
             SurroundingPoints.instance.AddSurroundingEnemy(this);
             if (playerControlling) ResetSurroundingArea();

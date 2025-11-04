@@ -135,7 +135,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Grand Finale effect.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }

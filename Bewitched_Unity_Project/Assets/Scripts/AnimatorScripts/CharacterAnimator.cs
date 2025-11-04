@@ -32,7 +32,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
     {
-            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump"
+            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump", "Hit"
     };
 
     [Tooltip("The current animation state of the character")]
@@ -108,19 +108,27 @@ public class CharacterAnimator : MonoBehaviour
 
     public IEnumerator SetHit()
     {
-        ResetAllTriggers();
-        animator.SetFloat("HitSpeedMult", hitStunMult);
-        canChange = false;
-        if(character == PlayerController.instance.currentCharacter)
+        if(animator != null)
         {
-            PlayerController.instance.SetAllowMovement(false);
+            currentAnimationState = "Hit";
+            ResetAllTriggers();
+            animator.SetFloat("HitSpeedMult", hitStunMult);
+            canChange = false;
+            if (character == PlayerController.instance.currentCharacter)
+            {
+                PlayerController.instance.SetAllowMovement(false);
+            }
+            animator.SetTrigger("Hit");
+            yield return new WaitForSeconds(0.12f / hitStunMult);
+            canChange = true;
+            if (character == PlayerController.instance.currentCharacter)
+            {
+                PlayerController.instance.SetAllowMovement(true);
+            }
         }
-        animator.SetTrigger("Hit");
-        yield return new WaitForSeconds(0.12f / hitStunMult);
-        canChange = true;
-        if (character == PlayerController.instance.currentCharacter)
+        else
         {
-            PlayerController.instance.SetAllowMovement(true);
+            Debug.LogWarning("Animator is not assigned!");
         }
     }
 
@@ -219,12 +227,19 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     protected virtual void ResetAllTriggers()
     {
-        animator.ResetTrigger("Idle");
-        animator.ResetTrigger("Run");
-        animator.ResetTrigger("PrimaryAttack");
-        animator.ResetTrigger("SecondaryAttack");
-        animator.ResetTrigger("Death");
-        animator.ResetTrigger("Hit");
+        if (animator != null)
+        {
+            animator.ResetTrigger("Idle");
+            animator.ResetTrigger("Run");
+            animator.ResetTrigger("PrimaryAttack");
+            animator.ResetTrigger("SecondaryAttack");
+            animator.ResetTrigger("Death");
+            animator.ResetTrigger("Hit");
+        }
+        else
+        {
+            Debug.LogWarning("Animator is not assigned!");
+        }
     }
 
     /// <summary>

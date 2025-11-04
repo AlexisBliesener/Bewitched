@@ -633,10 +633,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08bb1da129099754f8c871ba9769ea27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dev: 0
+  dev: 1
   characterName: Ogre
   modelPieces: []
-  movementSpeed: 3
+  movementSpeed: 5
   approachSpeed: 7
   acceleration: 15
   deceleration: 11
@@ -646,9 +646,8 @@ MonoBehaviour:
   weight: 10
   pushForceModifer: 0.15
   sizeRadius: 1.5
-  numSurroundingPoints: 8
-  minSurroundingRadius: 4
-  maxSurroundingRadius: 9
+  minSurroundingRadius: 3
+  maxSurroundingRadius: 6
   teamID: 2
   priority: 1
   shoulderOffset: {x: 1, y: 2.5, z: 0}
@@ -662,9 +661,12 @@ MonoBehaviour:
   primaryAttackRange: 4
   health: {fileID: 0}
   canPossess: 1
+  primaryComboSteps: 2
   primaryComboResetTime:
-  - 0.5
+  - 2
+  - 2
   primaryComboMinTime:
+  - 0.2
   - 0.2
   characters:
     serializedVersion: 2
@@ -683,20 +685,16 @@ MonoBehaviour:
   primaryFireIcon: {fileID: 21300000, guid: 353e2a9eaa7e1594eba359699814ca4c, type: 3}
   secondaryFireIcon: {fileID: 21300000, guid: 85dd53280ef138649b2847c71c0fb1ba, type: 3}
   hitStunPrefab: {fileID: 8101208333443039276, guid: c0c52c87025eef54f9a204bf083040b9, type: 3}
-  counterIndicatorVFXPrefab: {fileID: 0}
-  attackState: 0
+  counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
+  attackState: 3
   lobotimzed: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
-  surroundingToChaseRadius: 6
-  chaseToSurroundingRadius: 4
   sightRange: 10
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
-  minimumSurroundingDistance: 3
-  maximumSurroundingDistance: 5
-  timeBeforeSearch: 5
+  timeBeforeSearch: 2.5
   attackDelayAI: 0
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
@@ -733,9 +731,9 @@ MonoBehaviour:
   slamImpactEffects: {fileID: 0}
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
   batSwingDamage: 30
-  batSwingAngle: 60
-  batSwingDuration: 1
-  batWindupPeriod: 0.5
+  batSwingAngle: 120
+  batSwingDuration: 0.25
+  batWindupPeriod: 1.25
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50
@@ -743,7 +741,7 @@ MonoBehaviour:
   ogreJumpKnockbackMinimum: 20
   ogreJumpKnockbackMaximum: 70
   ogreJumpSlamImpactRange: 8
-  screamRange: 8
+  screamRange: 10
   screamWindupDuration: 0.5
   minSittingTime: 3
   maxSittingTime: 7

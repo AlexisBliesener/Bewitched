@@ -1,9 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 
@@ -106,15 +107,6 @@ public class Goblin : Enemy
     {
         CreateLocalInvalidArea();
         ManageSurrounding();
-        if (dead || lobotimzed) return;
-        currentPlayer = playerController.GetCurrentCharacter();
-
-        SetDebugString();
-        //Debug.Log(debugAIInfo);
-
-        SetAIState();
-
-        SetBehavior();
 
         if (playerControlling)
         {
@@ -124,6 +116,16 @@ public class Goblin : Enemy
         {
             lockedCharacter = currentPlayer;
         }
+
+        if (dead || lobotimzed) return;
+        currentPlayer = playerController.GetCurrentCharacter();
+
+        SetDebugString();
+
+        SetAIState();
+        ManageSurrounding();
+
+        SetBehavior();
 
         if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
         {
@@ -188,11 +190,12 @@ public class Goblin : Enemy
         }
 
         Character tempLockedChar = lockedCharacter;
+
         attackingPrimary = true;
 
         if (playerControlling)
         {
-            if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 inPrimaryWindup = true;
                 attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
@@ -208,8 +211,6 @@ public class Goblin : Enemy
             attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
     }
-
-
 
     /// <summary>
     /// Starts the windup for the knife
@@ -242,6 +243,11 @@ public class Goblin : Enemy
             yield return null;
         }
 
+        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
+        {
+            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
@@ -262,7 +268,7 @@ public class Goblin : Enemy
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
-                // Move just before environment hit point
+                // Move just before environment/character hit point
                 dis = hit.distance;
                 targetPos = hit.point - direction * (sizeRadius + offSetForward);
             }
@@ -273,6 +279,19 @@ public class Goblin : Enemy
             float timeStarted = Time.time;
             timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
+
+            if (playerControlling)
+            {
+                if (tempLockedCharacter != null)
+                {
+                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - this.gameObject.transform.position, chaseTime * dis);
+                }
+                else
+                {
+                    CameraController.instance.OnAttack(this.gameObject.transform.forward, chaseTime * dis);
+                }
+            }
+
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
@@ -333,11 +352,11 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        float timeStart = Time.time;
         if (!playerControlling)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
+                float timeStart = Time.time;
                 while (Time.time - timeStart > 0.1f)
                 {
                     SetMovementValues(false);
@@ -383,6 +402,11 @@ public class Goblin : Enemy
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
         GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
+
+        if (playerControlling)
+        {
+           CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
+        }
 
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
@@ -538,7 +562,18 @@ public class Goblin : Enemy
 
         if (direction == Vector3.zero) // If first use, set desiredVelocity alone and have AI pause
         {
-            if (!playerControlling) yield return new WaitForSeconds(attackDelayAI);
+            float delayTimeStarted = Time.time;
+            while (!playerControlling && Time.time - delayTimeStarted < attackDelayAI)
+            {
+                SetMovementValues(false);
+                yield return null;
+            }
+
+            if (playerControlling) // Sets the target correctly at the moment before the spin
+            {
+                Enemy target = PlayerController.instance.GetLockedTarget();
+                tempLockedCharacter = target;
+            }
 
             if (tempLockedCharacter)
             {
@@ -557,6 +592,11 @@ public class Goblin : Enemy
 
         desiredVelocity.y = 0;
         desiredVelocity = desiredVelocity.normalized * spinSpeed;
+
+        if (playerControlling)
+        {
+            CameraController.instance.OnAttack(desiredVelocity, CameraController.instance.GetGoblinSecondaryRotateTime());
+        }
 
         Vector3 drift;
 
@@ -586,6 +626,7 @@ public class Goblin : Enemy
         float timeSinceBegan = 0;
 
         float distanceTravelled = 0;
+        bool cameraRotationStopped = false;
         while (distanceTravelled < distance)
         {
             if (slowTime && Time.time - timeStarted < 0.05f)
@@ -618,7 +659,32 @@ public class Goblin : Enemy
                 rotationalVelocity = spinRotationalSpeed;
             }
 
-            GetCharacterController().Move(velocity * Time.deltaTime);
+            // Check for impact before moving and adjust as needed
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
+            {
+                if(!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, characters))
+            {
+                if (!cameraRotationStopped)
+                {
+                    cameraRotationStopped = true;
+                    CameraController.instance.StopRotations();
+                }
+                float distRatio = Vector3.Distance(transform.position, hit.point) / (velocity.magnitude * Time.deltaTime);
+                GetCharacterController().Move(velocity * Time.deltaTime * distRatio);
+            }
+            else
+            {
+                GetCharacterController().Move(velocity * Time.deltaTime);
+            }
             transform.Rotate(Vector3.up, rotationalVelocity * Time.deltaTime);
 
             distanceTravelled += velocity.magnitude * Time.deltaTime;
@@ -912,13 +978,10 @@ public class Goblin : Enemy
 
         if (pathState == PathState.Set || currentPath != null)
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
         AILook();

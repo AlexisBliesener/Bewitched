@@ -86,7 +86,7 @@ public class Vampirism : MonoBehaviour, IDrop
     /// <summary>
     /// Activates the Vampirism effect, enabling life steal.
     /// </summary>
-    public void Activate()
+    public void Activate(DropData dropData = null)
     {
         active = true;
     }

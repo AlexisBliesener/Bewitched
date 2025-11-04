@@ -12,7 +12,7 @@ public interface IDrop
     /// <summary>
     /// Activate the drop
     /// </summary>
-    void Activate();
+    void Activate(DropData dropData = null);
     
     /// <summary>
     /// Deactivate the drop
