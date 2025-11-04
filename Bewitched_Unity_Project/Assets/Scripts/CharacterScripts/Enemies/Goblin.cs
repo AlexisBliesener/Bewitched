@@ -298,8 +298,12 @@ public class Goblin : Enemy
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     animator.ExitLeap();
                 }
+                else if(tempLockedCharacter == null)
+                {
+                    animator.ExitLeap();
+                }
 
-                if (Time.time - timeStarted >= counterWindowLength  * chaseTime * dis ) //  not dodgable
+                if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
                 {
                     if (!triggerSet)
                     {
@@ -326,6 +330,11 @@ public class Goblin : Enemy
                 GetCharacterController().enabled = false;
                 inPrimaryWindup = false;
                 yield return null;
+            }
+
+            if(!triggerSet)
+            {
+                animator.ExitLeap();
             }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
@@ -695,9 +704,6 @@ public class Goblin : Enemy
         float timeSinceSlowBegan = 0;
         Destroy(hitbox);
 
-        // end spin portion of the secondary attack animation, move into stagger portion
-        animator.SetSecondaryAttackEnded();
-
         while (timeSinceSlowBegan < 0.5f)
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, timeSinceSlowBegan / 0.5f);
@@ -725,6 +731,9 @@ public class Goblin : Enemy
 
         velocity = Vector3.zero; // Clamping velocity
         rotationalVelocity = 0;
+
+        // end spin portion of the secondary attack animation, move into stagger portion
+        animator.SetSecondaryAttackEnded();
 
         while (animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
