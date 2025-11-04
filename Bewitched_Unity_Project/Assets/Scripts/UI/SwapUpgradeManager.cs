@@ -18,6 +18,8 @@ public class SwapUpgradeManager : MonoBehaviour
     [Header("Screens")]
     [Tooltip("The Swap Upgrade Screen")]
     public GameObject swapUpgradeUI;
+    [Tooltip("The Parent that holds upgrade buttons")]
+    public GameObject upgradesParent;
     [Tooltip("The Shop: Buy Upgrade Screen")]
     public GameObject buyUpgradeUI;
 
@@ -61,7 +63,7 @@ public class SwapUpgradeManager : MonoBehaviour
         }
 
         // Get swap upgrade placeholder buttons
-        swapUpgradeButtons = swapUpgradeUI.GetComponentsInChildren<Button>(true);
+        swapUpgradeButtons = upgradesParent.GetComponentsInChildren<Button>(true);
         if (swapUpgradeButtons.Length == 5)
         {
             UpdateSwappableUpgrades();
@@ -287,6 +289,38 @@ public class SwapUpgradeManager : MonoBehaviour
             trigger.triggers.Add(deselectEntry);
         }
     }
+
+    /// <summary>
+    /// Cancels swap transaction
+    /// </summary>
+    public void CancelSwap()
+    {
+        if (DropSystem.Instance == null)
+        {
+            Debug.LogWarning("DropSystem.Instance not found.");
+            return;
+        }
+        DropData pending = DropSystem.Instance.pendingSwap;
+        DropSystem.Instance.pendingSwap = null;
+        CloseScreen();
+        if (buyUpgradeUI != null && buyUpgradeUI.activeInHierarchy)
+        {
+            buyUpgradeUI.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
+        }
+        else if (DropSystem.Instance.upgradeSelectionUI != null)
+        {
+            DropSystem.Instance.upgradeSelectionUI.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(
+                DropSystem.Instance.upgradeSelectionUI.GetComponent<UpgradeSelectionManager>().firstButton
+            );
+        }
+        else
+        {
+            Debug.LogWarning("No UI found to return to after canceling swap.");
+        }
+    }
+
     /// <summary>
     /// Show Name and Description of upgrade that is currently selected
     /// </summary>
@@ -325,6 +359,7 @@ public class SwapUpgradeManager : MonoBehaviour
     {
         if (descriptionGO == null) return;
 
+        if (nameText != null) nameText.text = "";
         if (descriptionText != null) descriptionText.text = "";
     }
 
