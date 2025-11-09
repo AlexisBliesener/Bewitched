@@ -611,7 +611,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual Vector3 GetCurrentSpeedVector()
     {
-        return new Vector3(0, 0, 0);
+        return velocity;
     }
 
     public void EndAttacks()

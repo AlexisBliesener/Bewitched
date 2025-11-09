@@ -25,39 +25,10 @@ public class Guard : Enemy
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
 
-    [Tooltip("Shield Bash Minimum Speed")]
-    [SerializeField] float minimumShieldBashSpeed;
-    [Tooltip("Shield Bash Maximum Speed")]
-    [SerializeField] float maximumShieldBashSpeed;
-
-    [Tooltip("Shield Bash Minimum Damage")]
-    [SerializeField] float minimumShieldBashDamage;
-    [Tooltip("Shield Bash Maximum Damage")]
-    [SerializeField] float maximumShieldBashDamage;
-
-    [Tooltip("Shield Bash Minimum Knockback")]
-    [SerializeField] float minimumShieldBashKnockback;
-    [Tooltip("Shield Bash Maximum Knockback")]
-    [SerializeField] float maximumShieldBashKnockback;
-
-    [Tooltip("Shield Bash Effects")]
-    [SerializeField] AttackStatusEffects shieldBashEffects;
-
-    [Tooltip("Charge Time to Max")]
-    [SerializeField] float maxShieldBashChargeTime;
-    [Tooltip("Shield Bash Duration")]
-    [SerializeField] float bashDuration;
-
-    [Tooltip("Movement Speed When Charging")]
-    [SerializeField] float chargingMovementSpeed = 2;
-
-    bool chargingShieldBash = false;
-
-    float currentShieldBashSpeed;
-    float currentShieldBashDamage;
-    float currentShieldBashKnockback;
-
-    float timeStartedBash;
+    [Tooltip("Shield raise time")]
+    [SerializeField] float shieldRaiseTime = 0.2f;
+    [Tooltip("Shield lower time")]
+    [SerializeField] float shieldLowerTime = 0.3f;
 
     [Tooltip("Guard animator script that controls the guard animations")]
     private CharacterAnimator animator; // I have it as Character rn as I'm sure GuardAnimator will have similar functions
@@ -84,7 +55,20 @@ public class Guard : Enemy
 
     private bool inPrimaryWindup = false;
     private Vector3 targetPos;
-    private bool shielding = false;
+
+    private GameObject shieldObject;
+
+    [Tooltip("Shield status enum")]
+    private enum ShieldStatus
+    {
+        Lowered,
+        Raising,
+        Raised,
+        Lowering
+    }
+
+    [Tooltip("The status of the shield for the guard")]
+    private ShieldStatus shieldStatus = ShieldStatus.Lowered;
 
     #region Menu Functions
 
@@ -200,7 +184,7 @@ public class Guard : Enemy
     /// </summary>
     public override void AILook()
     {
-        if (aiState == AIMovementState.PlayerControlled || playerControlling || shielding) return;
+        if (aiState == AIMovementState.PlayerControlled || playerControlling || shieldStatus != ShieldStatus.Lowered) return;
 
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
@@ -544,100 +528,32 @@ public class Guard : Enemy
             //animator.EndPrimary();
         }
 
-        tempLockedCharacter = null;
         attackingPrimary = false;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     public override void SecondaryAttack()
     {
-        chargingShieldBash = true;
-        currentShieldBashDamage = minimumShieldBashDamage;
-        currentShieldBashKnockback = minimumShieldBashKnockback;
-        currentShieldBashSpeed = minimumShieldBashSpeed;
-
-        baseMovementSpeed = movementSpeed;
-        movementSpeed = chargingMovementSpeed;
-        timeStartedBash = Time.time;
-        attackingSecondary = true;
-
-        //if (releaseSecondaryImm) ReleaseSecondary();
-        //releaseSecondaryImm = false;
-    }
-
-    public void ChargeShieldBash()
-    {
-        if (chargingShieldBash)
+        if (shieldStatus == ShieldStatus.Lowered)
         {
-            float timeVal = (Time.time - timeStartedBash) / maxShieldBashChargeTime;
-
-            if (timeVal < 1) // If charging for more than maximum time do nothing
-            {
-                currentShieldBashDamage = Mathf.Lerp(minimumShieldBashDamage, maximumShieldBashDamage, timeVal);
-                currentShieldBashKnockback = Mathf.Lerp(minimumShieldBashKnockback, maximumShieldBashKnockback, timeVal);
-                currentShieldBashSpeed = Mathf.Lerp(minimumShieldBashSpeed, maximumShieldBashSpeed, timeVal);
-            }
+            StartCoroutine(RaiseShield());
         }
     }
 
-    //public override void ReleaseSecondary()
-    //{
-    //    base.ReleaseSecondary();
-    //    if (!chargingShieldBash) return;
-
-    //    chargingShieldBash = false;
-    //    timeLastSecondary = Time.time;
-    //    playerController.SetAllowMovement(false);
-
-    //    health.SetInvincible(true);
-
-    //    GameObject hitbox = Instantiate(shieldPrefab, transform);
-    //    hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
-    //    StartCoroutine(HandleBashMovement(hitbox));
-    //}
-
-    private IEnumerator HandleBashMovement(GameObject hitbox)
+    /// <summary>
+    /// Raises the shield
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator RaiseShield()
     {
-        float timeSinceStarted = 0f;
-
-        while (timeSinceStarted < bashDuration)
+        shieldStatus = ShieldStatus.Raising;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < shieldRaiseTime)
         {
-            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
-            {
-                StartCoroutine(EnableMovement());
-                health.SetInvincible(false);
-                movementSpeed = baseMovementSpeed;
-                attackingSecondary = false;
-
-                transform.position = transform.position - transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-
-                yield break;
-            }
-
-            transform.position = transform.position + transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-            timeSinceStarted += Time.deltaTime;
             yield return null;
         }
 
-        transform.position = transform.position + transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-
-        Destroy(hitbox);
-
-        StartCoroutine(EnableMovement());
-        health.SetInvincible(false);
-        movementSpeed = baseMovementSpeed;
-        attackingSecondary = false;
-    }
-
-    public override Vector3 GetCurrentSpeedVector()
-    {
-        return currentShieldBashSpeed * transform.forward.normalized;
-    }
-
-    public override bool CheckSecondaryUsable()
-    {
-        if (chargingShieldBash) return false;
-        return base.CheckSecondaryUsable();
+        shieldObject = Instantiate(shieldPrefab, transform);
     }
 
     /// <summary>
@@ -912,7 +828,7 @@ public class Guard : Enemy
     /// <returns> Speed depending on shielding status </returns>
     public override float GetSpeed()
     {
-        if (shielding) return base.GetSpeed() / 3f;
+        if (shieldStatus != ShieldStatus.Lowered) return base.GetSpeed() / 3f;
         return base.GetSpeed();
     }
 
@@ -922,7 +838,7 @@ public class Guard : Enemy
     /// <returns> Rotation speed depending on shield status </returns>
     public override float GetRotationSpeed()
     {
-        if (shielding) return 0;
+        if (shieldStatus != ShieldStatus.Lowered) return 0;
         return base.GetRotationSpeed();
     }
 }
