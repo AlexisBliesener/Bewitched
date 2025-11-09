@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Guard : Enemy
 {
@@ -58,6 +59,9 @@ public class Guard : Enemy
 
     float timeStartedBash;
 
+    [Tooltip("Guard animator script that controls the guard animations")]
+    private GoblinAnimator animator; // I have it as Goblin rn as I'm sure GuardAnimator will have similar functions
+
     [Header("Guard AI Settings")]
 
     [Tooltip("Number of patrol points")]
@@ -77,6 +81,9 @@ public class Guard : Enemy
 
     [Tooltip("Editor gameobjects for visually moving points")]
     private List<GameObject> patrolObjs = new List<GameObject>();
+
+    private bool inPrimaryWindup = false;
+    private Vector3 targetPos;
 
     #region Menu Functions
 
@@ -179,8 +186,220 @@ public class Guard : Enemy
         CreateLocalInvalidArea();
     }
 
+    /// <summary>
+    /// Starts the primary attack
+    /// Chooses between windup and regular hit
+    /// </summary>
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null)
+        {
+            if (playerControlling)
+            {
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                {
+
+                    health.SubHealth(primaryAttackCost);
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                currentPrimaryComboStep = -1;
+                timeLastPrimary = Time.time;
+                characterAnimator.SwitchState("PrimaryAttack", 0);
+                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                PrimaryAttack();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts the lance thrust
+    /// </summary>
     public override void PrimaryAttack()
     {
+        hitCharacter = false;
+        SetMovementValues(false);
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(this);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
+
+        Character tempLockedChar = lockedCharacter;
+
+        attackingPrimary = true;
+
+        if (playerControlling)
+        {
+            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            {
+                inPrimaryWindup = true;
+                attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(HandleLanceThrust(tempLockedChar));
+            }
+        }
+        else
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
+        }
+    }
+
+    /// <summary>
+    /// Starts the windup for the lance
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator LanceWindup(Character tempLockedCharacter)
+    {
+        inCounter = false;
+        attackState = AttackState.Windup;
+        // save the current position to use the y value later
+        targetPos = transform.position;
+        float windupStart = Time.time;
+        bool leapEntered = false;
+        while (Time.time - windupStart < 0.708 / animator.GetPrimaryWindupMult())
+        {
+            SetMovementValues(false);
+            if (tempLockedCharacter)
+            {
+                Vector3 direc = tempLockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+            }
+
+            if (!leapEntered && Time.time - windupStart > 0.708 / animator.GetPrimaryWindupMult() * 0.75f)
+            {
+                leapEntered = true;
+                animator.SetEnterLeap();
+            }
+            yield return null;
+        }
+
+        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
+        {
+            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+
+        attackStateCoroutine = StartCoroutine(LanceApproach(tempLockedCharacter));
+    }
+
+    /// <summary>
+    /// Approach function for thrusting
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator LanceApproach(Character tempLockedCharacter)
+    {
+        attackState = AttackState.Approaching;
+        if (tempLockedCharacter)
+        {
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+            Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
+            float oldY = targetPos.y;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.25f);
+            RaycastHit hit;
+            // Raycast to check for environment collision
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
+            {
+                // Move just before environment/character hit point
+                dis = hit.distance;
+                targetPos = hit.point - direction * (sizeRadius + 0.25f);
+            }
+            targetPos.y = oldY;
+            transform.DOMove(targetPos, chaseTime * dis);
+            transform.DOLookAt(targetPos, chaseTime * dis);
+
+            float timeStarted = Time.time;
+            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
+            bool triggerSet = false;
+
+            if (playerControlling)
+            {
+                if (tempLockedCharacter != null)
+                {
+                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - this.gameObject.transform.position, chaseTime * dis);
+                }
+                else
+                {
+                    CameraController.instance.OnAttack(this.gameObject.transform.forward, chaseTime * dis);
+                }
+            }
+
+            while (Time.time - timeStarted < chaseTime * dis)
+            {
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
+                {
+                    DOTween.Kill(gameObject); // Kill tweens if we are too close
+                    animator.ExitLeap();
+                }
+                else if (tempLockedCharacter == null)
+                {
+                    animator.ExitLeap();
+                }
+
+                if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
+                {
+                    if (!triggerSet)
+                    {
+                        animator.ExitLeap();
+                        triggerSet = true;
+                    }
+
+                    if (counterIndicatorVFX != null)
+                    {
+                        DestroyCounterIndicator();
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+                    }
+                }
+                else // attack is dodgable
+                {
+                    if (counterIndicatorVFX == null)
+                    {
+                        counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                        counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
+                        PlayerController.instance.SetCounterAvaliable(this);
+                    }
+                }
+                SetMovementValues(false);
+                GetCharacterController().enabled = false;
+                inPrimaryWindup = false;
+                yield return null;
+            }
+
+            if (!triggerSet)
+            {
+                animator.ExitLeap();
+            }
+            transform.position = targetPos;
+            GetCharacterController().enabled = true;
+        }
+
+        if (counterIndicatorVFX != null)
+        {
+            DestroyCounterIndicator();
+        }
+
+        attackState = AttackState.Attacking;
+
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
         lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
 
@@ -188,8 +407,112 @@ public class Guard : Enemy
         lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
 
-        timeLastPrimary = Time.time;
-        attackingPrimary = true;
+        targetPos = Vector3.negativeInfinity;
+
+        float hitboxStartTime = Time.time;
+        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
+
+        if (!playerControlling)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                float timeStart = Time.time;
+                while (Time.time - timeStart > 0.1f)
+                {
+                    SetMovementValues(false);
+                    yield return null;
+                }
+            }
+            animator.EndPrimary();
+        }
+
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+
+
+        if (tempLockedCharacter)
+        {
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                Debug.Log("retreat set");
+                enemy.SetTargeted(false);
+            }
+        }
+
+        lockedCharacter = null;
+        attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
+
+        yield break;
+    }
+
+    /// <summary>
+    /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when thrusting
+    /// </summary>
+    /// <returns> Time breaks </returns>
+    public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
+    {
+        animator.SetPrimaryMovementNeeded(false);
+        attackState = AttackState.Attacking;
+
+        GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+
+        GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
+
+        if (playerControlling)
+        {
+            CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
+        }
+
+        float hitboxStartTime = Time.time;
+        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
+
+        if (!playerControlling)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+
+        if (tempLockedCharacter)
+        {
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
+
+        if (!playerControlling)
+        {
+            animator.EndPrimary();
+        }
+
+        tempLockedCharacter = null;
+        attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     public override void SecondaryAttack()
@@ -332,7 +655,7 @@ public class Guard : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 
