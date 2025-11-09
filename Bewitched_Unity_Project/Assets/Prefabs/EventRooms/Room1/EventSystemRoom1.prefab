@@ -13056,7 +13056,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Path: {fileID: 7412903111564223498}
-  m_PathPosition: 25.69754
+  m_PathPosition: 25.67233
   m_PositionUnits: 0
   m_PathOffset: {x: 0, y: 0, z: 0}
   m_XDamping: 0
@@ -14823,6 +14823,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10e6c69bce7b04336abcbf7dc8849b33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dev: 0
+  skipCutscene: 0
   enemyEvent: {fileID: 2738256929411528527}
   enemySpawner: {fileID: 3959901205327838087}
   cutScene: {fileID: 283279139432079883}
@@ -14851,8 +14853,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 7.0624657, y: 2.9217982, z: 4.8179016}
-  m_Center: {x: -2.4118214, y: -0.9608991, z: -0.77651596}
+  m_Size: {x: 7.0624657, y: 2.9217982, z: 11.38937}
+  m_Center: {x: -2.4118214, y: -0.9608991, z: -4.06225}
 --- !u!1 &6816780317243675578
 GameObject:
   m_ObjectHideFlags: 0
@@ -23969,6 +23971,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1052522367516105372, guid: f19b8ee05a3ac47fdaf22561455a2abc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 6.62
+      objectReference: {fileID: 0}
     - target: {fileID: 6075872993970219567, guid: f19b8ee05a3ac47fdaf22561455a2abc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -33.820007
@@ -24508,6 +24514,10 @@ PrefabInstance:
     - target: {fileID: 372598212476890096, guid: f19b8ee05a3ac47fdaf22561455a2abc, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1052522367516105372, guid: f19b8ee05a3ac47fdaf22561455a2abc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 7.4
       objectReference: {fileID: 0}
     - target: {fileID: 6075872993970219567, guid: f19b8ee05a3ac47fdaf22561455a2abc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -26356,7 +26366,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 79
+  m_VersionIndex: 115
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []

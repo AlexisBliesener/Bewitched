@@ -1,8 +1,15 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Playables;
 /// This is the event system room for the event system, it will handle the fight between the player and the event enemy
 public class EventSystemRoom1 : MonoBehaviour
 {
+    [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
+    private bool dev = false;
+
+    [SerializeField, Tooltip("Click this box to skip the cutscene for testing"), ShowIf("dev")]
+    private bool skipCutscene = false;
+
     [SerializeField, Tooltip("The enemy event prefab")]
     private EventEnemy enemyEvent;
     [SerializeField, Tooltip("The enemy spawner prefab")]
@@ -71,7 +78,14 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().gameObject.SetActive(true);
             enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
-            StartCutScene();
+            if(skipCutscene)
+            {
+                SkipCutscene();
+            }
+            else
+            {
+                StartCutScene();
+            }  
         }
     }
     [ContextMenu("Start Cut Scene")]
@@ -210,6 +224,25 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void OnCutsceneFinished(PlayableDirector director)
     {
+        PlayerController.instance.SetAllowMovement(true);
+        cutScene.SetActive(false);
+        fightState = FightState.Fighting;
+        enemyEvent.GetEnemy().canPossess = false;
+        enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Patrolling;
+        // Activate the enemy spawner
+        enemySpawner.Activate();
+        // show all the HUD
+        if (hud != null) { hud.SetActive(true); }
+        if (enemyEvent.GetEnemy().health.GetComponent<EventHealth>() != null)
+        {
+            enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
+        }
+    }
+
+    private void SkipCutscene()
+    {
+        AudioManager.ChangeMusicParameter("InCombat", "True");
+        enemySpawner.gameObject.SetActive(true);
         PlayerController.instance.SetAllowMovement(true);
         cutScene.SetActive(false);
         fightState = FightState.Fighting;

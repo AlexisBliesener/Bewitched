@@ -30,6 +30,7 @@ public class OgreAnimator : CharacterAnimator
     protected override void ResetAllTriggers()
     {
         base.ResetAllTriggers();
+        animator.ResetTrigger("Swing");
     }
 
     public void SetSwing()
@@ -112,26 +113,6 @@ public class OgreAnimator : CharacterAnimator
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
-
-        //if (newState == "PrimaryAttack")
-        //{
-        //    ResetAllTriggers();
-        //    animator.SetTrigger("PrimaryAttack");
-        //    if (GetComponentInParent<Ogre>().IsPlayerControlling())
-        //    {
-        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
-        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
-        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
-        //    }
-        //    else
-        //    {
-        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
-        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
-        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
-        //    }
-        //    canChange = false;
-        //    currentAnimationState = newState;
-        //}
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
