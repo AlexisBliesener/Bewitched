@@ -60,7 +60,7 @@ public class Guard : Enemy
     float timeStartedBash;
 
     [Tooltip("Guard animator script that controls the guard animations")]
-    private GoblinAnimator animator; // I have it as Goblin rn as I'm sure GuardAnimator will have similar functions
+    private CharacterAnimator animator; // I have it as Character rn as I'm sure GuardAnimator will have similar functions
 
     [Header("Guard AI Settings")]
 
@@ -185,6 +185,14 @@ public class Guard : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        if (playerControlling)
+        {
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+        }
     }
 
     /// <summary>
@@ -216,7 +224,8 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                //animator.GetPrimaryComboMult(currentPrimaryComboStep)
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / 1))
                 {
 
                     health.SubHealth(primaryAttackCost);
@@ -296,7 +305,8 @@ public class Guard : Enemy
         targetPos = transform.position;
         float windupStart = Time.time;
         bool leapEntered = false;
-        while (Time.time - windupStart < 0.708 / animator.GetPrimaryWindupMult())
+        //animator.GetPrimaryWindupMult()
+        while (Time.time - windupStart < 0.708 / 1)
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -307,10 +317,11 @@ public class Guard : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if (!leapEntered && Time.time - windupStart > 0.708 / animator.GetPrimaryWindupMult() * 0.75f)
+            //animator.GetPrimaryWindupMult()
+            if (!leapEntered && Time.time - windupStart > 0.708 / 1 * 0.75f)
             {
                 leapEntered = true;
-                animator.SetEnterLeap();
+                //animator.SetEnterLeap();
             }
             yield return null;
         }
@@ -332,7 +343,7 @@ public class Guard : Enemy
         attackState = AttackState.Approaching;
         if (tempLockedCharacter)
         {
-            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
             targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.25f);
@@ -369,18 +380,18 @@ public class Guard : Enemy
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
-                    animator.ExitLeap();
+                    //animator.ExitLeap();
                 }
                 else if (tempLockedCharacter == null)
                 {
-                    animator.ExitLeap();
+                    //animator.ExitLeap();
                 }
 
                 if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
                 {
                     if (!triggerSet)
                     {
-                        animator.ExitLeap();
+                        //animator.ExitLeap();
                         triggerSet = true;
                     }
 
@@ -407,7 +418,7 @@ public class Guard : Enemy
 
             if (!triggerSet)
             {
-                animator.ExitLeap();
+                //animator.ExitLeap();
             }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
@@ -430,7 +441,9 @@ public class Guard : Enemy
         targetPos = Vector3.negativeInfinity;
 
         float hitboxStartTime = Time.time;
-        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+
+        //animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
         {
             SetMovementValues(false);
             yield return null;
@@ -447,7 +460,7 @@ public class Guard : Enemy
                     yield return null;
                 }
             }
-            animator.EndPrimary();
+            //animator.EndPrimary();
         }
 
         SetMovementValues(true);
@@ -496,7 +509,8 @@ public class Guard : Enemy
         }
 
         float hitboxStartTime = Time.time;
-        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        // animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
         {
             SetMovementValues(false);
             yield return null;
@@ -527,7 +541,7 @@ public class Guard : Enemy
 
         if (!playerControlling)
         {
-            animator.EndPrimary();
+            //animator.EndPrimary();
         }
 
         tempLockedCharacter = null;
