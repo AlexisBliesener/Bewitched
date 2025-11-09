@@ -301,7 +301,7 @@ public abstract class Enemy : Character
 
         Vector3 desiredVelocity;
 
-        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * GetSpeed();
 
         float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
         velocity.x += xChange;
@@ -332,9 +332,9 @@ public abstract class Enemy : Character
     /// <summary>
     /// Function to handle the rotation of an AI controller
     /// </summary>
-    public void AILook()
+    public virtual void AILook()
     {
-        if (aiState == AIMovementState.PlayerControlled) return;
+        if (aiState == AIMovementState.PlayerControlled || playerControlling) return;
 
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player

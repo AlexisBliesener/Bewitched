@@ -911,4 +911,22 @@ public abstract class Character : MonoBehaviour
             Debug.LogWarning("Character controller is not set!");
         }
     }
+
+    /// <summary>
+    /// Gets the speed of the character
+    /// </summary>
+    /// <returns> Speed the character can currently move </returns>
+    public virtual float GetSpeed()
+    {
+        return movementSpeed;
+    }
+
+    /// <summary>
+    /// Gets the look rotation speed
+    /// </summary>
+    /// <returns> Rotation speed </returns>
+    public virtual float GetRotationSpeed()
+    {
+        return 10f;
+    }
 }

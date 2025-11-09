@@ -84,6 +84,7 @@ public class Guard : Enemy
 
     private bool inPrimaryWindup = false;
     private Vector3 targetPos;
+    private bool shielding = false;
 
     #region Menu Functions
 
@@ -184,6 +185,25 @@ public class Guard : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+    }
+
+    /// <summary>
+    /// Function to handle the rotation of an AI guard
+    /// </summary>
+    public override void AILook()
+    {
+        if (aiState == AIMovementState.PlayerControlled || playerControlling || shielding) return;
+
+        Quaternion lookRotation;
+        if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+        }
+        else
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+        }
+        transform.rotation = lookRotation;
     }
 
     /// <summary>
@@ -870,5 +890,25 @@ public class Guard : Enemy
         {
             return 0;
         }
+    }
+
+    /// <summary>
+    /// Override for speed getter
+    /// </summary>
+    /// <returns> Speed depending on shielding status </returns>
+    public override float GetSpeed()
+    {
+        if (shielding) return base.GetSpeed() / 3f;
+        return base.GetSpeed();
+    }
+
+    /// <summary>
+    /// Override for rotation speed getter
+    /// </summary>
+    /// <returns> Rotation speed depending on shield status </returns>
+    public override float GetRotationSpeed()
+    {
+        if (shielding) return 0;
+        return base.GetRotationSpeed();
     }
 }
