@@ -32,7 +32,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
     {
-            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump", "Hit"
+            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump", "Hit", "Overriding"
     };
 
     [Tooltip("The current animation state of the character")]
@@ -47,6 +47,7 @@ public class CharacterAnimator : MonoBehaviour
     protected Animator animator;
     [Tooltip("Character controller attached to this gameobject.")]
     protected CharacterController characterController;
+    protected bool overriding;
 
     protected virtual void Awake()
     {
@@ -73,7 +74,7 @@ public class CharacterAnimator : MonoBehaviour
         }
 
         // Idle/run switching
-        if (characterController != null)
+        if (characterController != null && !overriding)
         {
             if(PlayerController.instance.currentCharacter == character)
             {
@@ -110,20 +111,23 @@ public class CharacterAnimator : MonoBehaviour
     {
         if(animator != null)
         {
-            currentAnimationState = "Hit";
-            ResetAllTriggers();
-            animator.SetFloat("HitSpeedMult", hitStunMult);
-            canChange = false;
-            if (character == PlayerController.instance.currentCharacter)
+            if(!overriding)
             {
-                PlayerController.instance.SetAllowMovement(false);
-            }
-            animator.SetTrigger("Hit");
-            yield return new WaitForSeconds(0.12f / hitStunMult);
-            canChange = true;
-            if (character == PlayerController.instance.currentCharacter)
-            {
-                PlayerController.instance.SetAllowMovement(true);
+                currentAnimationState = "Hit";
+                ResetAllTriggers();
+                animator.SetFloat("HitSpeedMult", hitStunMult);
+                canChange = false;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(false);
+                }
+                animator.SetTrigger("Hit");
+                yield return new WaitForSeconds(0.12f / hitStunMult);
+                canChange = true;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(true);
+                }
             }
         }
         else
@@ -147,6 +151,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
+        if (overriding) return;
+
         if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
         {
             character.ResetPrimaryComboStep();
@@ -163,6 +169,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep)
     {
+        if (overriding) return;
+
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
@@ -173,6 +181,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState)
     {
+        if (overriding) return;
+
         if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
@@ -306,5 +316,20 @@ public class CharacterAnimator : MonoBehaviour
     {
         yield return new WaitForSeconds(sec);
         canChange = true;
+    }
+
+    public void OverrideAnimator(string animationTrigger)
+    {
+        overriding = true;
+        StopAllCoroutines();
+        ResetAllTriggers();
+        currentAnimationState = "Overriding";
+        animator.SetTrigger(animationTrigger);
+    }
+
+    public void EndAnimatorOverride()
+    {
+        ResetAllTriggers();
+        overriding = false;
     }
 }

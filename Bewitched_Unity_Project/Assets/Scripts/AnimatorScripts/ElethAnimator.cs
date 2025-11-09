@@ -41,7 +41,9 @@ public class ElethAnimator : CharacterAnimator
     /// </summary>
     public void ToggleSprint()
     {
-        if(currentAnimationState == "Run")
+        if (overriding) return;
+
+        if (currentAnimationState == "Run")
         {
             currentAnimationState = "Sprint";
             animator.SetTrigger("Sprint");
@@ -59,6 +61,8 @@ public class ElethAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState)
     {
+        if (overriding) return;
+
         if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
@@ -114,8 +118,10 @@ public class ElethAnimator : CharacterAnimator
 
     protected override void Update()
     {
+        if (overriding) return;
+
         // prevent walk and run animations from clipping into walls
-        if(currentAnimationState == "Sprint")
+        if (currentAnimationState == "Sprint")
         {
             character.GetCharacterController().center = new Vector3(0,0.4f,0.8f);
         }
