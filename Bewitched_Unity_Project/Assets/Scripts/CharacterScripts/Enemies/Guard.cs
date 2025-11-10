@@ -172,8 +172,10 @@ public class Guard : Enemy
         SetBehavior();
         CreateLocalInvalidArea();
         HandleAutoShield();
+        SetDebugString();
         if (playerControlling)
         {
+            Debug.Log(debugAIInfo);
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
@@ -218,7 +220,7 @@ public class Guard : Enemy
             if (playerControlling)
             {
                 //animator.GetPrimaryComboMult(currentPrimaryComboStep)
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / 1))
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= 0.5))
                 {
 
                     health.SubHealth(primaryAttackCost);
@@ -339,14 +341,14 @@ public class Guard : Enemy
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.25f);
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.55f);
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
             {
                 // Move just before environment/character hit point
                 dis = hit.distance;
-                targetPos = hit.point - direction * (sizeRadius + 0.25f);
+                targetPos = hit.point - direction * (sizeRadius + 0.5f);
             }
             targetPos.y = oldY;
             transform.DOMove(targetPos, chaseTime * dis);
@@ -360,11 +362,11 @@ public class Guard : Enemy
             {
                 if (tempLockedCharacter != null)
                 {
-                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - this.gameObject.transform.position, chaseTime * dis);
+                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - transform.position, chaseTime * dis);
                 }
                 else
                 {
-                    CameraController.instance.OnAttack(this.gameObject.transform.forward, chaseTime * dis);
+                    CameraController.instance.OnAttack(transform.forward, chaseTime * dis);
                 }
             }
 
@@ -414,7 +416,10 @@ public class Guard : Enemy
             {
                 //animator.ExitLeap();
             }
-            transform.position = targetPos;
+            if (targetPos != Vector3.negativeInfinity)
+            {
+                transform.position = targetPos;
+            }
             GetCharacterController().enabled = true;
         }
 
@@ -427,10 +432,12 @@ public class Guard : Enemy
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
         lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
         lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
+        lanceTip.transform.position += transform.right * 0.25f;
 
         targetPos = Vector3.negativeInfinity;
 
@@ -475,6 +482,7 @@ public class Guard : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        timeLastPrimary = Time.time;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
 
         yield break;
@@ -491,14 +499,16 @@ public class Guard : Enemy
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
         lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
         lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
+        lanceTip.transform.position += transform.right * 0.25f;
 
         if (playerControlling)
         {
-            CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
+            CameraController.instance.OnAttack(transform.forward, 0.01f);
         }
 
         float hitboxStartTime = Time.time;
@@ -538,6 +548,7 @@ public class Guard : Enemy
         }
 
         attackingPrimary = false;
+        timeLastPrimary = Time.time;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
@@ -899,6 +910,31 @@ public class Guard : Enemy
         else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
         {
             StartCoroutine(LowerShield());
+        }
+    }
+
+    /// <summary>
+    /// Sets if the player is controlling this enemy
+    /// </summary>
+    /// <param name="val"> Value to set </param>
+    public override void SetControlled(bool val)
+    {
+        playerControlling = val;
+        if (val)
+        {
+            DestroyCounterIndicator();
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
+            health.ShowMiniHealthBar(false);
+            aiState = AIMovementState.PlayerControlled;
+            pathState = PathState.Unset;
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
+        }
+        else
+        {
+            aiState = AIMovementState.Patrolling;
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
         }
     }
 }
