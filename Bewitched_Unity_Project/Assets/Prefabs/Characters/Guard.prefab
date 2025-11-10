@@ -458,6 +458,7 @@ MonoBehaviour:
   primaryAttackRange: 5
   health: {fileID: 0}
   canPossess: 1
+  primaryComboSteps: 0
   primaryComboResetTime: []
   primaryComboMinTime: []
   characters:
@@ -480,21 +481,19 @@ MonoBehaviour:
   counterIndicatorVFXPrefab: {fileID: 0}
   attackState: 0
   lobotimzed: 0
+  cantAttack: 0
   minStopDistance: 2
   seenBuffer: 0.5
-  surroundingToChaseRadius: 4
-  chaseToSurroundingRadius: 3
   sightRange: 15
   maxSightAngle: 40
   hearingRange: 2
   patrolRange: 5
-  minimumSurroundingDistance: 3
-  maximumSurroundingDistance: 5
   timeBeforeSearch: 5
   attackDelayAI: 0.5
   primaryAttackChance: 1
   secondaryAttackChance: 0
   lowHealthThresholdPercentage: 30
+  counterWindowLength: 0
   moveToTargetDistance: 0
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
@@ -505,6 +504,20 @@ MonoBehaviour:
   pathVisualizer: {fileID: -4642130304282130039}
   playerControlling: 0
   pathfindingPriority: 2
+  hitEventReference:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  deathEventReference:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
   thrustSpeed: 6
