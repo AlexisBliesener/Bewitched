@@ -131,7 +131,7 @@ public class RoomController : MonoBehaviour
 
     private void Start()
     {
-        // Disable all enemies in the room 
+        // Disable the ai for the enemies in the room  
         DeactivateEnemies();
     }
 
@@ -247,15 +247,15 @@ public class RoomController : MonoBehaviour
         if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
-            if (enemy != null)
+            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent))
             {
-                enemy.SetActive(true);
+                enemyComponent.aiState = Enemy.AIMovementState.Patrolling;
             }
         }
     }
 
     /// <summary>
-    /// Deactivate all enemies in the room 
+    /// Deactivate the ai for all enemies in the room 
     /// This is called once in Awake() 
     /// </summary>
     private void DeactivateEnemies()
@@ -263,9 +263,15 @@ public class RoomController : MonoBehaviour
         if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
-            if (enemy != null)
+            // If the enemy is not active, we will set it to active and set the ai state to blocked
+            if (enemy != null && !enemy.activeInHierarchy)
             {
-                enemy.SetActive(false);
+                enemy.SetActive(true);
+            }
+            // Just to be safe, we will check if the enmey for some reason is still in patrolling state, if so we will set it to blocked
+            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent) && enemyComponent.aiState != Enemy.AIMovementState.Blocked)
+            {
+                enemyComponent.aiState = Enemy.AIMovementState.Blocked;
             }
         }
     }
