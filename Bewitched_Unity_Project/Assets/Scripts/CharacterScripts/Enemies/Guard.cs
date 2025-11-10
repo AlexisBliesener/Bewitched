@@ -175,7 +175,6 @@ public class Guard : Enemy
         SetDebugString();
         if (playerControlling)
         {
-            Debug.Log(debugAIInfo);
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
@@ -220,6 +219,7 @@ public class Guard : Enemy
             if (playerControlling)
             {
                 //animator.GetPrimaryComboMult(currentPrimaryComboStep)
+                Debug.Log("In primary windup: " + inPrimaryWindup + ", primary combo step: " + currentPrimaryComboStep + ", Time since last primary: " + (Time.time - timeLastPrimary));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= 0.5))
                 {
 
@@ -336,6 +336,7 @@ public class Guard : Enemy
     public IEnumerator LanceApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
+        inPrimaryWindup = false;
         if (tempLockedCharacter)
         {
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
@@ -408,7 +409,6 @@ public class Guard : Enemy
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
-                inPrimaryWindup = false;
                 yield return null;
             }
 
@@ -482,7 +482,6 @@ public class Guard : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
-        timeLastPrimary = Time.time;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
 
         yield break;
@@ -548,7 +547,6 @@ public class Guard : Enemy
         }
 
         attackingPrimary = false;
-        timeLastPrimary = Time.time;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
