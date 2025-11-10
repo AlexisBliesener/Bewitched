@@ -299,17 +299,6 @@ public class CharacterAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Waits until the character is back on the ground before letting them change out of the jump animation
-    /// </summary>
-    /// <returns></returns>
-    protected virtual IEnumerator WaitForGrounded()
-    {
-        yield return new WaitForFixedUpdate();
-        yield return new WaitUntil(() => characterController.isGrounded);
-        canChange = true;
-    }
-
-    /// <summary>
     /// Waits for the end of an animation before allowing new state changes.
     /// </summary>
     protected virtual IEnumerator WaitForEndAnimation(float sec)

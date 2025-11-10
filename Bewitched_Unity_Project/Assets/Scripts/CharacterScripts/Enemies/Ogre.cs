@@ -81,7 +81,6 @@ public class Ogre : Enemy
         SetPatrolOrigin();
         isEventEnemy = TryGetComponent<EventEnemy>(out var e);
         sizeRadius = GetComponent<CharacterController>().radius;
-
     }
 
     protected override void FixedUpdate()
@@ -101,7 +100,6 @@ public class Ogre : Enemy
 
         SetDebugString();
         //if (!playerControlling) Debug.Log(debugAIInfo);
-
 
         if (playerControlling)
         {
@@ -162,7 +160,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if (currentPrimaryComboStep == -1)
+                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
 
@@ -209,7 +207,6 @@ public class Ogre : Enemy
                     health.SubHealth(secondaryAttackCost);
                 }
                 SecondaryAttack();
-
             }
         }
     }
@@ -324,45 +321,47 @@ public class Ogre : Enemy
         }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
+
+        Vector3 endForward = Vector3.zero;
+        Vector3 startForward = Vector3.zero;
+
+        if (currentPrimaryComboStep == 1)
+        {
+            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+        else
+        {
+            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+
         GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
         DefaultHitbox pivotHitbox = pivot.GetComponent<DefaultHitbox>();
         pivotHitbox.Init(this, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-        pivot.SetActive(false);
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
-        Vector3 endForward = Vector3.zero;
-        Vector3 startForward = Vector3.zero;
-
-        if (currentPrimaryComboStep == 0)
-        {
-            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
-        }
-        else if (currentPrimaryComboStep == 1) 
-        {
-            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
-        }
-
-        pivot.SetActive(true);
-
         while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             if(pivot != null)
             {
-                pivot.transform.forward = Vector3.Lerp(startForward, endForward, timeSinceStarted / 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+                pivot.transform.forward = Vector3.Lerp(startForward, endForward, timeSinceStarted / (0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)));
             }
             timeSinceStarted += Time.deltaTime;
             yield return null;
         }
 
         Destroy(pivot);
-        ogreAnimator.EndPrimary();
+        if(!playerControlling)
+        {
+            ogreAnimator.EndPrimary();
+        }
+        
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
         SetMovementValues(true);

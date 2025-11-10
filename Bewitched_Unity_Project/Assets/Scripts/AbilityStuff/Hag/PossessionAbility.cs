@@ -117,6 +117,8 @@ public class PossessionAbility : MonoBehaviour
     private float possessionChargeTimer;
     [Tooltip("Is currently in the process of possession")]
     private bool isPossessing = false;
+    [Tooltip("If the player is allowed to leave the enemy they are possessing")]
+    private bool canLeavePossession = true;
 
     #region Saving/Loading
     /// <summary>
@@ -187,6 +189,11 @@ public class PossessionAbility : MonoBehaviour
     {
         possessionCharge++;
         possessionCharge = Mathf.Min(possessionCharge, hitsToCharge);
+    }
+
+    public void SetCanLeavePossession(bool val)
+    {
+        canLeavePossession = val;
     }
 
     private void Awake()
@@ -371,6 +378,8 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context"></param>
     public void LeaveEnemy(InputAction.CallbackContext context)
     {
+        if (!canLeavePossession) return;
+
         if(currentCharacter != eleth)
         {
             if (context.started)

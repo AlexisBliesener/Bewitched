@@ -341,7 +341,8 @@ public class PlayerController : MonoBehaviour
                     nearbyInteractable.Interact();
                     // Hide the interact UI since the interact action has been performed
                     HideInteractUI();
-                }else if (exitDoor != null)
+                }
+                else if (exitDoor != null)
                 {
                     exitDoor.OpenDoor();
                 }

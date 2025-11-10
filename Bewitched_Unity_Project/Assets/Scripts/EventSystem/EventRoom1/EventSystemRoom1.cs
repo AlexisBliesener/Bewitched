@@ -133,6 +133,7 @@ public class EventSystemRoom1 : MonoBehaviour
             case FightState.Ending: // Ending = dizzy 
                 if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
+                    PossessionAbility.instance.SetCanLeavePossession(false);
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;

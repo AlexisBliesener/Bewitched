@@ -238,7 +238,7 @@ public abstract class Enemy : Character
         lastSecondaryChance = secondaryAttackChance;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         // keep the which character is the player updated
         if (playerController != null)
@@ -281,6 +281,7 @@ public abstract class Enemy : Character
     {
         animateMove = true;
         if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
+
 
         if (pathState != PathState.Set)
         {
