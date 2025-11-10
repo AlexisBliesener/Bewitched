@@ -125,11 +125,9 @@ public class SurroundingPoints : MonoBehaviour
     {
         float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
         Vector3 targetPos = currentPlayer.transform.position + (enemy.transform.position - currentPlayer.transform.position).normalized * goalDistance;
-        Debug.Log("Target position: " + targetPos);
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, targetPos, targetChar: currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
-        Debug.Log("Path destination: " + enemy.GetNavPath().GetDestinationPosition());
     }
 
     /// <summary>
