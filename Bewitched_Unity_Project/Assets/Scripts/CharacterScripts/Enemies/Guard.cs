@@ -165,6 +165,7 @@ public class Guard : Enemy
     void FixedUpdate()
     {
         if (dead || lobotimzed) return;
+        Debug.Log(shieldStatus);
         ManageSurrounding();
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
@@ -485,7 +486,7 @@ public class Guard : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
     {
-        animator.SetPrimaryMovementNeeded(false);
+        //animator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
@@ -554,6 +555,7 @@ public class Guard : Enemy
     /// <returns> Time </returns>
     public IEnumerator RaiseShield()
     {
+        if (shieldStatus == ShieldStatus.Lowering) yield break;
         shieldStatus = ShieldStatus.Raising;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < shieldRaiseTime)
@@ -562,9 +564,12 @@ public class Guard : Enemy
             yield return null;
         }
 
-        shieldObject = Instantiate(shieldPrefab, transform);
-        shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
-        shieldStatus = ShieldStatus.Raised;
+        if (shieldStatus == ShieldStatus.Raising)
+        {
+            shieldObject = Instantiate(shieldPrefab, transform);
+            shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
+            shieldStatus = ShieldStatus.Raised;
+        }
     }
 
     /// <summary>
@@ -584,11 +589,13 @@ public class Guard : Enemy
         if (shieldObject)
         {
             Destroy(shieldObject);
-            float timeStarted = Time.time;
-            while (Time.time - timeStarted < shieldLowerTime)
-            {
-                yield return null;
-            }
+            shieldObject = null;
+        }
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < shieldLowerTime)
+        {
+            shieldStatus = ShieldStatus.Lowering;
+            yield return null;
         }
         shieldStatus = ShieldStatus.Lowered;
     }
