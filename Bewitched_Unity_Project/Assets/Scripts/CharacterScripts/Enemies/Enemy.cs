@@ -912,7 +912,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetAIState()
     {
-        if ((overrideBlock || aiState != AIMovementState.Blocked )  && aiState != AIMovementState.Retreating)
+        if (overrideBlock || aiState != AIMovementState.Blocked)
         {
             if (overrideBlock)
             {

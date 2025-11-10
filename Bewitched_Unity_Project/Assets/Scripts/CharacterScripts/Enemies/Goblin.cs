@@ -1006,7 +1006,6 @@ public class Goblin : Enemy
             }
         }
 
-        aiState = AIMovementState.Chasing;
         pathState = PathState.Unset;
 
         AILook();
