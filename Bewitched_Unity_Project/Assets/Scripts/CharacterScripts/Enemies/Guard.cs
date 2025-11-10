@@ -29,6 +29,8 @@ public class Guard : Enemy
     [SerializeField] float shieldRaiseTime = 0.2f;
     [Tooltip("Shield lower time")]
     [SerializeField] float shieldLowerTime = 0.3f;
+    [Tooltip("Angle range for AI to lower shield")]
+    [SerializeField] float aiShieldAngleThreshold = 20;
 
     [Tooltip("Guard animator script that controls the guard animations")]
     private CharacterAnimator animator; // I have it as Character rn as I'm sure GuardAnimator will have similar functions
@@ -169,6 +171,7 @@ public class Guard : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        HandleAutoShield();
         if (playerControlling)
         {
             lockedCharacter = PlayerController.instance.GetLockedTarget();
@@ -189,11 +192,11 @@ public class Guard : Enemy
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, GetRotationSpeed() * Time.deltaTime));
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), GetRotationSpeed() * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
@@ -204,6 +207,12 @@ public class Guard : Enemy
     /// </summary>
     public override IEnumerator BeginPrimary()
     {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) StartCoroutine(LowerShield());
+            yield return null;
+        }
+
         if (gameObject != null)
         {
             if (playerControlling)
@@ -221,8 +230,8 @@ public class Guard : Enemy
 
                     timeLastPrimary = Time.time;
 
-                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
-                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    //characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
                 }
             }
@@ -230,8 +239,8 @@ public class Guard : Enemy
             {
                 currentPrimaryComboStep = -1;
                 timeLastPrimary = Time.time;
-                characterAnimator.SwitchState("PrimaryAttack", 0);
-                yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                //characterAnimator.SwitchState("PrimaryAttack", 0);
+                //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
                 PrimaryAttack();
             }
         }
@@ -459,7 +468,6 @@ public class Guard : Enemy
             tempLockedCharacter.SetAttacker(null);
             if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
-                Debug.Log("retreat set");
                 enemy.SetTargeted(false);
             }
         }
@@ -550,10 +558,39 @@ public class Guard : Enemy
         float timeStarted = Time.time;
         while (Time.time - timeStarted < shieldRaiseTime)
         {
+            if (shieldStatus == ShieldStatus.Lowering) yield break;
             yield return null;
         }
 
         shieldObject = Instantiate(shieldPrefab, transform);
+        shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
+        shieldStatus = ShieldStatus.Raised;
+    }
+
+    /// <summary>
+    /// Releases the shield
+    /// </summary>
+    public override void ReleaseSecondary()
+    {
+        if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising)
+        {
+            StartCoroutine(LowerShield());
+        }
+    }
+
+    public IEnumerator LowerShield()
+    {
+        shieldStatus = ShieldStatus.Lowering;
+        if (shieldObject)
+        {
+            Destroy(shieldObject);
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < shieldLowerTime)
+            {
+                yield return null;
+            }
+        }
+        shieldStatus = ShieldStatus.Lowered;
     }
 
     /// <summary>
@@ -812,7 +849,7 @@ public class Guard : Enemy
 
         if (totalOdds > 0)
         {
-            PrimaryAttack();
+            StartCoroutine(BeginPrimary());
             points.AddAttackingEnemy(this, primaryAICost);
             return primaryAICost;
         }
@@ -840,5 +877,22 @@ public class Guard : Enemy
     {
         if (shieldStatus != ShieldStatus.Lowered) return 0;
         return base.GetRotationSpeed();
+    }
+
+    /// <summary>
+    /// Handles the AI raising and lowering the shield based on distance, attack state, and player controlling state
+    /// </summary>
+    public void HandleAutoShield()
+    {
+        float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
+        float angle = Vector3.Angle(transform.position - currentPlayer.transform.position, transform.forward);
+        if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
+        {
+            StartCoroutine(RaiseShield());
+        }
+        else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
+        {
+            StartCoroutine(LowerShield());
+        }
     }
 }

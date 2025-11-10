@@ -298,6 +298,10 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(currentCharacter.BeginSecondary());
             }
         }
+        else if (context.canceled)
+        {
+            currentCharacter.ReleaseSecondary();
+        }
         else
         {
             return;

@@ -386,7 +386,6 @@ public class Goblin : Enemy
             tempLockedCharacter.SetAttacker(null);
             if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
-                Debug.Log("retreat set");
                 enemy.SetTargeted(false);
             }
         }

@@ -927,6 +927,13 @@ public abstract class Character : MonoBehaviour
     /// <returns> Rotation speed </returns>
     public virtual float GetRotationSpeed()
     {
-        return 10f;
+        return 5f;
+    }
+
+    /// <summary>
+    /// Releases the secondary attack if there is anything that happens
+    /// </summary>
+    public virtual void ReleaseSecondary()
+    {
     }
 }

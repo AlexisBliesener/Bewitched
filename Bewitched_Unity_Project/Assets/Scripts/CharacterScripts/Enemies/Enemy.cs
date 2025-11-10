@@ -339,11 +339,11 @@ public abstract class Enemy : Character
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, GetRotationSpeed() * Time.deltaTime));
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), GetRotationSpeed() * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
