@@ -214,16 +214,9 @@ MonoBehaviour:
   lanceTipEffects: {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
   lanceHandleEffects: {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
   shieldPrefab: {fileID: 5297234261058955286, guid: 3a6774d7279d5db47991fcb9a194ed59, type: 3}
-  minimumShieldBashSpeed: 10
-  maximumShieldBashSpeed: 20
-  minimumShieldBashDamage: 25
-  maximumShieldBashDamage: 55
-  minimumShieldBashKnockback: 15
-  maximumShieldBashKnockback: 35
-  shieldBashEffects: {fileID: 0}
-  maxShieldBashChargeTime: 2
-  bashDuration: 0.65
-  chargingMovementSpeed: 2
+  shieldRaiseTime: 0.2
+  shieldLowerTime: 0.5
+  aiShieldAngleThreshold: 20
   numPatrolPoints: 3
   patrolPointPrefab: {fileID: 459476383034558125, guid: 4951c2ee7e63db54fb82efb35ebd9595, type: 3}
   patrolPoints:

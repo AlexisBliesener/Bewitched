@@ -165,7 +165,6 @@ public class Guard : Enemy
     void FixedUpdate()
     {
         if (dead || lobotimzed) return;
-        Debug.Log(shieldStatus);
         ManageSurrounding();
         currentPlayer = target = playerController.GetCurrentCharacter();
         HandleHitStun();
@@ -374,6 +373,7 @@ public class Guard : Enemy
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
+                    targetPos = transform.position;
                     //animator.ExitLeap();
                 }
                 else if (tempLockedCharacter == null)
@@ -545,6 +545,7 @@ public class Guard : Enemy
     {
         if (shieldStatus == ShieldStatus.Lowered)
         {
+            Debug.Log("Raise shield");
             StartCoroutine(RaiseShield());
         }
     }
@@ -577,10 +578,8 @@ public class Guard : Enemy
     /// </summary>
     public override void ReleaseSecondary()
     {
-        if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising)
-        {
-            StartCoroutine(LowerShield());
-        }
+        Debug.Log("Lower shield");
+        StartCoroutine(LowerShield());
     }
 
     public IEnumerator LowerShield()
