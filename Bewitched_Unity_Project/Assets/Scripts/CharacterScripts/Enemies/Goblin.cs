@@ -99,8 +99,6 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
         sizeRadius = GetComponent<CharacterController>().radius;
-
-        aiState = AIMovementState.Patrolling;
     }
 
     protected override void FixedUpdate()

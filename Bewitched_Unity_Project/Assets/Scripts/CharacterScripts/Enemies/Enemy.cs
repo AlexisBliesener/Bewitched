@@ -150,7 +150,7 @@ public abstract class Enemy : Character
     [Tooltip("Current path state"), ShowIf("dev")]
     public PathState pathState = PathState.Unset;
     [Tooltip("The Current AI State of the enemy"), ShowIf("dev")]
-    public AIMovementState aiState = AIMovementState.Patrolling;
+    public AIMovementState aiState = AIMovementState.Blocked;
     [Tooltip("Show Paths, Destinations, etc"), ShowIf("dev")]
     public bool debugging = false;
     [Tooltip("Destination Marker Prefab"), ShowIf("dev")]
