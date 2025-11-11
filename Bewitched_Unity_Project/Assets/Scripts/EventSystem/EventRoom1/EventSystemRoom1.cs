@@ -141,6 +141,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 if ((enemyEvent.GetEnemy().health.GetHealth() <= healthToPossess)
                        && (Time.time - timeDizzyStarted <= dizzyDuration))
                 {
+                    PossessionAbility.instance.SetPossessionOverride(enemyEvent.GetEnemy());
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     enemyEvent.GetEnemy().canPossess = true;
                     enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
@@ -148,6 +149,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 }
                 // if it passes the dizzy duration, make the enemy not possessable, and add health to the enemy event
                 // and make the enemy to be able to attack again
+                PossessionAbility.instance.SetPossessionOverride(null);
                 enemyEvent.GetEnemy().canPossess = false;
                 enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Chasing;
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
