@@ -219,7 +219,6 @@ public class Guard : Enemy
             if (playerControlling)
             {
                 //animator.GetPrimaryComboMult(currentPrimaryComboStep)
-                Debug.Log("In primary windup: " + inPrimaryWindup + ", primary combo step: " + currentPrimaryComboStep + ", Time since last primary: " + (Time.time - timeLastPrimary));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= 0.5))
                 {
 
