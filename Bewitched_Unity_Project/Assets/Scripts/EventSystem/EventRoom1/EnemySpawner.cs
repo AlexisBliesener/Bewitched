@@ -182,16 +182,8 @@ public class EnemySpawner : MonoBehaviour
         GoblinAnimator goblinAnimator = enemy.GetComponent<GoblinAnimator>();
         if (goblinAnimator != null)
         {
-            // I just used the primary attack for now, since we don't have a jump animation (yet?) and I think it kind of doing the job :) 
-
-
-            // Just kidding I thought they called me the animator but no :( this is caused the goblin to not move after they spawn so I will leave it to the REAL animator... 
-
-            // goblinAnimator.SwitchState("PrimaryAttack", 0);
-            // yield return StartCoroutine(goblinAnimator.WaitForDelay("PrimaryAttack", 1));
-
-            yield return enemy.transform.DOJump(target.position, jumpPower, 1, jumpDuration).SetEase(Ease.OutQuad).WaitForCompletion();
-            // goblinAnimator.ExitLeap();
+            enemy.transform.DOJump(target.position, jumpPower, 1, jumpDuration).SetEase(Ease.OutQuad);
+            yield return StartCoroutine( goblinAnimator.Jump(jumpDuration) );
         }
 
 

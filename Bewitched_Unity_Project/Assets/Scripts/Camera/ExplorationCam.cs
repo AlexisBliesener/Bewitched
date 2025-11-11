@@ -10,6 +10,8 @@ public class ExplorationCam : MonoBehaviour
     private GameObject lookAtPoint;
     [SerializeField, Tooltip("Vertical offset applied to the look at point.")]
     private float yOffset;
+    [SerializeField, Tooltip("Horizontal offset applied to the look at point")]
+    private float xOffset = 1f;
     [SerializeField, Tooltip("The character object the camera follows.")]
     private GameObject character;
 
@@ -20,7 +22,7 @@ public class ExplorationCam : MonoBehaviour
     private void Update()
     {
         lookAtPoint.transform.position = character.transform.position
-                                       + Camera.main.transform.right
+                                       + Camera.main.transform.right  * xOffset
                                        + new Vector3(0, yOffset, 0);
     }
 }

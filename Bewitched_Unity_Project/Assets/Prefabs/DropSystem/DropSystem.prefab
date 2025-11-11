@@ -392,8 +392,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: c7c3da95fb51f4a42b3683c67a28f347, type: 3}
     rarityIndex: 0
     dropScript: {fileID: 7320499504665162705}
-    buyAmount: 150
-    sellAmount: 80
+    buyAmount: 80
+    sellAmount: 40
   - dropName: Vampirism
     description: Damaging an enemy while possessing an enemy will regain a small
       amount of health, scaling with damage done.
@@ -401,8 +401,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 9b18d70f02d618847ac9bd285deb9565, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
-    buyAmount: 100
-    sellAmount: 50
+    buyAmount: 50
+    sellAmount: 25
   - dropName: Clear Focus
     description: Decreases the time taken to focus the possession cone to a specific
       enemy to possess.
@@ -410,24 +410,24 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: e425943f9e894a04988f987790f721ca, type: 3}
     rarityIndex: 2
     dropScript: {fileID: 2447668901311447421}
-    buyAmount: 50
-    sellAmount: 20
+    buyAmount: 25
+    sellAmount: 10
   - dropName: Smarter Control
     description: 'Lowers the rate at which enemies'' health depletes. '
     dropID: 4
     icon: {fileID: 21300000, guid: 393d6aeaf500c0d4b92959ccad014967, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 5725360512968179944}
-    buyAmount: 90
-    sellAmount: 50
+    buyAmount: 45
+    sellAmount: 25
   - dropName: Adrenaline
     description: Increase the damage buff granted from swapping to a new enemy.
     dropID: 5
     icon: {fileID: 21300000, guid: 951f3c1d2ae4b0c4a8aa1060febc4ea6, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 6538570816644836317}
-    buyAmount: 80
-    sellAmount: 40
+    buyAmount: 40
+    sellAmount: 20
   - dropName: Shielding Spirits
     description: When possessing an enemy, grant a temporary shield. Lasts for 5
       seconds.
@@ -435,8 +435,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: d3a419f516fc4854988368e976d9d3cf, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 5780072744232477134}
-    buyAmount: 100
-    sellAmount: 50
+    buyAmount: 50
+    sellAmount: 25
   - dropName: Backup Plan
     description: Decrease the time it takes for the possession ability to recharge
       when knocked out of an enemy.
@@ -444,8 +444,8 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: d38e34d7b6ed46c4f945628cc810707f, type: 3}
     rarityIndex: 2
     dropScript: {fileID: 8637887266863425160}
-    buyAmount: 60
-    sellAmount: 30
+    buyAmount: 30
+    sellAmount: 15
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
   usePitySystem: 1
   dropUpgrade: 0
