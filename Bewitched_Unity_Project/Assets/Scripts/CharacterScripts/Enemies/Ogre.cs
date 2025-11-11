@@ -241,6 +241,7 @@ public class Ogre : Enemy
             timeStarted += Time.deltaTime;
             yield return null;
         }
+        inPrimaryWindup = false;
         attackStateCoroutine = StartCoroutine(BatApproach(tempLockedCharacter));
     }
 

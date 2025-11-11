@@ -232,7 +232,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 30
   offSetForward: 0.5
-  spinDamage: 30
+  spinDamage: 10
   spinDodgeDistance: 2
   spinDodgeInputTime: 0.75
   spinDistance: 8
@@ -245,6 +245,8 @@ MonoBehaviour:
   lowHealthAngleRange: 80
   maxDriftSpeed: 4
   maxSpinDeflectAngle: 30
+  minSpinDelay: 0.4
+  maxSpinDelay: 1.1
   minPatrolDistance: 1
   maxPatrolDistance: 3
   communicationRange: 30

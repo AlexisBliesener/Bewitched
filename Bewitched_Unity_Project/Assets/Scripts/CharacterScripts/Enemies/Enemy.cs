@@ -521,6 +521,7 @@ public abstract class Enemy : Character
         {
             seenTarget = true;
             lastTargetLocation = currentPlayer.transform.position;
+            timePlayerLastSeen = Time.time;
             return true;
         }
         return false;
@@ -934,7 +935,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void SetAIState()
     {
-        if ((overrideBlock || aiState != AIMovementState.Blocked )  && aiState != AIMovementState.Retreating)
+        if (overrideBlock || aiState != AIMovementState.Blocked)
         {
             if (overrideBlock)
             {
@@ -957,7 +958,7 @@ public abstract class Enemy : Character
                     TransitionToState(AIMovementState.Surrounding);
                 }
             }
-            else TransitionToState(AIMovementState.Patrolling);
+            else if (Time.time - timePlayerLastSeen > 2) TransitionToState(AIMovementState.Patrolling);
         }
     }
 
