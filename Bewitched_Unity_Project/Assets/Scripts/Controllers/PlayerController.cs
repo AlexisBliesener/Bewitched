@@ -412,6 +412,10 @@ public class PlayerController : MonoBehaviour
         secondaryCooldownDisplay.SetCooldownCover(currentCharacter.GetCooldownSecondary());
     }
 
+    /// <summary>
+    /// Returns the input of the left stick
+    /// </summary>
+    /// <returns>Left stick input</returns>
     public Vector2 GetMovementInput()
     {
         return movementInput;

@@ -307,6 +307,11 @@ public class CharacterAnimator : MonoBehaviour
         canChange = true;
     }
 
+    /// <summary>
+    /// Overrides the animator untill EnAnimatorOverride is called
+    /// Sets the specified trigger
+    /// </summary>
+    /// <param name="animationTrigger"></param>
     public void OverrideAnimator(string animationTrigger)
     {
         overriding = true;
@@ -316,6 +321,9 @@ public class CharacterAnimator : MonoBehaviour
         animator.SetTrigger(animationTrigger);
     }
 
+    /// <summary>
+    /// Ends the animator override returning animator to regular function
+    /// </summary>
     public void EndAnimatorOverride()
     {
         ResetAllTriggers();

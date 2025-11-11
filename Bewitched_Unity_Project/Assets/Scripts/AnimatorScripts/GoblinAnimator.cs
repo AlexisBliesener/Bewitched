@@ -285,6 +285,10 @@ public class GoblinAnimator : CharacterAnimator
         }
     }
 
+    /// <summary>
+    /// Plays the jump animation holding the falling pose untill duration is over
+    /// </summary>
+    /// <param name="duration"></param>
     public IEnumerator Jump(float duration)
     {
         ResetAllTriggers();

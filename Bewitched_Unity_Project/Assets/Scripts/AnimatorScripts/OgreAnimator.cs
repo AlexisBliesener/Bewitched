@@ -33,6 +33,9 @@ public class OgreAnimator : CharacterAnimator
         animator.ResetTrigger("Swing");
     }
 
+    /// <summary>
+    /// Sets the swing trigger
+    /// </summary>
     public void SetSwing()
     {
         ResetAllTriggers();
@@ -194,6 +197,11 @@ public class OgreAnimator : CharacterAnimator
         }
     }
 
+    /// <summary>
+    /// Waits for the delay coresponding to the animation and combo step provided
+    /// </summary>
+    /// <param name="animation"></param>
+    /// <param name="comboNum"></param>
     public override IEnumerator WaitForDelay(string animation, int comboNum)
     {
         switch (animation)

@@ -242,6 +242,10 @@ public class EventSystemRoom1 : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Skips the cutscene starting the boss fight immediately
+    /// Used for faster debugging
+    /// </summary>
     private void SkipCutscene()
     {
         AudioManager.ChangeMusicParameter("InCombat", "True");

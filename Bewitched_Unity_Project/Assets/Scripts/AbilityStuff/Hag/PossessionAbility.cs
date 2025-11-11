@@ -193,11 +193,20 @@ public class PossessionAbility : MonoBehaviour
         possessionCharge = Mathf.Min(possessionCharge, hitsToCharge);
     }
 
+    /// <summary>
+    /// Sets if the player is allowed to leave possession manually
+    /// </summary>
+    /// <param name="val">True also player to leave false does not </param>
     public void SetCanLeavePossession(bool val)
     {
         canLeavePossession = val;
     }
 
+    /// <summary>
+    /// Sets if an enemy is overriding countering.
+    /// The overridng enemy will be first priority for possession
+    /// </summary>
+    /// <param name="enemy">The enemy to be set as the override</param>
     public void SetPossessionOverride(Enemy enemy)
     {
         possessionOverride = enemy;
