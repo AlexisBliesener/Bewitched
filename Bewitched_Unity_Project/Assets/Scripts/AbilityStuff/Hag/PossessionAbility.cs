@@ -117,6 +117,10 @@ public class PossessionAbility : MonoBehaviour
     private float possessionChargeTimer;
     [Tooltip("Is currently in the process of possession")]
     private bool isPossessing = false;
+    [Tooltip("If the player is allowed to leave the enemy they are possessing")]
+    private bool canLeavePossession = true;
+    [Tooltip("This enemy overrides all countering possession needs, used for event enemies so they get possessed first")]
+    private Enemy possessionOverride = null;
 
     #region Saving/Loading
     /// <summary>
@@ -187,6 +191,25 @@ public class PossessionAbility : MonoBehaviour
     {
         possessionCharge++;
         possessionCharge = Mathf.Min(possessionCharge, hitsToCharge);
+    }
+
+    /// <summary>
+    /// Sets if the player is allowed to leave possession manually
+    /// </summary>
+    /// <param name="val">True also player to leave false does not </param>
+    public void SetCanLeavePossession(bool val)
+    {
+        canLeavePossession = val;
+    }
+
+    /// <summary>
+    /// Sets if an enemy is overriding countering.
+    /// The overridng enemy will be first priority for possession
+    /// </summary>
+    /// <param name="enemy">The enemy to be set as the override</param>
+    public void SetPossessionOverride(Enemy enemy)
+    {
+        possessionOverride = enemy;
     }
 
     private void Awake()
@@ -371,6 +394,8 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context"></param>
     public void LeaveEnemy(InputAction.CallbackContext context)
     {
+        if (!canLeavePossession) return;
+
         if(currentCharacter != eleth)
         {
             if (context.started)
@@ -415,12 +440,20 @@ public class PossessionAbility : MonoBehaviour
 
         // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
-        if (counteringEnemy != null)
+        if (counteringEnemy != null && (possessionOverride == null || target != possessionOverride))
         {
-            eleth.health.SetInvincible(true);
-            Time.timeScale = 0.5f;
-            target = counteringEnemy;
-            yield return new WaitForSeconds(0.2f / possessionSpeedMult);
+            if(counteringEnemy.canPossess)
+            {
+                eleth.health.SetInvincible(true);
+                Time.timeScale = 0.5f;
+                target = counteringEnemy;
+                yield return new WaitForSeconds(0.2f / possessionSpeedMult);
+            }
+        }
+
+        if (target != null && !target.canPossess)
+        {
+            target = null;
         }
 
         if (!AudioManager.TryPlayInstance("Possession", out possessionSoundEffect, true, null))
@@ -537,24 +570,44 @@ public class PossessionAbility : MonoBehaviour
     private void UpdateState()
     {
         // Can only possess if the ability is charged
-        if(possessionCharge != hitsToCharge)
+        if (possessionCharge != hitsToCharge)
         {
             possessionState = PossessionStates.canNotPossess;
             return;
         }
+
+        if(PlayerController.instance == null)
+        {
+            Debug.LogWarning("PlayerController instance is not set!");
+            return;
+        }
+        else if(Camera.main == null)
+        {
+            Debug.LogWarning("Main camera does not exist!");
+            return;
+        }
+
+        Vector3 dir = new Vector3(PlayerController.instance.GetMovementInput().x, 0, PlayerController.instance.GetMovementInput().y);
+        dir = Camera.main.transform.TransformDirection(dir);
+
+        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
+
+        if (PlayerController.instance.GetMovementInput().magnitude < 0.001f)
+            dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
+
+        dir.y = 0;
+        dir = dir.normalized;
 
         if (possessionColliderScript != null && possessionColliderScript.GetCharactersInPossession().Count != 0)
         {
             PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
-                Vector3 playerForward = new Vector3( currentCharacter.transform.forward.x, 0, currentCharacter.transform.forward.z);
                 Vector3 toCharacter = new Vector3( character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
 
-                playerForward = playerForward.normalized;
                 toCharacter = toCharacter.normalized;
 
-                float dotProduct = Vector3.Dot(playerForward, toCharacter);
+                float dotProduct = Vector3.Dot(toCharacter, dir);
                 float angle = Mathf.Acos(dotProduct);
                 angle = Mathf.Rad2Deg * angle;
                 if (angle < currentPossessionAngle / 2.0f)
@@ -568,7 +621,7 @@ public class PossessionAbility : MonoBehaviour
                     {
                         if (hitInfo.collider.gameObject.GetComponent<Character>() != null)
                         {
-                            distances.Enqueue((hitInfo.distance, character), Mathf.FloorToInt(hitInfo.distance * 100));
+                            distances.Enqueue((hitInfo.distance + (1 - dotProduct) * 50, character), Mathf.FloorToInt(hitInfo.distance * 100));
                         }
                     }
                 }

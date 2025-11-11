@@ -1,8 +1,15 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Playables;
 /// This is the event system room for the event system, it will handle the fight between the player and the event enemy
 public class EventSystemRoom1 : MonoBehaviour
 {
+    [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
+    private bool dev = false;
+
+    [SerializeField, Tooltip("Click this box to skip the cutscene for testing"), ShowIf("dev")]
+    private bool skipCutscene = false;
+
     [SerializeField, Tooltip("The enemy event prefab")]
     private EventEnemy enemyEvent;
     [SerializeField, Tooltip("The enemy spawner prefab")]
@@ -71,7 +78,14 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().gameObject.SetActive(true);
             enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
-            StartCutScene();
+            if(skipCutscene)
+            {
+                SkipCutscene();
+            }
+            else
+            {
+                StartCutScene();
+            }  
         }
     }
     [ContextMenu("Start Cut Scene")]
@@ -119,6 +133,7 @@ public class EventSystemRoom1 : MonoBehaviour
             case FightState.Ending: // Ending = dizzy 
                 if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
+                    PossessionAbility.instance.SetCanLeavePossession(false);
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;
@@ -126,6 +141,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 if ((enemyEvent.GetEnemy().health.GetHealth() <= healthToPossess)
                        && (Time.time - timeDizzyStarted <= dizzyDuration))
                 {
+                    PossessionAbility.instance.SetPossessionOverride(enemyEvent.GetEnemy());
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     enemyEvent.GetEnemy().canPossess = true;
                     enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
@@ -133,6 +149,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 }
                 // if it passes the dizzy duration, make the enemy not possessable, and add health to the enemy event
                 // and make the enemy to be able to attack again
+                PossessionAbility.instance.SetPossessionOverride(null);
                 enemyEvent.GetEnemy().canPossess = false;
                 enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Chasing;
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
@@ -210,6 +227,29 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void OnCutsceneFinished(PlayableDirector director)
     {
+        PlayerController.instance.SetAllowMovement(true);
+        cutScene.SetActive(false);
+        fightState = FightState.Fighting;
+        enemyEvent.GetEnemy().canPossess = false;
+        enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Patrolling;
+        // Activate the enemy spawner
+        enemySpawner.Activate();
+        // show all the HUD
+        if (hud != null) { hud.SetActive(true); }
+        if (enemyEvent.GetEnemy().health.GetComponent<EventHealth>() != null)
+        {
+            enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
+        }
+    }
+
+    /// <summary>
+    /// Skips the cutscene starting the boss fight immediately
+    /// Used for faster debugging
+    /// </summary>
+    private void SkipCutscene()
+    {
+        AudioManager.ChangeMusicParameter("InCombat", "True");
+        enemySpawner.gameObject.SetActive(true);
         PlayerController.instance.SetAllowMovement(true);
         cutScene.SetActive(false);
         fightState = FightState.Fighting;
