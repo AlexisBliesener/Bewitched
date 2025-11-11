@@ -459,8 +459,6 @@ public class Guard : Enemy
 
         inProcess = true;
 
-        timePlayerLastSeen = Time.time;
-
         inProcess = false;
         yield break;
     }

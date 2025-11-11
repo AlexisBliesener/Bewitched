@@ -119,7 +119,6 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
-        if (playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
 
@@ -290,6 +289,7 @@ public class Goblin : Enemy
                 }
             }
 
+            inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
@@ -327,7 +327,6 @@ public class Goblin : Enemy
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
-                inPrimaryWindup = false;
                 yield return null;
             }
 

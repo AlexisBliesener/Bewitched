@@ -499,6 +499,7 @@ public abstract class Enemy : Character
         {
             seenTarget = true;
             lastTargetLocation = currentPlayer.transform.position;
+            timePlayerLastSeen = Time.time;
             return true;
         }
         return false;
@@ -935,7 +936,7 @@ public abstract class Enemy : Character
                     TransitionToState(AIMovementState.Surrounding);
                 }
             }
-            else TransitionToState(AIMovementState.Patrolling);
+            else if (Time.time - timePlayerLastSeen > 2) TransitionToState(AIMovementState.Patrolling);
         }
     }
 
