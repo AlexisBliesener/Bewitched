@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 [RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : Character
@@ -148,7 +150,7 @@ public abstract class Enemy : Character
     [Tooltip("Current path state"), ShowIf("dev")]
     public PathState pathState = PathState.Unset;
     [Tooltip("The Current AI State of the enemy"), ShowIf("dev")]
-    public AIMovementState aiState = AIMovementState.Patrolling;
+    public AIMovementState aiState = AIMovementState.Blocked;
     [Tooltip("Show Paths, Destinations, etc"), ShowIf("dev")]
     public bool debugging = false;
     [Tooltip("Destination Marker Prefab"), ShowIf("dev")]
@@ -167,9 +169,13 @@ public abstract class Enemy : Character
     [SerializeField] protected EventReference hitEventReference;
     [Tooltip("The event reference for this enemy's death sound effect")]
     [SerializeField]protected EventReference deathEventReference;
+    [Tooltip("The character animator of this enemy")]
+    private CharacterAnimator animator;
 
     //FMOD Event for idle sound effects
     protected EventInstance idleAudio;
+    private float lastPrimaryChance = 0;
+    private float lastSecondaryChance = 0;
 
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing
@@ -183,7 +189,6 @@ public abstract class Enemy : Character
         }
     }
 
-
     /// <summary>
     /// Destorys the enemies counter indicator if it is active
     /// </summary>
@@ -196,9 +201,11 @@ public abstract class Enemy : Character
         counterIndicatorVFX = null;
     }
 
-
-    private float lastPrimaryChance = 0;
-    private float lastSecondaryChance = 0;
+    protected override void Awake()
+    {
+        base.Awake();
+        animator = GetComponent<CharacterAnimator>();   
+    }
 
     /// <summary>
     /// Handles editor validation - at the moment it normalizes attack chances
@@ -231,7 +238,7 @@ public abstract class Enemy : Character
         lastSecondaryChance = secondaryAttackChance;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         // keep the which character is the player updated
         if (playerController != null)
@@ -241,6 +248,20 @@ public abstract class Enemy : Character
         else
         {
             Debug.LogWarning("Player controller is not set!");
+        }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        // Sets if the enemy needs to do he windup and move part of the primary attack
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, this.gameObject.transform.position.y, lockedCharacter.transform.position.z), 
+            this.gameObject.transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
+        {
+            animator.SetPrimaryMovementNeeded(true);
+        }
+        else
+        {
+            animator.SetPrimaryMovementNeeded(false);
         }
     }
 
@@ -260,6 +281,7 @@ public abstract class Enemy : Character
     {
         animateMove = true;
         if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
+
 
         if (pathState != PathState.Set)
         {
@@ -301,7 +323,7 @@ public abstract class Enemy : Character
 
         Vector3 desiredVelocity;
 
-        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * GetSpeed();
 
         float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
         velocity.x += xChange;
@@ -332,18 +354,18 @@ public abstract class Enemy : Character
     /// <summary>
     /// Function to handle the rotation of an AI controller
     /// </summary>
-    public void AILook()
+    public virtual void AILook()
     {
-        if (aiState == AIMovementState.PlayerControlled) return;
+        if (aiState == AIMovementState.PlayerControlled || playerControlling) return;
 
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, GetRotationSpeed() * Time.deltaTime));
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), GetRotationSpeed() * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }

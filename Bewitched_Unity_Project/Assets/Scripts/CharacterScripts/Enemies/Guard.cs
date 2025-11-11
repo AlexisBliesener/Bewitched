@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Guard : Enemy
 {
@@ -24,39 +25,15 @@ public class Guard : Enemy
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
 
-    [Tooltip("Shield Bash Minimum Speed")]
-    [SerializeField] float minimumShieldBashSpeed;
-    [Tooltip("Shield Bash Maximum Speed")]
-    [SerializeField] float maximumShieldBashSpeed;
+    [Tooltip("Shield raise time")]
+    [SerializeField] float shieldRaiseTime = 0.2f;
+    [Tooltip("Shield lower time")]
+    [SerializeField] float shieldLowerTime = 0.3f;
+    [Tooltip("Angle range for AI to lower shield")]
+    [SerializeField] float aiShieldAngleThreshold = 20;
 
-    [Tooltip("Shield Bash Minimum Damage")]
-    [SerializeField] float minimumShieldBashDamage;
-    [Tooltip("Shield Bash Maximum Damage")]
-    [SerializeField] float maximumShieldBashDamage;
-
-    [Tooltip("Shield Bash Minimum Knockback")]
-    [SerializeField] float minimumShieldBashKnockback;
-    [Tooltip("Shield Bash Maximum Knockback")]
-    [SerializeField] float maximumShieldBashKnockback;
-
-    [Tooltip("Shield Bash Effects")]
-    [SerializeField] AttackStatusEffects shieldBashEffects;
-
-    [Tooltip("Charge Time to Max")]
-    [SerializeField] float maxShieldBashChargeTime;
-    [Tooltip("Shield Bash Duration")]
-    [SerializeField] float bashDuration;
-
-    [Tooltip("Movement Speed When Charging")]
-    [SerializeField] float chargingMovementSpeed = 2;
-
-    bool chargingShieldBash = false;
-
-    float currentShieldBashSpeed;
-    float currentShieldBashDamage;
-    float currentShieldBashKnockback;
-
-    float timeStartedBash;
+    [Tooltip("Guard animator script that controls the guard animations")]
+    private CharacterAnimator animator; // I have it as Character rn as I'm sure GuardAnimator will have similar functions
 
     [Header("Guard AI Settings")]
 
@@ -77,6 +54,23 @@ public class Guard : Enemy
 
     [Tooltip("Editor gameobjects for visually moving points")]
     private List<GameObject> patrolObjs = new List<GameObject>();
+
+    private bool inPrimaryWindup = false;
+    private Vector3 targetPos;
+
+    private GameObject shieldObject;
+
+    [Tooltip("Shield status enum")]
+    private enum ShieldStatus
+    {
+        Lowered,
+        Raising,
+        Raised,
+        Lowering
+    }
+
+    [Tooltip("The status of the shield for the guard")]
+    private ShieldStatus shieldStatus = ShieldStatus.Lowered;
 
     #region Menu Functions
 
@@ -177,110 +171,441 @@ public class Guard : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        HandleAutoShield();
+        SetDebugString();
+        if (playerControlling)
+        {
+            lockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+        else
+        {
+            lockedCharacter = currentPlayer;
+        }
     }
 
+    /// <summary>
+    /// Function to handle the rotation of an AI guard
+    /// </summary>
+    public override void AILook()
+    {
+        if (aiState == AIMovementState.PlayerControlled || playerControlling || shieldStatus != ShieldStatus.Lowered) return;
+
+        Quaternion lookRotation;
+        if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, GetRotationSpeed() * Time.deltaTime));
+        }
+        else
+        {
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), GetRotationSpeed() * Time.deltaTime));
+        }
+        transform.rotation = lookRotation;
+    }
+
+    /// <summary>
+    /// Starts the primary attack
+    /// Chooses between windup and regular hit
+    /// </summary>
+    public override IEnumerator BeginPrimary()
+    {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) StartCoroutine(LowerShield());
+            yield return null;
+        }
+
+        if (gameObject != null)
+        {
+            if (playerControlling)
+            {
+                //animator.GetPrimaryComboMult(currentPrimaryComboStep)
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= 0.5))
+                {
+
+                    health.SubHealth(primaryAttackCost);
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+
+                    //characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                currentPrimaryComboStep = -1;
+                timeLastPrimary = Time.time;
+                //characterAnimator.SwitchState("PrimaryAttack", 0);
+                //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                PrimaryAttack();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts the lance thrust
+    /// </summary>
     public override void PrimaryAttack()
     {
+        hitCharacter = false;
+        SetMovementValues(false);
+
+        if (lockedCharacter)
+        {
+            lockedCharacter.SetAttacker(this);
+            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(true);
+            }
+        }
+
+        Character tempLockedChar = lockedCharacter;
+
+        attackingPrimary = true;
+
+        if (playerControlling)
+        {
+            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            {
+                inPrimaryWindup = true;
+                attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(HandleLanceThrust(tempLockedChar));
+            }
+        }
+        else
+        {
+            inPrimaryWindup = true;
+            attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
+        }
+    }
+
+    /// <summary>
+    /// Starts the windup for the lance
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator LanceWindup(Character tempLockedCharacter)
+    {
+        inCounter = false;
+        attackState = AttackState.Windup;
+        // save the current position to use the y value later
+        targetPos = transform.position;
+        float windupStart = Time.time;
+        bool leapEntered = false;
+        //animator.GetPrimaryWindupMult()
+        while (Time.time - windupStart < 0.708 / 1)
+        {
+            SetMovementValues(false);
+            if (tempLockedCharacter)
+            {
+                Vector3 direc = tempLockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+            }
+
+            //animator.GetPrimaryWindupMult()
+            if (!leapEntered && Time.time - windupStart > 0.708 / 1 * 0.75f)
+            {
+                leapEntered = true;
+                //animator.SetEnterLeap();
+            }
+            yield return null;
+        }
+
+        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
+        {
+            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
+        }
+
+        attackStateCoroutine = StartCoroutine(LanceApproach(tempLockedCharacter));
+    }
+
+    /// <summary>
+    /// Approach function for thrusting
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator LanceApproach(Character tempLockedCharacter)
+    {
+        attackState = AttackState.Approaching;
+        inPrimaryWindup = false;
+        if (tempLockedCharacter)
+        {
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
+            Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
+            float oldY = targetPos.y;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.55f);
+            RaycastHit hit;
+            // Raycast to check for environment collision
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
+            {
+                // Move just before environment/character hit point
+                dis = hit.distance;
+                targetPos = hit.point - direction * (sizeRadius + 0.5f);
+            }
+            targetPos.y = oldY;
+            transform.DOMove(targetPos, chaseTime * dis);
+            transform.DOLookAt(targetPos, chaseTime * dis);
+
+            float timeStarted = Time.time;
+            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
+            bool triggerSet = false;
+
+            if (playerControlling)
+            {
+                if (tempLockedCharacter != null)
+                {
+                    CameraController.instance.OnAttack(tempLockedCharacter.transform.position - transform.position, chaseTime * dis);
+                }
+                else
+                {
+                    CameraController.instance.OnAttack(transform.forward, chaseTime * dis);
+                }
+            }
+
+            while (Time.time - timeStarted < chaseTime * dis)
+            {
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
+                {
+                    DOTween.Kill(gameObject); // Kill tweens if we are too close
+                    targetPos = transform.position;
+                    //animator.ExitLeap();
+                }
+                else if (tempLockedCharacter == null)
+                {
+                    //animator.ExitLeap();
+                }
+
+                if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
+                {
+                    if (!triggerSet)
+                    {
+                        //animator.ExitLeap();
+                        triggerSet = true;
+                    }
+
+                    if (counterIndicatorVFX != null)
+                    {
+                        DestroyCounterIndicator();
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+                    }
+                }
+                else // attack is dodgable
+                {
+                    if (counterIndicatorVFX == null)
+                    {
+                        counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                        counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
+                        PlayerController.instance.SetCounterAvaliable(this);
+                    }
+                }
+                SetMovementValues(false);
+                GetCharacterController().enabled = false;
+                yield return null;
+            }
+
+            if (!triggerSet)
+            {
+                //animator.ExitLeap();
+            }
+            if (targetPos != Vector3.negativeInfinity)
+            {
+                transform.position = targetPos;
+            }
+            GetCharacterController().enabled = true;
+        }
+
+        if (counterIndicatorVFX != null)
+        {
+            DestroyCounterIndicator();
+        }
+
+        attackState = AttackState.Attacking;
+
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
         lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
         lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
+        lanceTip.transform.position += transform.right * 0.25f;
 
-        timeLastPrimary = Time.time;
-        attackingPrimary = true;
+        targetPos = Vector3.negativeInfinity;
+
+        float hitboxStartTime = Time.time;
+
+        //animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
+
+        if (!playerControlling)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                float timeStart = Time.time;
+                while (Time.time - timeStart > 0.1f)
+                {
+                    SetMovementValues(false);
+                    yield return null;
+                }
+            }
+            //animator.EndPrimary();
+        }
+
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+
+
+        if (tempLockedCharacter)
+        {
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
+
+        lockedCharacter = null;
+        attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
+
+        yield break;
+    }
+
+    /// <summary>
+    /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when thrusting
+    /// </summary>
+    /// <returns> Time breaks </returns>
+    public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
+    {
+        //animator.SetPrimaryMovementNeeded(false);
+        attackState = AttackState.Attacking;
+
+        GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.transform.position += transform.right * 0.25f;
+
+        GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
+        lanceTip.transform.position += transform.right * 0.25f;
+
+        if (playerControlling)
+        {
+            CameraController.instance.OnAttack(transform.forward, 0.01f);
+        }
+
+        float hitboxStartTime = Time.time;
+        // animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
+
+        if (!playerControlling)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
+        SetMovementValues(true);
+
+        attackState = AttackState.Neutral;
+        pathState = PathState.Unset;
+        aiState = AIMovementState.Retreating;
+
+        if (tempLockedCharacter)
+        {
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
+            {
+                enemy.SetTargeted(false);
+            }
+        }
+
+        if (!playerControlling)
+        {
+            //animator.EndPrimary();
+        }
+
+        attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
     public override void SecondaryAttack()
     {
-        chargingShieldBash = true;
-        currentShieldBashDamage = minimumShieldBashDamage;
-        currentShieldBashKnockback = minimumShieldBashKnockback;
-        currentShieldBashSpeed = minimumShieldBashSpeed;
-
-        baseMovementSpeed = movementSpeed;
-        movementSpeed = chargingMovementSpeed;
-        timeStartedBash = Time.time;
-        attackingSecondary = true;
-
-        //if (releaseSecondaryImm) ReleaseSecondary();
-        //releaseSecondaryImm = false;
-    }
-
-    public void ChargeShieldBash()
-    {
-        if (chargingShieldBash)
+        if (shieldStatus == ShieldStatus.Lowered)
         {
-            float timeVal = (Time.time - timeStartedBash) / maxShieldBashChargeTime;
-
-            if (timeVal < 1) // If charging for more than maximum time do nothing
-            {
-                currentShieldBashDamage = Mathf.Lerp(minimumShieldBashDamage, maximumShieldBashDamage, timeVal);
-                currentShieldBashKnockback = Mathf.Lerp(minimumShieldBashKnockback, maximumShieldBashKnockback, timeVal);
-                currentShieldBashSpeed = Mathf.Lerp(minimumShieldBashSpeed, maximumShieldBashSpeed, timeVal);
-            }
+            Debug.Log("Raise shield");
+            StartCoroutine(RaiseShield());
         }
     }
 
-    //public override void ReleaseSecondary()
-    //{
-    //    base.ReleaseSecondary();
-    //    if (!chargingShieldBash) return;
-
-    //    chargingShieldBash = false;
-    //    timeLastSecondary = Time.time;
-    //    playerController.SetAllowMovement(false);
-
-    //    health.SetInvincible(true);
-
-    //    GameObject hitbox = Instantiate(shieldPrefab, transform);
-    //    hitbox.GetComponent<DefaultHitbox>().Init(this, dmg: currentShieldBashDamage, status: shieldBashEffects, attackDuration: bashDuration);
-    //    StartCoroutine(HandleBashMovement(hitbox));
-    //}
-
-    private IEnumerator HandleBashMovement(GameObject hitbox)
+    /// <summary>
+    /// Raises the shield
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator RaiseShield()
     {
-        float timeSinceStarted = 0f;
-
-        while (timeSinceStarted < bashDuration)
+        if (shieldStatus == ShieldStatus.Lowering) yield break;
+        shieldStatus = ShieldStatus.Raising;
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < shieldRaiseTime)
         {
-            if (hitbox.GetComponent<DefaultHitbox>().HasHitWall())
-            {
-                StartCoroutine(EnableMovement());
-                health.SetInvincible(false);
-                movementSpeed = baseMovementSpeed;
-                attackingSecondary = false;
-
-                transform.position = transform.position - transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-
-                yield break;
-            }
-
-            transform.position = transform.position + transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-            timeSinceStarted += Time.deltaTime;
+            if (shieldStatus == ShieldStatus.Lowering) yield break;
             yield return null;
         }
 
-        transform.position = transform.position + transform.forward.normalized * currentShieldBashSpeed * Time.deltaTime;
-
-        Destroy(hitbox);
-
-        StartCoroutine(EnableMovement());
-        health.SetInvincible(false);
-        movementSpeed = baseMovementSpeed;
-        attackingSecondary = false;
+        if (shieldStatus == ShieldStatus.Raising)
+        {
+            shieldObject = Instantiate(shieldPrefab, transform);
+            shieldObject.transform.position += transform.forward * sizeRadius;
+            shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
+            shieldStatus = ShieldStatus.Raised;
+        }
     }
 
-    public override Vector3 GetCurrentSpeedVector()
+    /// <summary>
+    /// Releases the shield
+    /// </summary>
+    public override void ReleaseSecondary()
     {
-        return currentShieldBashSpeed * transform.forward.normalized;
+        Debug.Log("Lower shield");
+        StartCoroutine(LowerShield());
     }
 
-    public override bool CheckSecondaryUsable()
+    public IEnumerator LowerShield()
     {
-        if (chargingShieldBash) return false;
-        return base.CheckSecondaryUsable();
+        shieldStatus = ShieldStatus.Lowering;
+        if (shieldObject)
+        {
+            Destroy(shieldObject);
+            shieldObject = null;
+        }
+        float timeStarted = Time.time;
+        while (Time.time - timeStarted < shieldLowerTime)
+        {
+            shieldStatus = ShieldStatus.Lowering;
+            yield return null;
+        }
+        shieldStatus = ShieldStatus.Lowered;
     }
 
     /// <summary>
@@ -332,7 +657,7 @@ public class Guard : Enemy
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 
@@ -539,13 +864,75 @@ public class Guard : Enemy
 
         if (totalOdds > 0)
         {
-            PrimaryAttack();
+            StartCoroutine(BeginPrimary());
             points.AddAttackingEnemy(this, primaryAICost);
             return primaryAICost;
         }
         else
         {
             return 0;
+        }
+    }
+
+    /// <summary>
+    /// Override for speed getter
+    /// </summary>
+    /// <returns> Speed depending on shielding status </returns>
+    public override float GetSpeed()
+    {
+        if (shieldStatus != ShieldStatus.Lowered) return base.GetSpeed() / 3f;
+        return base.GetSpeed();
+    }
+
+    /// <summary>
+    /// Override for rotation speed getter
+    /// </summary>
+    /// <returns> Rotation speed depending on shield status </returns>
+    public override float GetRotationSpeed()
+    {
+        if (shieldStatus != ShieldStatus.Lowered) return 0;
+        return base.GetRotationSpeed();
+    }
+
+    /// <summary>
+    /// Handles the AI raising and lowering the shield based on distance, attack state, and player controlling state
+    /// </summary>
+    public void HandleAutoShield()
+    {
+        float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
+        float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
+        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
+        {
+            StartCoroutine(RaiseShield());
+        }
+        else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
+        {
+            StartCoroutine(LowerShield());
+        }
+    }
+
+    /// <summary>
+    /// Sets if the player is controlling this enemy
+    /// </summary>
+    /// <param name="val"> Value to set </param>
+    public override void SetControlled(bool val)
+    {
+        playerControlling = val;
+        if (val)
+        {
+            DestroyCounterIndicator();
+            lockedCharacter = null;
+            attackingPrimary = false;
+            attackingSecondary = false;
+            health.ShowMiniHealthBar(false);
+            aiState = AIMovementState.PlayerControlled;
+            pathState = PathState.Unset;
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
+        }
+        else
+        {
+            aiState = AIMovementState.Patrolling;
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
         }
     }
 }

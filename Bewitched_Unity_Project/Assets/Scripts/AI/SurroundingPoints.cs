@@ -110,8 +110,8 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
-        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + (2 * enemy.maxSurroundingRadius / 3);
+        if (PlayerController.instance.isActiveAndEnabled) yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
     }

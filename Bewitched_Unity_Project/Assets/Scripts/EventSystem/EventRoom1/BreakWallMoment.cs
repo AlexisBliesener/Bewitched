@@ -52,6 +52,7 @@ public class BreakWallMoment : MonoBehaviour
     private void OnCutsceneFinished(PlayableDirector directors)
     {
         // Kill ogre? 
+        PossessionAbility.instance.SetCanLeavePossession(true);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
         PlayerController.instance.currentCharacter.health.SetCurrentHealth(0);
         PlayerController.instance.SetAllowMovement(true);

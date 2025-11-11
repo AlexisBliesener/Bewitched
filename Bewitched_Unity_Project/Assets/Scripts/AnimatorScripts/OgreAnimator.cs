@@ -30,8 +30,12 @@ public class OgreAnimator : CharacterAnimator
     protected override void ResetAllTriggers()
     {
         base.ResetAllTriggers();
+        animator.ResetTrigger("Swing");
     }
 
+    /// <summary>
+    /// Sets the swing trigger
+    /// </summary>
     public void SetSwing()
     {
         ResetAllTriggers();
@@ -82,7 +86,7 @@ public class OgreAnimator : CharacterAnimator
     {
         if (PlayerController.instance.currentCharacter == character)
         {
-            if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+            if ((currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep]))
             {
                 character.ResetPrimaryComboStep();
             }
@@ -113,25 +117,25 @@ public class OgreAnimator : CharacterAnimator
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
 
-        //if (newState == "PrimaryAttack")
-        //{
-        //    ResetAllTriggers();
-        //    animator.SetTrigger("PrimaryAttack");
-        //    if (GetComponentInParent<Ogre>().IsPlayerControlling())
-        //    {
-        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
-        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
-        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
-        //    }
-        //    else
-        //    {
-        //        animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
-        //        animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
-        //        animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
-        //    }
-        //    canChange = false;
-        //    currentAnimationState = newState;
-        //}
+        if (newState == "PrimaryAttack")
+        {
+            ResetAllTriggers();
+            animator.SetTrigger("PrimaryAttack");
+            if (GetComponentInParent<Ogre>().IsPlayerControlling())
+            {
+                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
+                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
+                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
+            }
+            else
+            {
+                animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
+                animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
+                animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
+            }
+            canChange = false;
+            currentAnimationState = newState;
+        }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
@@ -193,6 +197,11 @@ public class OgreAnimator : CharacterAnimator
         }
     }
 
+    /// <summary>
+    /// Waits for the delay coresponding to the animation and combo step provided
+    /// </summary>
+    /// <param name="animation"></param>
+    /// <param name="comboNum"></param>
     public override IEnumerator WaitForDelay(string animation, int comboNum)
     {
         switch (animation)

@@ -13,15 +13,7 @@ public class CutSceneEvent1 : MonoBehaviour
     private float speedOfTheMovement = 0.5f;
     [SerializeField, Tooltip("The flag to check if the player is moving")]
     private bool isMoving = false;
-    /// <summary>
-    /// This will set the player to the start position and set the flag to true
-    /// </summary>
-    private void Awake()
-    {
-        PlayerController.instance.GetHag().transform.position = startPosition.transform.position;
-        PlayerController.instance.GetHag().transform.rotation = startPosition.transform.rotation;
-        isMoving = true;
-    }
+
     /// <summary>
     /// This will set the player to the start position and set the flag to true
     /// </summary>
@@ -29,8 +21,10 @@ public class CutSceneEvent1 : MonoBehaviour
     {
         PlayerController.instance.GetHag().transform.position = startPosition.transform.position;
         PlayerController.instance.GetHag().transform.rotation = startPosition.transform.rotation;
+        PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().OverrideAnimator("Run");
         isMoving = true;
     }
+
     /// <summary>
     /// It will move the player to the target position
     /// </summary>
@@ -41,8 +35,14 @@ public class CutSceneEvent1 : MonoBehaviour
             PlayerController.instance.GetHag().transform.position = Vector3.Lerp(PlayerController.instance.GetHag().transform.position, targetPosition.transform.position, speedOfTheMovement * Time.deltaTime);
             if (Vector3.Distance(PlayerController.instance.GetHag().transform.position, targetPosition.transform.position) < 1f)
             {
+                PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().OverrideAnimator("Idle");
                 isMoving = false;
             }
         }
+    }
+
+    private void OnDisable()
+    {
+        PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().EndAnimatorOverride();
     }
 }
