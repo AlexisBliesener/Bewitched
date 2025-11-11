@@ -69,6 +69,10 @@ public class Goblin : Enemy
     [SerializeField] float maxDriftSpeed = 4;
     [Tooltip("The max angular distance a deflect will auto-target the player on wall/character spin collisions"), Range(0, 360)]
     [SerializeField] float maxSpinDeflectAngle = 30;
+    [Tooltip("Minimum time delay before spin from AI")]
+    [SerializeField] float minSpinDelay = 0.3f;
+    [Tooltip("Maximum time delay before spin from AI")]
+    [SerializeField] float maxSpinDelay = 0.7f;
 
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance"), Range(0, 100)]
@@ -1088,7 +1092,7 @@ public class Goblin : Enemy
     {
         if (dead || lobotimzed) return 0;
         float totalOdds = 0;
-        List<Goblin> goblins = points.GetEnemiesSameType(this);
+        List<Goblin> goblins = points.GetEnemiesSameType(this); // List of other goblins that are able to attack
         float remaining = points.GetAvailableAttackPoints();
         bool primaryAvailable = false;
 
@@ -1118,6 +1122,13 @@ public class Goblin : Enemy
             {
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
+                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count)); // Gets a random number of available goblins
+                Debug.Log("Attacking with: " + goblinAttackCount + " others");
+                for (int i = 0; i < goblinAttackCount; i++)
+                {
+                    StartCoroutine(goblins[i].SpinWithDelay());
+                    points.AddAttackingEnemy(goblins[i], secondaryAICost);
+                }
                 cost = secondaryAICost;
             }
             points.AddAttackingEnemy(this, cost);
@@ -1136,5 +1147,21 @@ public class Goblin : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
+    }
+
+    /// <summary>
+    /// Begins the spin attack after a short delay
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator SpinWithDelay()
+    {
+        float waitDelay = Random.Range(minSpinDelay, maxSpinDelay);
+        float timeStarted = Time.time;
+        attackState = AttackState.Windup;
+        while (Time.time - timeStarted < waitDelay)
+        {
+            yield return null;
+        }
+        StartCoroutine(BeginSecondary());
     }
 }
