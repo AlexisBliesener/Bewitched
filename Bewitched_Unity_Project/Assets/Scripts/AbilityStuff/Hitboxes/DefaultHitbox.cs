@@ -23,6 +23,8 @@ public class DefaultHitbox : MonoBehaviour
     [Tooltip("If the Hitbox has Hit a Wall")]
     protected bool hitWall = false;
 
+    [Tooltip("If the Hitbox has been hit by a ground or environment ")]
+    protected bool hitGroundOrEnvironment = false;
     [Tooltip("Forward Speed")]
     protected float thrustSpeed;
     [Tooltip("Rotational Speed")]
@@ -69,6 +71,10 @@ public class DefaultHitbox : MonoBehaviour
     protected enum eHitType {blunt,bladed,unique};
     [SerializeField] protected eHitType damageType = eHitType.blunt;
 
+    [Tooltip("The layer number for the environment layer")]
+    private const int ENVIRONMENT_LAYER = 8;
+    [Tooltip("The layer number for the ground layer")]
+    private const int GROUND_LAYER = 6;
     /// <summary>
     /// Add a character to the list of hit characters
     /// </summary>
@@ -123,6 +129,14 @@ public class DefaultHitbox : MonoBehaviour
         return hitWall;
     }
 
+    /// <summary>
+    /// Checks to see if the hitbox has hit the ground or environment
+    /// </summary>
+    /// <returns> True if it has, false otherwise </returns>
+    public bool HasHitGroundOrEnvironment()
+    {
+        return hitGroundOrEnvironment;
+    }
     /// <summary>
     /// Initialize function for a hitbox
     /// </summary>
@@ -181,7 +195,7 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible() && character.teamID != user.teamID)
+                if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible())
                 {
                     if (character is Enemy) (character as Enemy).DoHitSoundEffect(damage);
                     character.health.SubHealth(damage);
@@ -237,9 +251,14 @@ public class DefaultHitbox : MonoBehaviour
                     }
                 }
             }
-            else if (other.gameObject.layer == 8)
+            else if (other.gameObject.layer == ENVIRONMENT_LAYER)
             {
                 hitWall = true;
+                hitGroundOrEnvironment = true;
+            }
+            else if (other.gameObject.layer == GROUND_LAYER)
+            {
+                hitGroundOrEnvironment = true;
             }
         }
     }

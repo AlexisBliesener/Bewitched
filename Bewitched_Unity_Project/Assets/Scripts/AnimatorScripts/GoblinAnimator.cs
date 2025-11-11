@@ -24,6 +24,13 @@ public class GoblinAnimator : CharacterAnimator
     [SerializeField, Tooltip("Dizzy time after secondary attack enemy")]
     private float dizzyTimeEnemy;
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        animationStates.Add("Jump");
+    }
+
     /// <summary>
     /// Resets all animator triggers
     /// </summary>
@@ -31,6 +38,7 @@ public class GoblinAnimator : CharacterAnimator
     {
         base.ResetAllTriggers();
         animator.ResetTrigger("ExitSecondaryAttack");
+        animator.ResetTrigger("Jump");
     }
 
     /// <summary>
@@ -161,7 +169,7 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public void ExitLeap()
     {
-        base.ResetAllTriggers();
+        ResetAllTriggers();
         animator.SetTrigger("ExitLeap");
     }
 
@@ -275,6 +283,22 @@ public class GoblinAnimator : CharacterAnimator
 
                 break;
         }
+    }
+
+    /// <summary>
+    /// Plays the jump animation holding the falling pose untill duration is over
+    /// </summary>
+    /// <param name="duration"></param>
+    public IEnumerator Jump(float duration)
+    {
+        ResetAllTriggers();
+        canChange = false;
+        animator.SetTrigger("Jump");
+        currentAnimationState = "Jump";
+        yield return new WaitForSeconds(duration - 0.1f);
+        animator.SetTrigger("JumpLanded");
+        yield return new WaitForSeconds(0.667f);
+        canChange = true;
     }
 
 }
