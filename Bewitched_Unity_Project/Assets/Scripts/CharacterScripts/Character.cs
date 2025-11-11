@@ -557,8 +557,6 @@ public abstract class Character : MonoBehaviour
         characterAnimator.SetPrimaryComboEnded();
     }
 
-
-
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
@@ -609,7 +607,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual Vector3 GetCurrentSpeedVector()
     {
-        return new Vector3(0, 0, 0);
+        return velocity;
     }
 
     public void EndAttacks()
@@ -908,5 +906,30 @@ public abstract class Character : MonoBehaviour
         {
             Debug.LogWarning("Character controller is not set!");
         }
+    }
+
+    /// <summary>
+    /// Gets the speed of the character
+    /// </summary>
+    /// <returns> Speed the character can currently move </returns>
+    public virtual float GetSpeed()
+    {
+        return movementSpeed;
+    }
+
+    /// <summary>
+    /// Gets the look rotation speed
+    /// </summary>
+    /// <returns> Rotation speed </returns>
+    public virtual float GetRotationSpeed()
+    {
+        return 5f;
+    }
+
+    /// <summary>
+    /// Releases the secondary attack if there is anything that happens
+    /// </summary>
+    public virtual void ReleaseSecondary()
+    {
     }
 }

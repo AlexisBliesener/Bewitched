@@ -67,7 +67,6 @@ public class CombatCam : MonoBehaviour
             }
             StartCoroutine(RotateToBiggestThreat(CameraController.instance.GetThreatWeight(), CameraController.instance.GetDistWeight(), CameraController.instance.GetMaxDistance(), RoomSystem.Instance.GetCurrentRoomEnemies(), SurroundingPoints.instance.GetAttackingEnemies()));
         }
-            
     }
 
     /// <summary>
@@ -113,9 +112,11 @@ public class CombatCam : MonoBehaviour
 
         float dist = toEnemy.magnitude;
 
-        dist = Mathf.Clamp(dist, 0f, 5f);
+        dist -= 1;
 
-        yield return StartCoroutine(RotateCamera(degrees, 1f - dist/5f, duration));
+        dist = Mathf.Clamp(dist, 0f, 10f);
+
+        yield return StartCoroutine(RotateCamera(degrees, 1f - dist / 10f, duration));
     }
 
     /// <summary>
@@ -148,7 +149,15 @@ public class CombatCam : MonoBehaviour
                         threat += attackingEnemies[enemyComponent];
                     }
 
+                    Vector3 direction = (enemy.transform.position - PlayerController.instance.currentCharacter.transform.position).normalized;
+                    if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position + Vector3.up * 1.5f, direction, out RaycastHit hit, distance, LayerMask.GetMask("Environment", "Character" )))
+                    {
+                        if (hit.collider.gameObject != enemy)
+                            continue;
+                    }
+
                     float currentPriority = (threat * threatWeight) + (maxDistance - distance) * distWeight;
+
                     if (topPriority == null || currentPriority > priority)
                     {
                         topPriority = enemyComponent;

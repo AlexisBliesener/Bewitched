@@ -195,7 +195,7 @@ public class DefaultHitbox : MonoBehaviour
         {
             if (other.TryGetComponent(out Character character))
             {
-                if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible() && character.teamID != user.teamID)
+                if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible())
                 {
                     if (character is Enemy) (character as Enemy).DoHitSoundEffect(damage);
                     character.health.SubHealth(damage);

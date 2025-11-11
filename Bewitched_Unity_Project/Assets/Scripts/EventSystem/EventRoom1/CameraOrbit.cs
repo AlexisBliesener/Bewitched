@@ -20,12 +20,7 @@ public class CameraOrbit : MonoBehaviour
         {
             dolly = virtualCam.GetCinemachineComponent<CinemachineTrackedDolly>();
             path = dolly.m_Path;
-
-            if (dolly != null && path != null)
-            {
-                // Start at the very beginning of the path
-                dolly.m_PathPosition = path.MinPos;
-            }
+            dolly.m_PathPosition = 0;
         }
     }
     /// <summary>
