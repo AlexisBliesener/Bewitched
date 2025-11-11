@@ -25,10 +25,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3073943490370668392}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.55, y: 0, z: 0.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2255491771130668000}
   - {fileID: 6267782653680289103}
@@ -71,8 +71,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.1551793, y: 24.36362, z: 2.1790137}
-  m_Center: {x: 0.15126956, y: 10.28833, z: -0.16228199}
+  m_Size: {x: 1.8177779, y: 24.36362, z: 1.5127835}
+  m_Center: {x: 0.11351015, y: 10.28833, z: -0.21359542}
 --- !u!1001 &383420763044736995
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1259,6 +1259,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4531485127050718349}
     m_Modifications:
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Size.x
+      value: 1.7756435
+      objectReference: {fileID: 0}
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Size.y
+      value: 1.5002742
+      objectReference: {fileID: 0}
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Size.z
+      value: 1.4726229
+      objectReference: {fileID: 0}
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Center.x
+      value: -0.037354495
+      objectReference: {fileID: 0}
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Center.y
+      value: 0.03329521
+      objectReference: {fileID: 0}
+    - target: {fileID: 493822082356874418, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
+      propertyPath: m_Center.z
+      value: 0.7363113
+      objectReference: {fileID: 0}
     - target: {fileID: 6986206451040393443, guid: bce9ec3c5db8f4bfe86b9f14d4921d29, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.145
