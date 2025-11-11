@@ -32,10 +32,6 @@ public class Ogre : Enemy
     [SerializeField, Range(0, 100)] float batSwingDamage = 30f;
     [Tooltip("Bat Swing Angle")]
     [SerializeField, Range(0, 360)] float batSwingAngle = 60f;
-    [Tooltip("Bat Swing Duration")]
-    [SerializeField, Range(0, 10)] float batSwingDuration = 0.5f;
-    [Tooltip("Bat Windup Period")]
-    [SerializeField, Range(0, 10)] float batWindupPeriod = 0.5f;
     [Header("Ogre Jump Settings")]
     [Tooltip("Ogre Jump Gravity")]
     [SerializeField, Range(0, 100)] float ogreJumpGravity = 40f;
@@ -54,8 +50,6 @@ public class Ogre : Enemy
     [Header("Ogre Scream Settings")]
     [Tooltip("Scream radius")]
     [SerializeField] float screamRange = 5;
-    [Tooltip("Scream windup time")]
-    [SerializeField] float screamWindupDuration = 0.5f;
     [Header("Ogre Sitting Settings")]
     [Tooltip("Minimum time for ogre to sit")]
     [SerializeField, Range(0, 10)] float minSittingTime = 3f;
@@ -73,8 +67,14 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
+    [Tooltip("If in windup for primary")]
+    bool inPrimaryWindup = false;
+    [Tooltip("Ogre animator script that controls the ogre animations")]
+    private OgreAnimator ogreAnimator;
+
     void Start()
     {
+        ogreAnimator = GetComponentInChildren<OgreAnimator>();
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
@@ -83,32 +83,43 @@ public class Ogre : Enemy
         sizeRadius = GetComponent<CharacterController>().radius;
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = 0;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+
         if (dead || lobotimzed) return;
+
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
-        // SetAIState();
+        SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
-    }
-    /// <summary>
-    /// Starts the primary attack for the ogre
-    /// </summary>
-    public override void PrimaryAttack()
-    {
-        
-        hitCharacter = false;
+
+        SetDebugString();
+        //if (!playerControlling) Debug.Log(debugAIInfo);
+
         if (playerControlling)
         {
-            PlayerController.instance.SetAllowMovement(false);
             lockedCharacter = PlayerController.instance.GetLockedTarget();
         }
         else
         {
             lockedCharacter = currentPlayer;
-            aiState = AIMovementState.Blocked;
         }
+
+        base.FixedUpdate();
+    }
+
+    /// <summary>
+    /// Starts the primary attack for the ogre
+    /// </summary>
+    public override void PrimaryAttack()
+    {
+        hitCharacter = false;
+        SetMovementValues(false);
 
         if (lockedCharacter)
         {
@@ -119,16 +130,97 @@ public class Ogre : Enemy
             }
         }
 
-        attackingPrimary = true;
-        // Debug.Log("Starting swing");
-        attackStateCoroutine = StartCoroutine(BatWindup());
+        Character tempLockedCharacter = lockedCharacter;
+
+        if (playerControlling)
+        {
+            if (!playerControlling || (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+            {
+                attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
+            }
+            else
+            {
+                attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
+            }
+        }
+        else
+        {
+            attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
+        }
     }
+
+    /// <summary>
+    /// Starts the primary attack
+    /// Chooses between windup and regular hit
+    /// </summary>
+    public override IEnumerator BeginPrimary()
+    {
+        if (gameObject != null && !inPrimaryWindup && !attackingPrimary && !attackingSecondary)
+        {
+            attackingPrimary = true;
+            if (playerControlling)
+            {
+                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                {
+                    health.SubHealth(primaryAttackCost);
+
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    timeLastPrimary = Time.time;
+                    characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    PrimaryAttack();
+                }
+            }
+            else
+            {
+                 currentPrimaryComboStep = 0;
+                 timeLastPrimary = Time.time;
+                 characterAnimator.SwitchState("PrimaryAttack", 0);
+                 yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                 PrimaryAttack();
+            }
+        }
+        else
+        {
+            attackingPrimary = false;
+            inPrimaryWindup = false;
+            SurroundingPoints.instance.RemoveAttackingEnemy(this);
+        }
+    }
+
+    public override IEnumerator BeginSecondary()
+    {
+        if(!attackingSecondary && !attackingPrimary)
+        {
+            attackingSecondary = true;
+            characterAnimator.SwitchState("SecondaryAttack");
+            yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
+            if (gameObject)
+            {
+                if (PlayerController.instance.currentCharacter == this)
+                {
+                    health.SubHealth(secondaryAttackCost);
+                }
+                SecondaryAttack();
+            }
+        }
+    }
+
     /// <summary>
     /// Starts the secondary attack for the ogre
     /// </summary>
     public override void SecondaryAttack()
     {
-        attackingSecondary = true;
+        if(ogreAnimator == null)
+        {
+            Debug.Log("Animator is not set!");
+            return;
+        }
         timeLastSecondary = Time.time;
         attackStateCoroutine = StartCoroutine(ScreamWindup());
     }
@@ -138,42 +230,45 @@ public class Ogre : Enemy
     /// This version looks to the right of the locked character (will alternate in the future)
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator BatWindup()
+    public IEnumerator BatWindup(Character tempLockedCharacter)
     {
+        inPrimaryWindup = true;
         inCounter = false;
         attackState = AttackState.Windup;
         float timeStarted = 0;
-        // For now wait 0.25 seconds, in future wait for animation trigger
-        while (timeStarted < batWindupPeriod)
+        while (timeStarted < 1.125f / ogreAnimator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
             yield return null;
         }
-        attackStateCoroutine = StartCoroutine(BatApproach());
+        inPrimaryWindup = false;
+        attackStateCoroutine = StartCoroutine(BatApproach(tempLockedCharacter));
     }
 
     /// <summary>
     /// Handles the approach for the bat swing
     /// </summary>
     /// <returns> Time </returns>
-    public IEnumerator BatApproach()
+    public IEnumerator BatApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
+        inPrimaryWindup = false;
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            Vector3 targetPos = lockedCharacter.transform.position - (lockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+
+            Vector3 targetPos = tempLockedCharacter.transform.position - (tempLockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
             targetPos.y = transform.position.y;
             GetCharacterController().enabled = false;
-            transform.DOMove(targetPos, chaseTime);
-            transform.DOLookAt(targetPos, chaseTime);
+            transform.DOMove(targetPos, chaseTime * dis);
+            transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            while (Time.time - timeStarted < chaseTime)
+            while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (Time.time - timeStarted >= 3 * chaseTime / 4) // Fourth quarter, not dodgable
+                if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
-                    //   dodgable = false;
                     if (counterIndicatorVFX != null)
                     {
                         if (counterIndicatorVFX != null)
@@ -183,18 +278,17 @@ public class Ogre : Enemy
                         counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
+                    if (tempLockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(null);
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                    //    dodgable = true;
                     if (counterIndicatorVFX == null)
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
-                    if (lockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
+                    if (tempLockedCharacter == currentPlayer) PlayerController.instance.SetCounterAvaliable(this);
                 }
                 yield return null;
             }
@@ -202,7 +296,16 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
-        attackStateCoroutine = StartCoroutine(SwingBat());
+        if (ogreAnimator != null)
+        {
+            ogreAnimator.SetSwing();
+        }
+        else
+        {
+            Debug.LogWarning("Animator not set!");
+        }
+
+        attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
         yield break;
     }
 
@@ -210,7 +313,7 @@ public class Ogre : Enemy
     /// Handles the swing for the bat
     /// </summary>
     /// <returns> Time </returns>
-    private IEnumerator SwingBat()
+    private IEnumerator SwingBat(Character tempLockedCharacter)
     {
         if (batHitboxPrefab == null || batPivot == null)
         {
@@ -219,39 +322,56 @@ public class Ogre : Enemy
         }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
+
+        Vector3 endForward = Vector3.zero;
+        Vector3 startForward = Vector3.zero;
+
+        if (currentPrimaryComboStep == 1)
+        {
+            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+        else
+        {
+            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+        }
+
         GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
         DefaultHitbox pivotHitbox = pivot.GetComponent<DefaultHitbox>();
-        pivotHitbox.Init(this, attackDuration: batSwingDuration);
-        pivot.SetActive(false);
+        pivotHitbox.Init(this, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
-        batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: batSwingDuration);
+        batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
-        Vector3 endForward = Quaternion.AngleAxis(-batSwingAngle, Vector3.up) * transform.forward;
-        Vector3 startFoward = transform.forward;
-
-        pivot.SetActive(true);
-
-        while (timeSinceStarted < batSwingDuration)
+        while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
-            pivot.transform.forward = Vector3.Lerp(startFoward, endForward, timeSinceStarted / batSwingDuration);
+            SetMovementValues(false);
+            if(pivot != null)
+            {
+                pivot.transform.forward = Vector3.Lerp(startForward, endForward, timeSinceStarted / (0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)));
+            }
             timeSinceStarted += Time.deltaTime;
             yield return null;
         }
 
         Destroy(pivot);
-
+        if(!playerControlling)
+        {
+            ogreAnimator.EndPrimary();
+        }
+        
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
         SetMovementValues(true);
         attackState = AttackState.Neutral;
 
-        if (lockedCharacter)
+        if (tempLockedCharacter)
         {
-            lockedCharacter.SetAttacker(null);
-            if (lockedCharacter.TryGetComponent(out Enemy enemy))
+            tempLockedCharacter.SetAttacker(null);
+            if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
                 enemy.SetTargeted(false);
             }
@@ -259,8 +379,8 @@ public class Ogre : Enemy
 
         lockedCharacter = null;
         attackingPrimary = false;
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
         attackStateCoroutine = null;
-        timeLastPrimary = Time.time;
         aiState = AIMovementState.Chasing;
     }
 
@@ -282,11 +402,15 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     public IEnumerator ScreamWindup()
     {
-        if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-        else aiState = AIMovementState.Blocked;
+        SetMovementValues(false);
         attackState = AttackState.Windup;
 
-        yield return new WaitForSeconds(screamWindupDuration);
+        float timeStarted = Time.time;
+        while (ogreAnimator != null && Time.time - timeStarted < 0.417f / ogreAnimator.GetSecondaryWindupMult())
+        {
+            SetMovementValues(false);
+            yield return null;
+        }
 
         attackStateCoroutine = StartCoroutine(HandleScream());
     }
@@ -302,15 +426,14 @@ public class Ogre : Enemy
             Debug.LogWarning("Scream effects are not assigned!");
             yield break;
         }
-        // Debug.Log("ROAR");
+
         attackState = AttackState.Attacking;
         Collider[] colliders = Physics.OverlapSphere(transform.position, screamRange, characters);
         foreach (Collider collider in colliders)
         {
-            if (collider.gameObject.TryGetComponent(out Character character) && teamID != character.teamID)
+            if (collider.gameObject.TryGetComponent(out Character character) && character != this)
             {
-                // Debug.Log("Scream hit character " + character);
-                screamEffects.ApplyStatusEffects(this, character, null); // No knockback so hitbox isnt needed
+                screamEffects.ApplyStatusEffects(this, character, null);
             }
         }
 
@@ -318,33 +441,12 @@ public class Ogre : Enemy
 
         SetMovementValues(true);
         attackState = AttackState.Neutral;
-        if (playerControlling)
-        {
-            StartCoroutine(EnableMovement());
-        }
-        else
-        {
-            aiState = AIMovementState.Chasing;
-            attackState = AttackState.Neutral;
-        }
+        SetMovementValues(true);
 
         attackStateCoroutine = null;
         attackingSecondary = false;
-    }
-    //Override of OnDamaged to handle the OgreHit sound effect
-    protected override void OnDamaged(float f)
-    {
-        base.OnDamaged(f);
-        if(AudioManager.TryGetReference("OgreHit", out EventReference evRef))
-        {
-            EventInstance ev = RuntimeManager.CreateInstance(evRef);
-            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
-            ev.setParameterByName("Damage", f / health.GetMaxHealth());
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
-            ev.start();
-            ev.release();
-        }
+        SurroundingPoints.instance.RemoveAttackingEnemy(this);
+        ogreAnimator.SetSecondaryAttackEnded();
     }
 
     /// <summary>
@@ -356,7 +458,7 @@ public class Ogre : Enemy
         if (playerControlling || inProcess) return;
         // Debug.Log(aiState);
 
-        if (aiState == AIMovementState.Patrolling)
+        if (aiState == AIMovementState.Patrolling && !isEventEnemy)
         {
             if (!idleAudio.isValid())
             {
@@ -365,7 +467,7 @@ public class Ogre : Enemy
             }
             Patrol();
         }
-        else if (aiState == AIMovementState.Chasing)
+        else if (aiState == AIMovementState.Chasing || (aiState == AIMovementState.Patrolling && isEventEnemy))
         {
             StopIdleAudio();
             Chase();
@@ -377,6 +479,10 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Retreating)
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             StopIdleAudio();
             Retreat();
         }
@@ -385,27 +491,39 @@ public class Ogre : Enemy
     /// <summary>
     /// Finds a path and starts searching depending on the AI state
     /// </summary>
-    public override void FindPath()
+    public override IEnumerator FindPath()
     {
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
             {
                 pathState = PathState.Searching;
-                SetPatrollingPoint();
+                yield return StartCoroutine(SetPatrollingPoint());
             }
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
+            }
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            }   
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
+            if (pathState == PathState.Unset)
+            {
+                pathState = PathState.Searching;
+                yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
+            } 
         }
     }
 
@@ -417,7 +535,7 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine( FindPath() );
         }
 
 
@@ -463,7 +581,7 @@ public class Ogre : Enemy
     /// Override function for setting a patrol point
     /// This version uses a point of origin separate from the Ogre to place a point
     /// </summary>
-    public void SetPatrollingPoint()
+    public IEnumerator SetPatrollingPoint()
     {
         // Debug.Log("Patrol origin: " + patrolOrigin);
         if (!outGoing)
@@ -472,16 +590,16 @@ public class Ogre : Enemy
             float randomZ = Random.Range(-patrolRange, patrolRange);
 
             walkPoint = new Vector3(patrolOrigin.x + randomX, patrolOrigin.y, patrolOrigin.z + randomZ);
-            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(walkPoint, this).GetPosition(gameObject);
         }
         else
         {
-            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin).GetPosition(gameObject);
+            walkPoint = GraphBuilder.instance.FindClosestNode(patrolOrigin, this).GetPosition(gameObject);
         }
         // Debug.Log(walkPoint);
         Debug.DrawRay(transform.position, Vector3.up * 10, Color.yellow, 10);
 
-        StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(this, transform.position, walkPoint));
     }
 
     /// <summary>
@@ -588,6 +706,12 @@ public class Ogre : Enemy
     {
         lookAtPlayer = false;
 
+        // Set path if there is none
+        if (pathState == PathState.Unset)
+        {
+            StartCoroutine(FindPath());
+        }
+
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
             AIMove();
@@ -607,18 +731,15 @@ public class Ogre : Enemy
         // Set path if there is none
         if (pathState == PathState.Unset)
         {
-            FindPath();
+            StartCoroutine(FindPath());
         }
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
         {
-            if (Vector3.Distance(transform.position, currentPlayer.transform.position) > chaseToSurroundingRadius)
+            AIMove();
+            if (debugging)
             {
-                AIMove();
-                if (debugging)
-                {
-                    UpdatePath();
-                }
+                UpdatePath();
             }
         }
 
@@ -631,12 +752,6 @@ public class Ogre : Enemy
     /// </summary>
     public void Retreat()
     {
-
-        // Set path if there is none
-        if (pathState == PathState.Unset)
-        {
-            FindPath();
-        }
         lookAtPlayer = true;
 
         if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
@@ -647,6 +762,11 @@ public class Ogre : Enemy
                 UpdatePath();
             }
         }
+
+        aiState = AIMovementState.Chasing;
+        pathState = PathState.Unset;
+
+
         AILook();
     }
 
@@ -654,16 +774,18 @@ public class Ogre : Enemy
     /// Handles Ogre attacking chance and triggering
     /// </summary>
     /// <param name="points"> The points calling this function </param>
-    /// <returns> True if attacking, false otherwise </returns>
-    public override bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public override int AttackFromSurrounding(SurroundingPoints points)
     {
+        if (dead || lobotimzed) return 0;
         float totalOdds = 0;
+        float remaining = points.GetAvailableAttackPoints();
 
-        if (CheckPrimaryUsable())
+        if (CheckPrimaryUsable() && primaryAICost <= remaining)
         {
             totalOdds += primaryAttackChance;
         }
-        if (CheckSecondaryUsable()) // In the future use this if being attacked by player
+        if (CheckSecondaryUsable() && secondaryAICost <= remaining) // In the future use this if being attacked by player
         {
             totalOdds += secondaryAttackChance;
         }
@@ -672,34 +794,63 @@ public class Ogre : Enemy
         {
             // Debug.Log(primaryAttackChance.ToString() + " " + totalOdds);
             float choice = Random.Range(0, totalOdds);
+            int cost;
             if (choice <= primaryAttackChance) // Primary attack selected
             {
                 StartCoroutine(BeginPrimary());
+                cost = primaryAICost;
             }
             else
             {
                 StartCoroutine(BeginSecondary());
+                cost = secondaryAICost;
             }
-            return true;
+            points.AddAttackingEnemy(this, cost);
+            return cost;
         }
-        return false;
+        return 0;
     }
     /// <summary>
-    /// Override of Enemy.Die to handle the ogre's death sound effect.
+    /// Override to handle event enemy
     /// </summary>
-    public override void Die()
+    /// <param name="damage"></param>
+    public override void DoHitSoundEffect(float damage)
     {
+        if (hitEventReference.IsNull) return;
+        if (health.CurrentHealth - damage <= 0)
+        {
+            DoDeathSoundEffect();
+            return;
+        }
+        EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
+        RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+        ev.setParameterByName("Damage", damage / health.GetMaxHealth());
+        ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+        ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+        ev.start();
+        ev.release();
+    }
+    
+    /// <summary>
+    /// Override of DoDeathSoundEffect to handle event enemy audio 
+    /// </summary>
+    protected override void DoDeathSoundEffect()
+    {
+        if (deathEventReference.IsNull) return;
         //Stopping any playing sound effects on death.
         if (idleAudio.isValid())
         {
             idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
-        //Play Ogre's Death sound effect
-        if (AudioManager.TryPlayInstance("OgreDeath", out EventInstance ev, true, gameObject))
+        //Play Death sound effect
+        if (!deathEventReference.IsNull)
         {
-            ev.setParameterByNameWithLabel("Possessed", playerControlling ? "True" : "False");
-            ev.setParameterByNameWithLabel("Event", isEventEnemy ? "True" : "False");
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            ev.setParameterByNameWithLabel("Event", isEventEnemy.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
         }
-        base.Die();
     }
 }

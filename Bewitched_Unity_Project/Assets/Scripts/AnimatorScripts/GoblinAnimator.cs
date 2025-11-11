@@ -24,6 +24,13 @@ public class GoblinAnimator : CharacterAnimator
     [SerializeField, Tooltip("Dizzy time after secondary attack enemy")]
     private float dizzyTimeEnemy;
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        animationStates.Add("Jump");
+    }
+
     /// <summary>
     /// Resets all animator triggers
     /// </summary>
@@ -31,6 +38,7 @@ public class GoblinAnimator : CharacterAnimator
     {
         base.ResetAllTriggers();
         animator.ResetTrigger("ExitSecondaryAttack");
+        animator.ResetTrigger("Jump");
     }
 
     /// <summary>
@@ -78,7 +86,7 @@ public class GoblinAnimator : CharacterAnimator
         if (GetComponentInParent<Goblin>().IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
-            return primaryWindupSpeedMultPlayer;
+            return primaryWindupSpeedMultEnemy;
     }
 
     /// <summary>
@@ -133,9 +141,12 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+        if(PlayerController.instance.currentCharacter == character)
         {
-            character.ResetPrimaryComboStep();
+            if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+            {
+                character.ResetPrimaryComboStep();
+            }
         }
 
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
@@ -144,12 +155,21 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
+    /// Called when the goblin ends its primary attack
+    /// Allows the animator to change states
+    /// </summary>
+    public void EndPrimary()
+    {
+        canChange = true;
+    }
+
+    /// <summary>
     /// Exits the leap portion of the primary attack windup 
     /// Moves into hit animation
     /// </summary>
     public void ExitLeap()
     {
-        base.ResetAllTriggers();
+        ResetAllTriggers();
         animator.SetTrigger("ExitLeap");
     }
 
@@ -263,6 +283,22 @@ public class GoblinAnimator : CharacterAnimator
 
                 break;
         }
+    }
+
+    /// <summary>
+    /// Plays the jump animation holding the falling pose untill duration is over
+    /// </summary>
+    /// <param name="duration"></param>
+    public IEnumerator Jump(float duration)
+    {
+        ResetAllTriggers();
+        canChange = false;
+        animator.SetTrigger("Jump");
+        currentAnimationState = "Jump";
+        yield return new WaitForSeconds(duration - 0.1f);
+        animator.SetTrigger("JumpLanded");
+        yield return new WaitForSeconds(0.667f);
+        canChange = true;
     }
 
 }

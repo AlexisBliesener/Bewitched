@@ -56,6 +56,8 @@ public class RoomController : MonoBehaviour
     [Tooltip("Time of the last enemy status check")]
     private float lastEnemyCheckTime = 0f;
 
+    [Tooltip("This is will be true when the last enemy is killed when leaving the room")]
+    private bool lastEnemyKilled = false;
     /// <summary>
     /// Get the current state of the room
     /// </summary>
@@ -129,7 +131,7 @@ public class RoomController : MonoBehaviour
 
     private void Start()
     {
-        // Disable all enemies in the room 
+        // Disable the ai for the enemies in the room  
         DeactivateEnemies();
     }
 
@@ -142,6 +144,16 @@ public class RoomController : MonoBehaviour
             CheckEnemyStatus();
             lastEnemyCheckTime = Time.time;
         }
+        // We will check if we already killed the last enemy, if not we will check if the room is still active (The last enemy is still make the room acitve ), 
+        // if so we will check if the last enemy is the player (possessed), and last we will check if the player is out of the current room 
+        if ( !isEventRoom && !lastEnemyKilled && currentState == RoomState.Active && roomEnemies.Count == 1 && roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
+        {
+            if (IsPlayerOutOfRoom())
+            {
+                KillEnemyOnLeave();
+                lastEnemyKilled = true;
+            }
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -152,6 +164,27 @@ public class RoomController : MonoBehaviour
         {
             EnterRoom();
         }
+    }
+    /// <summary>
+    /// Kill the last enemy on leave, and set the player to the current position of the enmey 
+    /// </summary>
+    private void KillEnemyOnLeave()
+    {
+        if (PlayerController.instance.GetHag().gameObject != PlayerController.instance.currentCharacter.gameObject)
+        {
+            PlayerController.instance.GetHag().gameObject.transform.position = PlayerController.instance.currentCharacter.gameObject.transform.position;
+            PlayerController.instance.currentCharacter.health.SetCurrentHealth(0); // RIP
+        }
+        // just to be safe, we will kill all enemies that are for some reason still alive in the room... 
+        foreach (GameObject enemyGameObject in roomEnemies)
+        {
+            if (enemyGameObject.TryGetComponent(out Enemy enemy))
+            {
+                enemy.health.SetCurrentHealth(0); 
+            }
+            Destroy(enemyGameObject);
+        }
+
     }
 
     /// <summary>
@@ -165,7 +198,8 @@ public class RoomController : MonoBehaviour
 
         ActivateEnemies();
         LockDoors();
-
+        //Change to combat music. If it's event room, wait till cutscene is over
+        if(roomEnemies.Count!=0&& !isEventRoom) AudioManager.ChangeMusicParameter("InCombat", "True");
         OnPlayerEntered?.Invoke(this);
     }
 
@@ -180,7 +214,8 @@ public class RoomController : MonoBehaviour
 
         ChangeState(RoomState.Cleared);
         UnlockDoors();
-
+        //change to out of combat music
+        AudioManager.ChangeMusicParameter("InCombat", "False");
         OnRoomCleared?.Invoke(this);
     }
 
@@ -212,15 +247,15 @@ public class RoomController : MonoBehaviour
         if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
-            if (enemy != null)
+            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent))
             {
-                enemy.SetActive(true);
+                enemyComponent.aiState = Enemy.AIMovementState.Patrolling;
             }
         }
     }
 
     /// <summary>
-    /// Deactivate all enemies in the room 
+    /// Deactivate the ai for all enemies in the room 
     /// This is called once in Awake() 
     /// </summary>
     private void DeactivateEnemies()
@@ -228,9 +263,15 @@ public class RoomController : MonoBehaviour
         if (isEventRoom) return;
         foreach (GameObject enemy in roomEnemies)
         {
-            if (enemy != null)
+            // If the enemy is not active, we will set it to active and set the ai state to blocked
+            if (enemy != null && !enemy.activeInHierarchy)
             {
-                enemy.SetActive(false);
+                enemy.SetActive(true);
+            }
+            // Just to be safe, we will check if the enmey for some reason is still in patrolling state, if so we will set it to blocked
+            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent) && enemyComponent.aiState != Enemy.AIMovementState.Blocked)
+            {
+                enemyComponent.aiState = Enemy.AIMovementState.Blocked;
             }
         }
     }
@@ -330,6 +371,17 @@ public class RoomController : MonoBehaviour
                 LockDoors();
             }
         }
+    }
+    /// <summary>
+    /// Check if the player is out of the room bounds, it will check only the X and Z axis.
+    /// </summary>
+    /// <returns>True if the player is out of the room bounds</returns>
+    private bool IsPlayerOutOfRoom()
+    {
+        Vector3 roomBound = transform.position + roomBounds.center;
+        Vector3 halfExtent = roomBounds.size * 0.5f;
+        Vector3 playerPos = PlayerController.instance.currentCharacter.transform.position;
+        return Mathf.Abs(playerPos.x - roomBound.x) > halfExtent.x || Mathf.Abs(playerPos.z - roomBound.z) > halfExtent.z;
     }
 
     /// <summary>

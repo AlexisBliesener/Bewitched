@@ -38,6 +38,9 @@ public class Node
     [Tooltip("The room this node belongs to")]
     [SerializeField] RoomController room;
 
+    [Tooltip("Distance of node to nearest environment")]
+    [SerializeField] float distanceToEnvironment;
+
     /// <summary>
     /// Sets the values for the node
     /// </summary>
@@ -129,6 +132,7 @@ public class Node
             {
                 return false;
             }
+            SetEnvironmentDistance(walls);
             return true;
         }
         return false;
@@ -156,8 +160,9 @@ public class Node
     /// Gets the node cost
     /// </summary>
     /// <param name="enemy"> The enemy searching through this node </param>
+    /// <param name="target"> The target to ignore nodes for </param>
     /// <returns> Cost of the node </returns>
-    public int GetCost(Enemy enemy = null)
+    public int GetCost(Enemy enemy = null, Character target = null)
     {
         int cost = 0;
         int priority;
@@ -165,7 +170,7 @@ public class Node
         else priority = enemy.priority;
         foreach (Character character in nodeCosts.Keys)
         {
-            if (priority >= character.priority && enemy != character) // Only add costs if higher/equal priority and not this
+            if (priority >= character.priority && enemy != character && character != target) // Only add costs if higher/equal priority and not this
             {
                 cost += nodeCosts[character];
             }
@@ -247,5 +252,32 @@ public class Node
     public int GetYPos()
     {
         return yPos;
+    }
+
+    /// <summary>
+    /// Sets the environment distance
+    /// </summary>
+    /// <param name="environment"> Environment layer </param>
+    public void SetEnvironmentDistance(LayerMask environment)
+    {
+        Collider[] colliders = Physics.OverlapSphere(GetPosition(), 50, environment);
+        float minDistance = 50;
+
+        foreach (Collider collider in colliders)
+        {
+            float dist = Vector3.Distance(collider.transform.position, GetPosition());
+            if (dist < minDistance) minDistance = dist;
+        }
+
+        distanceToEnvironment = minDistance;
+    }
+
+    /// <summary>
+    /// Gets the distance to the environment
+    /// </summary>
+    /// <returns> Gets environment distance </returns>
+    public float GetEnvironmentDistance()
+    {
+        return distanceToEnvironment;
     }
 }

@@ -1,8 +1,15 @@
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Playables;
 /// This is the event system room for the event system, it will handle the fight between the player and the event enemy
 public class EventSystemRoom1 : MonoBehaviour
 {
+    [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
+    private bool dev = false;
+
+    [SerializeField, Tooltip("Click this box to skip the cutscene for testing"), ShowIf("dev")]
+    private bool skipCutscene = false;
+
     [SerializeField, Tooltip("The enemy event prefab")]
     private EventEnemy enemyEvent;
     [SerializeField, Tooltip("The enemy spawner prefab")]
@@ -23,9 +30,10 @@ public class EventSystemRoom1 : MonoBehaviour
     private enum FightState
     {
         Waiting,
-        Fighting,
-        Ending,
-        LastEnemies,
+        Fighting, // This is when the cut scene is done and the event enemy is fighting
+        Ending, // This is when the event enemy will be avaliable to possess, for a short time if not possessed, the state will change to fighting
+        LastEnemies, // Wil spawn the last enemies (they will jump down from the stands)
+        WaitingForCleanup, // This is when the player is killing all the goblins after they jump down from the stands. When this is done, the state will change to finished
         Finished
     }
     [Tooltip("The current fight state")]
@@ -44,9 +52,6 @@ public class EventSystemRoom1 : MonoBehaviour
 
     [SerializeField, Tooltip("The door to open when the event enemy is possessed")]
     private IDoor door;
-
-    [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active")]
-
 
     private void Start()
     {
@@ -73,7 +78,14 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().gameObject.SetActive(true);
             enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
-            StartCutScene();
+            if(skipCutscene)
+            {
+                SkipCutscene();
+            }
+            else
+            {
+                StartCutScene();
+            }  
         }
     }
     [ContextMenu("Start Cut Scene")]
@@ -93,7 +105,9 @@ public class EventSystemRoom1 : MonoBehaviour
         }
         
         director = cutScene.GetComponent<PlayableDirector>();
-        if (hud != null) {hud.SetActive(false);}
+        if (hud != null) { hud.SetActive(false); }
+        //Change to combat music
+        AudioManager.ChangeMusicParameter("InCombat", "True");
     }
     /// <summary>
     /// Handle the fight state changes
@@ -119,6 +133,7 @@ public class EventSystemRoom1 : MonoBehaviour
             case FightState.Ending: // Ending = dizzy 
                 if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
+                    PossessionAbility.instance.SetCanLeavePossession(false);
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;
@@ -126,6 +141,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 if ((enemyEvent.GetEnemy().health.GetHealth() <= healthToPossess)
                        && (Time.time - timeDizzyStarted <= dizzyDuration))
                 {
+                    PossessionAbility.instance.SetPossessionOverride(enemyEvent.GetEnemy());
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     enemyEvent.GetEnemy().canPossess = true;
                     enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
@@ -133,6 +149,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 }
                 // if it passes the dizzy duration, make the enemy not possessable, and add health to the enemy event
                 // and make the enemy to be able to attack again
+                PossessionAbility.instance.SetPossessionOverride(null);
                 enemyEvent.GetEnemy().canPossess = false;
                 enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Chasing;
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
@@ -144,15 +161,16 @@ public class EventSystemRoom1 : MonoBehaviour
                 // Start making the enemies jump down
                 StartCoroutine(enemySpawner.SpawnFinalEnemies());
                 // Enable the wall script so the player can walk and break the wall
-                fightState = FightState.Finished;
+                fightState = FightState.WaitingForCleanup;
                 break;
-            case FightState.Finished:
+            case FightState.WaitingForCleanup:
                 // we will check if all enemies are dead, if so, we will enable the wall script so the player can walk and break the wall
                 // 1 as the event enemy is already included in the count
-                // if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
-                // {
+                if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
+                {
                     wall.enabled = true;
-                // }
+                    fightState = FightState.Finished;
+                }
                 break;
         }
     }
@@ -161,14 +179,6 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     public void EndFight()
     {
-        if(AudioManager.manager != null)
-        {
-            AudioManager.ChangeMusicParameter("End", "True");
-        }
-        else
-        {
-            Debug.LogWarning("Audio Manager instance is not set!");
-        }
             
         fightState = FightState.LastEnemies;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
@@ -230,7 +240,29 @@ public class EventSystemRoom1 : MonoBehaviour
         {
             enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
         }
+    }
 
+    /// <summary>
+    /// Skips the cutscene starting the boss fight immediately
+    /// Used for faster debugging
+    /// </summary>
+    private void SkipCutscene()
+    {
+        AudioManager.ChangeMusicParameter("InCombat", "True");
+        enemySpawner.gameObject.SetActive(true);
+        PlayerController.instance.SetAllowMovement(true);
+        cutScene.SetActive(false);
+        fightState = FightState.Fighting;
+        enemyEvent.GetEnemy().canPossess = false;
+        enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Patrolling;
+        // Activate the enemy spawner
+        enemySpawner.Activate();
+        // show all the HUD
+        if (hud != null) { hud.SetActive(true); }
+        if (enemyEvent.GetEnemy().health.GetComponent<EventHealth>() != null)
+        {
+            enemyEvent.GetEnemy().health.GetComponent<EventHealth>().ShowHealthBar();
+        }
     }
 }
 

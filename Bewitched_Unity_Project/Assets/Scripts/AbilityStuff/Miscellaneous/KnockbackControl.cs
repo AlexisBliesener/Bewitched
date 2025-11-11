@@ -21,20 +21,27 @@ public class KnockbackControl : MonoBehaviour
     {
         direction.Normalize();
         impact += new Vector3(direction.x, 0, direction.z) * force / mass;
-        //PlayerController.instance.SetAllowMovement(false);
         gettingKnockback = true;
     }
 
     void FixedUpdate()
     {
         // apply the impact force:
-        if (impact.magnitude > 0.2) character.Move(impact * Time.deltaTime);
-        else if (gettingKnockback)
+        if (impact.magnitude > 0.2f * mass)
         {
-            gettingKnockback = false;
+            character.Move(impact * Time.deltaTime);
+
+            // consumes the impact energy each cycle:
+            impact -= impact.normalized * mass * GetComponent<Character>().deceleration * Time.deltaTime;
         }
-        // consumes the impact energy each cycle:
-        impact -= impact.normalized * mass * GetComponent<Character>().deceleration * Time.deltaTime;
+        else
+        {
+            if (impact != Vector3.zero)
+            {
+                impact = Vector3.zero;
+                gettingKnockback = false;
+            }
+        }
     }
 
     /// <summary>

@@ -191,6 +191,7 @@ MonoBehaviour:
   - 7
   - 8
   shieldSlider: {fileID: 0}
+  enemyHealthSlider: {fileID: 0}
 --- !u!1 &6538570816644836317
 GameObject:
   m_ObjectHideFlags: 0
@@ -238,6 +239,8 @@ MonoBehaviour:
   damageMultiplier:
   - 1.25
   buffDuration: 5
+  startFlashSpeed: 3
+  endFlashSpeed: 8
 --- !u!1 &7320499504665162705
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,7 +309,6 @@ MonoBehaviour:
   environment:
     serializedVersion: 2
     m_Bits: 256
-  eleth: {fileID: 0}
   enemyHealthBar: {fileID: 0}
   explosionVFX: {fileID: 4280964667820681873, guid: 30772a2e7df4139418b13f865d1339b9, type: 3}
 --- !u!1 &7516775768371684888
@@ -384,50 +386,48 @@ MonoBehaviour:
     dropChance: 50
   availableDrops:
   - dropName: Grand Finale
-    description: Enemies now explode! Possess an enemy and get it to low health,
-      then exit the enemy to trigger an explosion to damage all surrounding enemies!
-      Be careful you don't let the enemy get to 0 health though, or you might explode
-      with it.
+    description: When leaving an enemy on low health, trigger a large explosion around
+      you. Get hit out of your body, suffer the same explosion damage to yourself.
     dropID: 1
     icon: {fileID: 21300000, guid: c7c3da95fb51f4a42b3683c67a28f347, type: 3}
     rarityIndex: 0
     dropScript: {fileID: 7320499504665162705}
-    buyAmount: 150
-    sellAmount: 80
+    buyAmount: 80
+    sellAmount: 40
   - dropName: Vampirism
     description: Damaging an enemy while possessing an enemy will regain a small
       amount of health, scaling with damage done.
     dropID: 2
-    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    icon: {fileID: 21300000, guid: 9b18d70f02d618847ac9bd285deb9565, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
-    buyAmount: 100
-    sellAmount: 50
+    buyAmount: 50
+    sellAmount: 25
   - dropName: Clear Focus
     description: Decreases the time taken to focus the possession cone to a specific
       enemy to possess.
     dropID: 3
-    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    icon: {fileID: 21300000, guid: e425943f9e894a04988f987790f721ca, type: 3}
     rarityIndex: 2
     dropScript: {fileID: 2447668901311447421}
-    buyAmount: 50
-    sellAmount: 20
+    buyAmount: 25
+    sellAmount: 10
   - dropName: Smarter Control
     description: 'Lowers the rate at which enemies'' health depletes. '
     dropID: 4
     icon: {fileID: 21300000, guid: 393d6aeaf500c0d4b92959ccad014967, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 5725360512968179944}
-    buyAmount: 90
-    sellAmount: 50
+    buyAmount: 45
+    sellAmount: 25
   - dropName: Adrenaline
     description: Increase the damage buff granted from swapping to a new enemy.
     dropID: 5
-    icon: {fileID: 21300000, guid: 26e33bf1e55242f478c0420b9fe026a0, type: 3}
+    icon: {fileID: 21300000, guid: 951f3c1d2ae4b0c4a8aa1060febc4ea6, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 6538570816644836317}
-    buyAmount: 80
-    sellAmount: 40
+    buyAmount: 40
+    sellAmount: 20
   - dropName: Shielding Spirits
     description: When possessing an enemy, grant a temporary shield. Lasts for 5
       seconds.
@@ -435,17 +435,17 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: d3a419f516fc4854988368e976d9d3cf, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 5780072744232477134}
-    buyAmount: 100
-    sellAmount: 50
+    buyAmount: 50
+    sellAmount: 25
   - dropName: Backup Plan
     description: Decrease the time it takes for the possession ability to recharge
       when knocked out of an enemy.
     dropID: 7
-    icon: {fileID: 21300000, guid: 7783c00aea306ff4a940544cc24427ad, type: 3}
+    icon: {fileID: 21300000, guid: d38e34d7b6ed46c4f945628cc810707f, type: 3}
     rarityIndex: 2
     dropScript: {fileID: 8637887266863425160}
-    buyAmount: 60
-    sellAmount: 30
+    buyAmount: 30
+    sellAmount: 15
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
   usePitySystem: 1
   dropUpgrade: 0

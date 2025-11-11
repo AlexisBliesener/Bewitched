@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 
@@ -8,13 +6,23 @@ public class BreakWallMoment : MonoBehaviour
     
     [SerializeField, Tooltip("diraction for the cut scene")]
     private PlayableDirector director;
-
+    [SerializeField, Tooltip("The vfx to play when all goblins are killed, and it's waiting for the player to breaj the wall")]
+    private GameObject flashingVFX;
     private void Start()
     {
         if (director == null)
         {
             Debug.LogWarning("Director is null on BreakWallMoment");
         }
+        if (flashingVFX == null)
+        {
+            Debug.LogWarning("Flashing VFX is null on BreakWallMoment");
+        }
+        else
+        {
+            flashingVFX.SetActive(true);
+        }
+
     }
     /// <summary>
     /// Subscribe to the cut scene director stopped event
@@ -44,6 +52,7 @@ public class BreakWallMoment : MonoBehaviour
     private void OnCutsceneFinished(PlayableDirector directors)
     {
         // Kill ogre? 
+        PossessionAbility.instance.SetCanLeavePossession(true);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
         PlayerController.instance.currentCharacter.health.SetCurrentHealth(0);
         PlayerController.instance.SetAllowMovement(true);
@@ -55,6 +64,8 @@ public class BreakWallMoment : MonoBehaviour
     /// </summary>
     private void OnCutSceneStarted(PlayableDirector director)
     {
+        // Hide the flashing VFX
+        flashingVFX.SetActive(false);
         PlayerController.instance.SetAllowMovement(false);
         PlayerController.instance.currentCharacter.gameObject.SetActive(false);
         // we will kill all the enemies on the arena 
@@ -63,6 +74,15 @@ public class BreakWallMoment : MonoBehaviour
             if (enemyGameObject == null || enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             Enemy enemy = enemyGameObject.GetComponent<Enemy>();
             enemy.health.SetCurrentHealth(0);
+        }
+        //End the level music
+        if(AudioManager.manager != null)
+        {
+            AudioManager.ChangeMusicParameter("End", "True");
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is not set!");
         }
     }
     private void OnTriggerEnter(Collider other)

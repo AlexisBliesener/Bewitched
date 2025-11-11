@@ -31,6 +31,9 @@ public class HealthController : MonoBehaviour
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
 
+    [Tooltip("The animator that controls this character")]
+    protected CharacterAnimator characterAnimator;
+
     /// <summary>
     /// Checks if a character is at low health
     /// </summary>
@@ -52,10 +55,15 @@ public class HealthController : MonoBehaviour
 
     private void Awake()
     {
-
         CurrentHealth = maxHealth;
         NotifyHealthChanged();
     }
+
+    private void Start()
+    {
+        characterAnimator = GetComponent<CharacterAnimator>();
+    }
+
 
     private void Update()
     {
@@ -130,6 +138,11 @@ public class HealthController : MonoBehaviour
         {
             TimeLastHit = Time.time;
             OnDamaged?.Invoke(amt);
+        }
+
+        if (GetComponent<Character>() != PlayerController.instance.currentCharacter &&  characterAnimator != null)
+        {
+            StartCoroutine(characterAnimator.SetHit());
         }
     }
 

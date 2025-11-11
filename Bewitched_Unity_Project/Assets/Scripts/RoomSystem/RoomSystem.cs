@@ -35,6 +35,16 @@ public class RoomSystem : MonoBehaviour
         SubscribeToExistingRooms();
     }
 
+    public List<GameObject> GetCurrentRoomEnemies()
+    {
+        if(GetActiveRoomController() != null)
+        {
+            return GetActiveRoomController().roomEnemies;
+        }
+        return null;
+        
+    }
+
     /// <summary>
     /// Creates a new room controller and adds it to the system, this is used by the editor
     /// </summary>
@@ -224,7 +234,6 @@ public class RoomSystem : MonoBehaviour
         {
             if (room.roomController != null)
             {
-                Debug.Log(room.roomName + room.roomController.GetRoomBounds());
                 if (Vector3.Distance(room.roomController.GetRoomBounds().ClosestPoint(coords), coords) <= range)
                 {
                     return room.roomController;

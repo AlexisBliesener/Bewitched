@@ -1,8 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 [RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : Character
@@ -10,16 +13,13 @@ public abstract class Enemy : Character
     [Header("Enemy AI Settings")]
     [Tooltip("Determines the enemy's mental state atm")]
     public bool lobotimzed = false;
+    [Tooltip("If the enemy can attack")]
+    public bool cantAttack = false;
     [Tooltip("Minimum Stopping Distance"), Range(0, 10)]
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
-    [Header("Surrounding Settings")]
-    [Tooltip("Distance from point an enemy can be before switching to chase"), Range(0, 10)]
-    [SerializeField] protected float surroundingToChaseRadius = 2;
 
-    [Tooltip("Distance from point an enemy must reach before switching to surround"), Range(0, 10)]
-    [SerializeField] protected float chaseToSurroundingRadius = 1;
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
     public float sightRange;
@@ -32,12 +32,6 @@ public abstract class Enemy : Character
     [Tooltip("Walk Point Range"), Range(0, 50)]
     public float patrolRange;
 
-    [Tooltip("Minimum distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float minimumSurroundingDistance = 3;
-
-    [Tooltip("Maxium distance enemy is surrounding from (added to target radius)")]
-    [SerializeField] float maximumSurroundingDistance = 5;
-
     [Header("Time/Delay Settings")]
 
     [Tooltip("Time before searching"), Range(0, 10)]
@@ -48,11 +42,14 @@ public abstract class Enemy : Character
     [Header("Attack Settings")]
     [Tooltip("Chance for AI primary attack"), Range(0, 1)]
     public float primaryAttackChance = .5f;
-
     [Tooltip("Chance for AI secondary attack"), Range(0, 1)]
     public float secondaryAttackChance = .5f;
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
     public float lowHealthThresholdPercentage = 30;
+    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 1)]
+    protected float counterWindowLength;
+
+
     protected PlayerController playerController;
 
     protected Hag hag;
@@ -153,7 +150,7 @@ public abstract class Enemy : Character
     [Tooltip("Current path state"), ShowIf("dev")]
     public PathState pathState = PathState.Unset;
     [Tooltip("The Current AI State of the enemy"), ShowIf("dev")]
-    public AIMovementState aiState = AIMovementState.Patrolling;
+    public AIMovementState aiState = AIMovementState.Blocked;
     [Tooltip("Show Paths, Destinations, etc"), ShowIf("dev")]
     public bool debugging = false;
     [Tooltip("Destination Marker Prefab"), ShowIf("dev")]
@@ -166,10 +163,19 @@ public abstract class Enemy : Character
     public int pathfindingPriority;
     //Just so code in update isn't called after the enemy is dead
     protected bool dead = false;
+    
+    [Header("Audio")]
+    [Tooltip("The Event Reference for this enemy's hit sound effect")]
+    [SerializeField] protected EventReference hitEventReference;
+    [Tooltip("The event reference for this enemy's death sound effect")]
+    [SerializeField]protected EventReference deathEventReference;
+    [Tooltip("The character animator of this enemy")]
+    private CharacterAnimator animator;
 
-    //The sound effect for the spin attack
     //FMOD Event for idle sound effects
     protected EventInstance idleAudio;
+    private float lastPrimaryChance = 0;
+    private float lastSecondaryChance = 0;
 
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing
@@ -183,7 +189,6 @@ public abstract class Enemy : Character
         }
     }
 
-
     /// <summary>
     /// Destorys the enemies counter indicator if it is active
     /// </summary>
@@ -196,9 +201,11 @@ public abstract class Enemy : Character
         counterIndicatorVFX = null;
     }
 
-
-    private float lastPrimaryChance = 0;
-    private float lastSecondaryChance = 0;
+    protected override void Awake()
+    {
+        base.Awake();
+        animator = GetComponent<CharacterAnimator>();   
+    }
 
     /// <summary>
     /// Handles editor validation - at the moment it normalizes attack chances
@@ -231,7 +238,7 @@ public abstract class Enemy : Character
         lastSecondaryChance = secondaryAttackChance;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         // keep the which character is the player updated
         if (playerController != null)
@@ -244,23 +251,47 @@ public abstract class Enemy : Character
         }
     }
 
+    protected virtual void FixedUpdate()
+    {
+        // Sets if the enemy needs to do he windup and move part of the primary attack
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, this.gameObject.transform.position.y, lockedCharacter.transform.position.z), 
+            this.gameObject.transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
+        {
+            animator.SetPrimaryMovementNeeded(true);
+        }
+        else
+        {
+            animator.SetPrimaryMovementNeeded(false);
+        }
+    }
+
     /// <summary>
     /// Sets the debug info string
     /// </summary>
     public void SetDebugString()
     {
-        debugAIInfo = "Character: " + gameObject.ToString() + ", state: " + aiState.ToString() + ", attack status: " + attackState + ", inProcess = " + inProcess.ToString();
+        debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
+
 
     /// <summary>
     /// Function for handling movement
     /// </summary>
     public void AIMove()
     {
-        if (aiState == AIMovementState.PlayerControlled) return;
+        animateMove = true;
+        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
 
+
+        if (pathState != PathState.Set)
+        {
+            animateMove = false;
+            return;
+        }
+        
         if (currentPath == null) // No path, decelerate to 0
         {
+            animateMove = false;
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
@@ -271,6 +302,7 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
+            animateMove = false;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
@@ -291,8 +323,7 @@ public abstract class Enemy : Character
 
         Vector3 desiredVelocity;
 
-
-        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * movementSpeed;
+        desiredVelocity = (currentPath.GetCornerNodes()[currentCornerIndex].GetPosition(gameObject) - transform.position).normalized * GetSpeed();
 
         float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.deltaTime;
         velocity.x += xChange;
@@ -312,29 +343,29 @@ public abstract class Enemy : Character
 
         if (velocity.magnitude < 0.01f)
         {
+            animateMove = false;
             velocity = Vector3.zero;
         }
 
         velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
-
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
     /// <summary>
     /// Function to handle the rotation of an AI controller
     /// </summary>
-    public void AILook()
+    public virtual void AILook()
     {
-        if (aiState == AIMovementState.PlayerControlled) return;
+        if (aiState == AIMovementState.PlayerControlled || playerControlling) return;
 
         Quaternion lookRotation;
         if (aiState == AIMovementState.Surrounding || aiState == AIMovementState.Retreating) // If surrounding then look at player
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, currentPlayer.transform.position - transform.position, GetRotationSpeed() * Time.deltaTime));
         }
         else
         {
-            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), 5 * Time.deltaTime));
+            lookRotation = Quaternion.LookRotation(Vector3.Lerp(transform.forward, new Vector3(velocity.x, 0, velocity.z), GetRotationSpeed() * Time.deltaTime));
         }
         transform.rotation = lookRotation;
     }
@@ -390,7 +421,6 @@ public abstract class Enemy : Character
     /// <param name="val"> Value to set </param>
     public override void SetControlled(bool val)
     {
-        StopAllCoroutines();
         playerControlling = val;
         if (val)
         {
@@ -431,6 +461,8 @@ public abstract class Enemy : Character
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
         StopAllCoroutines();
+        //Bug fix for kill all enemies button causing idle audio bugs
+        if (idleAudio.isValid()) idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
         Destroy(gameObject, 0.1f);
     }
@@ -455,9 +487,9 @@ public abstract class Enemy : Character
     /// </summary>
     /// <param name="location"> Transform of the character </param>
     /// <returns> True if in range </returns>
-    public bool CheckTargetInRange(Transform location)
+    public bool CheckTargetInRange(Character target)
     {
-        if ((location.position - transform.position).magnitude < sightRange)
+        if ((target.transform.position - transform.position).magnitude < sightRange + target.sizeRadius + sizeRadius)
         {
             return true;
         }
@@ -485,10 +517,11 @@ public abstract class Enemy : Character
     /// <returns> True if player is visible to enemy </returns>
     public bool LookForPlayer()
     {
-        if (CheckTargetInRange(currentPlayer.transform) && CheckCharacterBehindEnvironment(currentPlayer.transform))
+        if (CheckTargetInRange(currentPlayer) && CheckCharacterBehindEnvironment(currentPlayer.transform))
         {
             seenTarget = true;
             lastTargetLocation = currentPlayer.transform.position;
+            timePlayerLastSeen = Time.time;
             return true;
         }
         return false;
@@ -558,8 +591,12 @@ public abstract class Enemy : Character
                 attackingSecondary = false;
                 timeLastSecondary = Time.time;
             }
-            if (playerControlling) PlayerController.instance.SetAllowMovement(true);
-            else aiState = AIMovementState.Chasing;
+            SetMovementValues(true);
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+                SurroundingPoints.instance.RemoveAttackingEnemy(this);
+            }
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -738,9 +775,9 @@ public abstract class Enemy : Character
     /// <summary>
     /// Virtual function to find a path based on current state
     /// </summary>
-    public virtual void FindPath()
+    public virtual IEnumerator FindPath()
     {
-
+        yield break;
     }
 
     /// <summary>
@@ -825,10 +862,10 @@ public abstract class Enemy : Character
     /// A function called by the surrounding points to make an enemy attack
     /// </summary>
     /// <param name="points"> Points the request came from </param>
-    /// <returns> True if attack is done, false otherwise </returns>
-    public virtual bool AttackFromSurrounding(SurroundingPoints points)
+    /// <returns> Cost of attack done </returns>
+    public virtual int AttackFromSurrounding(SurroundingPoints points)
     {
-        return false;
+        return 0;
     }
     /// <summary>
     ///  Returns whether the player is currently controlling this enemy.
@@ -908,11 +945,11 @@ public abstract class Enemy : Character
             if (LookForPlayer())
             {
                 // Check distance first - if it is greater than surrounding then chase
-                if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                if (Vector3.Distance(transform.position, currentPlayer.transform.position) > maxSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Chasing);
                 }
-                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) >= maximumSurroundingDistance + currentPlayer.sizeRadius)
+                else if (Vector3.Distance(transform.position, currentPlayer.transform.position) < minSurroundingRadius + currentPlayer.sizeRadius + sizeRadius)
                 {
                     TransitionToState(AIMovementState.Retreating);
                 }
@@ -921,7 +958,7 @@ public abstract class Enemy : Character
                     TransitionToState(AIMovementState.Surrounding);
                 }
             }
-            else TransitionToState(AIMovementState.Patrolling);
+            else if (Time.time - timePlayerLastSeen > 2) TransitionToState(AIMovementState.Patrolling);
         }
     }
 
@@ -942,7 +979,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Surrounding)
@@ -957,7 +993,6 @@ public abstract class Enemy : Character
             if (state == AIMovementState.Patrolling)
             {
                 pathState = PathState.Unset;
-                // Do nothing else for now, in future when surroundPoint setting is revamped destroy point
             }
         }
         else if (aiState == AIMovementState.Blocked)
@@ -991,16 +1026,16 @@ public abstract class Enemy : Character
         {
             int numSet = 0;
             ResetSurroundingArea();
-            float totalDist = minimumSurroundingDistance + sizeRadius;
-            List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(gameObject, totalDist);
+            float totalDist = maxSurroundingRadius + sizeRadius;
+            List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(transform.position, totalDist);
             foreach (List<int> position in nodes)
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
                 float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
                 float ratio = (totalDist - dist) / totalDist;
-                node.AddCost(this, (int)(25 * ratio));
+                node.AddCost(this, (int)(10 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(25 * ratio);
+                surroundingCostlyNodes[position] = (int)(10 * ratio);
                 numSet++;
             }
             previousCostlyPosition = transform.position;
@@ -1027,7 +1062,8 @@ public abstract class Enemy : Character
     public void ManageSurrounding()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        if (dist <= currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius && dist >= currentPlayer.sizeRadius + currentPlayer.minSurroundingRadius)
+        //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
+        if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))
         {
             SurroundingPoints.instance.AddSurroundingEnemy(this);
             if (playerControlling) ResetSurroundingArea();
@@ -1035,8 +1071,51 @@ public abstract class Enemy : Character
         }
         else
         {
+            if (dist < currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius && !playerControlling) CreateLocalSurroundingArea();
+            else ResetSurroundingArea();
             SurroundingPoints.instance.RemoveSurroundingEnemy(this);
-            ResetSurroundingArea();
+        }
+    }
+    /// <summary>
+    /// Plays the hit sound effect assigned to this enemy. Created as a work around
+    /// for enemy ability cost.
+    /// </summary>
+    /// <param name="damage">The amount of damage taken</param>
+    public virtual void DoHitSoundEffect(float damage)
+    {
+        if (hitEventReference.IsNull) return;
+        if (health.CurrentHealth - damage <= 0)
+        {
+            DoDeathSoundEffect();
+            return;
+        }
+        EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
+        RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+        ev.setParameterByName("Damage", damage / health.GetMaxHealth());
+        ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+        ev.start();
+        ev.release();
+
+    }
+    /// <summary>
+    /// Plays the death sound effect of this enemy
+    /// </summary>
+    protected virtual void DoDeathSoundEffect()
+    {
+        if (deathEventReference.IsNull) return;
+        //Stopping any playing sound effects on death.
+        if (idleAudio.isValid())
+        {
+            idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        //Play Goblin's Death sound effect
+        if (!deathEventReference.IsNull)
+        {
+            EventInstance ev = RuntimeManager.CreateInstance(deathEventReference);
+            ev.setParameterByNameWithLabel("Possessed", playerControlling.ToString());
+            RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
+            ev.start();
+            ev.release();
         }
     }
 }

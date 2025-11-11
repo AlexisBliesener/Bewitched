@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
 
 /// <summary>
 /// A class for creating points for AI to try to reach
@@ -17,11 +16,16 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("The Environment Layer")]
     public LayerMask environment;
 
+    public bool useOnlyVisibleEnemies = true;
+
+    [Tooltip("Maximum number of attack points available")]
+    public int maxAttackPoints = 10;
+
+    [Tooltip("Number of attack points currently available")]
+    private int attackPoints;
+
     [Tooltip("Turns on debug mode")]
     [SerializeField] bool debugging = false;
-
-    [Tooltip("If the Points are Active")]
-    bool pointsActive = false;
 
     [Tooltip("List of enemies in surrounding range")]
     List<Enemy> surroundingEnemies = new List<Enemy>();
@@ -39,7 +43,7 @@ public class SurroundingPoints : MonoBehaviour
     float timeLastAttack;
 
     [Tooltip("The time between a room switching before enemies can attack")]
-    float roomSwapEnemyWaitTime = 3;
+    [SerializeField] float roomSwapEnemyWaitTime = 3;
 
     [Tooltip("Active room for enemies")]
     RoomController activeRoom = null;
@@ -50,9 +54,13 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Character the player is currently")]
     private Character currentPlayer;
 
+    [Tooltip("Currently attacking enemies and their attack costs")]
+    Dictionary<Character, int> attackingEnemies = new Dictionary<Character, int>();
+
     private void Awake()
     {
         timeLastRoomSwap = Time.time;
+        attackPoints = maxAttackPoints;
         instance = this;
         Init();
     }
@@ -79,7 +87,11 @@ public class SurroundingPoints : MonoBehaviour
         timeLastAttack = Time.time;
 
         surroundingEnemies = new List<Enemy>();
-        pointsActive = true;
+    }
+
+    public Dictionary<Character, int> GetAttackingEnemies()
+    {
+        return attackingEnemies;
     }
 
     /// <summary>
@@ -97,11 +109,24 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position));
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + (2 * enemy.maxSurroundingRadius / 3);
+        if (PlayerController.instance.isActiveAndEnabled) yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
+    }
 
-        enemy.GetNavPath().AdjustPath(currentPlayer, enemy);
+    /// <summary>
+    /// Finds a path for when the enemy needs to retreat
+    /// Currently sets path to the enemies current position
+    /// </summary>
+    /// <param name="enemy">Enemy finding a path</param>
+    public IEnumerator FindPathToRetreat(Enemy enemy)
+    {
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
+        Vector3 targetPos = currentPlayer.transform.position + (enemy.transform.position - currentPlayer.transform.position).normalized * goalDistance;
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, targetPos, targetChar: currentPlayer));
+
+        if (!enemy.HasSetPath()) yield break; // End if no path is found
     }
 
     /// <summary>
@@ -140,7 +165,7 @@ public class SurroundingPoints : MonoBehaviour
 
         foreach (Enemy other in surroundingEnemies)
         {
-            if (other != null && other.TryGetComponent(out Goblin gob) && other != enemy)
+            if (other != null && other.TryGetComponent(out Goblin gob) && other != enemy && EnemyCanAttack(other))
             {
                 sameEnemies.Add(gob);
             }
@@ -168,6 +193,36 @@ public class SurroundingPoints : MonoBehaviour
         return sameEnemies;
     }
 
+    public bool EnemyCanAttack(Enemy enemy)
+    {
+        if (!enemy.IsNeutral()) return false;
+        if (enemy.lobotimzed) return false;
+        if (enemy.IsDead) return false;
+        if (enemy.IsStunned) return false;
+        if (enemy.cantAttack) return false;
+        if (enemy.IsPlayerControlling()) return false;
+
+        if (!useOnlyVisibleEnemies) return true;
+
+        Vector3 viewportPoint = Camera.main.WorldToViewportPoint(enemy.transform.position);
+
+        bool inView = viewportPoint.z > 0 &&
+                      viewportPoint.x > 0 && viewportPoint.x < 1 &&
+                      viewportPoint.y > 0 && viewportPoint.y < 1;
+
+        if (!inView) return false;
+
+        Vector3 camPos = Camera.main.transform.position;
+        Vector3 direction = (camPos - enemy.transform.position).normalized;
+        float maxDistance = Vector3.Distance(camPos, enemy.transform.position);
+
+        if (Physics.Raycast(camPos, direction, maxDistance, environment))
+        {
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// Tells an enemy in the surrounding list to attack
     /// </summary>
@@ -178,12 +233,12 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
-                if (enemy.IsNeutral() && !enemy.lobotimzed && !enemy.IsDead && !enemy.IsPlayerControlling()) // Don't attack if already attacking, lobotomized, dead, or playerControlled
+                if (EnemyCanAttack(enemy)) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (!enemy.IsNeutral())
+                if (enemy.InAttackStartup())
                 {
                     return; // For now just keep returning until no enemies are attacking
                 }
@@ -194,10 +249,10 @@ public class SurroundingPoints : MonoBehaviour
                 while (tempEnemies.Count > 0)
                 {
                     Enemy chosen = tempEnemies.Dequeue();
+                    int cost = chosen.AttackFromSurrounding(this);
 
-                    if (chosen.AttackFromSurrounding(this))
+                    if (cost > 0)
                     {
-                        Debug.Log("Chosen enemy: " + chosen);
                         startAttackTime = Random.Range(minAttackTime, maxAttackTime);
                         timeLastAttack = Time.time;
                         break;
@@ -208,12 +263,38 @@ public class SurroundingPoints : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks if the surrounding points contains an enemy
+    /// Gets the attack points available at this time
+    /// </summary>
+    /// <returns> Attack points current </returns>
+    public int GetAvailableAttackPoints()
+    {
+        return attackPoints;
+    }
+
+    /// <summary>
+    /// Adds an enemy to attacking enemies
     /// </summary>
     /// <param name="enemy"> Enemy to add </param>
-    /// <returns> True if it is in there, false otherwise </returns>
-    public bool IsSurrounding(Enemy enemy)
+    /// <param name="cost"> Cost of attack </param>
+    public void AddAttackingEnemy(Character enemy, int cost)
     {
-        return surroundingEnemies.Contains(enemy);
+        if (!attackingEnemies.ContainsKey(enemy))
+        {
+            attackingEnemies[enemy] = cost;
+            attackPoints -= cost;
+        }
+    }
+
+    /// <summary>
+    /// Removes an enemy from attacking enemies
+    /// </summary>
+    /// <param name="enemy"> Enemy to remove </param>
+    public void RemoveAttackingEnemy(Character enemy)
+    {
+        if (attackingEnemies.ContainsKey(enemy))
+        {
+            attackPoints += attackingEnemies[enemy];
+            attackingEnemies.Remove(enemy);
+        }
     }
 }

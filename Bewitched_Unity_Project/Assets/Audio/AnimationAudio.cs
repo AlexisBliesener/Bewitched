@@ -66,6 +66,12 @@ public class AnimationAudio : MonoBehaviour
     void OnDestroy()
     {
         character.health.OnDeath -= OnDeath;
+        //Failsafe
+        if(animEvents.Count!=0) foreach(var ev in animEvents.Values)
+            {
+                ev.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                ev.release();
+            } 
     }
 
     /// <summary>
@@ -162,6 +168,12 @@ public class AnimationAudio : MonoBehaviour
         AudioManager.TryPlayInstance(anim.stringParameter, out EventInstance ev, true, (anim.intParameter == 1) ? character.gameObject : null);
         if (possessed) ev.setParameterByNameWithLabel("Possessed", "True");
         if (isEventEnemy) ev.setParameterByNameWithLabel("Event", "True");
+        /*
+        if (anim.animatorClipInfo.clip.name == "GoblinPrimaryAttack" && possessed)
+        {
+            Debug.LogError("PRIMARY");
+        }
+        */
     }
 
     /// <summary>

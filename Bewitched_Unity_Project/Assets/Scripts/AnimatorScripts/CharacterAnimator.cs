@@ -32,7 +32,7 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("The possible animation states this animator can enter")]
     protected HashSet<string> animationStates = new HashSet<string>
     {
-            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump"
+            "Idle", "Run", "PrimaryAttack", "SecondaryAttack", "Death", "Jump", "Hit", "Overriding"
     };
 
     [Tooltip("The current animation state of the character")]
@@ -47,6 +47,7 @@ public class CharacterAnimator : MonoBehaviour
     protected Animator animator;
     [Tooltip("Character controller attached to this gameobject.")]
     protected CharacterController characterController;
+    protected bool overriding;
 
     protected virtual void Awake()
     {
@@ -73,22 +74,30 @@ public class CharacterAnimator : MonoBehaviour
         }
 
         // Idle/run switching
-        if (characterController != null)
+        if (characterController != null && !overriding)
         {
             if(PlayerController.instance.currentCharacter == character)
             {
-                if (characterController.velocity.magnitude < 0.05f)
+                if (PlayerController.instance.movementInput.magnitude < 0.1f)
+                {
                     SwitchState("Idle", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
                 else
+                {
                     SwitchState("Run", character.GetCurrentPrimaryComboStep(), character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
             }
             else
             {
                 if (character == null) return;
-                if (characterController.velocity.magnitude < 0.05f)
+                if (!character.GetAnimateMove())
+                {
                     SwitchState("Idle", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
                 else
+                {
                     SwitchState("Run", 0, character.GetTimeLastPrimary(), character.GetPrimaryComboResetTime());
+                }
             }
         }
     }
@@ -100,19 +109,30 @@ public class CharacterAnimator : MonoBehaviour
 
     public IEnumerator SetHit()
     {
-        ResetAllTriggers();
-        animator.SetFloat("HitSpeedMult", hitStunMult);
-        canChange = false;
-        if(character == PlayerController.instance.currentCharacter)
+        if(animator != null)
         {
-            PlayerController.instance.SetAllowMovement(false);
+            if(!overriding)
+            {
+                currentAnimationState = "Hit";
+                ResetAllTriggers();
+                animator.SetFloat("HitSpeedMult", hitStunMult);
+                canChange = false;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(false);
+                }
+                animator.SetTrigger("Hit");
+                yield return new WaitForSeconds(0.12f / hitStunMult);
+                canChange = true;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(true);
+                }
+            }
         }
-        animator.SetTrigger("Hit");
-        yield return new WaitForSeconds(0.12f / hitStunMult);
-        canChange = true;
-        if (character == PlayerController.instance.currentCharacter)
+        else
         {
-            PlayerController.instance.SetAllowMovement(true);
+            Debug.LogWarning("Animator is not assigned!");
         }
     }
 
@@ -123,7 +143,14 @@ public class CharacterAnimator : MonoBehaviour
     /// <param name="val">The value to set if primary attack movement is needed</param>
     public void SetPrimaryMovementNeeded(bool val)
     {
-        animator.SetBool("PrimaryMovementNeeded", val);
+        if (animator != null)
+        {
+            animator.SetBool("PrimaryMovementNeeded", val);
+        }
+        else
+        {
+            Debug.LogWarning("Animator on this character is not set!");
+        }
     }
 
     /// <summary>
@@ -131,6 +158,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
+        if (overriding) return;
+
         if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep])
         {
             character.ResetPrimaryComboStep();
@@ -147,6 +176,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState, int currentPrimaryComboStep)
     {
+        if (overriding) return;
+
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
         SwitchState(newState);
@@ -157,6 +188,8 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     public virtual void SwitchState(string newState)
     {
+        if (overriding) return;
+
         if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
@@ -187,7 +220,6 @@ public class CharacterAnimator : MonoBehaviour
                 canChange = true;
                 break;
             case "Run":
-                animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
@@ -212,12 +244,19 @@ public class CharacterAnimator : MonoBehaviour
     /// </summary>
     protected virtual void ResetAllTriggers()
     {
-        animator.ResetTrigger("Idle");
-        animator.ResetTrigger("Run");
-        animator.ResetTrigger("PrimaryAttack");
-        animator.ResetTrigger("SecondaryAttack");
-        animator.ResetTrigger("Death");
-        animator.ResetTrigger("Hit");
+        if (animator != null)
+        {
+            animator.ResetTrigger("Idle");
+            animator.ResetTrigger("Run");
+            animator.ResetTrigger("PrimaryAttack");
+            animator.ResetTrigger("SecondaryAttack");
+            animator.ResetTrigger("Death");
+            animator.ResetTrigger("Hit");
+        }
+        else
+        {
+            Debug.LogWarning("Animator is not assigned!");
+        }
     }
 
     /// <summary>
@@ -267,22 +306,34 @@ public class CharacterAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Waits until the character is back on the ground before letting them change out of the jump animation
-    /// </summary>
-    /// <returns></returns>
-    protected virtual IEnumerator WaitForGrounded()
-    {
-        yield return new WaitForFixedUpdate();
-        yield return new WaitUntil(() => characterController.isGrounded);
-        canChange = true;
-    }
-
-    /// <summary>
     /// Waits for the end of an animation before allowing new state changes.
     /// </summary>
     protected virtual IEnumerator WaitForEndAnimation(float sec)
     {
         yield return new WaitForSeconds(sec);
         canChange = true;
+    }
+
+    /// <summary>
+    /// Overrides the animator untill EnAnimatorOverride is called
+    /// Sets the specified trigger
+    /// </summary>
+    /// <param name="animationTrigger"></param>
+    public void OverrideAnimator(string animationTrigger)
+    {
+        overriding = true;
+        StopAllCoroutines();
+        ResetAllTriggers();
+        currentAnimationState = "Overriding";
+        animator.SetTrigger(animationTrigger);
+    }
+
+    /// <summary>
+    /// Ends the animator override returning animator to regular function
+    /// </summary>
+    public void EndAnimatorOverride()
+    {
+        ResetAllTriggers();
+        overriding = false;
     }
 }

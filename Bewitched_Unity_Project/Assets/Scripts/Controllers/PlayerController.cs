@@ -1,6 +1,9 @@
 using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
+using UnityEngine.InputSystem.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -24,6 +27,8 @@ public class PlayerController : MonoBehaviour
     [Header("UI Settings")]
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
+    [SerializeField, Tooltip("The ui input module used for input")] 
+    private InputSystemUIInputModule UIInput;
 
     [Header("Buff Holder")]
     [Tooltip("Buff Component")]
@@ -36,14 +41,12 @@ public class PlayerController : MonoBehaviour
     public CooldownDisplay secondaryCooldownDisplay;
 
     [Header("Targeting variables")]
-    [SerializeField, Tooltip("The radius of the close dectection sphere")]
-    private float closeSphereRadius = 2f;
-    [SerializeField, Tooltip("The distance away from the player of the close dectection sphere")]
-    private float closeSphereDistance = 3f;
-    [SerializeField, Tooltip("The radius of the far dectection sphere")]
-    private float farSphereRadius = 4f;
-    [SerializeField, Tooltip("The distance away from the player of the far dectection sphere")]
-    private float farSphereDistance = 8f;
+    [SerializeField, Tooltip("The radius of the dectection sphere")]
+    private float sphereRadius = 6f;
+    [SerializeField, Tooltip("The distance away from the player of the dectection sphere")]
+    private float sphereDistance = 8f;
+    [SerializeField, Tooltip("The weight that being in the direction the player wants to attack in affects the targeting calculation")]
+    private float inFrontWeight = 50f;
 
     [Header("Pause UI")]
     public GameObject pauseMenu;
@@ -55,12 +58,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
-
-    [Tooltip("Player Modifier Volume")]
-    [SerializeField] NavMeshModifierVolume playerZone;
-
-    [Tooltip("Navmesh Surface")]
-    [SerializeField] NavMeshSurface surface;
 
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
@@ -74,8 +71,12 @@ public class PlayerController : MonoBehaviour
     private float speed;
 
     private bool allowMovement = true;
+    [Tooltip("If true eleth is currently sprints, false if not")]
+    private bool sprinting = false;
+    [Tooltip("If ui has been clicked before interact was clicked")]
+    private bool uiClicked = false;
 
-   // private bool dodging = false;
+    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -120,73 +121,87 @@ public class PlayerController : MonoBehaviour
         characterController = currentCharacter.GetComponent<CharacterController>();
     }
 
+    private void OnEnable()
+    {
+        if (UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed += UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
+    }
+
+    private void OnDisable()
+    {
+        if(UIInput != null)
+        {
+            UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
+        }
+        else
+        {
+            Debug.LogWarning("UIInput not assigned!");
+        }
+    }
+
+    private void UIClicked(InputAction.CallbackContext context)
+    {
+        uiClicked = true;
+    }
+
     private void FixedUpdate()
     {
         TargetEnemy();
         HandleCooldownUI();
-        speed = currentCharacter.movementSpeed;
+        speed = currentCharacter.GetSpeed();
+
+        if(currentCharacter == oldHag && sprinting)
+        {
+            speed = oldHag.GetSprintSpeed();
+        }
 
         if (allowMovement)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
-                if (CameraController.GetIsAiming())
+                Vector3 desiredVelocity = direction * speed;
+                desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
+                desiredVelocity.y = 0f; // Prevent tilting
+                desiredVelocity = desiredVelocity.normalized * speed;
+                float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
+                velocity.x += xChange;
+
+                if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+
+                float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
+                velocity.z += zChange;
+
+                if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
+
+
+                if (velocity.magnitude > speed)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    if (desiredVelocity.magnitude >= velocity.magnitude) // If accelerating or changing direction at same speed
-                    {
-                        velocity += desiredVelocity.normalized * currentCharacter.acceleration * Time.fixedDeltaTime;
-                    }
-                    else
-                    {
-                        velocity = Vector3.Lerp(velocity, desiredVelocity, Time.fixedDeltaTime * currentCharacter.deceleration);
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                    velocity = velocity.normalized * speed;
                 }
-                else
+
+                if (velocity.magnitude < 0.01f)
                 {
-                    Vector3 desiredVelocity = direction * speed;
-                    desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
-                    desiredVelocity.y = 0f; // Prevent tilting
-                    desiredVelocity = desiredVelocity.normalized * speed;
-                    float xChange = GetAccelerationValue(velocity.x, desiredVelocity.x) * Time.fixedDeltaTime;
-                    velocity.x += xChange;
+                    velocity = Vector3.zero;
+                }
 
-                    if (Mathf.Abs(velocity.x) >= speed) velocity.x = speed * Mathf.Sign(velocity.x); // If above max x velocity (movement speed straight in x direction)
+                velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
 
-                    float zChange = GetAccelerationValue(velocity.z, desiredVelocity.z) * Time.fixedDeltaTime;
-                    velocity.z += zChange;
-
-                    if (Mathf.Abs(velocity.z) >= speed) velocity.z = speed * Mathf.Sign(velocity.z);
-
-
-                    if (velocity.magnitude > speed)
-                    {
-                        velocity = velocity.normalized * speed;
-                    }
-
-                    if (velocity.magnitude < 0.01f)
-                    {
-                        velocity = Vector3.zero;
-                    }
-
-                    velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
-                    characterController.Move(velocity * Time.fixedDeltaTime);
-
+                characterController.Move(velocity * Time.fixedDeltaTime);
+                if (!CameraController.GetIsAiming())
+                {
                     if (velocity.sqrMagnitude > 0.01f)
                     {
                         Quaternion targetRotation = Quaternion.LookRotation(new Vector3(velocity.x, 0, velocity.z));
                         currentCharacter.transform.rotation = Quaternion.Slerp(
                             currentCharacter.transform.rotation,
                             targetRotation,
-                            10f * Time.fixedDeltaTime
+                            currentCharacter.GetRotationSpeed() * Time.fixedDeltaTime
                         );
                     }
                 }
@@ -281,6 +296,10 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(currentCharacter.BeginSecondary());
             }
         }
+        else if (context.canceled)
+        {
+            currentCharacter.ReleaseSecondary();
+        }
         else
         {
             return;
@@ -309,18 +328,37 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void Interact(InputAction.CallbackContext context)
     {
-        if (context.started)
+        if (context.canceled)
         {
-            if (nearbyInteractable != null)
+            if (sprinting)
             {
-                nearbyInteractable.Interact();
-                // Hide the interact UI since the interact action has been performed
-                HideInteractUI();
-                return;
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
             }
-            if (exitDoor != null)
+            sprinting = false;
+        }
+        else if(context.performed)
+        {
+            if (!sprinting && !uiClicked)
             {
-                exitDoor.OpenDoor();
+                if (nearbyInteractable != null)
+                {
+                    nearbyInteractable.Interact();
+                    // Hide the interact UI since the interact action has been performed
+                    HideInteractUI();
+                }
+                else if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
+            }
+            else
+            {
+                uiClicked = false;
+            }
+            if (currentCharacter == oldHag)
+            {
+                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
+                sprinting = true;
             }
         }
     }
@@ -379,13 +417,21 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns the input of the left stick
+    /// </summary>
+    /// <returns>Left stick input</returns>
+    public Vector2 GetMovementInput()
+    {
+        return movementInput;
+    }
+
+    /// <summary>
     /// Targets the closest enemy to the input direction if it is within a range
     /// </summary>
     public void TargetEnemy()
     {
-       // Vector3 dir = currentCharacter.transform.forward;
-        Vector3 dir = new Vector3( movementInput.x, 0, movementInput.y);
-        dir = Camera.main.transform.InverseTransformVector(dir);
+        Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
+        dir = Camera.main.transform.TransformDirection(dir);
 
         Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
@@ -395,49 +441,40 @@ public class PlayerController : MonoBehaviour
         dir.y = 0;
         dir = dir.normalized;
 
-        if (lockedCharacter == currentCharacter) lockedCharacter = null;
-
-        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * closeSphereDistance, closeSphereRadius, dir, 0f, enemyLayerMask);
-
         Enemy target = null;
         float targetDistance = Mathf.Infinity;
 
-        if (hits.Length > 0 && (hits.Length != 1 || hits[0].collider.gameObject.name != "Eleth"))
+        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * sphereDistance, sphereRadius, dir, 0f, enemyLayerMask);
+
+        if (hits.Length > 0)
         {
             foreach (RaycastHit hit in hits)
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
+                if (enemy == null) continue;
+                Vector3 enemyPosNoY = new Vector3(enemy.transform.position.x, currentCharacter.transform.position.y, enemy.transform.position.z);
+                Vector3 toEnemy = (enemyPosNoY - currentCharacter.transform.position).normalized;
+                float baseDist = Vector3.Distance(enemyPosNoY, currentCharacter.transform.position) - enemy.sizeRadius - currentCharacter.sizeRadius;
+
+                float dot = Vector3.Dot(toEnemy, dir);
+                float dist = baseDist + (1 - dot) * inFrontWeight; // or adjust sign depending on intent
+
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || dist < targetDistance))
                 {
                     target = enemy;
-                    targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
-                    break;
+                    targetDistance = dist;
                 }
             }
         }
-        else
+
+        if (target != currentCharacter)
         {
-            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * farSphereDistance, farSphereDistance, dir, 0f, enemyLayerMask);
-            if (hits.Length > 0)
+            lockedCharacter = target;
+
+            if (lockedCharacter)
             {
-                foreach (RaycastHit hit in hits)
-                {
-                    Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance))
-                    {
-                        target = enemy;
-                        targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
-                        break;
-                    }
-                }
+                Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
             }
-        }
-
-        lockedCharacter = target;
-
-        if (lockedCharacter)
-        {
-            Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
         }
     }
 

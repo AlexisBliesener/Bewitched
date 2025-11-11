@@ -35,6 +35,7 @@ public class DeathUIManager : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
+        AudioManager.SubscribeCheckClick();
         if (deathScreen != null && deathScreen.activeInHierarchy == false)
         {
             deathScreen.SetActive(true);
@@ -58,8 +59,16 @@ public class DeathUIManager : MonoBehaviour
         upgradeIcons = statsScreen.GetComponentsInChildren<GameObject>(true);
     }
 
+    /// <summary>
+    /// Stops checking for UI button clicks when Quit Menu is pressed
+    /// </summary>
+    void OnDisable()
+    {
+        AudioManager.UnsubscribeCheckClick();
+    }
+
     /// will need to add stats and death animation into the death screen
-    
+
     /// <summary>
     /// Updates the placeholder upgrade slots 
     /// with the player's acquired upgrades they got in the run.
