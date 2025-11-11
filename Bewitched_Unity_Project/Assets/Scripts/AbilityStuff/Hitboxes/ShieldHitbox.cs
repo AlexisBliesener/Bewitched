@@ -53,9 +53,12 @@ public class ShieldHitbox : DefaultHitbox
                     // Hit VFX
                     if (hitVFX != null)
                     {
-                        Instantiate(hitVFX, new Vector3(hitbox.transform.position.x,
-                            hitbox.transform.position.y + hitbox.GetComponent<CharacterController>().height / 2,
-                            hitbox.transform.position.z), hitbox.transform.rotation);
+                        if (hitbox != null && hitbox.GetComponent<CharacterController>() != null)
+                        {
+                            Instantiate(hitVFX, new Vector3(hitbox.transform.position.x,
+                                hitbox.transform.position.y + hitbox.GetComponent<CharacterController>().height / 2,
+                                hitbox.transform.position.z), hitbox.transform.rotation);
+                        }
                     }
                     else
                     {
