@@ -75,8 +75,6 @@ public abstract class Character : MonoBehaviour
     protected int secondaryAttackCost;
     [SerializeField, Tooltip("The AI cost of the secondary attack"), Range(0, 10)]
     protected int secondaryAICost;
-    [Tooltip("Primary Attack Range"), Range(0, 10)]
-    public float primaryAttackRange;
     [Tooltip("The reference to the health controller"), HideInInspector]
     public HealthController health;
     [Header("Possession Settings")]
@@ -558,8 +556,6 @@ public abstract class Character : MonoBehaviour
         currentPrimaryComboStep = -1;
         characterAnimator.SetPrimaryComboEnded();
     }
-
-
 
     public virtual IEnumerator BeginPrimary()
     {
