@@ -576,6 +576,7 @@ public class Guard : Enemy
         if (shieldStatus == ShieldStatus.Raising)
         {
             shieldObject = Instantiate(shieldPrefab, transform);
+            shieldObject.transform.position += transform.forward * sizeRadius;
             shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
             shieldStatus = ShieldStatus.Raised;
         }
@@ -899,8 +900,8 @@ public class Guard : Enemy
     public void HandleAutoShield()
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
-        float angle = Vector3.Angle(transform.position - currentPlayer.transform.position, transform.forward);
-        if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
+        float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
+        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
         {
             StartCoroutine(RaiseShield());
         }
