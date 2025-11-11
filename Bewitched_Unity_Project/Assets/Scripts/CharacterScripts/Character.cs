@@ -557,8 +557,6 @@ public abstract class Character : MonoBehaviour
         characterAnimator.SetPrimaryComboEnded();
     }
 
-
-
     public virtual IEnumerator BeginPrimary()
     {
         if (gameObject != null)
