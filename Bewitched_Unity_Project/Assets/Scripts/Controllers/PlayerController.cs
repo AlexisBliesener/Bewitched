@@ -154,7 +154,7 @@ public class PlayerController : MonoBehaviour
     {
         TargetEnemy();
         HandleCooldownUI();
-        speed = currentCharacter.movementSpeed;
+        speed = currentCharacter.GetSpeed();
 
         if(currentCharacter == oldHag && sprinting)
         {
@@ -201,7 +201,7 @@ public class PlayerController : MonoBehaviour
                         currentCharacter.transform.rotation = Quaternion.Slerp(
                             currentCharacter.transform.rotation,
                             targetRotation,
-                            10f * Time.fixedDeltaTime
+                            currentCharacter.GetRotationSpeed() * Time.fixedDeltaTime
                         );
                     }
                 }
@@ -295,6 +295,10 @@ public class PlayerController : MonoBehaviour
             {
                 StartCoroutine(currentCharacter.BeginSecondary());
             }
+        }
+        else if (context.canceled)
+        {
+            currentCharacter.ReleaseSecondary();
         }
         else
         {
