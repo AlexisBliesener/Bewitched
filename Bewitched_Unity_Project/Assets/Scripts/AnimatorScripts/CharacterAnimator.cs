@@ -143,7 +143,14 @@ public class CharacterAnimator : MonoBehaviour
     /// <param name="val">The value to set if primary attack movement is needed</param>
     public void SetPrimaryMovementNeeded(bool val)
     {
-        animator.SetBool("PrimaryMovementNeeded", val);
+        if (animator != null)
+        {
+            animator.SetBool("PrimaryMovementNeeded", val);
+        }
+        else
+        {
+            Debug.LogWarning("Animator on this character is not set!");
+        }
     }
 
     /// <summary>

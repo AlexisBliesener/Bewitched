@@ -576,6 +576,17 @@ public class PossessionAbility : MonoBehaviour
             return;
         }
 
+        if(PlayerController.instance == null)
+        {
+            Debug.LogWarning("PlayerController instance is not set!");
+            return;
+        }
+        else if(Camera.main == null)
+        {
+            Debug.LogWarning("Main camera does not exist!");
+            return;
+        }
+
         Vector3 dir = new Vector3(PlayerController.instance.GetMovementInput().x, 0, PlayerController.instance.GetMovementInput().y);
         dir = Camera.main.transform.TransformDirection(dir);
 
