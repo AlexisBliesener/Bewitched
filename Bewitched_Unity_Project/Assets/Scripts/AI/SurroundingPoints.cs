@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
 
 /// <summary>
 /// A class for creating points for AI to try to reach
@@ -110,8 +109,8 @@ public class SurroundingPoints : MonoBehaviour
             origin = currentPlayer.transform.position + awayFromPlayer * (currentPlayer.sizeRadius + currentPlayer.maxSurroundingRadius);
         }
         else origin = enemy.transform.position;
-        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
+        float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + (2 * enemy.maxSurroundingRadius / 3);
+        if (PlayerController.instance.isActiveAndEnabled) yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, origin, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
     }
@@ -124,7 +123,8 @@ public class SurroundingPoints : MonoBehaviour
     public IEnumerator FindPathToRetreat(Enemy enemy)
     {
         float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
-        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, currentPlayer.transform.position, goalDistance - 1, currentPlayer));
+        Vector3 targetPos = currentPlayer.transform.position + (enemy.transform.position - currentPlayer.transform.position).normalized * goalDistance;
+        yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, targetPos, targetChar: currentPlayer));
 
         if (!enemy.HasSetPath()) yield break; // End if no path is found
     }
@@ -165,7 +165,7 @@ public class SurroundingPoints : MonoBehaviour
 
         foreach (Enemy other in surroundingEnemies)
         {
-            if (other != null && other.TryGetComponent(out Goblin gob) && other != enemy)
+            if (other != null && other.TryGetComponent(out Goblin gob) && other != enemy && EnemyCanAttack(other))
             {
                 sameEnemies.Add(gob);
             }

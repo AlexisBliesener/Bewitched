@@ -69,6 +69,10 @@ public class Goblin : Enemy
     [SerializeField] float maxDriftSpeed = 4;
     [Tooltip("The max angular distance a deflect will auto-target the player on wall/character spin collisions"), Range(0, 360)]
     [SerializeField] float maxSpinDeflectAngle = 30;
+    [Tooltip("Minimum time delay before spin from AI")]
+    [SerializeField] float minSpinDelay = 0.3f;
+    [Tooltip("Maximum time delay before spin from AI")]
+    [SerializeField] float maxSpinDelay = 0.7f;
 
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance"), Range(0, 100)]
@@ -79,7 +83,7 @@ public class Goblin : Enemy
     [SerializeField] float communicationRange = 8;
 
     [Tooltip("Goblin animator script that controls the goblin animations")]
-    private GoblinAnimator animator;
+    private GoblinAnimator goblinAnimator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
     [Tooltip("Is this goblin is currently in the windup animation")]
@@ -91,7 +95,7 @@ public class Goblin : Enemy
 
     private void Start()
     {
-        animator = GetComponentInChildren<GoblinAnimator>();
+        goblinAnimator = GetComponentInChildren<GoblinAnimator>();
         primaryComboSteps = 3;
         SetPlayerInfo();
         health.SetHealthToMax();
@@ -101,7 +105,7 @@ public class Goblin : Enemy
         sizeRadius = GetComponent<CharacterController>().radius;
     }
 
-    protected void FixedUpdate()
+    protected override void FixedUpdate()
     {
         CreateLocalInvalidArea();
         ManageSurrounding();
@@ -124,14 +128,7 @@ public class Goblin : Enemy
 
         SetBehavior();
 
-        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
-        {
-            animator.SetPrimaryMovementNeeded(true);
-        }
-        else
-        {
-            animator.SetPrimaryMovementNeeded(false);
-        }
+        base.FixedUpdate();
     }
 
     /// <summary>
@@ -144,7 +141,7 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / animator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
 
                     health.SubHealth(primaryAttackCost);
@@ -221,7 +218,7 @@ public class Goblin : Enemy
         targetPos = transform.position;
         float windupStart = Time.time;
         bool leapEntered = false;
-        while (Time.time  - windupStart < 0.708 / animator.GetPrimaryWindupMult())
+        while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -232,10 +229,10 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if(!leapEntered && Time.time - windupStart > 0.708 / animator.GetPrimaryWindupMult() * 0.75f)
+            if(!leapEntered && Time.time - windupStart > 0.708 / goblinAnimator.GetPrimaryWindupMult() * 0.75f)
             {
                 leapEntered = true;
-                animator.SetEnterLeap();
+                goblinAnimator.SetEnterLeap();
             }
             yield return null;
         }
@@ -289,23 +286,24 @@ public class Goblin : Enemy
                 }
             }
 
+            inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
-                    animator.ExitLeap();
+                    goblinAnimator.ExitLeap();
                 }
                 else if(tempLockedCharacter == null)
                 {
-                    animator.ExitLeap();
+                    goblinAnimator.ExitLeap();
                 }
 
                 if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
                 {
                     if (!triggerSet)
                     {
-                        animator.ExitLeap();
+                        goblinAnimator.ExitLeap();
                         triggerSet = true;
                     }
 
@@ -326,13 +324,12 @@ public class Goblin : Enemy
                 }
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
-                inPrimaryWindup = false;
                 yield return null;
             }
 
             if(!triggerSet)
             {
-                animator.ExitLeap();
+                goblinAnimator.ExitLeap();
             }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
@@ -352,7 +349,7 @@ public class Goblin : Enemy
         targetPos = Vector3.negativeInfinity;
 
         float hitboxStartTime = Time.time;
-        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             yield return null;
@@ -369,7 +366,7 @@ public class Goblin : Enemy
                     yield return null;
                 }
             }
-            animator.EndPrimary();
+            goblinAnimator.EndPrimary();
         }
 
         SetMovementValues(true);
@@ -384,7 +381,6 @@ public class Goblin : Enemy
             tempLockedCharacter.SetAttacker(null);
             if (tempLockedCharacter.TryGetComponent(out Enemy enemy))
             {
-                Debug.Log("retreat set");
                 enemy.SetTargeted(false);
             }
         }
@@ -402,7 +398,7 @@ public class Goblin : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleStab(Character tempLockedCharacter)
     {
-        animator.SetPrimaryMovementNeeded(false);
+        goblinAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
@@ -415,7 +411,7 @@ public class Goblin : Enemy
         }
 
         float hitboxStartTime = Time.time;
-        while (Time.time - hitboxStartTime < 0.25f / animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             yield return null;
@@ -446,7 +442,7 @@ public class Goblin : Enemy
 
         if(!playerControlling)
         {
-            animator.EndPrimary();
+            goblinAnimator.EndPrimary();
         }
 
         tempLockedCharacter = null;
@@ -513,7 +509,7 @@ public class Goblin : Enemy
         }
 
         // For now wait 0.5 seconds, in future wait for animation trigger
-        while (Time.time - timeStarted < 0.125f / animator.GetSecondaryWindupMult())
+        while (Time.time - timeStarted < 0.125f / goblinAnimator.GetSecondaryWindupMult())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -552,7 +548,7 @@ public class Goblin : Enemy
             SetMovementValues(true);
 
             attackStateCoroutine = null;
-            animator.SetSecondaryAttackEnded();
+            goblinAnimator.SetSecondaryAttackEnded();
             yield break;
         }
 
@@ -731,9 +727,9 @@ public class Goblin : Enemy
         rotationalVelocity = 0;
 
         // end spin portion of the secondary attack animation, move into stagger portion
-        animator.SetSecondaryAttackEnded();
+        goblinAnimator.SetSecondaryAttackEnded();
 
-        while (animator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
+        while (goblinAnimator.GetCurrentState() == "SecondaryAttack") // While still in the secondary animation state
         {
             SetMovementValues(false);
             yield return null;
@@ -1006,7 +1002,6 @@ public class Goblin : Enemy
             }
         }
 
-        aiState = AIMovementState.Chasing;
         pathState = PathState.Unset;
 
         AILook();
@@ -1089,7 +1084,7 @@ public class Goblin : Enemy
     {
         if (dead || lobotimzed) return 0;
         float totalOdds = 0;
-        List<Goblin> goblins = points.GetEnemiesSameType(this);
+        List<Goblin> goblins = points.GetEnemiesSameType(this); // List of other goblins that are able to attack
         float remaining = points.GetAvailableAttackPoints();
         bool primaryAvailable = false;
 
@@ -1119,6 +1114,13 @@ public class Goblin : Enemy
             {
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
+                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count)); // Gets a random number of available goblins
+                Debug.Log("Attacking with: " + goblinAttackCount + " others");
+                for (int i = 0; i < goblinAttackCount; i++)
+                {
+                    StartCoroutine(goblins[i].SpinWithDelay());
+                    points.AddAttackingEnemy(goblins[i], secondaryAICost);
+                }
                 cost = secondaryAICost;
             }
             points.AddAttackingEnemy(this, cost);
@@ -1137,5 +1139,21 @@ public class Goblin : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
+    }
+
+    /// <summary>
+    /// Begins the spin attack after a short delay
+    /// </summary>
+    /// <returns> Time </returns>
+    public IEnumerator SpinWithDelay()
+    {
+        float waitDelay = Random.Range(minSpinDelay, maxSpinDelay);
+        float timeStarted = Time.time;
+        attackState = AttackState.Windup;
+        while (Time.time - timeStarted < waitDelay)
+        {
+            yield return null;
+        }
+        StartCoroutine(BeginSecondary());
     }
 }

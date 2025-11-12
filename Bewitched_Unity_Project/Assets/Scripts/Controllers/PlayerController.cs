@@ -41,14 +41,12 @@ public class PlayerController : MonoBehaviour
     public CooldownDisplay secondaryCooldownDisplay;
 
     [Header("Targeting variables")]
-    [SerializeField, Tooltip("The radius of the close dectection sphere")]
-    private float closeSphereRadius = 2f;
-    [SerializeField, Tooltip("The distance away from the player of the close dectection sphere")]
-    private float closeSphereDistance = 3f;
-    [SerializeField, Tooltip("The radius of the far dectection sphere")]
-    private float farSphereRadius = 4f;
-    [SerializeField, Tooltip("The distance away from the player of the far dectection sphere")]
-    private float farSphereDistance = 8f;
+    [SerializeField, Tooltip("The radius of the dectection sphere")]
+    private float sphereRadius = 6f;
+    [SerializeField, Tooltip("The distance away from the player of the dectection sphere")]
+    private float sphereDistance = 8f;
+    [SerializeField, Tooltip("The weight that being in the direction the player wants to attack in affects the targeting calculation")]
+    private float inFrontWeight = 50f;
 
     [Header("Pause UI")]
     public GameObject pauseMenu;
@@ -156,7 +154,7 @@ public class PlayerController : MonoBehaviour
     {
         TargetEnemy();
         HandleCooldownUI();
-        speed = currentCharacter.movementSpeed;
+        speed = currentCharacter.GetSpeed();
 
         if(currentCharacter == oldHag && sprinting)
         {
@@ -203,7 +201,7 @@ public class PlayerController : MonoBehaviour
                         currentCharacter.transform.rotation = Quaternion.Slerp(
                             currentCharacter.transform.rotation,
                             targetRotation,
-                            10f * Time.fixedDeltaTime
+                            currentCharacter.GetRotationSpeed() * Time.fixedDeltaTime
                         );
                     }
                 }
@@ -298,6 +296,10 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(currentCharacter.BeginSecondary());
             }
         }
+        else if (context.canceled)
+        {
+            currentCharacter.ReleaseSecondary();
+        }
         else
         {
             return;
@@ -343,7 +345,8 @@ public class PlayerController : MonoBehaviour
                     nearbyInteractable.Interact();
                     // Hide the interact UI since the interact action has been performed
                     HideInteractUI();
-                }else if (exitDoor != null)
+                }
+                else if (exitDoor != null)
                 {
                     exitDoor.OpenDoor();
                 }
@@ -414,6 +417,15 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns the input of the left stick
+    /// </summary>
+    /// <returns>Left stick input</returns>
+    public Vector2 GetMovementInput()
+    {
+        return movementInput;
+    }
+
+    /// <summary>
     /// Targets the closest enemy to the input direction if it is within a range
     /// </summary>
     public void TargetEnemy()
@@ -429,49 +441,40 @@ public class PlayerController : MonoBehaviour
         dir.y = 0;
         dir = dir.normalized;
 
-        if (lockedCharacter == currentCharacter) lockedCharacter = null;
-
-        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * closeSphereDistance, closeSphereRadius, dir, 0f, enemyLayerMask);
-
         Enemy target = null;
         float targetDistance = Mathf.Infinity;
 
-        if (hits.Length > 0 && (hits.Length != 1 || hits[0].collider.gameObject.name != "Eleth"))
+        RaycastHit[] hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * sphereDistance, sphereRadius, dir, 0f, enemyLayerMask);
+
+        if (hits.Length > 0)
         {
             foreach (RaycastHit hit in hits)
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
-                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
+                if (enemy == null) continue;
+                Vector3 enemyPosNoY = new Vector3(enemy.transform.position.x, currentCharacter.transform.position.y, enemy.transform.position.z);
+                Vector3 toEnemy = (enemyPosNoY - currentCharacter.transform.position).normalized;
+                float baseDist = Vector3.Distance(enemyPosNoY, currentCharacter.transform.position) - enemy.sizeRadius - currentCharacter.sizeRadius;
+
+                float dot = Vector3.Dot(toEnemy, dir);
+                float dist = baseDist + (1 - dot) * inFrontWeight; // or adjust sign depending on intent
+
+                if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || dist < targetDistance))
                 {
                     target = enemy;
-                    targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
-                    break;
+                    targetDistance = dist;
                 }
             }
         }
-        else
+
+        if (target != currentCharacter)
         {
-            hits = Physics.SphereCastAll(currentCharacter.transform.position + dir * farSphereDistance, farSphereDistance, dir, 0f, enemyLayerMask);
-            if (hits.Length > 0)
+            lockedCharacter = target;
+
+            if (lockedCharacter)
             {
-                foreach (RaycastHit hit in hits)
-                {
-                    Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    if (enemy && hit.collider.gameObject != currentCharacter.gameObject && (target == null || Vector3.Distance(enemy.transform.position, currentCharacter.transform.position) < targetDistance + enemy.sizeRadius + currentCharacter.sizeRadius))
-                    {
-                        target = enemy;
-                        targetDistance = Vector3.Distance(enemy.transform.position, currentCharacter.transform.position);
-                        break;
-                    }
-                }
+                Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
             }
-        }
-
-        lockedCharacter = target;
-
-        if (lockedCharacter)
-        {
-            Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
         }
     }
 
