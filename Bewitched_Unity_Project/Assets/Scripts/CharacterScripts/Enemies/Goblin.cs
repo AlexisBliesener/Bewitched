@@ -992,7 +992,7 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        if (pathState == PathState.Set || currentPath != null)
+        if ((pathState == PathState.Set || currentPath != null) && Time.time - timeSinceRetreat > retreatWaitTime)
         {
             // Debug.Log("Moving: " + gameObject);
             AIMove();
@@ -1113,7 +1113,7 @@ public class Goblin : Enemy
             {
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
-                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count)); // Gets a random number of available goblins
+                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
                 Debug.Log("Attacking with: " + goblinAttackCount + " others");
                 for (int i = 0; i < goblinAttackCount; i++)
                 {

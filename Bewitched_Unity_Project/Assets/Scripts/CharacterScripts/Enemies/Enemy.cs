@@ -38,6 +38,8 @@ public abstract class Enemy : Character
     public float timeBeforeSearch = 5;
     [Tooltip("AI Attack Delay"), Range(0, 10)]
     public float attackDelayAI = 0.5f;
+    [Tooltip("Retreat wait time")]
+    public float retreatWaitTime = 0.5f;
 
     [Header("Attack Settings")]
     [Tooltip("Chance for AI primary attack"), Range(0, 1)]
@@ -87,6 +89,8 @@ public abstract class Enemy : Character
     protected float timePlayerLastSeen;
 
     protected NavPath currentPath;
+
+    protected float timeSinceRetreat = 0;
 
     /// <summary>
     /// Path getter function
@@ -577,8 +581,7 @@ public abstract class Enemy : Character
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
             {
-                if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-                else aiState = AIMovementState.Blocked;
+                SetMovementValues(false);
                 yield return null;
             }
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
@@ -616,23 +619,6 @@ public abstract class Enemy : Character
     public virtual bool SetWalkPoint()
     {
         return false;
-    }
-
-    public override void CreateHitStun()
-    {
-    }
-
-    public override void HandleHitStun()
-    {
-        if (hitStunActual != null)
-        {
-            if (Time.time - health.TimeLastHit > hitStunDuration / GetComponent<CharacterAnimator>().GetHitStunMult())
-            {
-                SetMovementValues(true);
-            }
-        }
-
-        base.HandleHitStun();
     }
 
     public void SetPlayerControlledBuffs(bool val, Buffs playerBuffs)
@@ -998,6 +984,11 @@ public abstract class Enemy : Character
         else if (aiState == AIMovementState.Blocked)
         {
             pathState = PathState.Unset;
+        }
+
+        if (state == AIMovementState.Retreating)
+        {
+            timeSinceRetreat = Time.time;
         }
 
         aiState = state;

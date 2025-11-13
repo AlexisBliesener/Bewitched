@@ -754,7 +754,7 @@ public class Ogre : Enemy
     {
         lookAtPlayer = true;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if ((pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null)) && Time.time - timeSinceRetreat > retreatWaitTime)
         {
             AIMove();
             if (debugging)

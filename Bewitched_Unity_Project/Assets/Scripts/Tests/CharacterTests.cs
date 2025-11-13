@@ -111,7 +111,7 @@ public class CharacterTests
         /// </summary>
         protected override void OnDamaged(float amount)
         {
-            CreateHitStun();
+            StartCoroutine(StartHitStun(amount));
         }
         /// <summary>
         /// Overrides Character.OnDeath(Gameobject enemyGameObject) for testing; marks that Die() was called.
@@ -120,11 +120,6 @@ public class CharacterTests
         {
             Die();
         }
-
-        /// <summary>
-        /// Creates a dummy hitstun GameObject to simulate hitstun logic.
-        /// </summary>
-        public override void CreateHitStun() { hitStunActual = new GameObject("HitStun"); }
     }
 
     /// <summary>

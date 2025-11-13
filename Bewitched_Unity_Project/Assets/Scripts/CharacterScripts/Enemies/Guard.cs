@@ -168,7 +168,6 @@ public class Guard : Enemy
         if (dead || lobotimzed) return;
         ManageSurrounding();
         currentPlayer = target = playerController.GetCurrentCharacter();
-        HandleHitStun();
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
@@ -833,7 +832,7 @@ public class Guard : Enemy
     {
         lookAtPlayer = true;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if ((pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null)) && Time.time - timeSinceRetreat > retreatWaitTime)
         {
             AIMove();
             if (debugging)

@@ -497,16 +497,6 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public virtual void CreateHitStun()
-    {
-
-    }
-
-    public virtual void HandleHitStun()
-    {
-
-    }
-
     public void SetPrimaryStatus(bool val)
     {
         attackingPrimary = val;
