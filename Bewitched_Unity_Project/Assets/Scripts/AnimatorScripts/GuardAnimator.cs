@@ -103,7 +103,6 @@ public class GuardAnimator : CharacterAnimator
         {
             if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
-                Debug.Log("reset combo");
                 character.ResetPrimaryComboStep();
             }
         }

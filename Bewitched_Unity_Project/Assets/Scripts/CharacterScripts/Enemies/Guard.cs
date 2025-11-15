@@ -902,7 +902,6 @@ public class Guard : Enemy
         if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
         {
             shieldStatus = ShieldStatus.Raised;
-            Debug.Log("secondary begun");
             StartCoroutine(BeginSecondary());
         }
         else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
