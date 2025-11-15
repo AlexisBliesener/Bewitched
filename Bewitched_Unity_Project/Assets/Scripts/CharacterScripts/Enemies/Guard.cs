@@ -540,12 +540,24 @@ public class Guard : Enemy
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
+    public override IEnumerator BeginSecondary()
+    {
+        guardAnimator.SwitchState("SecondaryAttack");
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
+        if (gameObject)
+        {
+            if (PlayerController.instance.currentCharacter == this)
+            {
+                health.SubHealth(secondaryAttackCost);
+            }
+            SecondaryAttack();
+
+        }
+    }
+
     public override void SecondaryAttack()
     {
-        if (shieldStatus == ShieldStatus.Lowered)
-        {
-            StartCoroutine(RaiseShield());
-        }
+        StartCoroutine(RaiseShield());
     }
 
     /// <summary>
@@ -815,7 +827,7 @@ public class Guard : Enemy
 
     /// <summary>
     /// Retreat from close distance, get back to surrounding
-    /// </summary>
+    /// </summary>sec
     public void Retreat()
     {
         lookAtPlayer = true;
@@ -889,10 +901,13 @@ public class Guard : Enemy
         float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
         if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
         {
+            shieldStatus = ShieldStatus.Raised;
+            Debug.Log("secondary begun");
             StartCoroutine(BeginSecondary());
         }
         else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
         {
+            shieldStatus = ShieldStatus.Lowering;
             ReleaseSecondary();
         }
     }
@@ -913,12 +928,12 @@ public class Guard : Enemy
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
             pathState = PathState.Unset;
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
         }
         else
         {
             aiState = AIMovementState.Patrolling;
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
         }
     }
 }

@@ -31,7 +31,6 @@ public class GuardAnimator : CharacterAnimator
     protected override void ResetAllTriggers()
     {
         base.ResetAllTriggers();
-        animator.ResetTrigger("ExitSecondaryAttack");
         animator.ResetTrigger("ExitPrimaryWindup");
     }
 
@@ -51,7 +50,7 @@ public class GuardAnimator : CharacterAnimator
     public bool GetInPrimaryWindup()
     {
         AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
-        if (clip[0].clip.name == ("GoblinPrimaryWindup"))
+        if (clip[0].clip.name == ("GuardPrimaryWindup"))
         {
             return true;
         }
@@ -104,6 +103,7 @@ public class GuardAnimator : CharacterAnimator
         {
             if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
+                Debug.Log("reset combo");
                 character.ResetPrimaryComboStep();
             }
         }
@@ -127,6 +127,8 @@ public class GuardAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState)
     {
+        Debug.Log(newState);
+
         if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
@@ -175,24 +177,6 @@ public class GuardAnimator : CharacterAnimator
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
-            case "PrimaryAttack":
-                if (GetComponentInParent<Guard>().IsPlayerControlling())
-                {
-                    animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
-                    animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
-                    animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultPlayer[2]);
-                    animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
-                }
-                else
-                {
-                    animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
-                    animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
-                    animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultEnemy[2]);
-                    animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
-                }
-                animator.SetTrigger("PrimaryAttack");
-                canChange = false;
-                break;
             case "SecondaryAttack":
                 if (GetComponentInParent<Guard>().IsPlayerControlling())
                 {
@@ -229,7 +213,6 @@ public class GuardAnimator : CharacterAnimator
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultPlayer);
                 else
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultEnemy);
-
                 break;
         }
     }
