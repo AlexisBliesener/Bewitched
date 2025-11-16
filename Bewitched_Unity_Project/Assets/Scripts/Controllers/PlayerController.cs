@@ -312,7 +312,7 @@ public class PlayerController : MonoBehaviour
         {
             if (pauseMenu.activeInHierarchy == false) // If not paused
             {
-                Time.timeScale = 0;
+                TimeController.instance.PauseGame();
                 pauseMenu.SetActive(true);
             }
             else
@@ -381,7 +381,7 @@ public class PlayerController : MonoBehaviour
     }
     public void ResumeGame()
     {
-        Time.timeScale = 1;
+        TimeController.instance.ResumeGame();
         pauseMenu.SetActive(false);
     }
 

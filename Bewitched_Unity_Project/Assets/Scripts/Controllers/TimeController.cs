@@ -8,7 +8,7 @@ public class TimeController : MonoBehaviour
     public static TimeController instance { get; protected set; }
 
     [Tooltip("Time change lerp time")]
-    public float timeLerpDuration = 0.5f;
+    public float timeLerpDuration = 0.15f;
 
     [Tooltip("The time change coroutine currently running")]
     private Coroutine timeChangeCoroutine = null;
@@ -25,17 +25,13 @@ public class TimeController : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns true if time is normal
-    /// </summary>
-    public bool IsNormalTime => Time.timeScale == 1;
-
-    /// <summary>
     /// Starts a time slow function, stopping any currently running routine
     /// </summary>
     /// <param name="timescale"> Time scale to set to </param>
     /// <param name="delayTime"> Duration of the time scale change </param>
     public void StartTimeSlow(float timescale, float delayTime)
     {
+        Debug.Log("Starting time slow");
         if (timeChangeCoroutine != null) StopCoroutine(timeChangeCoroutine);
 
         timeChangeCoroutine = StartCoroutine(HandleTimeChange(timescale, delayTime));
@@ -57,7 +53,7 @@ public class TimeController : MonoBehaviour
             if (!gamePaused)
             {
                 Time.timeScale = Mathf.Lerp(initialScale, timescale, (Time.time - timeStarted) / timeLerpDuration);
-                timeStarted += Time.unscaledDeltaTime;
+                timeStarted += Time.deltaTime;
             }
             yield return null;
         }
@@ -65,7 +61,7 @@ public class TimeController : MonoBehaviour
         timeStarted = 0;
         while (timeStarted < delayTime)
         {
-            if (!gamePaused) timeStarted += Time.unscaledDeltaTime;
+            if (!gamePaused) timeStarted += Time.deltaTime;
             yield return null;
         }
 
@@ -75,7 +71,7 @@ public class TimeController : MonoBehaviour
             if (!gamePaused)
             {
                 Time.timeScale = Mathf.Lerp(timescale, 1, (Time.time - timeStarted) / timeLerpDuration);
-                timeStarted += Time.unscaledDeltaTime;
+                timeStarted += Time.deltaTime;
             }
             yield return null;
         }
@@ -96,7 +92,10 @@ public class TimeController : MonoBehaviour
     /// </summary>
     public void ResumeGame()
     {
-        gamePaused = false;
-        if (timeChangeCoroutine == null) Time.timeScale = 1;
+        if (gamePaused)
+        {
+            gamePaused = false;
+            if (timeChangeCoroutine == null) Time.timeScale = 1;
+        }
     }
 }

@@ -616,32 +616,12 @@ public class Goblin : Enemy
             drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;
         }
 
-        float timeStarted;
-        if (slowTime)
-        {
-            timeStarted = Time.time;
-        }
-        else
-        {
-            timeStarted = 0;
-        }
-
         float timeSinceBegan = 0;
 
         float distanceTravelled = 0;
         bool cameraRotationStopped = false;
         while (distanceTravelled < distance)
         {
-            if (slowTime && Time.time - timeStarted < 0.05f)
-            {
-                Time.timeScale = 0.5f;
-                yield return null;
-            }
-            else if (Time.timeScale == 0.5f)
-            {
-                Time.timeScale = 1;
-            }
-
             timeSinceBegan += Time.deltaTime;
             SetMovementValues(false); // Helps if player possesses enemy mid-attack
 

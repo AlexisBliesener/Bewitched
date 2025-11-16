@@ -445,7 +445,7 @@ public class PossessionAbility : MonoBehaviour
             if(counteringEnemy.canPossess)
             {
                 eleth.health.SetInvincible(true);
-                Time.timeScale = 0.5f;
+                TimeController.instance.StartTimeSlow(0.5f, 0.9f / possessionSpeedMult);
                 target = counteringEnemy;
                 yield return new WaitForSeconds(0.2f / possessionSpeedMult);
             }
@@ -506,7 +506,6 @@ public class PossessionAbility : MonoBehaviour
         {
             eleth.health.SetInvincible(false);
             yield return new WaitForSeconds(0.2f / possessionSpeedMult);
-            Time.timeScale = 1f;
         }
         isPossessing = false;
     }
