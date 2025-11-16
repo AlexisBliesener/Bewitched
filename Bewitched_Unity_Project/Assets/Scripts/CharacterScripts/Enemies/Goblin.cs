@@ -289,7 +289,8 @@ public class Goblin : Enemy
             inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
+                RaycastHit rayHit;
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environment | characters))
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     goblinAnimator.ExitLeap();
