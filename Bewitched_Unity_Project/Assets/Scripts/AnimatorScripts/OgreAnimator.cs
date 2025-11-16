@@ -136,6 +136,13 @@ public class OgreAnimator : CharacterAnimator
             canChange = false;
             currentAnimationState = newState;
         }
+        else if (newState == "Death")
+        {
+            ResetAllTriggers();
+            animator.SetTrigger("Death");
+            canChange = false;
+            currentAnimationState = newState;
+        }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
             return;
