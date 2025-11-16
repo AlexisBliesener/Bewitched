@@ -1,3 +1,4 @@
+using FMOD.Studio;
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
@@ -200,6 +201,13 @@ public class CharacterAnimator : MonoBehaviour
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
             canChange = false;
+            currentAnimationState = newState;
+        }
+        else if(newState == "Death")
+        {
+            ResetAllTriggers();
+            animator.SetTrigger("Death");
+            canChange = false; 
             currentAnimationState = newState;
         }
 
