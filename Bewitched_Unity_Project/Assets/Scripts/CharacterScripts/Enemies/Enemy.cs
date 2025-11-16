@@ -1022,12 +1022,16 @@ public abstract class Enemy : Character
             foreach (List<int> position in nodes)
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
-                float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
-                float ratio = (totalDist - dist) / totalDist;
-                node.AddCost(this, (int)(10 * ratio));
+                float distFromPlayer = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
+                if (distFromPlayer < sizeRadius + maxSurroundingRadius)
+                {
+                    float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
+                    float ratio = (totalDist - dist) / totalDist;
+                    node.AddCost(this, (int)(20 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(10 * ratio);
-                numSet++;
+                    surroundingCostlyNodes[position] = (int)(20 * ratio);
+                    numSet++;
+                }
             }
             previousCostlyPosition = transform.position;
         }
