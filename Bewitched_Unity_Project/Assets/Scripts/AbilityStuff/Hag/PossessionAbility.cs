@@ -518,10 +518,14 @@ public class PossessionAbility : MonoBehaviour
     {
         if(targetVFX != null)
         {
-            if(PlayerController.instance.GetCounterAvailable())
+            if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
             {
                 targetVFX.SetActive(true);
                 targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
+            }
+            else if (PlayerController.instance.GetCounterAvailable() == PlayerController.instance.currentCharacter)
+            {
+                targetVFX.SetActive(true);
             }
             else
             {
