@@ -726,7 +726,7 @@ public abstract class Character : MonoBehaviour
 
         if (wellTimed)
         {
-            Time.timeScale = 0.25f;
+            //Time.timeScale = 0.25f;
         }
         int attackDirection;
         Vector3 dodgeDirection;
@@ -796,7 +796,7 @@ public abstract class Character : MonoBehaviour
         GetComponent<CharacterController>().enabled = true;
 
         velocity = Vector3.zero;
-        Time.timeScale = 1;
+        //Time.timeScale = 1;
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
 

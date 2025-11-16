@@ -258,8 +258,8 @@ public abstract class Enemy : Character
     protected virtual void FixedUpdate()
     {
         // Sets if the enemy needs to do he windup and move part of the primary attack
-        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, this.gameObject.transform.position.y, lockedCharacter.transform.position.z), 
-            this.gameObject.transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z), 
+            transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
         }
