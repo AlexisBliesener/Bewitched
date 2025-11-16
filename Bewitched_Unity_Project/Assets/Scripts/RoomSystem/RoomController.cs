@@ -385,6 +385,23 @@ public class RoomController : MonoBehaviour
     }
 
     /// <summary>
+    /// Check if the object is inside the room bounds
+    /// </summary>
+    /// <param name="objectPos">Position of the object</param>
+    /// <param name="xTolerance">X tolerance</param>
+    /// <param name="yTolerance">Y tolerance</param>
+    /// <param name="zTolerance">Z tolerance</param>
+    /// <returns>True if the object is inside the room</returns>
+    public bool IsObjectInsideRoom(Vector3 objectPos,float xTolerance = 0f, float yTolerance = 0f, float zTolerance = 0f)
+    {
+        Vector3 roomCenter = transform.position + roomBounds.center;
+        Vector3 halfExtent = roomBounds.size * 0.5f;
+        return Mathf.Abs(objectPos.x - roomCenter.x) <= (halfExtent.x + xTolerance)
+        && Mathf.Abs(objectPos.z - roomCenter.z) <= (halfExtent.z + zTolerance) 
+        && Mathf.Abs(objectPos.y - roomCenter.y) <= (halfExtent.y + yTolerance);
+    }
+
+    /// <summary>
     /// Changes the room state
     /// OnStateChanged event will be triggered
     /// </summary>
@@ -411,6 +428,15 @@ public class RoomController : MonoBehaviour
     {
         doorsObjects.Add(door);
     }
+    /// <summary>
+    /// Add a IDoor component to the doors list
+    /// </summary>
+    public void AddDoor(IDoor door)
+    {
+        doors.Add(door);
+    }
+
+
 
     #region Custom Editor Functions
 

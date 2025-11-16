@@ -7,7 +7,7 @@ using UnityEngine;
 public class Dryad : Enemy
 {
     [Header("Dryad Prefabs/Effects")]
-    [Tooltip("Drayd dart Prefab"), ShowIf("dev")]
+    [Tooltip("Drayd dart Prefab"), ShowIf(nameof(dev))]
     [SerializeField] private GameObject dartPrefab;
 
     [Tooltip("If for some reason the dart didn't hit the wall, it will destroy itself after this time")]
@@ -19,10 +19,10 @@ public class Dryad : Enemy
     [Tooltip("Dart damage ")]
     [SerializeField] private float dartDamage = 6f;
 
-    [Tooltip("Dart status effect"), ShowIf("dev")]
+    [Tooltip("Dart status effect"), ShowIf(nameof(dev))]
     [SerializeField] private AttackStatusEffects dartEffect;
     [Header("Dryad Secondary (Spore Cloud)")]
-    [Tooltip("Spore cloud hitbox prefab "), ShowIf("dev")]
+    [Tooltip("Spore cloud hitbox prefab "), ShowIf(nameof(dev))]
     [SerializeField] private GameObject sporeHitboxPrefab;
 
     [Tooltip("How long does the spore hitbox live before it destroys itself")]
@@ -31,21 +31,21 @@ public class Dryad : Enemy
     [Tooltip("Damage dealt by spore")]
     [SerializeField] private float sporeDamage = 0.5f;
 
-    [Tooltip("Status effects for spores"), ShowIf("dev")]
+    [Tooltip("Status effects for spores"), ShowIf(nameof(dev))]
     [SerializeField] private AttackStatusEffects sporeEffect;
 
     [Tooltip("Windup time before spores activate (for animation...)")]
     [SerializeField] private float sporeWindupTime = 0.25f;
-    [SerializeField, Tooltip("Offset for the spore cloud spawn point"), ShowIf("dev")]
+    [SerializeField, Tooltip("Offset for the spore cloud spawn point"), ShowIf(nameof(dev))]
     private Vector3 offSetSpore = new Vector3(0, 0.5f, 0);
-    [SerializeField, Tooltip("Offset for the dart spawn point"), ShowIf("dev")]
+    [SerializeField, Tooltip("Offset for the dart spawn point"), ShowIf(nameof(dev))]
     private Vector3 offSetDart = new Vector3(0, 0.5f, 0);
     [SerializeField, Tooltip("Minimum surrounding radius to trigger spore cloud attack")]
     private float minSurroundingRadiusSporeCloud = 0;
     [SerializeField, Tooltip("Maximum surrounding radius to trigger spore cloud attack")]
     private float maxSurroundingRadiusSporeCloud = 8;
 
-    [Tooltip("Time of the rotation to face the target when throwing the dart"), ShowIf("dev")]
+    [Tooltip("Time of the rotation to face the target when throwing the dart"), ShowIf(nameof(dev))]
     private float throwFacingTime = 0.25f;
 
     [Tooltip("Time to wait after locking in on the target so the player can move out of the way")]
