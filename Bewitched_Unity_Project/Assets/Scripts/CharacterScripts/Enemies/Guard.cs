@@ -1,7 +1,8 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
+using static Enemy;
 
 public class Guard : Enemy
 {
@@ -911,27 +912,20 @@ public class Guard : Enemy
         }
     }
 
-    /// <summary>
-    /// Sets if the player is controlling this enemy
-    /// </summary>
-    /// <param name="val"> Value to set </param>
-    public override void SetControlled(bool val)
+
+/// <summary>
+/// Sets if the player is controlling this enemy
+/// </summary>
+/// <param name="val"> Value to set </param>
+public override void SetControlled(bool val)
     {
-        playerControlling = val;
+        base.SetControlled(val);
         if (val)
         {
-            DestroyCounterIndicator();
-            lockedCharacter = null;
-            attackingPrimary = false;
-            attackingSecondary = false;
-            health.ShowMiniHealthBar(false);
-            aiState = AIMovementState.PlayerControlled;
-            pathState = PathState.Unset;
             if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
         }
         else
         {
-            aiState = AIMovementState.Patrolling;
             if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
         }
     }
