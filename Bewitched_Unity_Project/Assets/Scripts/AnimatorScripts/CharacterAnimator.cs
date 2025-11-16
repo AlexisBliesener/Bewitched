@@ -1,3 +1,4 @@
+using FMOD.Studio;
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,9 +14,9 @@ public class CharacterAnimator : MonoBehaviour
     protected private bool dev = false;
 
     [Header("Animation Timings")]
-    [SerializeField, Tooltip("Time delay before completing the primary ability animation."), ShowIf("dev")]
+    [SerializeField, Tooltip("Time delay before completing the primary ability animation."), ShowIf(nameof(dev))]
     protected float[] primaryAnimationDelay = { 0.5f };
-    [SerializeField, Tooltip("Time delay before completing the secondary ability animation."), ShowIf("dev")]
+    [SerializeField, Tooltip("Time delay before completing the secondary ability animation."), ShowIf(nameof(dev))]
     protected float secondaryAnimationDelay = 0.5f;
 
     [Header("Animation Speed Multipliers")]
@@ -200,6 +201,13 @@ public class CharacterAnimator : MonoBehaviour
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
             canChange = false;
+            currentAnimationState = newState;
+        }
+        else if(newState == "Death")
+        {
+            ResetAllTriggers();
+            animator.SetTrigger("Death");
+            canChange = false; 
             currentAnimationState = newState;
         }
 

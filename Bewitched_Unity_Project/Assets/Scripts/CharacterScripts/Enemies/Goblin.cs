@@ -10,18 +10,18 @@ using UnityEngine;
 
 public class Goblin : Enemy
 {
-    [Header("References/Prefabs"), ShowIf("dev")]
+    [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
-    [Tooltip("Dash Hitbox"), ShowIf("dev")]
+    [Tooltip("Dash Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject dashHitbox;
-    [Tooltip("Dash Effects"), ShowIf("dev")]
+    [Tooltip("Dash Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects dashEffects;
-    [Tooltip("Spin Hitbox"), ShowIf("dev")]
+    [Tooltip("Spin Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject spinHitbox;
-    [Tooltip("Spin Effects"), ShowIf("dev")]
+    [Tooltip("Spin Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects spinEffects;
-    [Tooltip("Knife Effects"), ShowIf("dev")]
+    [Tooltip("Knife Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects[] knifeEffects;
 
     [Header("Knife Settings for Goblin")]
@@ -88,6 +88,8 @@ public class Goblin : Enemy
     private Vector3 targetPos = Vector3.negativeInfinity;
     [Tooltip("Is this goblin is currently in the windup animation")]
     private bool inPrimaryWindup = false;
+    [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
+    bool aiControlledOnPrimary = false;
 
 
 
@@ -189,6 +191,7 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
+            aiControlledOnPrimary = false;
             if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 inPrimaryWindup = true;
@@ -201,6 +204,7 @@ public class Goblin : Enemy
         }
         else
         {
+            aiControlledOnPrimary = true;
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
         }
@@ -217,7 +221,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
         float windupStart = Time.time;
-        bool leapEntered = false;
+
         while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
@@ -229,11 +233,6 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if(!leapEntered && Time.time - windupStart > 0.708 / goblinAnimator.GetPrimaryWindupMult() * 0.75f)
-            {
-                leapEntered = true;
-                goblinAnimator.SetEnterLeap();
-            }
             yield return null;
         }
 
@@ -355,7 +354,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (!playerControlling)
+        if (aiControlledOnPrimary)
         {
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
@@ -440,8 +439,9 @@ public class Goblin : Enemy
             }
         }
 
-        if(!playerControlling)
+        if(aiControlledOnPrimary)
         {
+            Debug.Log("primary ended");
             goblinAnimator.EndPrimary();
         }
 
@@ -1008,7 +1008,6 @@ public class Goblin : Enemy
 
     }
 
-
     /// <summary>
     /// Function that tells Goblins to communicate the player's location with each other
     /// Called when a chasing Goblin cannot directly see the player
@@ -1130,15 +1129,6 @@ public class Goblin : Enemy
         {
             return 0;
         }
-    }
-
-    /// <summary>
-    /// Set possessed to be true/false
-    /// </summary>
-    /// <param name="val"> Value to set </param>
-    public override void SetControlled(bool val)
-    {
-        base.SetControlled(val);
     }
 
     /// <summary>

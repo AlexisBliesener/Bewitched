@@ -7,7 +7,7 @@ public class EventSystemRoom1 : MonoBehaviour
     [SerializeField, Tooltip("Are you a dev? [Don't check this if you're not a dev!!]")]
     private bool dev = false;
 
-    [SerializeField, Tooltip("Click this box to skip the cutscene for testing"), ShowIf("dev")]
+    [SerializeField, Tooltip("Click this box to skip the cutscene for testing"), ShowIf(nameof(dev))]
     private bool skipCutscene = false;
 
     [SerializeField, Tooltip("The enemy event prefab")]
