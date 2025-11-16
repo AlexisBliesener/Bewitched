@@ -263,4 +263,77 @@ public class Torch : MonoBehaviour, IDoor
         minimumCycleDurationAfterDoorOpened = minimumCycleDuration;
         maximumCycleDurationAfterDoorOpened = maximumCycleDuration;
     }
+
+    /// <summary>
+    /// This is called on the editor to apply the light settings in all room
+    /// so if the torch in room 1, then it will apply the light settings of this torch in all troches in room 1
+    /// </summary>
+    [Button("Apply light settings after door opened to all torches in the SAME room"), ShowIf(nameof(changeLightColorAfterDoorOpened))]
+    private void ApplyLightSettingsInTheRoom()
+    {
+        Torch[] torches = FindObjectsOfType<Torch>(true);
+        foreach (Torch torch in torches)
+        {
+            if (torch != this)
+            {
+                torch.CopyLightSettings(this);
+            }
+        }
+    }
+    /// <summary>
+    /// This is called on the editor to apply the light settings in all rooms
+    /// so if the torch in room 1, then it will apply the light settings of this torch in all troches in all rooms
+    /// </summary>
+    [Button("Apply light settings after door opened to all torches in ALL rooms"), ShowIf(nameof(changeLightColorAfterDoorOpened))]
+    private void ApplyLightSettingsInAllRooms()
+    {
+        Torch[] torches = FindObjectsOfType<Torch>(true);
+        foreach (Torch torch in torches)
+        {
+            if (torch != this)
+            {
+                torch.CopyLightSettings(this, true);
+            }
+        }
+    }
+    /// <summary>
+    /// This will copy the light settings (after the door is opened) from the torch to this torch
+    /// </summary>
+    /// <param name="torch"> Torch to copy the light settings from </param>
+    /// <param name="applyToAllRooms"> If true, it will apply the light settings to all rooms </param>
+    private void CopyLightSettings(Torch torch, bool applyToAllRooms = false)
+    {
+        if (torch == null) return;
+        RoomController roomControllerTorch = torch.roomController;
+        RoomController roomControllerThis = this.roomController;
+        // We will only get the room controller if it's null (since this means that the room controller is set to auto detect the room...)
+        // if the room controller is not null, then we will use that room controller
+        if (roomController == null || torch.roomController == null){
+            RoomController[] roomControllers = FindObjectsOfType<RoomController>(true);
+            foreach (RoomController rc in roomControllers)
+            {
+                if (rc.IsObjectInsideRoom(this.gameObject.transform.position, yTolerance: yTolerance) && roomControllerThis == null)
+                {
+                    roomControllerThis = rc;
+                }
+                if (rc.IsObjectInsideRoom(torch.gameObject.transform.position, yTolerance: torch.yTolerance) && roomControllerTorch == null)
+                {
+                    roomControllerTorch = rc;
+                }
+            }
+        }
+        if ((roomControllerThis != null && roomControllerTorch != null && roomControllerThis == roomControllerTorch) || (applyToAllRooms)) 
+        {
+            changeLightColorAfterDoorOpened = torch.changeLightColorAfterDoorOpened;
+            colorAfterDoorOpened = torch.colorAfterDoorOpened;
+            rangeAfterDoorOpened = torch.rangeAfterDoorOpened;
+            temperatureAfterDoorOpened = torch.temperatureAfterDoorOpened;
+            minimumIntensityAfterDoorOpened = torch.minimumIntensityAfterDoorOpened;
+            maximumIntensityAfterDoorOpened = torch.maximumIntensityAfterDoorOpened;
+            minimumVarianceAfterDoorOpened = torch.minimumVarianceAfterDoorOpened;
+            maximumVarianceAfterDoorOpened = torch.maximumVarianceAfterDoorOpened;
+            minimumCycleDurationAfterDoorOpened = torch.minimumCycleDurationAfterDoorOpened;
+            maximumCycleDurationAfterDoorOpened = torch.maximumCycleDurationAfterDoorOpened;   
+        }
+    }
 }
