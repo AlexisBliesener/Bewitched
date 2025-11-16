@@ -555,7 +555,7 @@ public abstract class Character : MonoBehaviour
             {
                 if (PlayerController.instance.currentCharacter == this)
                 {
-                    health.SubHealth(primaryAttackCost);
+                    StartCoroutine(DealSelfDamage(primaryAttackCost, 2f));
                 }
 
                 currentPrimaryComboStep += 1;
@@ -583,7 +583,7 @@ public abstract class Character : MonoBehaviour
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                StartCoroutine(DealSelfDamage(primaryAttackCost, 3f));
             }
             SecondaryAttack();
 
@@ -926,5 +926,22 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public virtual void ReleaseSecondary()
     {
+    }
+
+    /// <summary>
+    /// Handles dealing self damage to the character after the player has finished the attack
+    /// </summary>
+    /// <param name="amount"> Amount of damage to subtract </param>
+    /// <param name="delay"> Time delay before dealing damage </param>
+    /// <returns></returns>
+    public IEnumerator DealSelfDamage(float amount, float delay)
+    {
+        float timeStarted = 0;
+        while (timeStarted < delay)
+        {
+            timeStarted += Time.deltaTime;
+            yield return null;
+        }
+        health.SubHealth(amount);
     }
 }
