@@ -1003,7 +1003,6 @@ public class Goblin : Enemy
 
     }
 
-
     /// <summary>
     /// Function that tells Goblins to communicate the player's location with each other
     /// Called when a chasing Goblin cannot directly see the player
