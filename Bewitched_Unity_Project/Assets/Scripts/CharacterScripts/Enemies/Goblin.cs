@@ -217,7 +217,7 @@ public class Goblin : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
         float windupStart = Time.time;
-        bool leapEntered = false;
+
         while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
@@ -229,11 +229,6 @@ public class Goblin : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
-            if(!leapEntered && Time.time - windupStart > 0.708 / goblinAnimator.GetPrimaryWindupMult() * 0.75f)
-            {
-                leapEntered = true;
-                goblinAnimator.SetEnterLeap();
-            }
             yield return null;
         }
 
@@ -1007,7 +1002,6 @@ public class Goblin : Enemy
         AILook();
 
     }
-
 
     /// <summary>
     /// Function that tells Goblins to communicate the player's location with each other

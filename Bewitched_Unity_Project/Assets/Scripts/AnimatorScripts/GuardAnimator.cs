@@ -2,10 +2,10 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Specialized animator controller for the Goblin character.
+/// Specialized animator controller for the Guard character.
 /// Extends CharacterAnimator.
 /// </summary>
-public class GoblinAnimator : CharacterAnimator
+public class GuardAnimator : CharacterAnimator
 {
     [SerializeField, Tooltip("Primary windup animation speed multiplier for the player."), Range(0.1f, 10f)]
     protected float primaryWindupSpeedMultPlayer = 2f;
@@ -19,16 +19,10 @@ public class GoblinAnimator : CharacterAnimator
     protected float secondaryWindupSpeedMultPlayer = 1f;
     [SerializeField, Tooltip("Secondary windup animation speed multiplier for enemies."), Range(0.1f, 10f)]
     protected float secondaryWindupSpeedMultEnemy = 1f;
-    [SerializeField, Tooltip("Dizzy time after secondary attack player")]
-    private float dizzyTimePlayer;
-    [SerializeField, Tooltip("Dizzy time after secondary attack enemy")]
-    private float dizzyTimeEnemy;
 
     protected override void Awake()
     {
         base.Awake();
-
-        animationStates.Add("Jump");
     }
 
     /// <summary>
@@ -37,22 +31,16 @@ public class GoblinAnimator : CharacterAnimator
     protected override void ResetAllTriggers()
     {
         base.ResetAllTriggers();
-        animator.ResetTrigger("ExitSecondaryAttack");
-        animator.ResetTrigger("Jump");
+        animator.ResetTrigger("ExitPrimaryWindup");
     }
 
     /// <summary>
-    /// Returns true if the goblin is in the leap animation
+    /// Sets the exit primary windup trigger
     /// </summary>
-    /// <returns>True if the goblin is leaping</returns>
-    public bool GetInLeap()
+    public void ExitPrimaryWindup()
     {
-        AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
-        if(clip[0].clip.name == ("GoblinLeap"))
-        {
-            return true;
-        }
-        return false;
+        ResetAllTriggers();
+        animator.SetTrigger("ExitPrimaryWindup");
     }
 
     /// <summary>
@@ -62,7 +50,7 @@ public class GoblinAnimator : CharacterAnimator
     public bool GetInPrimaryWindup()
     {
         AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
-        if (clip[0].clip.name == ("GoblinPrimaryWindup"))
+        if (clip[0].clip.name == ("GuardPrimaryWindup"))
         {
             return true;
         }
@@ -75,7 +63,7 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack windup speed multiplier</returns>
     public float GetPrimaryWindupMult()
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (GetComponentInParent<Guard>().IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
             return primaryWindupSpeedMultEnemy;
@@ -87,7 +75,7 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>secondary attack windup speed multiplier</returns>
     public float GetSecondaryWindupMult()
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (GetComponentInParent<Guard>().IsPlayerControlling())
             return secondaryWindupSpeedMultPlayer;
         else
             return secondaryWindupSpeedMultEnemy;
@@ -100,32 +88,10 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if(GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (GetComponentInParent<Guard>().IsPlayerControlling())
             return primaryComboSpeedMultPlayer[comboStep];
         else
             return primaryComboSpeedMultEnemy[0];
-    }
-
-    /// <summary>
-    /// Sets the secondary attack as ended
-    /// Starts dizzy phase
-    /// </summary>
-    public override void SetSecondaryAttackEnded()
-    {
-        animator.SetTrigger("ExitSecondaryAttack");
-        StartCoroutine(WaitForDizzy());
-    }
-
-    /// <summary>
-    /// Waits for the dizzy phase to end
-    /// </summary>
-    private IEnumerator WaitForDizzy()
-    {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
-            yield return new WaitForSeconds(dizzyTimePlayer);
-        else
-            yield return new WaitForSeconds(dizzyTimeEnemy);
-        canChange = true;
     }
 
     /// <summary>
@@ -133,7 +99,7 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
-        if(PlayerController.instance.currentCharacter == character)
+        if (PlayerController.instance.currentCharacter == character)
         {
             if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
@@ -156,20 +122,12 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
-    /// Exits the leap portion of the primary attack windup 
-    /// Moves into hit animation
-    /// </summary>
-    public void ExitLeap()
-    {
-        ResetAllTriggers();
-        animator.SetTrigger("ExitLeap");
-    }
-
-    /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// </summary>
     public override void SwitchState(string newState)
     {
+        Debug.Log(newState);
+
         if (!animationStates.Contains(newState))
         {
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
@@ -179,7 +137,7 @@ public class GoblinAnimator : CharacterAnimator
         {
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
-            if (GetComponentInParent<Goblin>().IsPlayerControlling())
+            if (GetComponentInParent<Guard>().IsPlayerControlling())
             {
                 animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                 animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -225,26 +183,8 @@ public class GoblinAnimator : CharacterAnimator
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
-            case "PrimaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
-                {
-                    animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
-                    animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
-                    animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultPlayer[2]);
-                    animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultPlayer);
-                }
-                else
-                {
-                    animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultEnemy[0]);
-                    animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultEnemy[1]);
-                    animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultEnemy[2]);
-                    animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
-                }
-                animator.SetTrigger("PrimaryAttack");
-                canChange = false;
-                break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (GetComponentInParent<Guard>().IsPlayerControlling())
                 {
                     animator.SetFloat("SecondaryWindupSpeedMult", secondaryWindupSpeedMultPlayer);
                 }
@@ -252,7 +192,7 @@ public class GoblinAnimator : CharacterAnimator
                 {
                     animator.SetFloat("SecondaryWindupSpeedMult", secondaryWindupSpeedMultEnemy);
                 }
-               
+
                 animator.SetTrigger("SecondaryAttack");
                 canChange = false;
                 break;
@@ -269,37 +209,19 @@ public class GoblinAnimator : CharacterAnimator
         switch (animation)
         {
             case "PrimaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (GetComponentInParent<Guard>().IsPlayerControlling())
                     yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultPlayer[comboNum]);
                 else
                     yield return new WaitForSeconds(primaryAnimationDelay[0] / primaryComboSpeedMultEnemy[0]);
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (GetComponentInParent<Guard>().IsPlayerControlling())
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultPlayer);
                 else
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultEnemy);
-
                 break;
         }
     }
-
-    /// <summary>
-    /// Plays the jump animation holding the falling pose untill duration is over
-    /// </summary>
-    /// <param name="duration"></param>
-    public IEnumerator Jump(float duration)
-    {
-        ResetAllTriggers();
-        canChange = false;
-        animator.SetTrigger("Jump");
-        currentAnimationState = "Jump";
-        yield return new WaitForSeconds(duration - 0.1f);
-        animator.SetTrigger("JumpLanded");
-        yield return new WaitForSeconds(0.667f);
-        canChange = true;
-    }
-
 }
 
 

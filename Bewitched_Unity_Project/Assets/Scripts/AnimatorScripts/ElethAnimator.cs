@@ -83,7 +83,11 @@ public class ElethAnimator : CharacterAnimator
         }
         else if (newState == "Death")
         {
+            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+            animator.SetTrigger("Death");
+            canChange = false;
             PlayerController.instance.SetAllowMovement(false);
+            return;
         }
 
 
@@ -101,11 +105,6 @@ public class ElethAnimator : CharacterAnimator
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;
-                break;
-            case "Death":
-                animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-                animator.SetTrigger("Death");
-                canChange = false;
                 break;
             case "Possession":
                 animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);

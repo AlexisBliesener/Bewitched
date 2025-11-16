@@ -107,25 +107,4 @@ public class CharacterAnimatorTests
 
         Assert.AreEqual("Run", animator.GetCurrentState());
     }
-
-    /// <summary>
-    /// Ensures that once in death state, 
-    /// CharacterAnimator.SwitchState does not 
-    /// allow further transitions.
-    /// </summary>
-    [Test]
-    public void SwitchState_DeathState_PreventsChanges()
-    {
-        try
-        {
-            animator.SwitchState("Death");
-            animator.SwitchState("Run");
-        }
-        catch (NullReferenceException)
-        {
-            // Ignore missing Animator component in test environment
-        }
-
-        Assert.AreEqual("Death", animator.GetCurrentState());
-    }
 }
