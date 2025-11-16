@@ -151,31 +151,31 @@ public abstract class Character : MonoBehaviour
     protected float invalidAreaResetThreshold = 0.25f;
 
     protected bool stunned = false;
-    [Header("Debug/Dev Options"), ShowIf("dev")]
+    [Header("Debug/Dev Options"), ShowIf(nameof(dev))]
     [Tooltip("Layer mask for the characters")]
     public LayerMask characters;
-    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
+    [Tooltip("Mask for the ground layer"), ShowIf(nameof(dev))]
     public LayerMask ground;
-    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
+    [Tooltip("Mask for the environment layer"), ShowIf(nameof(dev))]
     public LayerMask environment;
-    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf(nameof(dev))]
     private CinemachineFreeLook combatCam;
-    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf(nameof(dev))]
     private CinemachineVirtualCamera aimCam;
-    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view."), ShowIf(nameof(dev))]
     private CinemachineFreeLook exploreCam;
-    [Tooltip("The list of attack status effects"), ShowIf("dev")]
+    [Tooltip("The list of attack status effects"), ShowIf(nameof(dev))]
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
-    [Tooltip("The list of effects JSONs"), ShowIf("dev")]
+    [Tooltip("The list of effects JSONs"), ShowIf(nameof(dev))]
     [SerializeField] private List<string> effectJSONs = new List<string>();
-    [Header("References/Prefabs"), ShowIf("dev")]
+    [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Primary Fire Image")]
     public Sprite primaryFireIcon;
-    [Tooltip("Secondary Fire Image"), ShowIf("dev")]
+    [Tooltip("Secondary Fire Image"), ShowIf(nameof(dev))]
     public Sprite secondaryFireIcon;
-    [Tooltip("Hit Stun Prefab"), ShowIf("dev")]
+    [Tooltip("Hit Stun Prefab"), ShowIf(nameof(dev))]
     public GameObject hitStunPrefab;
-    [Tooltip("Attack indicator prefab"), ShowIf("dev")]
+    [Tooltip("Attack indicator prefab"), ShowIf(nameof(dev))]
     public GameObject counterIndicatorVFXPrefab;
     [Tooltip("Character Controller component")]
     private CharacterController characterController;
