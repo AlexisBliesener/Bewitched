@@ -164,13 +164,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdb53dbfcc2c1474fb999af08add6a03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  torchLight: {fileID: 0}
+  dev: 0
   minimumIntensity: 18
   maximumIntensity: 21
   minimumVariance: 3
   maximumVariance: 15
   minimumCycleDuration: 0.08
   maximumCycleDuration: 0.2
+  changeLightColorAfterDoorOpened: 1
+  colorAfterDoorOpened: {r: 0.94509804, g: 0.6059828, b: 0.3176471, a: 1}
+  rangeAfterDoorOpened: 9.75
+  temperatureAfterDoorOpened: 6701
+  minimumIntensityAfterDoorOpened: 18
+  maximumIntensityAfterDoorOpened: 21
+  minimumVarianceAfterDoorOpened: 3
+  maximumVarianceAfterDoorOpened: 15
+  minimumCycleDurationAfterDoorOpened: 0.08
+  maximumCycleDurationAfterDoorOpened: 0.2
+  roomController: {fileID: 0}
+  yTolerance: 10
 --- !u!1001 &4735124807301488409
 PrefabInstance:
   m_ObjectHideFlags: 0
