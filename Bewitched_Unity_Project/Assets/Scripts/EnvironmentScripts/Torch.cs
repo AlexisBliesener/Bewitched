@@ -75,6 +75,18 @@ public class Torch : MonoBehaviour, IDoor
     private float originalLightTemperature;
     [Tooltip("The original light range before the door is opened")]
     private float originalLightRange;
+    [Tooltip("The original minimum intensity before the door is opened")]
+    private float originalMinimumIntensity;
+    [Tooltip("The original maximum intensity before the door is opened")]
+    private float originalMaximumIntensity; 
+    [Tooltip("The original minimum variance before the door is opened")]
+    private float originalMinimumVariance;
+    [Tooltip("The original maximum variance before the door is opened")]
+    private float originalMaximumVariance;
+    [Tooltip("The original minimum cycle duration before the door is opened")]
+    private float originalMinimumCycleDuration;
+    [Tooltip("The original maximum cycle duration before the door is opened")]
+    private float originalMaximumCycleDuration;
     private void Start()
     {
         torchLight = GetComponent<Light>();
@@ -87,6 +99,12 @@ public class Torch : MonoBehaviour, IDoor
         originalLightColor = torchLight.color;
         originalLightTemperature = torchLight.colorTemperature;
         originalLightRange = torchLight.range;
+        originalMinimumIntensity = minimumIntensity;
+        originalMaximumIntensity = maximumIntensity;
+        originalMinimumVariance = minimumVariance;
+        originalMaximumVariance = maximumVariance;
+        originalMinimumCycleDuration = minimumCycleDuration;
+        originalMaximumCycleDuration = maximumCycleDuration;
 
         SetLightTarget();
         // We find the room controller if it's null
@@ -164,6 +182,12 @@ public class Torch : MonoBehaviour, IDoor
             torchLight.color = originalLightColor;
             torchLight.range = originalLightRange;
             torchLight.colorTemperature = originalLightTemperature;
+            minimumIntensity = originalMinimumIntensity;
+            maximumIntensity = originalMaximumIntensity;
+            minimumVariance = originalMinimumVariance;
+            maximumVariance = originalMaximumVariance;
+            minimumCycleDuration = originalMinimumCycleDuration;
+            maximumCycleDuration = originalMaximumCycleDuration;
         }
     }
     /// <summary>
