@@ -879,8 +879,9 @@ public abstract class Character : MonoBehaviour
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
             direction.y = 0;
             direction = direction.normalized;
+            force = Mathf.Clamp(force, 0, 50);
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, weight * velocity.magnitude);
+            GetComponent<KnockbackControl>().AddImpact(-direction, Mathf.Clamp(weight * velocity.magnitude, 0, 50));
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
