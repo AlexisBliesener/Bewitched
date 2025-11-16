@@ -867,7 +867,11 @@ public abstract class Character : MonoBehaviour
         return characterController;
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    /// <summary>
+    /// Handles collisions to the character controller for this character
+    /// </summary>
+    /// <param name="hit"> Object this has hit </param>
+    protected void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (attackState == AttackState.Neutral && velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
