@@ -10,18 +10,18 @@ using UnityEngine;
 
 public class Goblin : Enemy
 {
-    [Header("References/Prefabs"), ShowIf("dev")]
+    [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
-    [Tooltip("Dash Hitbox"), ShowIf("dev")]
+    [Tooltip("Dash Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject dashHitbox;
-    [Tooltip("Dash Effects"), ShowIf("dev")]
+    [Tooltip("Dash Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects dashEffects;
-    [Tooltip("Spin Hitbox"), ShowIf("dev")]
+    [Tooltip("Spin Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject spinHitbox;
-    [Tooltip("Spin Effects"), ShowIf("dev")]
+    [Tooltip("Spin Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects spinEffects;
-    [Tooltip("Knife Effects"), ShowIf("dev")]
+    [Tooltip("Knife Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects[] knifeEffects;
 
     [Header("Knife Settings for Goblin")]
