@@ -31,7 +31,6 @@ public class TimeController : MonoBehaviour
     /// <param name="delayTime"> Duration of the time scale change </param>
     public void StartTimeSlow(float timescale, float delayTime)
     {
-        Debug.Log("Starting time slow");
         if (timeChangeCoroutine != null) StopCoroutine(timeChangeCoroutine);
 
         timeChangeCoroutine = StartCoroutine(HandleTimeChange(timescale, delayTime));
