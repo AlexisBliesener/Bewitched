@@ -142,24 +142,24 @@ public abstract class Enemy : Character
     [Tooltip("The enemy's Patrol Point Origin")]
     protected Vector3 patrolOrigin;
     [Header("Enemy Prefabs/Effects and references")]
-    [Tooltip("Perfect counter material for the enemy"), ShowIf("dev")]
+    [Tooltip("Perfect counter material for the enemy"), ShowIf(nameof(dev))]
     public Material perfectCounterTimeMaterial;
-    [Tooltip("Default material for the enemy"), ShowIf("dev")]
+    [Tooltip("Default material for the enemy"), ShowIf(nameof(dev))]
     public Material defaultMaterial;
     [Header("Debug/Dev Options")]
-    [Tooltip("Current path state"), ShowIf("dev")]
+    [Tooltip("Current path state"), ShowIf(nameof(dev))]
     public PathState pathState = PathState.Unset;
-    [Tooltip("The Current AI State of the enemy"), ShowIf("dev")]
+    [Tooltip("The Current AI State of the enemy"), ShowIf(nameof(dev))]
     public AIMovementState aiState = AIMovementState.Blocked;
-    [Tooltip("Show Paths, Destinations, etc"), ShowIf("dev")]
+    [Tooltip("Show Paths, Destinations, etc"), ShowIf(nameof(dev))]
     public bool debugging = false;
-    [Tooltip("Destination Marker Prefab"), ShowIf("dev")]
+    [Tooltip("Destination Marker Prefab"), ShowIf(nameof(dev))]
     public GameObject destinationMarkerPrefab;
-    [Tooltip("Line Renderer for Path"), ShowIf("dev")]
+    [Tooltip("Line Renderer for Path"), ShowIf(nameof(dev))]
     public LineRenderer pathVisualizer;
-    [Tooltip("Is Player controlling this enemy?"), ShowIf("dev")]
+    [Tooltip("Is Player controlling this enemy?"), ShowIf(nameof(dev))]
     [SerializeField, NaughtyAttributes.ReadOnly] protected bool playerControlling = false; // flag for determining actions (player or AI)
-    [Tooltip("Pathfinding Priority"), ShowIf("dev")]
+    [Tooltip("Pathfinding Priority"), ShowIf(nameof(dev))]
     public int pathfindingPriority;
     //Just so code in update isn't called after the enemy is dead
     protected bool dead = false;
