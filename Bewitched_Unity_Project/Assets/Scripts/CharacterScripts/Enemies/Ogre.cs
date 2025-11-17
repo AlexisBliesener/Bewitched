@@ -134,7 +134,7 @@ public class Ogre : Enemy
 
         if (playerControlling)
         {
-            if (!playerControlling || (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+            if (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
             }
