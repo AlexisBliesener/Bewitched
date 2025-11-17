@@ -23,7 +23,7 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("The Enemies Compendium Screen")]
     public GameObject enemiesScreen;
     [Tooltip("The Upgrade System Screen")]
-    public GameObject upgradSystemScreen;
+    public GameObject upgradeSystemScreen;
 
     [Header("First Selected Buttons")]
     [Tooltip("The first button to be selected when Pause menu is opened.")]
@@ -37,7 +37,7 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("the first button to be selected when the Enemies menu is opened")]
     public GameObject enemiesButton;
     [Tooltip("The first button to be selected when the Upgrade Systems menu is opened")]
-    public GameObject upgradSystemButton;
+    public GameObject upgradeSystemButton;
     
 
 
@@ -73,7 +73,7 @@ public class MainMenuManager : MonoBehaviour
         compendiumScreen.SetActive(false);
         upgradeScreen.SetActive(false);
         enemiesScreen.SetActive(false);
-        upgradSystemScreen.SetActive(false);
+        upgradeSystemScreen.SetActive(false);
     }
 
     /// <summary>
@@ -103,9 +103,9 @@ public class MainMenuManager : MonoBehaviour
         {
             EventSystem.current.SetSelectedGameObject(enemiesButton);
         }
-        else if (screen == upgradSystemScreen)
+        else if (screen == upgradeSystemScreen)
         {
-            EventSystem.current.SetSelectedGameObject(upgradSystemButton);
+            EventSystem.current.SetSelectedGameObject(upgradeSystemButton);
         }
     }
 
