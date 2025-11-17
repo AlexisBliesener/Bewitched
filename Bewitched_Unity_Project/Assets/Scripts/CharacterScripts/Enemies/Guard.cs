@@ -333,13 +333,14 @@ public class Guard : Enemy
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
             targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.55f);
+            float buffer = sizeRadius + 0.5f;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                // Move just before environment/character hit point
-                dis = hit.distance;
-                targetPos = hit.point - direction * (sizeRadius + 0.5f);
+                Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point
+                targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
             transform.DOMove(targetPos, chaseTime * dis);
