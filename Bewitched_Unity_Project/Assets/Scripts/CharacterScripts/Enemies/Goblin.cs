@@ -255,17 +255,18 @@ public class Goblin : Enemy
         attackState = AttackState.Approaching;
         if (tempLockedCharacter)
         {
-            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
             targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + offSetForward);
+            float buffer = sizeRadius + offSetForward;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                // Move just before environment/character hit point
-                dis = hit.distance;
-                targetPos = hit.point - direction * (sizeRadius + offSetForward);
+                Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point
+                targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
             SetCostlyAttackingArea(direction, dis);

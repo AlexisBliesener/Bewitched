@@ -30,7 +30,6 @@ public class PrisonDoor : MonoBehaviour, IDoor
     /// </summary>
     public void Lock()
     {
-        boxCollider.enabled = true;
         StartCoroutine(MoveDoor(moveStep, TOTAL_STEPS, "PrisonDoorClose"));
     }
 
@@ -59,11 +58,13 @@ public class PrisonDoor : MonoBehaviour, IDoor
 
         for (int i = 0; i < steps; i++)
         {
-            transform.position += step;
+            doorModel.transform.position += step;
 
             // Disable collider halfway through if unlocking
             if (disableColliderHalfway && i == steps / 2)
                 boxCollider.enabled = false;
+            else if (!disableColliderHalfway && i == steps / 2)
+                boxCollider.enabled = true;
 
             yield return new WaitForSeconds(STEP_DELAY);
         }
