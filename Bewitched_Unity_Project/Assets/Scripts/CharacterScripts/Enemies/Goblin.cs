@@ -144,6 +144,7 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
+                //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
 
@@ -1095,7 +1096,7 @@ public class Goblin : Enemy
             {
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
-                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
+                int goblinAttackCount = (int)Random.Range(0, Mathf.Min((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
                 Debug.Log("Attacking with: " + goblinAttackCount + " others");
                 for (int i = 0; i < goblinAttackCount; i++)
                 {

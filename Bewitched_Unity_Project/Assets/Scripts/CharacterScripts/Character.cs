@@ -410,6 +410,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
+        Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
         if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;

@@ -67,6 +67,7 @@ public class SurroundingPoints : MonoBehaviour
 
     private void Update()
     {
+        //Debug.Log("Number of available attack points: " + attackPoints);
         currentPlayer = PlayerController.instance.currentCharacter;
 
         HandleSurroundAttack();

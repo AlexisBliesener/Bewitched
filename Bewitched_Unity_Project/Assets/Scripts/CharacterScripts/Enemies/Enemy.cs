@@ -576,6 +576,7 @@ public abstract class Enemy : Character
         if (duration > 0)
         {
             if (stunned) yield break;
+            if (hitStunActual != null) Destroy(hitStunActual);
             hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
