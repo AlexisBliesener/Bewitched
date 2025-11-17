@@ -4,7 +4,7 @@ using UnityEngine;
 /// </summary>
 public interface IInteract
 {
-
+    bool CanInteract { get; set; }
     /// <summary>
     /// Gameobject that is attached to the interactable object
     /// </summary>

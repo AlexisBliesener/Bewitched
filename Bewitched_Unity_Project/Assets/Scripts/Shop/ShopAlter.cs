@@ -10,6 +10,8 @@ public class ShopAlter : MonoBehaviour, IInteract
     [Tooltip("The UI screen for shopping for upgrades.")]
     private GameObject shopUI;
 
+    public bool CanInteract { get; set; } = true;
+
     /// <summary>
     /// It will set the object of the shop alter in the player controller, and show the interact UI
     /// </summary>
@@ -19,6 +21,7 @@ public class ShopAlter : MonoBehaviour, IInteract
         {
             if (character == PlayerController.instance.currentCharacter)
             {
+                CanInteract = true;
                 PlayerController.instance.nearbyInteractable = this;
                 PlayerController.instance.ShowInteractUI();
             }
@@ -31,10 +34,28 @@ public class ShopAlter : MonoBehaviour, IInteract
     {
         if (other.TryGetComponent(out Character character))
         {
+            CanInteract = false;
             PlayerController.instance.nearbyInteractable = null;
             PlayerController.instance.HideInteractUI();
         }
     }
+
+    private void Update()
+    {
+        Debug.Log("alter " + CanInteract);
+        if(restartAlter)
+        {
+            restartAlter = false;
+            StartCoroutine(RestartAlter());
+        }
+    }
+    
+    private IEnumerator RestartAlter()
+    {
+        yield return new WaitForSeconds(0.1f);
+        CanInteract = true;
+    }
+
     /// <summary>
     /// This is called when the player interacts with the interactable object
     /// It will trigger the interaction event and shop UI.
@@ -51,6 +72,7 @@ public class ShopAlter : MonoBehaviour, IInteract
         if (shopUI != null)
         {
             shopUI.SetActive(true);
+            CanInteract = false;
         }
         else
         {
@@ -58,6 +80,21 @@ public class ShopAlter : MonoBehaviour, IInteract
         }
 
         DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
+    }
+
+    private bool restartAlter = false;
+
+    private void OnTriggerStay(Collider other)
+    {
+        Debug.Log("heahaopgvh");
+        if (shopUI.activeInHierarchy)
+        {
+            CanInteract = false;
+        }
+        else if(!CanInteract)
+        {
+            restartAlter = true;
+        }
     }
 
     public GameObject GetGameObject() => gameObject;
