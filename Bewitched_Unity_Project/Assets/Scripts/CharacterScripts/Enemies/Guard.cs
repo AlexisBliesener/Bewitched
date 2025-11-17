@@ -19,6 +19,7 @@ public class Guard : Enemy
     [Tooltip("Lance Thrust Duration")]
     [SerializeField] float lanceDuration = 0.5f;
 
+
     [SerializeField] AttackStatusEffects lanceTipEffects;
     [SerializeField] AttackStatusEffects lanceHandleEffects;
 
@@ -33,7 +34,7 @@ public class Guard : Enemy
     [SerializeField] float aiShieldAngleThreshold = 20;
 
     [Tooltip("Guard animator script that controls the guard animations")]
-    private GuardAnimator guardAnimator; 
+    private CharacterAnimator animator; // I have it as Character rn as I'm sure GuardAnimator will have similar functions
 
     [Header("Guard AI Settings")]
 
@@ -156,13 +157,13 @@ public class Guard : Enemy
         health.SetHealthToMax();
         SetBaseStats();
         sizeRadius = GetComponent<CharacterController>().radius;
+
         targetPointIndex = 0;
         outGoing = false;
-        guardAnimator = GetComponent<GuardAnimator>();
     }
 
     // Update is called once per frame
-    protected override void FixedUpdate()
+    void FixedUpdate()
     {
         if (dead || lobotimzed) return;
         ManageSurrounding();
@@ -181,8 +182,6 @@ public class Guard : Enemy
         {
             lockedCharacter = currentPlayer;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>
@@ -212,7 +211,7 @@ public class Guard : Enemy
     {
         while (shieldStatus != ShieldStatus.Lowered)
         {
-            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
+            if (shieldStatus == ShieldStatus.Raised) StartCoroutine(LowerShield());
             yield return null;
         }
 
@@ -220,8 +219,10 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                //animator.GetPrimaryComboMult(currentPrimaryComboStep)
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= 0.5))
                 {
+
                     health.SubHealth(primaryAttackCost);
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
@@ -231,8 +232,8 @@ public class Guard : Enemy
 
                     timeLastPrimary = Time.time;
 
-                    guardAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
-                    yield return StartCoroutine(guardAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    //characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
                 }
             }
@@ -240,8 +241,8 @@ public class Guard : Enemy
             {
                 currentPrimaryComboStep = -1;
                 timeLastPrimary = Time.time;
-                guardAnimator.SwitchState("PrimaryAttack", 0);
-                yield return StartCoroutine(guardAnimator.WaitForDelay("PrimaryAttack", 0));
+                //characterAnimator.SwitchState("PrimaryAttack", 0);
+                //yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
                 PrimaryAttack();
             }
         }
@@ -290,6 +291,7 @@ public class Guard : Enemy
     /// <summary>
     /// Starts the windup for the lance
     /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator LanceWindup(Character tempLockedCharacter)
     {
         inCounter = false;
@@ -297,8 +299,9 @@ public class Guard : Enemy
         // save the current position to use the y value later
         targetPos = transform.position;
         float windupStart = Time.time;
-
-        while (Time.time - windupStart < 0.708 / guardAnimator.GetPrimaryWindupMult())
+        bool leapEntered = false;
+        //animator.GetPrimaryWindupMult()
+        while (Time.time - windupStart < 0.708 / 1)
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -309,6 +312,12 @@ public class Guard : Enemy
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
             }
 
+            //animator.GetPrimaryWindupMult()
+            if (!leapEntered && Time.time - windupStart > 0.708 / 1 * 0.75f)
+            {
+                leapEntered = true;
+                //animator.SetEnterLeap();
+            }
             yield return null;
         }
 
@@ -323,6 +332,7 @@ public class Guard : Enemy
     /// <summary>
     /// Approach function for thrusting
     /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator LanceApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
@@ -367,18 +377,18 @@ public class Guard : Enemy
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     targetPos = transform.position;
-                    guardAnimator.ExitPrimaryWindup();
+                    //animator.ExitLeap();
                 }
                 else if (tempLockedCharacter == null)
                 {
-                    guardAnimator.ExitPrimaryWindup();
+                    //animator.ExitLeap();
                 }
 
                 if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
                 {
                     if (!triggerSet)
                     {
-                        guardAnimator.ExitPrimaryWindup();
+                        //animator.ExitLeap();
                         triggerSet = true;
                     }
 
@@ -404,7 +414,7 @@ public class Guard : Enemy
 
             if (!triggerSet)
             {
-                guardAnimator.ExitPrimaryWindup();
+                //animator.ExitLeap();
             }
             if (targetPos != Vector3.negativeInfinity)
             {
@@ -433,7 +443,8 @@ public class Guard : Enemy
 
         float hitboxStartTime = Time.time;
 
-        while (Time.time - hitboxStartTime < 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        //animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
         {
             SetMovementValues(false);
             yield return null;
@@ -450,8 +461,7 @@ public class Guard : Enemy
                     yield return null;
                 }
             }
-
-            guardAnimator.EndPrimary();
+            //animator.EndPrimary();
         }
 
         SetMovementValues(true);
@@ -483,7 +493,7 @@ public class Guard : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
     {
-        guardAnimator.SetPrimaryMovementNeeded(false);
+        //animator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
@@ -501,8 +511,8 @@ public class Guard : Enemy
         }
 
         float hitboxStartTime = Time.time;
-
-        while (Time.time - hitboxStartTime < 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        // animator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)
+        while (Time.time - hitboxStartTime < lanceDuration)
         {
             SetMovementValues(false);
             yield return null;
@@ -533,36 +543,26 @@ public class Guard : Enemy
 
         if (!playerControlling)
         {
-            guardAnimator.EndPrimary();
+            //animator.EndPrimary();
         }
 
         attackingPrimary = false;
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
 
-    public override IEnumerator BeginSecondary()
-    {
-        guardAnimator.SwitchState("SecondaryAttack");
-        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
-        if (gameObject)
-        {
-            if (PlayerController.instance.currentCharacter == this)
-            {
-                health.SubHealth(secondaryAttackCost);
-            }
-            SecondaryAttack();
-
-        }
-    }
-
     public override void SecondaryAttack()
     {
-        StartCoroutine(RaiseShield());
+        if (shieldStatus == ShieldStatus.Lowered)
+        {
+            Debug.Log("Raise shield");
+            StartCoroutine(RaiseShield());
+        }
     }
 
     /// <summary>
     /// Raises the shield
     /// </summary>
+    /// <returns> Time </returns>
     public IEnumerator RaiseShield()
     {
         if (shieldStatus == ShieldStatus.Lowering) yield break;
@@ -588,7 +588,7 @@ public class Guard : Enemy
     /// </summary>
     public override void ReleaseSecondary()
     {
-        guardAnimator.SetSecondaryAttackEnded();
+        Debug.Log("Lower shield");
         StartCoroutine(LowerShield());
     }
 
@@ -741,6 +741,7 @@ public class Guard : Enemy
         }
 
         inProcess = true;
+        // AnimateIdle(); // Play animation (temporarily idle)
         float timer = 0;
 
         // If we are at 0 or end of points, flip outgoing
@@ -827,7 +828,7 @@ public class Guard : Enemy
 
     /// <summary>
     /// Retreat from close distance, get back to surrounding
-    /// </summary>sec
+    /// </summary>
     public void Retreat()
     {
         lookAtPlayer = true;
@@ -901,13 +902,11 @@ public class Guard : Enemy
         float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
         if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
         {
-            shieldStatus = ShieldStatus.Raised;
-            StartCoroutine(BeginSecondary());
+            StartCoroutine(RaiseShield());
         }
         else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
         {
-            shieldStatus = ShieldStatus.Lowering;
-            ReleaseSecondary();
+            StartCoroutine(LowerShield());
         }
     }
 
@@ -927,12 +926,12 @@ public class Guard : Enemy
             health.ShowMiniHealthBar(false);
             aiState = AIMovementState.PlayerControlled;
             pathState = PathState.Unset;
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
         }
         else
         {
             aiState = AIMovementState.Patrolling;
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) StartCoroutine(LowerShield());
         }
     }
 }
