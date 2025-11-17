@@ -55,6 +55,10 @@ public class PlayerController : MonoBehaviour
     public IInteract nearbyInteractable;
     [SerializeField, Tooltip("UI prefab for the interact button (it will be shown when the player is near the interactable object)")]
     private GameObject interactUI;
+    [SerializeField, Tooltip("UI prefab for the narrative panel (it will be shown when the player enters the narrative trigger)")]
+    public GameObject narrativePanel;
+    [SerializeField, Tooltip("UI prefab for the narrative panel2 (it will be shown when the player enters the narrative trigger)")]
+    public GameObject narrativePanel2;
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
