@@ -59,7 +59,7 @@ public class PrisonDoor : MonoBehaviour, IDoor
 
         for (int i = 0; i < steps; i++)
         {
-            doorModel.transform.position += step;
+            transform.position += step;
 
             // Disable collider halfway through if unlocking
             if (disableColliderHalfway && i == steps / 2)
