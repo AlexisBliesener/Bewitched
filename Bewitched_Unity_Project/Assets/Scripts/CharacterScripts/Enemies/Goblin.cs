@@ -125,7 +125,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
-        if (!playerControlling) Debug.Log(debugAIInfo);
+        //if (playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
 
