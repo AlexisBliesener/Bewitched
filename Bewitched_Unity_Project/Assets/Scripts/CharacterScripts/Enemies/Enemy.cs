@@ -113,6 +113,9 @@ public abstract class Enemy : Character
     [Tooltip("Dictionary of costly nodes with the cost they have been given")]
     Dictionary<List<int>, int> surroundingCostlyNodes = new Dictionary<List<int>, int>();
 
+    [Tooltip("Dictionary of attacking costly nodes with the costs they have been given")]
+    Dictionary<List<int>, int> attackingCostlyNodes = new Dictionary<List<int>, int>();
+
     protected bool overrideBlock = false;
 
     public enum PathState
@@ -601,6 +604,7 @@ public abstract class Enemy : Character
                 attackState = AttackState.Neutral;
                 SurroundingPoints.instance.RemoveAttackingEnemy(this);
             }
+            ResetAttackingArea();
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -1113,5 +1117,34 @@ public abstract class Enemy : Character
             ev.start();
             ev.release();
         }
+    }
+
+    /// <summary>
+    /// Creates a dictionary of costly nodes and sets their costs for attacking
+    /// </summary>
+    /// <param name="direction"> Direction of attack </param>
+    /// <param name="length"> Length of costly area </param>
+    public void SetCostlyAttackingArea(Vector3 direction, float length)
+    {
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, sizeRadius);
+        foreach (List<int> node in nodes)
+        {
+            GraphBuilder.instance.AddNodeCost(node, this, 10);
+            attackingCostlyNodes[node] = 10;
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly attacking area values
+    /// </summary>
+    public void ResetAttackingArea()
+    {
+        int numReset = 0;
+        foreach (List<int> position in attackingCostlyNodes.Keys)
+        {
+            numReset++;
+            GraphBuilder.instance.AddNodeCost(position, this, -attackingCostlyNodes[position]);
+        }
+        attackingCostlyNodes = new Dictionary<List<int>, int>();
     }
 }

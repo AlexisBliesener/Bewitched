@@ -959,4 +959,24 @@ public class GraphBuilder : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// Gets the nodes in a line from an origin in a direction of a certain length
+    /// </summary>
+    /// <param name="origin"> Origin position </param>
+    /// <param name="direction"> Direction to move </param>
+    /// <param name="length"> Length of line </param>
+    /// <param name="width"> Width of line </param>
+    /// <returns> List of node positions in line </returns>
+    public List<List<int>> GetNodesInLine(Vector3 origin, Vector3 direction, float length, float width)
+    {
+        List<List<int>> nodes = new List<List<int>>();
+        float distanceSearched = 0;
+        while (distanceSearched < length)
+        {
+            nodes = nodes.Union(GetNodesInRadius(origin + direction * distanceSearched, width)).ToList();
+            distanceSearched += width / 2;
+        }
+        return nodes;
+    }
 }

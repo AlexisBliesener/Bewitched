@@ -268,6 +268,7 @@ public class Goblin : Enemy
                 targetPos = hit.point - direction * (sizeRadius + offSetForward);
             }
             targetPos.y = oldY;
+            SetCostlyAttackingArea(direction, dis);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
@@ -376,7 +377,8 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
         aiState = AIMovementState.Retreating;
-        
+
+        ResetAttackingArea();
 
         if (tempLockedCharacter)
         {
