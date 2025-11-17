@@ -4,11 +4,16 @@ using UnityEngine;
 /// </summary>
 public interface IInteract
 {
+    /// <summary>
+    /// True if this interactable can be interacted with 
+    /// </summary>
+    bool CanInteract { get; set; }
 
     /// <summary>
     /// Gameobject that is attached to the interactable object
     /// </summary>
     GameObject GetGameObject();
+
     /// <summary>
     /// Called when the player interacts with the interactable object
     /// </summary>
