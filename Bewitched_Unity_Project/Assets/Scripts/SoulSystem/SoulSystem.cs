@@ -15,7 +15,7 @@ public class SoulSystem : MonoBehaviour
     private GameObject soulPrefab;
     [SerializeField, Tooltip("Current soul count")]
     private int soulCount = 0;
-    [SerializeField, Tooltip("How many souls to spawn per enemy as a range from 1 to x:"), Range(1, 10)]
+    [SerializeField, Tooltip("How many souls to spawn per enemy as a range from 1 to x:")]
     private int soulPerEnemy = 1;
     [Tooltip("The soul UI HUD text to update as souls count gets updated.")]
     public TMP_Text soulCountText;
