@@ -525,7 +525,7 @@ public class PossessionAbility : MonoBehaviour
             }
             else if (PlayerController.instance.GetCounterAvailable() == PlayerController.instance.currentCharacter)
             {
-                targetVFX.SetActive(true);
+                targetVFX.SetActive(false);
             }
             else
             {
