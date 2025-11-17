@@ -100,8 +100,11 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if(GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        {
+            comboStep = Mathf.Clamp(comboStep, 0, primaryComboSpeedMultPlayer.Length-1);
             return primaryComboSpeedMultPlayer[comboStep];
+        }
         else
             return primaryComboSpeedMultEnemy[0];
     }

@@ -125,6 +125,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
+        //if (playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
 
@@ -143,6 +144,7 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
+                //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
 
@@ -253,19 +255,21 @@ public class Goblin : Enemy
         attackState = AttackState.Approaching;
         if (tempLockedCharacter)
         {
-            float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
+            float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
             targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + offSetForward);
+            float buffer = sizeRadius + offSetForward;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position, direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                // Move just before environment/character hit point
-                dis = hit.distance;
-                targetPos = hit.point - direction * (sizeRadius + offSetForward);
+                Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point
+                targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
+            SetCostlyAttackingArea(direction, dis);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
@@ -288,7 +292,8 @@ public class Goblin : Enemy
             inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward)
+                RaycastHit rayHit;
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environment | characters))
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     goblinAnimator.ExitLeap();
@@ -373,7 +378,8 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
         aiState = AIMovementState.Retreating;
-        
+
+        ResetAttackingArea();
 
         if (tempLockedCharacter)
         {
@@ -615,32 +621,12 @@ public class Goblin : Enemy
             drift = Quaternion.AngleAxis(Random.Range(-lowHealthAngleRange / 2, lowHealthAngleRange / 2), Vector3.up) * velocityToMove.normalized * maxDriftSpeed;
         }
 
-        float timeStarted;
-        if (slowTime)
-        {
-            timeStarted = Time.time;
-        }
-        else
-        {
-            timeStarted = 0;
-        }
-
         float timeSinceBegan = 0;
 
         float distanceTravelled = 0;
         bool cameraRotationStopped = false;
         while (distanceTravelled < distance)
         {
-            if (slowTime && Time.time - timeStarted < 0.05f)
-            {
-                Time.timeScale = 0.5f;
-                yield return null;
-            }
-            else if (Time.timeScale == 0.5f)
-            {
-                Time.timeScale = 1;
-            }
-
             timeSinceBegan += Time.deltaTime;
             SetMovementValues(false); // Helps if player possesses enemy mid-attack
 
@@ -992,7 +978,7 @@ public class Goblin : Enemy
     public void Retreat()
     {
         lookAtPlayer = true;
-        if (pathState == PathState.Set || currentPath != null)
+        if ((pathState == PathState.Set || currentPath != null) && Time.time - timeSinceRetreat > retreatWaitTime)
         {
             // Debug.Log("Moving: " + gameObject);
             AIMove();
@@ -1113,7 +1099,7 @@ public class Goblin : Enemy
             {
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
-                int goblinAttackCount = (int)Random.Range(0, Mathf.Max((remaining - secondaryAICost) / secondaryAICost, goblins.Count)); // Gets a random number of available goblins
+                int goblinAttackCount = (int)Random.Range(0, Mathf.Min((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
                 Debug.Log("Attacking with: " + goblinAttackCount + " others");
                 for (int i = 0; i < goblinAttackCount; i++)
                 {
