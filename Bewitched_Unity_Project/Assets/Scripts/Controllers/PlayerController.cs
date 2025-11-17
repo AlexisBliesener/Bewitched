@@ -96,6 +96,14 @@ public class PlayerController : MonoBehaviour
         characterController = controller;
     }
 
+    /// <summary>
+    /// Returns if the player is currently sprinting
+    /// </summary>
+    public bool GetSprinting()
+    {
+        return sprinting;
+    }
+
     private void Start()
     {
         instance = this;
@@ -167,7 +175,6 @@ public class PlayerController : MonoBehaviour
             {
                 if (nearbyInteractable != null && nearbyInteractable.CanInteract)
                 {
-                    Debug.Log("interact " + nearbyInteractable.GetGameObject().name );
                     nearbyInteractable.Interact();
                 }
                 else if (exitDoor != null)
@@ -183,15 +190,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public bool GetSprinting()
-    {
-        return sprinting;
-    }
-
     private void FixedUpdate()
     {
-
-        Debug.Log("uiClicked " + uiClicked);
         TargetEnemy();
         HandleCooldownUI();
 

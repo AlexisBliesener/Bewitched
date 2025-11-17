@@ -9,6 +9,8 @@ public class ShopAlter : MonoBehaviour, IInteract
 {
     [Tooltip("The UI screen for shopping for upgrades.")]
     private GameObject shopUI;
+    [Tooltip("Set true if the alter needs to reset and be interactable again")]
+    private bool restartAlter = false;
 
     public bool CanInteract { get; set; } = true;
 
@@ -42,7 +44,6 @@ public class ShopAlter : MonoBehaviour, IInteract
 
     private void Update()
     {
-        Debug.Log("alter " + CanInteract);
         if(restartAlter)
         {
             restartAlter = false;
@@ -82,11 +83,8 @@ public class ShopAlter : MonoBehaviour, IInteract
         DropSystem.Instance.OnShopAlterInteract?.Invoke(randomDrops);
     }
 
-    private bool restartAlter = false;
-
     private void OnTriggerStay(Collider other)
     {
-        Debug.Log("heahaopgvh");
         if (shopUI.activeInHierarchy)
         {
             CanInteract = false;
