@@ -100,6 +100,14 @@ public class PlayerController : MonoBehaviour
         characterController = controller;
     }
 
+    /// <summary>
+    /// Returns if the player is currently sprinting
+    /// </summary>
+    public bool GetSprinting()
+    {
+        return sprinting;
+    }
+
     private void Start()
     {
         instance = this;
@@ -154,21 +162,53 @@ public class PlayerController : MonoBehaviour
         uiClicked = true;
     }
 
+    /// <summary>
+    /// This is called when the player interacts with the interactable object
+    /// It will trigger the pickup event
+    /// </summary>
+    public void Interact(InputAction.CallbackContext context)
+    {
+        if (context.canceled)
+        {
+            sprinting = false;
+        }
+        else if (context.performed)
+        {
+            sprinting = false;
+            if (!sprinting)
+            {
+                if (nearbyInteractable != null && nearbyInteractable.CanInteract)
+                {
+                    nearbyInteractable.Interact();
+                }
+                else if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
+            }
+
+            if (currentCharacter == oldHag && movementInput != Vector2.zero)
+            {
+                sprinting = true;
+            }
+        }
+    }
+
     private void FixedUpdate()
     {
         TargetEnemy();
         HandleCooldownUI();
-        speed = currentCharacter.GetSpeed();
-
-        if(currentCharacter == oldHag && sprinting)
-        {
-            speed = oldHag.GetSprintSpeed();
-        }
 
         if (allowMovement)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
+                speed = currentCharacter.GetSpeed();
+                if (currentCharacter == oldHag && sprinting)
+                {
+                    speed = oldHag.GetSprintSpeed();
+                }
+
                 Vector3 desiredVelocity = direction * speed;
                 desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                 desiredVelocity.y = 0f; // Prevent tilting
@@ -326,46 +366,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// This is called when the player interacts with the interactable object
-    /// It will trigger the pickup event
-    /// </summary>
-    public void Interact(InputAction.CallbackContext context)
-    {
-        if (context.canceled)
-        {
-            if (sprinting)
-            {
-                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
-            }
-            sprinting = false;
-        }
-        else if(context.performed)
-        {
-            if (!sprinting && !uiClicked)
-            {
-                if (nearbyInteractable != null)
-                {
-                    nearbyInteractable.Interact();
-                    // Hide the interact UI since the interact action has been performed
-                    HideInteractUI();
-                }
-                else if (exitDoor != null)
-                {
-                    exitDoor.OpenDoor();
-                }
-            }
-            else
-            {
-                uiClicked = false;
-            }
-            if (currentCharacter == oldHag)
-            {
-                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
-                sprinting = true;
-            }
-        }
-    }
     /// <summary>
     /// Shows the interact UI, this is called when the player is near the interactable object
     /// </summary>

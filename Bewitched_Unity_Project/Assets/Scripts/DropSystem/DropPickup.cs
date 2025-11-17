@@ -22,6 +22,9 @@ public class DropPickup : MonoBehaviour, IInteract
     private EventInstance dropSound;
     [Tooltip("If the player is in range of the drop")]
     public bool isPlayerInRange = false;
+
+    public bool CanInteract { get; set; } = true;
+
     // [Tooltip("The prefab of the UI that will be shown when the player nears the drop")]
     // public GameObject interactUI;
 
@@ -117,6 +120,7 @@ public class DropPickup : MonoBehaviour, IInteract
     public void Interact()
     {
         if (!isPlayerInRange) return;
+        CanInteract = false;
         PlayerController.instance.HideInteractUI();
         // Trigger the drop selection event
         DropSystem.Instance.ShowDropSelection(transform.position);
