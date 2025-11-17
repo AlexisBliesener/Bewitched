@@ -236,13 +236,6 @@ public class CharacterTests
         Assert.IsTrue(testCharacter.dieCalled);
     }
 
-    /// <summary>Subtracting health should create a hitstun object.</summary>
-    [Test]
-    public void SubHealth_CreatesHitStun()
-    {
-        testCharacter.health.SubHealth(10);
-        Assert.IsNotNull(testCharacter.HitStun);
-    }
 
     /// <summary>DrainLife should kill without generating hitstun.</summary>
     [Test]

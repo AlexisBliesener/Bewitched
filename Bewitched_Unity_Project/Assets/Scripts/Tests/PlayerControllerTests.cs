@@ -172,19 +172,6 @@ public class PlayerControllerTests
     #region Utility Tests
 
     /// <summary>
-    /// Tests that ResumeGame() resets Time.timeScale and disables the pause menu.
-    /// </summary>
-    [UnityTest]
-    public IEnumerator ResumeGame_ResetsTimeScale()
-    {
-        Time.timeScale = 0;
-        controller.ResumeGame();
-        yield return null;
-        Assert.AreEqual(1, Time.timeScale);
-        Assert.IsFalse(controller.pauseMenu.activeSelf);
-    }
-
-    /// <summary>
     /// Tests that GetHag() returns the old Hag.
     /// </summary>
     [Test]

@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [Header("UI Settings")]
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
-    [SerializeField, Tooltip("The ui input module used for input")] 
+    [SerializeField, Tooltip("The ui input module used for input")]
     private InputSystemUIInputModule UIInput;
 
     [Header("Buff Holder")]
@@ -70,7 +70,7 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 direction;
 
-    private Vector3 velocity = new Vector3(0,0,0);
+    private Vector3 velocity = new Vector3(0, 0, 0);
 
     private float speed;
 
@@ -147,7 +147,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
-        if(UIInput != null)
+        if (UIInput != null)
         {
             UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
         }
@@ -251,11 +251,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
             else
-            {   
+            {
                 velocity = new Vector3(0, 0, 0);
                 characterController.Move(velocity);
             }
-          
+
             currentCharacter.SetVelocity(velocity);
         }
     }
@@ -319,7 +319,7 @@ public class PlayerController : MonoBehaviour
     public void PrimaryFire(InputAction.CallbackContext context)
     {
         if (context.started)
-        { 
+        {
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
@@ -356,7 +356,15 @@ public class PlayerController : MonoBehaviour
         {
             if (pauseMenu.activeInHierarchy == false) // If not paused
             {
-                TimeController.instance.PauseGame();
+                if (TimeController.instance != null)
+                {
+                    TimeController.instance.PauseGame();
+                }
+                else
+                {
+                    Debug.LogWarning("TimeController instance is not set!");
+                }
+
                 pauseMenu.SetActive(true);
             }
             else
@@ -385,7 +393,14 @@ public class PlayerController : MonoBehaviour
     }
     public void ResumeGame()
     {
-        TimeController.instance.ResumeGame();
+        if (TimeController.instance != null)
+        {
+            TimeController.instance.ResumeGame();
+        }
+        else
+        {
+            Debug.LogWarning("TimeController instance is not set!");
+        }
         pauseMenu.SetActive(false);
     }
 
