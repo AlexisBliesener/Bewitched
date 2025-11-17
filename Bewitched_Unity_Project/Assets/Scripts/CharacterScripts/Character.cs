@@ -151,31 +151,31 @@ public abstract class Character : MonoBehaviour
     protected float invalidAreaResetThreshold = 0.25f;
 
     protected bool stunned = false;
-    [Header("Debug/Dev Options"), ShowIf("dev")]
+    [Header("Debug/Dev Options"), ShowIf(nameof(dev))]
     [Tooltip("Layer mask for the characters")]
     public LayerMask characters;
-    [Tooltip("Mask for the ground layer"), ShowIf("dev")]
+    [Tooltip("Mask for the ground layer"), ShowIf(nameof(dev))]
     public LayerMask ground;
-    [Tooltip("Mask for the environment layer"), ShowIf("dev")]
+    [Tooltip("Mask for the environment layer"), ShowIf(nameof(dev))]
     public LayerMask environment;
-    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf(nameof(dev))]
     private CinemachineFreeLook combatCam;
-    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf(nameof(dev))]
     private CinemachineVirtualCamera aimCam;
-    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view."), ShowIf("dev")]
+    [SerializeField, Tooltip("The Cinemachine explore Camera used for regular out of combat view."), ShowIf(nameof(dev))]
     private CinemachineFreeLook exploreCam;
-    [Tooltip("The list of attack status effects"), ShowIf("dev")]
+    [Tooltip("The list of attack status effects"), ShowIf(nameof(dev))]
     public List<AttackStatusEffects> attackEffects = new List<AttackStatusEffects>(); // This list is for simple saving
-    [Tooltip("The list of effects JSONs"), ShowIf("dev")]
+    [Tooltip("The list of effects JSONs"), ShowIf(nameof(dev))]
     [SerializeField] private List<string> effectJSONs = new List<string>();
-    [Header("References/Prefabs"), ShowIf("dev")]
+    [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Primary Fire Image")]
     public Sprite primaryFireIcon;
-    [Tooltip("Secondary Fire Image"), ShowIf("dev")]
+    [Tooltip("Secondary Fire Image"), ShowIf(nameof(dev))]
     public Sprite secondaryFireIcon;
-    [Tooltip("Hit Stun Prefab"), ShowIf("dev")]
+    [Tooltip("Hit Stun Prefab"), ShowIf(nameof(dev))]
     public GameObject hitStunPrefab;
-    [Tooltip("Attack indicator prefab"), ShowIf("dev")]
+    [Tooltip("Attack indicator prefab"), ShowIf(nameof(dev))]
     public GameObject counterIndicatorVFXPrefab;
     [Tooltip("Character Controller component")]
     private CharacterController characterController;
@@ -410,6 +410,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
+        //Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
         if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
@@ -497,16 +498,6 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public virtual void CreateHitStun()
-    {
-
-    }
-
-    public virtual void HandleHitStun()
-    {
-
-    }
-
     public void SetPrimaryStatus(bool val)
     {
         attackingPrimary = val;
@@ -565,7 +556,7 @@ public abstract class Character : MonoBehaviour
             {
                 if (PlayerController.instance.currentCharacter == this)
                 {
-                    health.SubHealth(primaryAttackCost);
+                    StartCoroutine(DealSelfDamage(primaryAttackCost, 2f));
                 }
 
                 currentPrimaryComboStep += 1;
@@ -593,7 +584,7 @@ public abstract class Character : MonoBehaviour
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                StartCoroutine(DealSelfDamage(primaryAttackCost, 3f));
             }
             SecondaryAttack();
 
@@ -736,7 +727,7 @@ public abstract class Character : MonoBehaviour
 
         if (wellTimed)
         {
-            Time.timeScale = 0.25f;
+            //Time.timeScale = 0.25f;
         }
         int attackDirection;
         Vector3 dodgeDirection;
@@ -806,7 +797,7 @@ public abstract class Character : MonoBehaviour
         GetComponent<CharacterController>().enabled = true;
 
         velocity = Vector3.zero;
-        Time.timeScale = 1;
+        //Time.timeScale = 1;
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
 
@@ -877,7 +868,11 @@ public abstract class Character : MonoBehaviour
         return characterController;
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    /// <summary>
+    /// Handles collisions to the character controller for this character
+    /// </summary>
+    /// <param name="hit"> Object this has hit </param>
+    protected void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (attackState == AttackState.Neutral && velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
@@ -885,8 +880,9 @@ public abstract class Character : MonoBehaviour
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
             direction.y = 0;
             direction = direction.normalized;
+            force = Mathf.Clamp(force, 0, 50);
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, weight * velocity.magnitude);
+            GetComponent<KnockbackControl>().AddImpact(-direction, Mathf.Clamp(weight * velocity.magnitude, 0, 50));
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
@@ -931,5 +927,22 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public virtual void ReleaseSecondary()
     {
+    }
+
+    /// <summary>
+    /// Handles dealing self damage to the character after the player has finished the attack
+    /// </summary>
+    /// <param name="amount"> Amount of damage to subtract </param>
+    /// <param name="delay"> Time delay before dealing damage </param>
+    /// <returns></returns>
+    public IEnumerator DealSelfDamage(float amount, float delay)
+    {
+        float timeStarted = 0;
+        while (timeStarted < delay)
+        {
+            timeStarted += Time.deltaTime;
+            yield return null;
+        }
+        health.SubHealth(amount);
     }
 }

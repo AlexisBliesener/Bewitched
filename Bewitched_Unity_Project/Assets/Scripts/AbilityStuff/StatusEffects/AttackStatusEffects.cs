@@ -173,7 +173,7 @@ public class AttackStatusEffects : MonoBehaviour
         if (timeStopDuration == 0) return;
 
         Time.timeScale = 0;
-        user.StartCoroutine(user.StartTime(timeStopDuration));
+        StartCoroutine(user.StartTime(timeStopDuration));
     }
 
     public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)

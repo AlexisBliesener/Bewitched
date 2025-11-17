@@ -56,14 +56,6 @@ public class GoblinAnimator : CharacterAnimator
     }
 
     /// <summary>
-    /// Set the trigger to enter the leap animation
-    /// </summary>
-    public void SetEnterLeap()
-    {
-        animator.SetTrigger("EnterLeap");
-    }
-
-    /// <summary>
     /// Gets if the goblin is currently in the primary windup animation
     /// </summary>
     /// <returns></returns>
@@ -108,8 +100,11 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if(GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        {
+            comboStep = Mathf.Clamp(comboStep, 0, primaryComboSpeedMultPlayer.Length-1);
             return primaryComboSpeedMultPlayer[comboStep];
+        }
         else
             return primaryComboSpeedMultEnemy[0];
     }
@@ -201,6 +196,13 @@ public class GoblinAnimator : CharacterAnimator
                 animator.SetFloat("PrimaryComboThreeSpeedMult", primaryComboSpeedMultEnemy[2]);
                 animator.SetFloat("PrimaryWindupSpeedMult", primaryWindupSpeedMultEnemy);
             }
+            canChange = false;
+            currentAnimationState = newState;
+        }
+        else if (newState == "Death")
+        {
+            ResetAllTriggers();
+            animator.SetTrigger("Death");
             canChange = false;
             currentAnimationState = newState;
         }

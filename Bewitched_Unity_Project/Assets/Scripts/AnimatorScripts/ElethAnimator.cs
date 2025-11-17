@@ -37,25 +37,6 @@ public class ElethAnimator : CharacterAnimator
     }
 
     /// <summary>
-    /// Turns on the sprint animation from the run animation
-    /// </summary>
-    public void ToggleSprint()
-    {
-        if (overriding) return;
-
-        if (currentAnimationState == "Run")
-        {
-            currentAnimationState = "Sprint";
-            animator.SetTrigger("Sprint");
-        }
-        else
-        {
-            currentAnimationState = "Run";
-            animator.SetTrigger("Run");
-        }
-    }
-
-    /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// Specific to the eleth animator adds in the possession state
     /// </summary>
@@ -68,10 +49,10 @@ public class ElethAnimator : CharacterAnimator
             Debug.LogWarning("This animation state: " + newState + " does not exist!");
         }
 
-        if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
+        if (!canChange || currentAnimationState == "Death")
             return;
 
-        if (currentAnimationState == "Sprint" && newState == "Run") return;
+ 
 
         if (currentAnimationState == "Possession")
         {
@@ -83,31 +64,42 @@ public class ElethAnimator : CharacterAnimator
         }
         else if (newState == "Death")
         {
+            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+            animator.SetTrigger("Death");
+            canChange = false;
             PlayerController.instance.SetAllowMovement(false);
+            return;
         }
 
 
-        currentAnimationState = newState;
+        
         ResetAllTriggers();
 
         switch (newState)
         {
             case "Idle":
+                currentAnimationState = newState;
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
                 canChange = true;
                 break;
             case "Run":
+                if(PlayerController.instance.GetSprinting())
+                {
+                    currentAnimationState = "Sprint";
+                    animator.SetBool("Sprint", true);
+                }
+                else
+                {
+                    currentAnimationState = newState;
+                    animator.SetBool("Sprint", false);
+                }
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
                 canChange = true;
                 break;
-            case "Death":
-                animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-                animator.SetTrigger("Death");
-                canChange = false;
-                break;
             case "Possession":
+                currentAnimationState = newState;
                 animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
                 animator.SetTrigger("Possession");
                 canChange = false;
