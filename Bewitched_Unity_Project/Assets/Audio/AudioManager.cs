@@ -23,6 +23,7 @@ public class AudioManager : MonoBehaviour
     Coroutine pauseCoroutine;
     //The UI Input System on the EventSystem object in the scene
     InputSystemUIInputModule UIInput;
+    bool clickSubscribed = false;
 
     void Awake()
     {
@@ -48,6 +49,7 @@ public class AudioManager : MonoBehaviour
         {
             inst.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         }
+        UnsubscribeCheckClick();
         RuntimeManager.GetBus("bus:/SoundEffects/InGame").setPaused(false);
 
     }
@@ -181,8 +183,11 @@ public class AudioManager : MonoBehaviour
     public static void SubscribeCheckClick()
     {
         if (!manager) return;
-        manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
-        manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
+        if(!manager.clickSubscribed){
+            manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
+            manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
+            manager.clickSubscribed=true;
+        }
     }
     /// <summary>
     /// Forces Audio Manager to unsubscribe from click and submit actions.
@@ -190,8 +195,11 @@ public class AudioManager : MonoBehaviour
     public static void UnsubscribeCheckClick()
     {
         if (!manager) return;
-        manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
-        manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
+        if(manager.clickSubscribed){
+            manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
+            manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
+            manager.clickSubscribed=false;
+        }
     }
 
     /// <summary>
