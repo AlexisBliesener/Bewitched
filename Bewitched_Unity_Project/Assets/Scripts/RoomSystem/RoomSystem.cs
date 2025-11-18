@@ -242,4 +242,26 @@ public class RoomSystem : MonoBehaviour
         }
         return null;
     }
+    /// <summary>
+    /// Gets the RoomController by its coordinates with tolerances
+    /// </summary>
+    /// <param name="coords"> Coordinates to search from </param>
+    /// <param name="xTolerance">X tolerance</param>
+    /// <param name="yTolerance">Y tolerance</param>
+    /// <param name="zTolerance">Z tolerance</param>
+    /// <returns> RoomController with bounds containing coords </returns>
+    public RoomController GetRoomFromCoordinates(Vector3 coords, float xTolerance = 0f, float yTolerance = 0f, float zTolerance = 0f)
+    {
+        foreach (RoomData room in rooms)
+        {
+            if (room.roomController != null)
+            {
+                if (room.roomController.IsObjectInsideRoom(coords, xTolerance, yTolerance, zTolerance))
+                {
+                    return room.roomController;
+                }
+            }
+        }
+        return null;
+    }
 }

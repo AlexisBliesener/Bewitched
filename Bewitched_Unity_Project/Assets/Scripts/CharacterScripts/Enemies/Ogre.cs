@@ -6,25 +6,25 @@ using System.Collections;
 using UnityEngine;
 public class Ogre : Enemy
 {
-    [Header("Ogre Prefabs/Effects"), ShowIf("dev")]
+    [Header("Ogre Prefabs/Effects"), ShowIf(nameof(dev))]
     [Tooltip("Ogre Bat Prefab")]
     [SerializeField] GameObject batHitboxPrefab;
-    [Tooltip("Pivot Prefab"), ShowIf("dev")]
+    [Tooltip("Pivot Prefab"), ShowIf(nameof(dev))]
     [SerializeField] GameObject batPivot;
 
-    [Tooltip("Bat Swing Status Effects"), ShowIf("dev")]
+    [Tooltip("Bat Swing Status Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects batSwingEffects;
 
-    [Tooltip("Ogre Slam Bat Hitbox"), ShowIf("dev")]
+    [Tooltip("Ogre Slam Bat Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject slamHitboxPrefab;
 
-    [Tooltip("Slam Bat Status Effects"), ShowIf("dev")]
+    [Tooltip("Slam Bat Status Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects slamBatEffects;
 
-    [Tooltip("Slam Impact Status Effects"), ShowIf("dev")]
+    [Tooltip("Slam Impact Status Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects slamImpactEffects;
 
-    [Tooltip("Scream effects"), ShowIf("dev")]
+    [Tooltip("Scream effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects screamEffects;
     [Header("Ogre Settings")]
 
@@ -55,11 +55,11 @@ public class Ogre : Enemy
     [SerializeField, Range(0, 10)] float minSittingTime = 3f;
     [Tooltip("Maximum time for ogre to sit")]
     [SerializeField, Range(0, 10)] float maxSittingTime = 7f;
-    [SerializeField, Tooltip("Offset for the attack indicator"), ShowIf("dev")]
+    [SerializeField, Tooltip("Offset for the attack indicator"), ShowIf(nameof(dev))]
     private Vector3 offsetAttackIndicator = new Vector3(0, 2.5f, 0);
-    [SerializeField, Tooltip("Offset for the pivot for the bat"), ShowIf("dev")]
+    [SerializeField, Tooltip("Offset for the pivot for the bat"), ShowIf(nameof(dev))]
     private Vector3 offsetPivotBat = new Vector3(0, 0, 0);
-    [SerializeField, Tooltip("Offset for the target position when the oge locked on the player"), ShowIf("dev")]
+    [SerializeField, Tooltip("Offset for the target position when the oge locked on the player"), ShowIf(nameof(dev))]
     private float offsetForTargetPosition = 1.5f;
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
