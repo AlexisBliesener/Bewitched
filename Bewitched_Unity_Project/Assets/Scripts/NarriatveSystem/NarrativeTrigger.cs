@@ -17,45 +17,18 @@ public class NarrativeTrigger : MonoBehaviour
     private float fadeOutDuration = 0.6f;
     [Tooltip("The time the text started to be displayed")]
     private float timeStarted = 0f;
-
-
-    #region  A/B testing 
-    // This code should be removed when the A/B testing is done... 
-    // enum for A/B testing
-    private enum UIPosition
-    {
-        TopNextToPlayer,
-        BottomLikeSubtitles
-    }
-    [Header("A/B testing")]
-    [SerializeField,Tooltip("The current state of the narrative system"), Dropdown(nameof(GetUIPositionDropdown)), Label("Where to show the text Tristan?")]
-    private UIPosition uiPosition = UIPosition.TopNextToPlayer;
-    /// <summary>
-    /// Dropdown list for the UI position enum
-    /// </summary>
-    /// <returns></returns>
-    private DropdownList<UIPosition> GetUIPositionDropdown()
-    {
-        return new DropdownList<UIPosition>(){
-            { "Top Next To Player", UIPosition.TopNextToPlayer },
-            { "Bottom Like Subtitles", UIPosition.BottomLikeSubtitles }};
-    }    
     /// <summary>
     /// Get the correct narrative panel based on the A/B testing state
     /// </summary>
     /// <returns>Which narrative panel to use</returns>
     private GameObject GetNarrativePanel()
     {
-        if (uiPosition == UIPosition.TopNextToPlayer)
+        if (PlayerController.instance.narrativePanel == null)
         {
-            return PlayerController.instance.narrativePanel;
+            Debug.LogWarning("Narrative panel is null on Player Controller");
         }
-        else
-        {
-            return PlayerController.instance.narrativePanel2;
-        }
+        return PlayerController.instance.narrativePanel;
     }
-    #endregion
 
     /// <summary>
     /// Activates the narrative panel and shows the text when the player enters the trigger
