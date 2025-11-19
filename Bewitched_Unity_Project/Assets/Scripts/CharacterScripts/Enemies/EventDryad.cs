@@ -1,9 +1,3 @@
-using DG.Tweening;
-using FMOD.Studio;
-using FMODUnity;
-using NaughtyAttributes;
-using System.Collections;
-using UnityEditor.Build;
 using UnityEngine;
 [RequireComponent(typeof(EventEnemy))]
 public class EventDryad : Dryad
