@@ -66,24 +66,15 @@ public class Dryad : Enemy
         sizeRadius = GetComponent<CharacterController>().radius;
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
+
         Vector3 currentRotation = transform.eulerAngles;
         currentRotation.x = 0;
         currentRotation.z = 0;
         transform.eulerAngles = currentRotation;
-
-        if (dead || lobotimzed) return;
-
-        ManageSurrounding();
-        currentPlayer = playerController.GetCurrentCharacter();
-        SetAIState();
-        SetBehavior();
         CreateLocalInvalidArea();
-
-        SetDebugString();
-        //if (!playerControlling) Debug.Log(debugAIInfo);
-
+        ManageSurrounding();
 
         if (playerControlling)
         {
@@ -93,6 +84,18 @@ public class Dryad : Enemy
         {
             lockedCharacter = currentPlayer;
         }
+
+        if (dead || lobotimzed) return;
+
+        currentPlayer = playerController.GetCurrentCharacter();
+        SetAIState();
+        SetBehavior();
+
+        SetDebugString();
+        //if (!playerControlling) Debug.Log(debugAIInfo);
+
+
+        base.FixedUpdate();
     }
 
     /// <summary>

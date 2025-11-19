@@ -43,11 +43,11 @@ public class EventEnemy : MonoBehaviour
         {
             case EventEnemyState.Attacking:
                 Debug.Log("Attacking");
-                enemyForEvent.aiState = Enemy.AIMovementState.Chasing;
+                enemyForEvent.TransitionToState(Enemy.AIMovementState.Chasing);
                 break;
             case EventEnemyState.Dizzy:
                 Debug.Log("Dizzy");
-                enemyForEvent.aiState = Enemy.AIMovementState.Blocked;
+                enemyForEvent.TransitionToState(Enemy.AIMovementState.Blocked);
                 break;
             case EventEnemyState.Possessed:
                 break;
@@ -71,5 +71,7 @@ public class EventEnemy : MonoBehaviour
         }
         return enemyForEvent;
     }
+
+    
 
 }

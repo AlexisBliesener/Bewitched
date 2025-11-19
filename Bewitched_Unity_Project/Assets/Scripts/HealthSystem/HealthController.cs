@@ -47,7 +47,7 @@ public class HealthController : MonoBehaviour
     [Tooltip("Called when the character's health changes, it will pass the current health and max health")]
     public event Action<float, float> OnHealthChanged; // current, max
     [Tooltip("Called when the character is damaged, it will pass the amount of health damaged")]
-    public event Action<float> OnDamaged; // amount
+    public event Action<float, HealthController> OnDamaged; // amount, this
     [Tooltip("Called when the character is healed, it will pass the amount of health healed")]
     public event Action<float> OnHealed; // amount
     [Tooltip("Called when the character dies, it will pass the game object of the character")]
@@ -137,7 +137,7 @@ public class HealthController : MonoBehaviour
         else
         {
             TimeLastHit = Time.time;
-            OnDamaged?.Invoke(amt);
+            OnDamaged?.Invoke(amt, this);
         }
 
         if (GetComponent<Character>() != PlayerController.instance.currentCharacter &&  characterAnimator != null)

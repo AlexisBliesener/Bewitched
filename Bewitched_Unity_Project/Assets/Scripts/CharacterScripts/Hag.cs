@@ -95,9 +95,9 @@ public class Hag : Character
         //timeLastSecondary = Time.time;
     }
 
-    protected override void OnDamaged(float amount)
+    protected override void OnDamaged(float amount, HealthController healthController)
     {
-        base.OnDamaged(amount);
+        base.OnDamaged(amount, healthController);
         //Play the Witch's hit sound effect when she gets damaged.
         AudioManager.TryGetReference("WitchHit", out EventReference evRef);
         EventInstance inst = RuntimeManager.CreateInstance(evRef);

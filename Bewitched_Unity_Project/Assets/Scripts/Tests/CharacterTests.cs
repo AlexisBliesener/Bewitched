@@ -109,7 +109,7 @@ public class CharacterTests
         /// <summary>
         /// Overrides Character.OnDamaged() for testing; marks that CreateHitStun() was called.
         /// </summary>
-        protected override void OnDamaged(float amount)
+        protected override void OnDamaged(float amount, HealthController healthController)
         {
             CreateHitStun();
         }

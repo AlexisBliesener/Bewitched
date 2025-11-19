@@ -368,7 +368,7 @@ public abstract class Character : MonoBehaviour
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>
-    protected virtual void OnDamaged(float amount)
+    protected virtual void OnDamaged(float amount, HealthController healthController)
     {
 
     }
