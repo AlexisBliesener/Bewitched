@@ -138,6 +138,7 @@ GameObject:
   - component: {fileID: 3751507528405304438}
   - component: {fileID: 3850224077055837563}
   - component: {fileID: 7427344396718919167}
+  - component: {fileID: 6033962646972872525}
   m_Layer: 0
   m_Name: PlayerController
   m_TagString: PlayerController
@@ -359,10 +360,9 @@ MonoBehaviour:
   playerBuffs: {fileID: 3751507528405304438}
   primaryCooldownDisplay: {fileID: 0}
   secondaryCooldownDisplay: {fileID: 0}
-  closeSphereRadius: 2
-  closeSphereDistance: 3
-  farSphereRadius: 4
-  farSphereDistance: 8
+  sphereRadius: 6
+  sphereDistance: 8
+  inFrontWeight: 50
   pauseMenu: {fileID: 0}
   interactUI: {fileID: 0}
   exitDoor: {fileID: 0}
@@ -445,6 +445,19 @@ MonoBehaviour:
   minAttackTime: 1
   maxAttackTime: 3
   roomSwapEnemyWaitTime: 3
+--- !u!114 &6033962646972872525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5240038647730035246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45b6ea77d66ea8d4d94d4ea3e04d3671, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeLerpDuration: 0.15
 --- !u!1 &6049376072004412199
 GameObject:
   m_ObjectHideFlags: 0

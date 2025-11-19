@@ -15,7 +15,7 @@ public class SoulSystem : MonoBehaviour
     private GameObject soulPrefab;
     [SerializeField, Tooltip("Current soul count")]
     private int soulCount = 0;
-    [SerializeField, Tooltip("How many souls to spawn per enemy as a range from 1 to x:"), Range(1, 10)]
+    [SerializeField, Tooltip("How many souls to spawn per enemy")]
     private int soulPerEnemy = 1;
     [Tooltip("The soul UI HUD text to update as souls count gets updated.")]
     public TMP_Text soulCountText;
@@ -44,8 +44,7 @@ public class SoulSystem : MonoBehaviour
     // </summary>
     public void SpawnSoul(Vector3 position)
     {
-        int soulsToSpawn = UnityEngine.Random.Range(1, soulPerEnemy + 1);
-        for (int i = 0; i < soulsToSpawn; i++)
+        for (int i = 0; i < soulPerEnemy; i++)
         {
             // Add a random direction so it doesn't spawn in the same place
             Vector3 randomDirection = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1f), UnityEngine.Random.Range(-1f, 1f));
