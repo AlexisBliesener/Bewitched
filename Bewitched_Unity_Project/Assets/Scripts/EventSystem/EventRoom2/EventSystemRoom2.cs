@@ -29,6 +29,8 @@ public class EventSystemRoom2 : MonoBehaviour
     private PlayableDirector director;
     [SerializeField, Tooltip("The duration of the event enemy to get from dizzy to fighting if not possessed (in seconds)")]
     private float dizzyDuration = 5f;
+    [SerializeField,Tooltip("How many enemies revive when the dizzy duration ends without possession"),ValidateInput(nameof(ValidateRevivesOnFailedPossession),"Enemies to revive on dizzy end should be less than or equal to the number of enemies!")]
+    private int revivesOnFailedPossession = 2;
     [Tooltip("The time when the event enemy started to get dizzy")]
     private float timeDizzyStarted = 0f;
     [SerializeField, Tooltip("The HUD prefab to disable it when the cut scene is active"), ShowIf(nameof(dev))]
@@ -163,6 +165,8 @@ public class EventSystemRoom2 : MonoBehaviour
                 if (lastStayingEnemy != null && lastStayingEnemy.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
                     PossessionAbility.instance.SetCanLeavePossession(false);
+                    // hide the health bar
+                    enemyHealthUI.HideHealthBar();
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;
@@ -185,10 +189,14 @@ public class EventSystemRoom2 : MonoBehaviour
                     List<EventEnemy> enemiesToRevive = new List<EventEnemy>(enemiesEvent);
                     // We don;t want to include the last enemy that is still alive in the list of enemies to revive
                     enemiesToRevive.Remove(lastStayingEnemy);
-                    ReviveEnemy(enemiesToRevive[UnityEngine.Random.Range(0, enemiesToRevive.Count)]);
+                    // -1 to not include the last enemy that is still alive in the list of enemies to revive
+                    for (int i = 0; i < Mathf.Min(revivesOnFailedPossession - 1, enemiesToRevive.Count); i++)
+                    {
+                        ReviveEnemy(enemiesToRevive[i]);
+                    }
                     // Restore health since we revived two enemies... 
                     float healthPerEnemy = (healthTotal / Mathf.Max(1, enemiesEvent.Count));
-                    sharedCurrentHealth = healthPerEnemy * 2;
+                    sharedCurrentHealth = healthPerEnemy * revivesOnFailedPossession;
                     lastStayingEnemy = null;
 
                     fightState = FightState.Fighting;
@@ -341,6 +349,12 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void UpdateHealthPossessInfo() => healthPossessInfo = $"Each enemy goes down after taking {(healthTotal / Mathf.Max(1, enemiesEvent.Count)):F1} damage\nPossession start when the last enemy drops below {((healthTotal / Mathf.Max(1, enemiesEvent.Count)) * lastEnemyPossessionHealthFraction):F1}";
     /// <summary>
+    /// Validates the number of enemies to revive on dizzy end (should be less than or equal to the number of enemies)
+    /// </summary>
+    /// <param name="val"> Value to validate </param>
+    /// <returns> True if valid, false otherwise </returns>
+    private bool ValidateRevivesOnFailedPossession(int val){ return val <= enemiesEvent.Count && val > 0; }
+    /// <summary>
     /// Gets the number of enemies that are defeated
     /// </summary>
     /// <returns> Number of enemies defeated </returns>
@@ -361,7 +375,6 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void TakeDownEnemy(HealthController healthController)
     {
-        Debug.Log("Take down enemy");
         healthController.SetCurrentHealth(0);
         EventEnemy enemy = healthController.GetComponent<EventEnemy>();
         if (enemy == null)
@@ -372,13 +385,13 @@ public class EventSystemRoom2 : MonoBehaviour
 
         enemy.SetState(EventEnemy.EventEnemyState.Dizzy);
         enemy.GetEnemy().lobotimzed = true;
+        SurroundingPoints.instance.RemoveAttackingEnemy(enemy.GetEnemy());
     }
     /// <summary>
     /// Revives an enemy from dizzy state to attacking state
     /// </summary>
     private void ReviveEnemy(EventEnemy eventEnemy)
     {
-        Debug.Log("Revive enemy");
         float healthbefore = eventEnemy.GetEnemy().health.GetHealth();
         eventEnemy.GetEnemy().health.SetHealthToMax();
         eventEnemy.SetState(EventEnemy.EventEnemyState.Attacking);

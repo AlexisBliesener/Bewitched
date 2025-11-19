@@ -601,6 +601,21 @@ public class Dryad : Enemy
         lookAtPlayer = true;
         AILook();
     }
+    
+    public override IEnumerator BeginSecondary()
+    {
+        // dryadAnimator.SwitchState("SecondaryAttack");
+        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
+        if (gameObject)
+        {
+            if (PlayerController.instance.currentCharacter == this)
+            {
+                health.SubHealth(secondaryAttackCost);
+            }
+            SecondaryAttack();
+
+        }
+    }
 
     /// <summary>
     /// Retreat from close distance, get back to surrounding
