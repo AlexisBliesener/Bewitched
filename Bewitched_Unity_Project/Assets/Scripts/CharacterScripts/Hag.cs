@@ -162,7 +162,7 @@ public class Hag : Character
 
     private void Update()
     {
-        HandleHitStun();
+
     }
 
     public IEnumerator KnockBackCone()

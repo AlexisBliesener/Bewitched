@@ -118,7 +118,6 @@ public class DeflectingHitbox : DefaultHitbox
                 // Check if other hit is on a hitbox
                 if (other.TryGetComponent(out DefaultHitbox otherBox))
                 {
-                    Debug.Log("Hit other");
                     // If it is a projectile hitbox (future) only apply deflection to hitbox
 
                     if (otherBox.GetType() == typeof(DeflectingHitbox)) // If it is a deflecting hitbox deflect the enemy velocity too

@@ -134,7 +134,7 @@ public class Ogre : Enemy
 
         if (playerControlling)
         {
-            if (!playerControlling || (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance))
+            if (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
                 attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
             }
@@ -259,6 +259,16 @@ public class Ogre : Enemy
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position);
 
             Vector3 targetPos = tempLockedCharacter.transform.position - (tempLockedCharacter.transform.position - transform.position).normalized * offsetForTargetPosition;
+            Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
+            float buffer = sizeRadius + 1;
+            RaycastHit hit;
+            // Raycast to check for environment collision
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            {
+                Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point
+                targetPos = hit.point - direction * buffer;
+            }
             targetPos.y = transform.position.y;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);
@@ -754,7 +764,7 @@ public class Ogre : Enemy
     {
         lookAtPlayer = true;
 
-        if (pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null))
+        if ((pathState == PathState.Set || (pathState == PathState.Searching && currentPath != null)) && Time.time - timeSinceRetreat > retreatWaitTime)
         {
             AIMove();
             if (debugging)
