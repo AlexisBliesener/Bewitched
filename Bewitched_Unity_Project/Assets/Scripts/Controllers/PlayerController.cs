@@ -199,7 +199,7 @@ public class PlayerController : MonoBehaviour
         TargetEnemy();
         HandleCooldownUI();
 
-        if (allowMovement)
+        if (allowMovement && !pauseMenu.activeInHierarchy)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
