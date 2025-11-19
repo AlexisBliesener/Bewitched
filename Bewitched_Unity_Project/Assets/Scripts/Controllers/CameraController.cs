@@ -267,6 +267,8 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input action context (started/canceled).</param>
     public void Aim(InputAction.CallbackContext context)
     {
+        if (TimeController.instance.IsPaused) return;
+
         if (context.started)
         {
             PossessionAbility.instance.SetStartedHoldTime(Time.time);
