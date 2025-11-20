@@ -81,11 +81,6 @@ public class AttackStatusEffectsTest
         {
             controlledSet = v;
         }
-
-        /// <summary>
-        /// Creates a dummy hitstun GameObject to simulate hitstun logic.
-        /// </summary>
-        public override void CreateHitStun() { hitStunActual = new GameObject("HitStun"); }
     }
 
     /// <summary>

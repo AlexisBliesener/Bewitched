@@ -32,7 +32,7 @@ public class PossessionCollider : MonoBehaviour
         foreach (Character character in charactersInPossession)
         {
             // If the character is null or can't possess then remove it
-            if (character == null || character.canPossess == false)
+            if (character == null)
             {
                 characterToRemove.Add(character);
             }

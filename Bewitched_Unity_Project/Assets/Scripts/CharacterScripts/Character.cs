@@ -368,7 +368,7 @@ public abstract class Character : MonoBehaviour
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>
-    protected virtual void OnDamaged(float amount)
+    protected virtual void OnDamaged(float amount, HealthController healthController)
     {
 
     }
@@ -410,6 +410,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
+        //Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
         if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
@@ -497,16 +498,6 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public virtual void CreateHitStun()
-    {
-
-    }
-
-    public virtual void HandleHitStun()
-    {
-
-    }
-
     public void SetPrimaryStatus(bool val)
     {
         attackingPrimary = val;
@@ -565,7 +556,7 @@ public abstract class Character : MonoBehaviour
             {
                 if (PlayerController.instance.currentCharacter == this)
                 {
-                    health.SubHealth(primaryAttackCost);
+                    StartCoroutine(DealSelfDamage(primaryAttackCost, 2f));
                 }
 
                 currentPrimaryComboStep += 1;
@@ -593,7 +584,7 @@ public abstract class Character : MonoBehaviour
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                StartCoroutine(DealSelfDamage(primaryAttackCost, 3f));
             }
             SecondaryAttack();
 
@@ -736,7 +727,7 @@ public abstract class Character : MonoBehaviour
 
         if (wellTimed)
         {
-            Time.timeScale = 0.25f;
+            //Time.timeScale = 0.25f;
         }
         int attackDirection;
         Vector3 dodgeDirection;
@@ -806,7 +797,7 @@ public abstract class Character : MonoBehaviour
         GetComponent<CharacterController>().enabled = true;
 
         velocity = Vector3.zero;
-        Time.timeScale = 1;
+        //Time.timeScale = 1;
         PlayerController.instance.SetAllowMovement(true);
         attackState = AttackState.Neutral;
 
@@ -877,7 +868,11 @@ public abstract class Character : MonoBehaviour
         return characterController;
     }
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
+    /// <summary>
+    /// Handles collisions to the character controller for this character
+    /// </summary>
+    /// <param name="hit"> Object this has hit </param>
+    protected void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (attackState == AttackState.Neutral && velocity.magnitude > 0.5f && hit.gameObject != gameObject && hit.gameObject.TryGetComponent(out KnockbackControl knockback))
         {
@@ -885,8 +880,9 @@ public abstract class Character : MonoBehaviour
             Vector3 direction = ((knockback.transform.position - transform.position).normalized + velocity.normalized).normalized;
             direction.y = 0;
             direction = direction.normalized;
+            force = Mathf.Clamp(force, 0, 50);
             knockback.AddImpact(direction, force);
-            GetComponent<KnockbackControl>().AddImpact(-direction, weight * velocity.magnitude);
+            GetComponent<KnockbackControl>().AddImpact(-direction, Mathf.Clamp(weight * velocity.magnitude, 0, 50));
         }
 
         if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
@@ -931,5 +927,22 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public virtual void ReleaseSecondary()
     {
+    }
+
+    /// <summary>
+    /// Handles dealing self damage to the character after the player has finished the attack
+    /// </summary>
+    /// <param name="amount"> Amount of damage to subtract </param>
+    /// <param name="delay"> Time delay before dealing damage </param>
+    /// <returns></returns>
+    public IEnumerator DealSelfDamage(float amount, float delay)
+    {
+        float timeStarted = 0;
+        while (timeStarted < delay)
+        {
+            timeStarted += Time.deltaTime;
+            yield return null;
+        }
+        health.SubHealth(amount);
     }
 }

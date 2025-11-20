@@ -31,8 +31,6 @@ public class Hag : Character
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
 
-
-
     private void Start()
     {
         elethAnimator = GetComponent<ElethAnimator>();
@@ -95,9 +93,9 @@ public class Hag : Character
         //timeLastSecondary = Time.time;
     }
 
-    protected override void OnDamaged(float amount)
+    protected override void OnDamaged(float amount, HealthController healthController)
     {
-        base.OnDamaged(amount);
+        base.OnDamaged(amount, healthController);
         //Play the Witch's hit sound effect when she gets damaged.
         AudioManager.TryGetReference("WitchHit", out EventReference evRef);
         EventInstance inst = RuntimeManager.CreateInstance(evRef);
@@ -128,6 +126,12 @@ public class Hag : Character
             go.SetActive(true);
         }
         controller.detectCollisions = true;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 10, ground))
+        {
+            float yPos = hit.point.y + 1.2f;
+            transform.position = new Vector3(transform.position.x, yPos, transform.position.z);
+        }
     }
 
     /// <summary>
@@ -162,7 +166,7 @@ public class Hag : Character
 
     private void Update()
     {
-        HandleHitStun();
+
     }
 
     public IEnumerator KnockBackCone()
