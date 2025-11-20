@@ -518,7 +518,11 @@ public class PossessionAbility : MonoBehaviour
     {
         if(targetVFX != null)
         {
-            if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
+            if (possessionOverride != null && possessionOverride == currentPossessableEnemy && currentCharacter != possessionOverride)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.position = possessionOverride.transform.position;
+            }else if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
             {
                 targetVFX.SetActive(true);
                 targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
