@@ -118,6 +118,8 @@ public abstract class Enemy : Character
 
     protected bool overrideBlock = false;
 
+    private Vector3 previousPlayerCostlyPosition;
+
     public enum PathState
     {
         Unset,
@@ -1018,7 +1020,7 @@ public abstract class Enemy : Character
             return;
         }
 
-        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
+        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || Vector3.Distance(currentPlayer.transform.position, previousPlayerCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
         {
             int numSet = 0;
             ResetSurroundingArea();
@@ -1028,17 +1030,18 @@ public abstract class Enemy : Character
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
                 float distFromPlayer = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
-                if (distFromPlayer < sizeRadius + maxSurroundingRadius)
+                if (distFromPlayer < sizeRadius + maxSurroundingRadius + currentPlayer.sizeRadius)
                 {
                     float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
                     float ratio = (totalDist - dist) / totalDist;
-                    node.AddCost(this, (int)(20 * ratio));
+                    node.AddCost(this, (int)(10 * ratio));
 
-                    surroundingCostlyNodes[position] = (int)(20 * ratio);
+                    surroundingCostlyNodes[position] = (int)(10 * ratio);
                     numSet++;
                 }
             }
             previousCostlyPosition = transform.position;
+            previousPlayerCostlyPosition = currentPlayer.transform.position;
         }
     }
 
