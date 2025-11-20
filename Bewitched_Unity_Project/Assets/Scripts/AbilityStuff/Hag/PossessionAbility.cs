@@ -89,6 +89,10 @@ public class PossessionAbility : MonoBehaviour
     private float dodgeDistance = 4f;
     [SerializeField, Tooltip("The layer that the enviornment objects are in")]
     private LayerMask environmentLayer;
+    [SerializeField, Tooltip("The time scale to set when performing a possession counter"), Range(0, 1)]
+    private float counterTimeScale = 0.7f;
+    [SerializeField, Tooltip("The transition time to get to and from the time scale on a possession counter")]
+    private float counterTimeTransition = 0.15f;
 
     [Header("Runtime Data")]
     [Tooltip("The angle of possession cone currently being used.")]
@@ -445,7 +449,7 @@ public class PossessionAbility : MonoBehaviour
             if(counteringEnemy.canPossess)
             {
                 eleth.health.SetInvincible(true);
-                TimeController.instance.StartTimeSlow(0.5f, 0.9f / possessionSpeedMult);
+                TimeController.instance.StartTimeSlow(counterTimeScale, 0.9f / possessionSpeedMult, counterTimeTransition);
                 target = counteringEnemy;
                 yield return new WaitForSeconds(0.2f / possessionSpeedMult);
             }

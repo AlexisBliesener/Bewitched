@@ -7,9 +7,6 @@ public class TimeController : MonoBehaviour
     // Singleton
     public static TimeController instance { get; protected set; }
 
-    [Tooltip("Time change lerp time")]
-    public float timeLerpDuration = 0.15f;
-
     [Tooltip("The time change coroutine currently running")]
     private Coroutine timeChangeCoroutine = null;
 
@@ -35,11 +32,12 @@ public class TimeController : MonoBehaviour
     /// </summary>
     /// <param name="timescale"> Time scale to set to </param>
     /// <param name="delayTime"> Duration of the time scale change </param>
-    public void StartTimeSlow(float timescale, float delayTime)
+    /// <param name="transitionTime"> Time it takes to transition </param>
+    public void StartTimeSlow(float timescale, float delayTime, float transitionTime = 0.15f)
     {
         if (timeChangeCoroutine != null) StopCoroutine(timeChangeCoroutine);
 
-        timeChangeCoroutine = StartCoroutine(HandleTimeChange(timescale, delayTime));
+        timeChangeCoroutine = StartCoroutine(HandleTimeChange(timescale, delayTime, transitionTime));
     }
 
     /// <summary>
@@ -47,17 +45,18 @@ public class TimeController : MonoBehaviour
     /// </summary>
     /// <param name="timescale"> Time scale to set </param>
     /// <param name="delayTime"> Duration of time scale change </param>
+    /// <param name="transitionTime"> Time it takes to transition</param>
     /// <returns></returns>
-    public IEnumerator HandleTimeChange(float timescale, float delayTime)
+    public IEnumerator HandleTimeChange(float timescale, float delayTime, float transitionTime)
     {
         // Using unscaled deltatime for consistent lengths and pause handling
         float initialScale = Time.time;
         float timeStarted = 0;
-        while (timeStarted < timeLerpDuration)
+        while (timeStarted < transitionTime)
         {
             if (!gamePaused)
             {
-                Time.timeScale = Mathf.Lerp(initialScale, timescale, (Time.time - timeStarted) / timeLerpDuration);
+                Time.timeScale = Mathf.Lerp(initialScale, timescale, (Time.time - timeStarted) / transitionTime);
                 timeStarted += Time.deltaTime;
             }
             yield return null;
@@ -71,11 +70,11 @@ public class TimeController : MonoBehaviour
         }
 
         timeStarted = 0;
-        while (timeStarted < timeLerpDuration)
+        while (timeStarted < transitionTime)
         {
             if (!gamePaused)
             {
-                Time.timeScale = Mathf.Lerp(timescale, 1, (Time.time - timeStarted) / timeLerpDuration);
+                Time.timeScale = Mathf.Lerp(timescale, 1, (Time.time - timeStarted) / transitionTime);
                 timeStarted += Time.deltaTime;
             }
             yield return null;
