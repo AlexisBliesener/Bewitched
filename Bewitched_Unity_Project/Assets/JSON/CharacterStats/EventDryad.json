@@ -1,0 +1,155 @@
+{
+    "dev": true,
+    "characterName": "EventDryad",
+    "modelPieces": [],
+    "movementSpeed": 6.0,
+    "approachSpeed": 7.0,
+    "acceleration": 5.0,
+    "deceleration": 5.0,
+    "rotationalVelocity": 360.0,
+    "chaseTime": 0.07000000029802323,
+    "windupTime": 0.20000000298023225,
+    "weight": 15.0,
+    "pushForceModifer": 0.15000000596046449,
+    "sizeRadius": 0.8399999737739563,
+    "numSurroundingPoints": 8,
+    "minSurroundingRadius": 0.0,
+    "maxSurroundingRadius": 20.0,
+    "teamID": 2,
+    "priority": 2,
+    "shoulderOffset": {
+        "x": 1.0,
+        "y": 2.5,
+        "z": 0.0
+    },
+    "attackDelay": 0.3799999952316284,
+    "primaryCooldown": 2.5,
+    "primaryAttackCost": 1,
+    "primaryAICost": 3,
+    "secondaryCooldown": 2.5,
+    "secondaryAttackCost": 15,
+    "secondaryAICost": 4,
+    "health": {
+        "instanceID": 0
+    },
+    "canPossess": true,
+    "primaryComboSteps": -1,
+    "primaryComboResetTime": [],
+    "primaryComboMinTime": [],
+    "characters": {
+        "serializedVersion": "2",
+        "m_Bits": 128
+    },
+    "ground": {
+        "serializedVersion": "2",
+        "m_Bits": 64
+    },
+    "environment": {
+        "serializedVersion": "2",
+        "m_Bits": 256
+    },
+    "combatCam": {
+        "instanceID": 8412256
+    },
+    "aimCam": {
+        "instanceID": 8408968
+    },
+    "exploreCam": {
+        "instanceID": 8403010
+    },
+    "attackEffects": [],
+    "effectJSONs": [],
+    "primaryFireIcon": {
+        "instanceID": 96242
+    },
+    "secondaryFireIcon": {
+        "instanceID": 96244
+    },
+    "hitStunPrefab": {
+        "instanceID": 91302
+    },
+    "counterIndicatorVFXPrefab": {
+        "instanceID": 864650
+    },
+    "attackState": 0,
+    "lobotimzed": false,
+    "cantAttack": false,
+    "minStopDistance": 1.0,
+    "seenBuffer": 0.5,
+    "sightRange": 18.0,
+    "maxSightAngle": 360.0,
+    "hearingRange": 0.0,
+    "patrolRange": 2.0,
+    "timeBeforeSearch": 0.6700000166893005,
+    "attackDelayAI": 0.5,
+    "primaryAttackChance": 0.699999988079071,
+    "secondaryAttackChance": 0.30000001192092898,
+    "lowHealthThresholdPercentage": 30.0,
+    "counterWindowLength": 1.0,
+    "moveToTargetDistance": 3.0,
+    "perfectCounterTimeMaterial": {
+        "instanceID": 0
+    },
+    "defaultMaterial": {
+        "instanceID": 0
+    },
+    "pathState": 0,
+    "aiState": 4,
+    "debugging": false,
+    "destinationMarkerPrefab": {
+        "instanceID": 0
+    },
+    "pathVisualizer": {
+        "instanceID": 0
+    },
+    "playerControlling": false,
+    "pathfindingPriority": 2,
+    "hitEventReference": {
+        "Guid": {
+            "Data1": 0,
+            "Data2": 0,
+            "Data3": 0,
+            "Data4": 0
+        },
+        "Path": ""
+    },
+    "deathEventReference": {
+        "Guid": {
+            "Data1": 0,
+            "Data2": 0,
+            "Data3": 0,
+            "Data4": 0
+        },
+        "Path": ""
+    },
+    "dartPrefab": {
+        "instanceID": 864652
+    },
+    "dartDuration": 10.0,
+    "dartSpeed": 30.0,
+    "dartDamage": 0.10000000149011612,
+    "dartEffect": {
+        "instanceID": 864654
+    },
+    "sporeHitboxPrefab": {
+        "instanceID": 864656
+    },
+    "sporeDuration": 0.4000000059604645,
+    "sporeDamage": 0.10000000149011612,
+    "sporeEffect": {
+        "instanceID": 864658
+    },
+    "sporeWindupTime": 0.25,
+    "offSetSpore": {
+        "x": 0.0,
+        "y": 0.5,
+        "z": 0.0
+    },
+    "offSetDart": {
+        "x": 0.0,
+        "y": 0.5,
+        "z": 0.0
+    },
+    "minSurroundingRadiusSporeCloud": 0.0,
+    "maxSurroundingRadiusSporeCloud": 4.0
+}

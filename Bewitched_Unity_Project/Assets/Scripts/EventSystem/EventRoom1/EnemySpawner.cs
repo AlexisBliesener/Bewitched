@@ -69,7 +69,7 @@ public class EnemySpawner : MonoBehaviour
         // First we will set all the enemies to be killed by one hit 
         foreach (GameObject enemyGameObject in roomController.roomEnemies)
         {
-            if (enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
+            if (enemyGameObject == null || enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             Enemy enemy = enemyGameObject.GetComponent<Enemy>();
             enemy.health.SetCurrentHealth(1);
             enemy.sightRange = 150;

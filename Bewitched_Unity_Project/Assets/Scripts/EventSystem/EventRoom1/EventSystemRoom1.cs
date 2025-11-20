@@ -128,12 +128,15 @@ public class EventSystemRoom1 : MonoBehaviour
                     enemyEvent.SetState(EventEnemy.EventEnemyState.Dizzy);
                     // Make the health bar flashing on dizzy state
                     enemyEvent.GetEnemy().health.GetComponent<EventHealth>().SetFlashing(true);
+                    enemyEvent.GetEnemy().health.SetInvincible(true);
                 }
                 break;
             case FightState.Ending: // Ending = dizzy 
                 if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject)
                 {
                     PossessionAbility.instance.SetCanLeavePossession(false);
+                    // hide the health bar 
+                    enemyEvent.GetEnemy().health.GetComponent<EventHealth>().HideHealthBar();
                     // this mean the player has possessed the enemy, change the state to finished for the fight
                     EndFight();
                     return;
@@ -152,6 +155,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 PossessionAbility.instance.SetPossessionOverride(null);
                 enemyEvent.GetEnemy().canPossess = false;
                 enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Chasing;
+                enemyEvent.GetEnemy().health.SetInvincible(false);
                 enemyEvent.GetEnemy().health.AddHealth(healthToAdd);
                 fightState = FightState.Fighting;
                 enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);

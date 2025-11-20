@@ -81,7 +81,7 @@ public class HealthControllerTests
         lastMaxHealth = max;
     }
 
-    private void OnDamagedHandler(float amount)
+    private void OnDamagedHandler(float amount, HealthController healthController)
     {
         damagedCalled = true;
         lastDamageAmount = amount;
@@ -520,7 +520,7 @@ public class HealthControllerTests
     public void TakeDamage_ProcessesMultipleRapidCallsCorrectly()
     {
         int damageEventCount = 0;
-        testHealthController.OnDamaged += (amount) => damageEventCount++;
+        testHealthController.OnDamaged += (amount, _) => damageEventCount++;
         
         testHealthController.SubHealth(10f);
         testHealthController.SubHealth(20f);
