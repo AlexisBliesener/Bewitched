@@ -522,7 +522,11 @@ public class PossessionAbility : MonoBehaviour
     {
         if(targetVFX != null)
         {
-            if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
+            if (possessionOverride != null && possessionOverride == currentPossessableEnemy && currentCharacter != possessionOverride)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.position = possessionOverride.transform.position;
+            }else if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
             {
                 targetVFX.SetActive(true);
                 targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
@@ -610,6 +614,7 @@ public class PossessionAbility : MonoBehaviour
             PriorityQueue<(float, Character)> distances = new PriorityQueue<(float, Character)>();
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
+                if (character.canPossess == false) continue;
                 Vector3 toCharacter = new Vector3( character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
 
                 toCharacter = toCharacter.normalized;
