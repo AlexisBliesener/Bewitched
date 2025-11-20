@@ -17,6 +17,12 @@ public class TimeController : MonoBehaviour
     private bool gamePaused = false;
 
     [Tooltip("The last known time scale before the pause")]
+    private float previousTimeScale = 1;
+
+    /// <summary>
+    /// Determines if the game is paused
+    /// </summary>
+    public bool IsPaused => gamePaused;
 
     // Start is called before the first frame update
     void Awake()
@@ -83,6 +89,7 @@ public class TimeController : MonoBehaviour
     public void PauseGame()
     {
         gamePaused = true;
+        previousTimeScale = Time.timeScale;
         Time.timeScale = 0;
     }
 
@@ -94,7 +101,7 @@ public class TimeController : MonoBehaviour
         if (gamePaused)
         {
             gamePaused = false;
-            if (timeChangeCoroutine == null) Time.timeScale = 1;
+            Time.timeScale = previousTimeScale;
         }
     }
 }
