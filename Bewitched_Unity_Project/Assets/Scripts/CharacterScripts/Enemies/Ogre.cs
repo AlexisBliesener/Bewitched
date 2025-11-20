@@ -160,7 +160,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
 

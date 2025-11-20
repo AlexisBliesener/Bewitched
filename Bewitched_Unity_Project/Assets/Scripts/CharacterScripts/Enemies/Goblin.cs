@@ -125,7 +125,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
-        //if (playerControlling) Debug.Log(debugAIInfo);
+        if (playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
 
@@ -145,7 +145,7 @@ public class Goblin : Enemy
             if (playerControlling)
             {
                 //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
 
                     health.SubHealth(primaryAttackCost);
@@ -224,7 +224,7 @@ public class Goblin : Enemy
         targetPos = transform.position;
         float windupStart = Time.time;
 
-        while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryWindupMult())
+        while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
@@ -353,6 +353,7 @@ public class Goblin : Enemy
         targetPos = Vector3.negativeInfinity;
 
         float hitboxStartTime = Time.time;
+        Debug.Log(goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
