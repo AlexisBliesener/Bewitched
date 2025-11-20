@@ -31,8 +31,6 @@ public class Hag : Character
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
 
-
-
     private void Start()
     {
         elethAnimator = GetComponent<ElethAnimator>();
@@ -128,6 +126,12 @@ public class Hag : Character
             go.SetActive(true);
         }
         controller.detectCollisions = true;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 10, ground))
+        {
+            float yPos = hit.point.y + 1.2f;
+            transform.position = new Vector3(transform.position.x, yPos, transform.position.z);
+        }
     }
 
     /// <summary>
