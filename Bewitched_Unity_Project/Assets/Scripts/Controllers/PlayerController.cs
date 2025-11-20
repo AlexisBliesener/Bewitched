@@ -57,8 +57,6 @@ public class PlayerController : MonoBehaviour
     private GameObject interactUI;
     [SerializeField, Tooltip("UI prefab for the narrative panel (it will be shown when the player enters the narrative trigger)")]
     public GameObject narrativePanel;
-    [SerializeField, Tooltip("UI prefab for the narrative panel2 (it will be shown when the player enters the narrative trigger)")]
-    public GameObject narrativePanel2;
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
@@ -199,7 +197,7 @@ public class PlayerController : MonoBehaviour
         TargetEnemy();
         HandleCooldownUI();
 
-        if (allowMovement)
+        if (allowMovement && !pauseMenu.activeInHierarchy)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {

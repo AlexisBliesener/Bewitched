@@ -126,7 +126,7 @@ public class GuardAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState)
     {
-        Debug.Log(newState);
+        //Debug.Log(newState);
 
         if (!animationStates.Contains(newState))
         {
