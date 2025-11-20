@@ -31,8 +31,6 @@ public class Hag : Character
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
 
-    public GameObject testPrefab;
-
     private void Start()
     {
         elethAnimator = GetComponent<ElethAnimator>();
