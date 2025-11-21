@@ -23,6 +23,13 @@ public class RoomControllerTests
             IsLocked = false;
         }
     }
+    /// <summary>
+    /// Testing class for the enemy
+    /// </summary>
+    private class TestEnemy : Enemy
+    {
+
+    }
     private GameObject roomControllerObject;
     private RoomController roomController;
     private GameObject mockPlayer;
@@ -40,10 +47,12 @@ public class RoomControllerTests
 
         // Create mock enemies
         mockEnemy1 = new GameObject("Enemy1");
+        mockEnemy1.AddComponent<TestEnemy>();
         mockEnemy1.tag = "Enemy";
         mockEnemy1.layer = 0; // Default layer for testing
 
         mockEnemy2 = new GameObject("Enemy2");
+        mockEnemy2.AddComponent<TestEnemy>();
         mockEnemy2.tag = "Enemy";
         mockEnemy2.layer = 0;
 
