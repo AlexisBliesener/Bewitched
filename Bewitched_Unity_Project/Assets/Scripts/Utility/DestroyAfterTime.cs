@@ -14,6 +14,11 @@ public class DestroyAfterTime : MonoBehaviour
     [Tooltip("If time was set")]
     private bool setTime = false;
 
+    /// <summary>
+    /// Sets the time that it will take utill this object will be destroyed
+    /// Effective immediately
+    /// </summary>
+    /// <param name="time"></param>
     public void SetTime(float time)
     {
         timeToDestroy = time;
