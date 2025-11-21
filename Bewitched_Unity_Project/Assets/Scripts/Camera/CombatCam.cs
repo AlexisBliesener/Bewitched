@@ -128,7 +128,7 @@ public class CombatCam : MonoBehaviour
     /// <param name="maxDistance">Maximum distance considered for weighting.</param>
     /// <param name="enemies">List of enemies in the current room.</param>
     /// <param name="attackingEnemies">Dictionary of attacking enemies and their bonus priority.</param>
-    public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<GameObject> enemies, Dictionary<Character, int> attackingEnemies)
+    public IEnumerator RotateToBiggestThreat(int threatWeight, int distWeight, float maxDistance, List<Enemy> enemies, Dictionary<Character, int> attackingEnemies)
     {
         if (!inHitBy && !inOnAttack && !CameraController.instance.GetLooking() && Time.time - timeOverrideEnded > CameraController.instance.GetTimeWaitToPriorityRotate())
         {
@@ -137,22 +137,21 @@ public class CombatCam : MonoBehaviour
             {
                 Enemy topPriority = null;
                 float priority = Mathf.NegativeInfinity;
-                foreach (GameObject enemy in enemies)
+                foreach (Enemy enemy in enemies)
                 {
                     if (enemy == null) continue;
-                    Enemy enemyComponent = enemy.GetComponent<Enemy>();
-                    if (enemyComponent == PlayerController.instance.currentCharacter) continue;
-                    float distance = Vector3.Distance(PlayerController.instance.currentCharacter.transform.position, enemy.transform.position);
-                    float threat = enemyComponent.priority;
-                    if (attackingEnemies.ContainsKey(enemyComponent))
+                    if (enemy == PlayerController.instance.currentCharacter) continue;
+                    float distance = Vector3.Distance(PlayerController.instance.currentCharacter.transform.position, enemy.gameObject.transform.position);
+                    float threat = enemy.priority;
+                    if (attackingEnemies.ContainsKey(enemy))
                     {
-                        threat += attackingEnemies[enemyComponent];
+                        threat += attackingEnemies[enemy];
                     }
 
-                    Vector3 direction = (enemy.transform.position - PlayerController.instance.currentCharacter.transform.position).normalized;
+                    Vector3 direction = (enemy.gameObject.transform.position - PlayerController.instance.currentCharacter.transform.position).normalized;
                     if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position + Vector3.up * 1.5f, direction, out RaycastHit hit, distance, LayerMask.GetMask("Environment", "Character" )))
                     {
-                        if (hit.collider.gameObject != enemy)
+                        if (hit.collider.gameObject != enemy.gameObject)
                             continue;
                     }
 
@@ -160,7 +159,7 @@ public class CombatCam : MonoBehaviour
 
                     if (topPriority == null || currentPriority > priority)
                     {
-                        topPriority = enemyComponent;
+                        topPriority = enemy;
                         priority = currentPriority;
                     }
                 }
@@ -177,7 +176,7 @@ public class CombatCam : MonoBehaviour
     /// Smoothly rotates the CinemachineFreeLook camera over time to the target horizontal and vertical angles.
     /// </summary>
     /// <param name="degrees">The target horizontal rotation angle in degrees.</param>
-    /// <param name="normalizedVal">Normalized vertical axis value (0–1 range).</param>
+    /// <param name="normalizedVal">Normalized vertical axis value (0ï¿½1 range).</param>
     /// <param name="time">Total duration of the rotation in seconds.</param>
     private IEnumerator RotateCamera(float degrees, float normalizedVal, float time)
     {

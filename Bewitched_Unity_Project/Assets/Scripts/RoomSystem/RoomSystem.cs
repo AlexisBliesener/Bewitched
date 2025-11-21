@@ -35,7 +35,7 @@ public class RoomSystem : MonoBehaviour
         SubscribeToExistingRooms();
     }
 
-    public List<GameObject> GetCurrentRoomEnemies()
+    public List<Enemy> GetCurrentRoomEnemies()
     {
         if(GetActiveRoomController() != null)
         {
