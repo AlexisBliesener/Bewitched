@@ -261,7 +261,7 @@ public class PossessionAbility : MonoBehaviour
         possessionAbilitySlider.gameObject.transform.DOScale(pulseScale, pulseTime).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         UpdateUI();
         UpdateState();
@@ -321,18 +321,10 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started && currentCharacter.attackState == Character.AttackState.Neutral)
+        if (context.started && possessionCharge == hitsToCharge && currentCharacter.attackState == Character.AttackState.Neutral)
         {
-            counteringEnemy = PlayerController.instance.GetCounterAvailable();
-            if (possessionCharge == hitsToCharge)
-            {
-                eleth.AnimatePossess();
-                StartCoroutine(FirePossession());
-            }
-            else if (counteringEnemy != null)
-            {
-                StartCoroutine(Dodge(counteringEnemy.gameObject));
-            }
+             eleth.AnimatePossess();
+             StartCoroutine(FirePossession());
         }
         else
         {
@@ -340,7 +332,27 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
-    private IEnumerator Dodge(GameObject counteringEnemy)
+    /// <summary>
+    /// Handles input for ending possession
+    /// </summary>
+    /// <param name="context"></param>
+    public void LeaveEnemy(InputAction.CallbackContext context)
+    {
+        if (!canLeavePossession) return;
+        if (!context.started) return;
+
+        counteringEnemy = PlayerController.instance.GetCounterAvailable();
+        if (counteringEnemy != null)
+        {
+            StartCoroutine(Dodge(counteringEnemy.transform.forward));
+        }
+        else if(currentCharacter != eleth)
+        {
+            StartCoroutine(Dodge(-currentCharacter.transform.forward));
+        }
+    }
+
+    private IEnumerator Dodge(Vector3 dodgeDirection)
     {
         if(currentCharacter != eleth)
         {
@@ -358,13 +370,13 @@ public class PossessionAbility : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         RaycastHit hitInfo;
         Vector3 moveDist;
-        if(Physics.Raycast(currentCharacter.transform.position, counteringEnemy.transform.forward, out hitInfo, dodgeDistance, environmentLayer))
+        if(Physics.Raycast(currentCharacter.transform.position, dodgeDirection, out hitInfo, dodgeDistance, environmentLayer))
         {
-             moveDist = (counteringEnemy.transform.forward.normalized * hitInfo.distance);
+             moveDist = (dodgeDirection.normalized * hitInfo.distance);
         }
         else
         {
-            moveDist = (counteringEnemy.transform.forward.normalized * dodgeDistance);
+            moveDist = (dodgeDirection.normalized * dodgeDistance);
         }
 
         for(int i = 0; i < 8; i++)
@@ -385,28 +397,6 @@ public class PossessionAbility : MonoBehaviour
         
         yield return new WaitForSeconds(0.3f);
         Destroy(vfx2);
-        
-    }
-
-    /// <summary>
-    /// Handles input for ending possession
-    /// </summary>
-    /// <param name="context"></param>
-    public void LeaveEnemy(InputAction.CallbackContext context)
-    {
-        if (!canLeavePossession) return;
-
-        if(currentCharacter != eleth)
-        {
-            if (context.started)
-            {
-               StartCoroutine( RespawnEleth() );
-            }
-            else
-            {
-                return;
-            }
-        }
     }
 
     private IEnumerator RespawnEleth()
@@ -440,16 +430,6 @@ public class PossessionAbility : MonoBehaviour
 
         // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
-        if (counteringEnemy != null && (possessionOverride == null || target != possessionOverride))
-        {
-            if(counteringEnemy.canPossess)
-            {
-                eleth.health.SetInvincible(true);
-                TimeController.instance.StartTimeSlow(0.5f, 0.9f / possessionSpeedMult);
-                target = counteringEnemy;
-                yield return new WaitForSeconds(0.2f / possessionSpeedMult);
-            }
-        }
 
         if (target != null && !target.canPossess)
         {
@@ -501,12 +481,6 @@ public class PossessionAbility : MonoBehaviour
             Debug.LogWarning("Firing Possession VFX is not assigned!");
         }
 
-        // Reset time scale if this was a counter
-        if (counteringEnemy != null)
-        {
-            eleth.health.SetInvincible(false);
-            yield return new WaitForSeconds(0.2f / possessionSpeedMult);
-        }
         isPossessing = false;
     }
     

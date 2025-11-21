@@ -477,10 +477,11 @@ MonoBehaviour:
   patrolRange: 5
   timeBeforeSearch: 5
   attackDelayAI: 1.5
+  retreatWaitTime: 0.5
   primaryAttackChance: 0.65900004
   secondaryAttackChance: 0.341
   lowHealthThresholdPercentage: 30
-  counterWindowLength: 1
+  counterWindowLength: 0.9
   moveToTargetDistance: 5
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 17e70f964b650af4d932334b83ba5c78, type: 2}
@@ -517,6 +518,7 @@ MonoBehaviour:
   shieldRaiseTime: 0
   shieldLowerTime: 0.2
   aiShieldAngleThreshold: 20
+  aiShieldDropDelay: 0.5
   numPatrolPoints: 3
   patrolPointPrefab: {fileID: 459476383034558125, guid: 4951c2ee7e63db54fb82efb35ebd9595, type: 3}
   patrolPoints:

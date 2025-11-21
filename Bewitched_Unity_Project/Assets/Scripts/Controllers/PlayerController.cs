@@ -78,8 +78,6 @@ public class PlayerController : MonoBehaviour
     [Tooltip("If ui has been clicked before interact was clicked")]
     private bool uiClicked = false;
 
-    // private bool dodging = false;
-
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
 

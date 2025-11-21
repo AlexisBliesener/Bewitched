@@ -265,7 +265,6 @@ public class Goblin : Enemy
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
                 targetPos = hit.point - direction * buffer;
             }
@@ -308,6 +307,10 @@ public class Goblin : Enemy
                 {
                     if (!triggerSet)
                     {
+                        Debug.Log("current counter " + PlayerController.instance.GetCounterAvailable() + "\n this " + this);
+
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
                         goblinAnimator.ExitLeap();
                         triggerSet = true;
                     }
@@ -315,7 +318,7 @@ public class Goblin : Enemy
                     if (counterIndicatorVFX != null)
                     {
                         DestroyCounterIndicator();
-                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+                        
                     }
                 }
                 else // attack is dodgable
