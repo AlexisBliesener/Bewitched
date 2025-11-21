@@ -27,8 +27,8 @@ public class DeathUIManager : MonoBehaviour
     [Header("Upgrades Acquired")]
     [Tooltip("List of upgrades that the player has acquired.")]
     private List<DropData> playerUpgrades;
-    [Tooltip("List of placeholders to be replaced by upgrade icons.")]
-    private GameObject[] upgradeIcons;
+    [Tooltip("List of placeholder Images to be replaced by upgrade icons.")]
+    private Image[] upgradeSlots;
 
     /// <summary>
     /// Shows the screen on enable, allows player to use cursor to navigate the screen
@@ -44,7 +44,7 @@ public class DeathUIManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
-
+        upgradeSlots = statsScreen.GetComponentsInChildren<Image>(true);
         /// Stats (upgrades)
         if (DropSystem.Instance != null)
         {
@@ -56,7 +56,6 @@ public class DeathUIManager : MonoBehaviour
             // if no upgrades collected, show empty slots.
             Debug.LogWarning("DropSystem.Instance not found.");
         }
-        upgradeIcons = statsScreen.GetComponentsInChildren<GameObject>(true);
     }
 
     /// <summary>
@@ -75,9 +74,9 @@ public class DeathUIManager : MonoBehaviour
     /// </summary>
     private void UpdateStats()
     {
-        for (int i = 0; i < upgradeIcons.Length; i++)
+        for (int i = 0; i < playerUpgrades.Count; i++)
         {
-            Image iconSlot = upgradeIcons[i].GetComponent<Image>();
+            Image iconSlot = upgradeSlots[i];
             if (iconSlot != null)
             {
                 iconSlot.sprite = playerUpgrades[i].GetIcon();
