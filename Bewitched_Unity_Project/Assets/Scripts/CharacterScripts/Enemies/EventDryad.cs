@@ -10,6 +10,10 @@ public class EventDryad : Dryad
         stunned = false; 
     }
 
+    /// <summary>
+    /// Call when the dryad is revived
+    /// Takes the dryad out of the temporary death animamtion
+    /// </summary>
     public void Revive()
     {
         dryadAnimator.Revive();

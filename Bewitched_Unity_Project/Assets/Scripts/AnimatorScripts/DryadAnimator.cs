@@ -68,12 +68,19 @@ public class DryadAnimator : CharacterAnimator
         canChange = true;
     }
 
+    /// <summary>
+    /// Puts the dryad into a temporary death animation
+    /// Can be reversed unlike real death
+    /// </summary>
     public void TempDeath()
     {
         ResetAllTriggers();
         animator.SetTrigger("TempDeath");
     }
 
+    /// <summary>
+    /// Revives the Dryad from the temporary death animation
+    /// </summary>
     public void Revive()
     {
         ResetAllTriggers();

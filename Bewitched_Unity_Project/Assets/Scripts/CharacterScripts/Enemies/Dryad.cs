@@ -138,8 +138,6 @@ public class Dryad : Enemy
             {
                 if( (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
-
-
                     health.SubHealth(primaryAttackCost);
 
                     currentPrimaryComboStep += 1;
@@ -168,7 +166,6 @@ public class Dryad : Enemy
                     PrimaryAttack();
                 }
             }
-
         }
         yield return null;
     }
