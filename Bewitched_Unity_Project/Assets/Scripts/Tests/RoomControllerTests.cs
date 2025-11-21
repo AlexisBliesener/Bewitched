@@ -266,8 +266,8 @@ public class RoomControllerTests
     public IEnumerator GetActiveEnemyCount_ReturnsCorrectCountWithActiveEnemies()
     {
         // add mock enemies manually to the room 
-        roomController.AddEnemy(mockEnemy1);
-        roomController.AddEnemy(mockEnemy2);
+        roomController.AddEnemy(mockEnemy1.GetComponent<Enemy>());
+        roomController.AddEnemy(mockEnemy2.GetComponent<Enemy>());
 
         mockEnemy1.SetActive(true);
         mockEnemy2.SetActive(true);
@@ -286,8 +286,8 @@ public class RoomControllerTests
     public IEnumerator GetActiveEnemyCount_ReturnsZeroWithInactiveEnemies()
     {
         // add mock enemies manually to the room 
-        roomController.AddEnemy(mockEnemy1);
-        roomController.AddEnemy(mockEnemy2);
+        roomController.AddEnemy(mockEnemy1.GetComponent<Enemy>());
+        roomController.AddEnemy(mockEnemy2.GetComponent<Enemy>());
 
         mockEnemy1.SetActive(false);
         mockEnemy2.SetActive(false);
@@ -305,8 +305,8 @@ public class RoomControllerTests
     public IEnumerator GetActiveEnemyCount_ReturnsCorrectCountWithMixedEnemies()
     {
         // add mock enemies manually to the room 
-        roomController.AddEnemy(mockEnemy1);
-        roomController.AddEnemy(mockEnemy2);
+        roomController.AddEnemy(mockEnemy1.GetComponent<Enemy>());
+        roomController.AddEnemy(mockEnemy2.GetComponent<Enemy>());
 
         mockEnemy1.SetActive(true);
         mockEnemy2.SetActive(false);

@@ -113,8 +113,8 @@ public class RoomController : MonoBehaviour
     /// This will be triggered when the room state changes
     /// </summary>
     public event Action<RoomController, RoomState> OnStateChanged;
-
-
+    [Tooltip("If the player is inside the room entry trigger")]
+    private bool isPlayerInsideTrigger = false; // This to prevent when the entry trigger is outside the room bounds so when the player enters it triggers the enter room event but then the update function will see it as it's outside the room bounds so we used this bool to check if the player is inside the trigger
 
     private void Awake()
     {
@@ -154,7 +154,7 @@ public class RoomController : MonoBehaviour
                 lastEnemyKilled = true;
                 ClearRoom();
             }
-        } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom())
+        } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom() && !isPlayerInsideTrigger)
         {
             UnlockDoors();
             DeactivateEnemies();
@@ -169,6 +169,14 @@ public class RoomController : MonoBehaviour
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject)
         {
             EnterRoom();
+            isPlayerInsideTrigger = true;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject == PlayerController.instance.currentCharacter.gameObject)
+        {
+            isPlayerInsideTrigger = false;
         }
     }
     /// <summary>
