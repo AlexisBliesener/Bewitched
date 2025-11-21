@@ -533,7 +533,7 @@ public class PossessionAbility : MonoBehaviour
             }
             else
             {
-                if (possessionState == PossessionStates.canPossess)
+                if (possessionState == PossessionStates.canPossess && currentPossessableEnemy != null)
                 {
                     targetVFX.SetActive(true);
                     targetVFX.transform.position = currentPossessableEnemy.transform.position;

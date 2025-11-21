@@ -471,7 +471,7 @@ public abstract class Enemy : Character
         //Bug fix for kill all enemies button causing idle audio bugs
         if (idleAudio.isValid()) idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
-        Destroy(gameObject, 0.1f);
+        Destroy(gameObject);
     }
 
     public void SetRangeChecks()
@@ -1061,6 +1061,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void ManageSurrounding()
     {
+        if (currentPlayer == null) return; // if there is no player 
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
         if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))
