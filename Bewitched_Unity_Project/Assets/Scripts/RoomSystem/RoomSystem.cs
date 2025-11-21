@@ -21,6 +21,8 @@ public class RoomSystem : MonoBehaviour
     public static event Action<RoomController> OnAnyRoomCleared;
     [Tooltip("Triggered when any room's state changes")]
     public static event Action<RoomController, RoomState> OnAnyRoomStateChanged;
+    [Tooltip("The current active room")]
+    private RoomController currentActiveRoom;
 
     private void Awake()
     {
@@ -196,6 +198,15 @@ public class RoomSystem : MonoBehaviour
     private void HandleRoomStateChanged(RoomController room, RoomState newState)
     {
         OnAnyRoomStateChanged?.Invoke(room, newState);
+        switch (newState)
+        {
+            case RoomState.Active:
+                currentActiveRoom = room;
+                break;
+            default: // Inactive or Cleared
+                currentActiveRoom = null;
+                break;
+        }
     }
 
     /// <summary>
@@ -209,17 +220,7 @@ public class RoomSystem : MonoBehaviour
     /// <returns> Currently active room, null if none </returns>
     public RoomController GetActiveRoomController()
     {
-        foreach (RoomData room in rooms)
-        {
-            if (room.roomController != null)
-            {
-                if (room.roomController.GetCurrentState() == RoomState.Active)
-                {
-                    return room.roomController;
-                }
-            }
-        }
-        return null;
+        return currentActiveRoom;
     }
 
     /// <summary>

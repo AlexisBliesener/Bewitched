@@ -531,6 +531,7 @@ public class GraphBuilder : MonoBehaviour
     /// <returns></returns>
     public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, float goalDistance = -1, Character targetChar = null)
     {
+        if (enemy == null || enemy.gameObject == null) yield break;
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         enemySearches[enemy] = true;
 

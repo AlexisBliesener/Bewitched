@@ -236,6 +236,7 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
+                if (enemy == null) continue;
                 if (EnemyCanAttack(enemy)) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
