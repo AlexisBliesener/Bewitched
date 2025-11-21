@@ -23,6 +23,8 @@ public class Goblin : Enemy
     [SerializeField] AttackStatusEffects spinEffects;
     [Tooltip("Knife Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects[] knifeEffects;
+    [SerializeField, Tooltip("Spin VFX Prefab")]
+    private GameObject spinVFXPrefab;
 
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
@@ -90,10 +92,9 @@ public class Goblin : Enemy
     private bool inPrimaryWindup = false;
     [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
     bool aiControlledOnPrimary = false;
-
-
-
     private int numDeflections = 0;
+    [Tooltip("Current spin VFX")]
+    private GameObject spinVFX;
 
     private void Start()
     {
@@ -447,7 +448,6 @@ public class Goblin : Enemy
 
         if(aiControlledOnPrimary)
         {
-            Debug.Log("primary ended");
             goblinAnimator.EndPrimary();
         }
 
@@ -625,8 +625,18 @@ public class Goblin : Enemy
 
         float distanceTravelled = 0;
         bool cameraRotationStopped = false;
+
+        spinVFX = Instantiate(spinVFXPrefab, transform);
+        spinVFX.GetComponent<DestroyAfterTime>().SetTime(spinDuration - (1.25f ));
+
         while (distanceTravelled < distance)
         {
+            if (spinVFX != null)
+            {
+                spinVFX.transform.position = transform.position;
+            }
+
+
             timeSinceBegan += Time.deltaTime;
             SetMovementValues(false); // Helps if player possesses enemy mid-attack
 
