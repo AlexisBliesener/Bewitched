@@ -152,7 +152,13 @@ public class RoomController : MonoBehaviour
             {
                 KillEnemyOnLeave();
                 lastEnemyKilled = true;
+                ClearRoom();
             }
+        } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom())
+        {
+            UnlockDoors();
+            DeactivateEnemies();
+            ChangeState(RoomState.Inactive);
         }
     }
     private void OnTriggerEnter(Collider other)
