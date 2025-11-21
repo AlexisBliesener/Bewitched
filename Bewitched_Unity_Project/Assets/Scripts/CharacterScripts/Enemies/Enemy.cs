@@ -1061,6 +1061,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void ManageSurrounding()
     {
+        if (currentPlayer == null) return; // if there is no player 
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
         if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))
