@@ -4842,6 +4842,7 @@ GameObject:
   - component: {fileID: 4468087355798824952}
   - component: {fileID: 4780155562860351841}
   - component: {fileID: 5150241856182147294}
+  - component: {fileID: 3312680110252636417}
   m_Layer: 0
   m_Name: WhirlwindEffect
   m_TagString: Untagged
@@ -9664,6 +9665,20 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &3312680110252636417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3027392275611468297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85902fb90733cf4bb1829546562b201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waitTillSet: 1
+  timeToDestroy: 10
 --- !u!1 &3387958243080700810
 GameObject:
   m_ObjectHideFlags: 0

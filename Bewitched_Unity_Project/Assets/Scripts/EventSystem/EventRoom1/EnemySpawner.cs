@@ -67,10 +67,9 @@ public class EnemySpawner : MonoBehaviour
         // Make the player invulnerable
         PlayerController.instance.currentCharacter.health.SetInvincible(true);
         // First we will set all the enemies to be killed by one hit 
-        foreach (GameObject enemyGameObject in roomController.roomEnemies)
+        foreach (Enemy enemy in roomController.roomEnemies)
         {
-            if (enemyGameObject == null || enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
-            Enemy enemy = enemyGameObject.GetComponent<Enemy>();
+            if (enemy == null || enemy.gameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             enemy.health.SetCurrentHealth(1);
             enemy.sightRange = 150;
             // unsubscribe from the death event, so we don't spawn more enemies ...
@@ -102,7 +101,7 @@ public class EnemySpawner : MonoBehaviour
             enemy.aiState = Enemy.AIMovementState.Blocked;
             enemy.sightRange = 150;
             enemy.health.OnDeath += OnEnemyDeath;
-            roomController.AddEnemy(enemy.gameObject);
+            roomController.AddEnemy(enemy);
         }
     }
     /// <summary>
@@ -133,7 +132,7 @@ public class EnemySpawner : MonoBehaviour
         // we will stop the ai to make the enemy jumping down from the stands
         enemy.aiState = Enemy.AIMovementState.Blocked;
         // Set settings for the enemy so they go to the player
-        roomController.AddEnemy(enemy.gameObject);
+        roomController.AddEnemy(enemy);
         StartCoroutine(HandleJumpDown(enemy, index, false));
     }
     /// <summary>
@@ -165,7 +164,7 @@ public class EnemySpawner : MonoBehaviour
         // To make the goblin that jumps down to see the player
         enemy.sightRange = 150;
         enemy.health.OnDeath += OnEnemyDeath;
-        roomController.AddEnemy(enemy.gameObject);
+        roomController.AddEnemy(enemy);
         StartCoroutine(HandleJumpDown(enemy, index));
     }
     /// <summary>
@@ -208,9 +207,9 @@ public class EnemySpawner : MonoBehaviour
     private void OnDestroy()
     {
         if (roomController == null) return;
-        foreach (GameObject enemy in roomController.roomEnemies)
+        foreach (Enemy enemy in roomController.roomEnemies)
         {
-            enemy.GetComponent<Enemy>().health.OnDeath -= OnEnemyDeath;
+            enemy.health.OnDeath -= OnEnemyDeath;
         }
     }
 
@@ -221,9 +220,9 @@ public class EnemySpawner : MonoBehaviour
     {
         if (roomController == null) return;
         // Set all the enimies to patrolling (This is only for the enimies that are spawned on start)
-        foreach (GameObject enemy in roomController.roomEnemies)
+        foreach (Enemy enemy in roomController.roomEnemies)
         {
-            enemy.GetComponent<Enemy>().aiState = Enemy.AIMovementState.Patrolling;
+            enemy.aiState = Enemy.AIMovementState.Patrolling;
         }
     }
 }

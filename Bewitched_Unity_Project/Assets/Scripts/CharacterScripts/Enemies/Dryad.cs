@@ -25,9 +25,6 @@ public class Dryad : Enemy
     [Tooltip("Spore cloud hitbox prefab "), ShowIf(nameof(dev))]
     [SerializeField] private GameObject sporeHitboxPrefab;
 
-    [Tooltip("How long does the spore hitbox live before it destroys itself")]
-    [SerializeField] private float sporeDuration = 0.5f;
-
     [Tooltip("Damage dealt by spore")]
     [SerializeField] private float sporeDamage = 0.5f;
 
@@ -54,11 +51,13 @@ public class Dryad : Enemy
     [Tooltip("Low health aggro active, this will make the dryad get closer to the player to the point of the moveToTargetDistance ")]
     private float lowHealthAggroActive = 17.5f; // half of the dryad health
     [Tooltip("Dryad animator script that controls the dryad animations")]
-    // private DryadAnimator animator;
+    protected DryadAnimator dryadAnimator;
+    [SerializeField, Tooltip("If this dryad was ai controlled when it started its primary attack")]
+    bool aiControlledOnPrimary = false;
 
     void Start()
     {
-        // animator = GetComponentInChildren<DryadAnimator>();
+        dryadAnimator = GetComponentInChildren<DryadAnimator>();
         SetPlayerInfo();
         health.SetHealthToMax();
         SetBaseStats();
@@ -92,8 +91,6 @@ public class Dryad : Enemy
         SetBehavior();
 
         SetDebugString();
-        //if (!playerControlling) Debug.Log(debugAIInfo);
-
 
         base.FixedUpdate();
     }
@@ -117,6 +114,7 @@ public class Dryad : Enemy
         attackingPrimary = true;
         attackStateCoroutine = StartCoroutine(ThrowDart(lockedCharacter));
     }
+
     [ContextMenu("Call me 1")]
     public void CallMe()
     {
@@ -138,21 +136,20 @@ public class Dryad : Enemy
         {
             if (playerControlling)
             {
-                if (currentPrimaryComboStep == -1)
+                if( (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
-
                     health.SubHealth(primaryAttackCost);
 
-                    // currentPrimaryComboStep += 1;
-                    // if (currentPrimaryComboStep >= primaryComboSteps)
-                    // {
-                    //     currentPrimaryComboStep = 0;
-                    // }
+                    currentPrimaryComboStep += 1;
+                    if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
 
                     timeLastPrimary = Time.time;
 
-                    // characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
-                    // yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
+                    dryadAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
+                    yield return StartCoroutine(dryadAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
                 }
             }
@@ -160,18 +157,19 @@ public class Dryad : Enemy
             {
                 if (!attackingPrimary)
                 {
+                    aiControlledOnPrimary = true;
                     attackingPrimary = true;
-                    currentPrimaryComboStep = -1;
+                    currentPrimaryComboStep = 0;
                     timeLastPrimary = Time.time;
-                    // characterAnimator.SwitchState("PrimaryAttack", 0);
-                    // yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", 0));
+                    dryadAnimator.SwitchState("PrimaryAttack", 0);
+                    yield return StartCoroutine(dryadAnimator.WaitForDelay("PrimaryAttack", 0));
                     PrimaryAttack();
                 }
             }
-
         }
         yield return null;
     }
+
     /// <summary>
     /// Checks if the secondary attack is usable
     /// The secondary attack is only usable if the player is within the SurroundingRadiusSporeCloud
@@ -189,6 +187,22 @@ public class Dryad : Enemy
         if ((!playerControlling) && (dist > (max) || dist < (min))) return false;
         return true;
     }
+
+    public override IEnumerator BeginSecondary()
+    {
+        dryadAnimator.SwitchState("SecondaryAttack");
+        yield return StartCoroutine(dryadAnimator.WaitForDelay("SecondaryAttack", 0));
+        if (gameObject)
+        {
+            if (PlayerController.instance.currentCharacter == this)
+            {
+                health.SubHealth(secondaryAttackCost);
+            }
+            SecondaryAttack();
+
+        }
+    }
+
     /// <summary>
     /// Starts the secondary attack for the dryad
     /// </summary>
@@ -218,6 +232,7 @@ public class Dryad : Enemy
         timeLastSecondary = Time.time;
         attackStateCoroutine = StartCoroutine(SporeCloud(lockedCharacter));
     }
+
     /// <summary>
     /// Handles the spore cloud attack, it will start by waiting for the windup time
     /// it will rotate to face the target and then start the attack
@@ -254,11 +269,11 @@ public class Dryad : Enemy
         DefaultHitbox hitBox = sporeObj.GetComponentInChildren<DefaultHitbox>();
         if (hitBox != null)
         {
-            hitBox.Init(this, dmg: sporeDamage, slamDMG: 0f, forwardVelocity: 0f, rotationalVelocity: 0f, status: sporeEffect, attackDuration: sporeDuration);
+            hitBox.Init(this, dmg: sporeDamage, slamDMG: 0f, forwardVelocity: 0f, rotationalVelocity: 0f, status: sporeEffect, attackDuration: 1.3f / dryadAnimator.GetSecondaryWindupMult());
         }
 
         float startedTime = Time.time;
-        while (Time.time - startedTime < sporeDuration)
+        while (Time.time - startedTime < 1.3f / dryadAnimator.GetSecondaryWindupMult())
         {
             SetMovementValues(false);
             yield return null;
@@ -281,10 +296,10 @@ public class Dryad : Enemy
         aiState = AIMovementState.Retreating;
         attackStateCoroutine = null;
         timeLastSecondary = Time.time;
+        dryadAnimator.SetSecondaryAttackEnded();
 
         SurroundingPoints.instance.RemoveAttackingEnemy(this);
     }
-
 
     /// <summary>
     /// Handle the dart throwing attack 
@@ -342,6 +357,7 @@ public class Dryad : Enemy
             CameraController.instance.OnAttack(dir, 0.15f);
         }
 
+
         SetMovementValues(true);
 
         if (tempLockedCharacter)
@@ -352,7 +368,23 @@ public class Dryad : Enemy
                 enemy.SetTargeted(false);
             }
         }
+
+        if (aiControlledOnPrimary)
+        {
+            if (!hitCharacter) // If missed, vulnerable for half a second
+            {
+                float timeStart = Time.time;
+                while (Time.time - timeStart > 0.1f)
+                {
+                    SetMovementValues(false);
+                    yield return null;
+                }
+            }
+            dryadAnimator.EndPrimary();
+        }
+
         attackingPrimary = false;
+        aiControlledOnPrimary = false;
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
         aiState = AIMovementState.Surrounding;  
@@ -450,20 +482,16 @@ public class Dryad : Enemy
             StartCoroutine(FindPath());
         }
 
-
         if (LookForPlayer())
         {
-            // Debug.Log("Spotted player");
             StartCoroutine(SpotPlayer());
             return;
         }
 
         if (pathState == PathState.Set)
         {
-            // Debug.Log(Vector3.Distance(currentPath.GetDestinationPosition(gameObject), transform.position));
             if (currentPath.ReachedDestination(this)) // If we are within stopping range
             {
-                // Debug.Log("Reached");
                 pathState = PathState.Unset;
             }
 
@@ -600,21 +628,6 @@ public class Dryad : Enemy
 
         lookAtPlayer = true;
         AILook();
-    }
-    
-    public override IEnumerator BeginSecondary()
-    {
-        // dryadAnimator.SwitchState("SecondaryAttack");
-        yield return StartCoroutine(characterAnimator.WaitForDelay("SecondaryAttack", 0));
-        if (gameObject)
-        {
-            if (PlayerController.instance.currentCharacter == this)
-            {
-                health.SubHealth(secondaryAttackCost);
-            }
-            SecondaryAttack();
-
-        }
     }
 
     /// <summary>
