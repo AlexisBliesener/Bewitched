@@ -27,7 +27,7 @@ public class HealthController : MonoBehaviour
     /// <summary>Current health value.</summary>
     public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
-    public bool IsDead => CurrentHealth <= 0f;
+    public bool IsDead = false;
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
 
@@ -65,22 +65,24 @@ public class HealthController : MonoBehaviour
     }
 
 
-    private void Update()
+    protected void Update()
     {
+        if (!IsDead && CurrentHealth <= 0f && (PlayerController.instance.currentCharacter == PlayerController.instance.oldHag || PlayerController.instance.currentCharacter != GetComponent<Character>()))
+        {
+            if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag == GetComponent<Character>())
+            {
+                StartCoroutine(PossessionAbility.instance.RespawnEleth());
+            }
+            IsDead = true;
+            OnDeath?.Invoke(gameObject);
+        }
+
         // If we don't auto update or already dead, skip!
         if (!updateOnModel || IsDead) return;
+
         if (decayRate > 0f)
         {
-            float old = CurrentHealth;
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - ( maxHealth * decayRate * 0.01f * Time.deltaTime));
-            if (CurrentHealth != old)
-            {
-                NotifyHealthChanged();
-                if (IsDead)
-                {
-                    OnDeath?.Invoke(gameObject);
-                }
-            }
+            DrainLife((maxHealth * decayRate * 0.01f * Time.deltaTime));
         }
     }
 
@@ -116,10 +118,17 @@ public class HealthController : MonoBehaviour
     public virtual void SubHealth(float amt)
     {
         if (IsDead || amt <= 0f || invincible) return;
+
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+        if (CurrentHealth  == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.SubHealth(amt - old);
+        }
+
         // Apply vampirism upgrade
+
         if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetComponent<Character>())
         {
             if (Vampirism.instance != null)
@@ -156,9 +165,15 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+        if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.DrainLife(amt - old);
+        }
+
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
     /// <summary>
     /// Heal the character.
     /// </summary>
