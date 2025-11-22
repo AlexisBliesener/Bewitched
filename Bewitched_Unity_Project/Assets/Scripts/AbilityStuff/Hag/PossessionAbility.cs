@@ -87,6 +87,8 @@ public class PossessionAbility : MonoBehaviour
     [Header("Dodge Counter")]
     [SerializeField, Tooltip("The distance the player will dodge backwards when using dodge")]
     private float dodgeDistance = 4f;
+    [SerializeField, Tooltip("How long to lock countering for if the player missess the counter window")]
+    private float counterLockDuration = 0.3f;
     [SerializeField, Tooltip("The layer that the enviornment objects are in")]
     private LayerMask environmentLayer;
 
@@ -121,6 +123,10 @@ public class PossessionAbility : MonoBehaviour
     private bool canLeavePossession = true;
     [Tooltip("This enemy overrides all countering possession needs, used for event enemies so they get possessed first")]
     private Enemy possessionOverride = null;
+    [Tooltip("True if countering is locked (can not be used)")]
+    private bool counterLocked = false;
+    [Tooltip("The time counter was locked at")]
+    private float timeCounterLocked = 0;
 
     #region Saving/Loading
     /// <summary>
@@ -268,6 +274,11 @@ public class PossessionAbility : MonoBehaviour
         UpdateCrossHair();
         UpdateTargetVFX();
 
+        if(counterLocked && Time.time - timeCounterLocked > counterLockDuration)
+        {
+           counterLocked = false; 
+        }
+
         if(currentCharacter != eleth)
         {
             if (currentSmokeVFX != null)
@@ -344,11 +355,24 @@ public class PossessionAbility : MonoBehaviour
         counteringEnemy = PlayerController.instance.GetCounterAvailable();
         if (counteringEnemy != null)
         {
-            StartCoroutine(Dodge(counteringEnemy.transform.forward));
+            if(!counterLocked)
+            {
+                StartCoroutine(Dodge(counteringEnemy.transform.forward));
+            }
         }
         else if(currentCharacter != eleth)
         {
-            StartCoroutine(Dodge(-currentCharacter.transform.forward));
+            if(!counterLocked)
+            {
+                StartCoroutine(Dodge(-currentCharacter.transform.forward));
+            }
+            counterLocked = true;
+            timeCounterLocked = Time.time;
+        }
+        else
+        {
+            counterLocked = true;
+            timeCounterLocked = Time.time;
         }
     }
 
