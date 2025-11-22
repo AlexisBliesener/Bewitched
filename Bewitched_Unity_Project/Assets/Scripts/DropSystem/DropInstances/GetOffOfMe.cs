@@ -1,12 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
-/// Handles the "mew" upgrade,
-/// increasing damage dealt to enemies when swapping to them 
+/// Handles the "Get Off of Me" upgrade,
+/// All knockback effects are increased (Knockback effects are continually multiplied)
 /// </summary>
 public class GetOffOfMe : MonoBehaviour, IDrop
 {
@@ -18,8 +15,8 @@ public class GetOffOfMe : MonoBehaviour, IDrop
     [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
 
-    [SerializeField, Tooltip("The damage multiplier per stack when swapping enemies")]
-    private float[] knockBackMultiplier = { 1.25f, 1.5f, 1.75f };
+    [SerializeField, Tooltip("The knockback multiplier per stack when swapping enemies")]
+    private float[] knockbackMultiplier = { 1.25f, 1.5f, 1.75f };
     [Tooltip("Whether the effect is currently active")]
     private bool active = false;
 
@@ -115,10 +112,10 @@ public class GetOffOfMe : MonoBehaviour, IDrop
         if (!active) return baseKnockback;
     
         // if the stack is greater than the length of the array, fall back to the last multiplier
-        if (stackNum >= knockBackMultiplier.Length) 
-            return baseKnockback * knockBackMultiplier[knockBackMultiplier.Length - 1];
+        if (stackNum >= knockbackMultiplier.Length) 
+            return baseKnockback * knockbackMultiplier[knockbackMultiplier.Length - 1];
 
         // otherwise, return the multiplier at the current stack
-        return baseKnockback * knockBackMultiplier[stackNum];
+        return baseKnockback * knockbackMultiplier[stackNum];
     }
 }
