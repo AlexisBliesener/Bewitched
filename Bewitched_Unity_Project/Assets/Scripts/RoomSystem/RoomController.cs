@@ -153,7 +153,8 @@ public class RoomController : MonoBehaviour
         {
             if (IsPlayerOutOfRoom())
             {
-                KillEnemyOnLeave();
+                // I know you guys doing testing so I just commented this out for now so strider can test the changes you did
+                // KillEnemyOnLeave();
                 lastEnemyKilled = true;
                 ClearRoom();
             }
