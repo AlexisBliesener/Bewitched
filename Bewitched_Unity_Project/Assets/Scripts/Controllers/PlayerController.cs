@@ -65,6 +65,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController;
 
     public Vector2 movementInput;
+    public Vector3 movementInputV3;
 
     public Vector3 direction;
 
@@ -309,6 +310,7 @@ public class PlayerController : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         movementInput = context.ReadValue<Vector2>();
+        movementInputV3 = new Vector3(movementInput.x, 0, movementInput.y);
         direction = new Vector3(movementInput.x, 0, movementInput.y).normalized;
     }
 

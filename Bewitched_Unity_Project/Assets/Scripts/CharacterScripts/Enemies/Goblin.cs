@@ -422,15 +422,27 @@ public class Goblin : Enemy
 
         RaycastHit hitInfo;
         Vector3 moveDist;
-        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, PlayerController.instance.currentCharacter.transform.forward, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        Vector3 direction;
+        if (PlayerController.instance.movementInputV3 != Vector3.zero)
         {
-            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+            direction = Camera.main.transform.TransformVector(PlayerController.instance.movementInputV3);
         }
         else
         {
-            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * nonLockPrimaryMovement);
+            direction = PlayerController.instance.currentCharacter.transform.forward;
+        }
+            
+        direction.y = 0f; // Prevent tilting
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, direction, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (direction.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (direction.normalized * nonLockPrimaryMovement);
         }
         transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
