@@ -251,6 +251,10 @@ public class DropSystem : MonoBehaviour
                     Debug.LogWarning("The swap upgrade UI is null!");
                 }
             }
+            if (!isNewUnique)
+            {
+                drop.IncreaseStack();
+            }
             HUDManager.Instance.AddUpgrade(drop);
         }
         else
@@ -330,6 +334,7 @@ public class DropSystem : MonoBehaviour
         {
             if (playerUpgrades[i].GetID() == drop.GetID())
             {
+                playerUpgrades[i].DecreaseStack();
                 playerUpgrades[i].Deactivate();
             }
         }
