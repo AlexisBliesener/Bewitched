@@ -118,6 +118,9 @@ public abstract class Enemy : Character
 
     protected bool overrideBlock = false;
 
+    [SerializeField]
+    protected float nonLockPrimaryMovement;
+
     public enum PathState
     {
         Unset,
@@ -482,7 +485,7 @@ public abstract class Enemy : Character
         float distToChar = (currentPlayer.transform.position - transform.position).magnitude;
         if (currentInSightRange)
         {
-            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environment))
+            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environmentLayer))
             {
                 currentInSightRange = false;
             }
@@ -653,7 +656,7 @@ public abstract class Enemy : Character
     public bool CheckCharacterBehindEnvironment(Transform pos)
     {
         float dist = (pos.position - transform.position).magnitude;
-        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environment))
+        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environmentLayer))
         {
             return false;
         }

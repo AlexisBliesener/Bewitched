@@ -263,7 +263,7 @@ public class Ogre : Enemy
             float buffer = sizeRadius + 1;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
                 Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
@@ -355,6 +355,18 @@ public class Ogre : Enemy
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
+
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, PlayerController.instance.currentCharacter.transform.forward, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {

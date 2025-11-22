@@ -263,7 +263,7 @@ public class Goblin : Enemy
             float buffer = sizeRadius + offSetForward;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
                 // Move just before environment hit point
                 targetPos = hit.point - direction * buffer;
@@ -293,7 +293,7 @@ public class Goblin : Enemy
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 RaycastHit rayHit;
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environment | characters))
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environmentLayer | characters))
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     goblinAnimator.ExitLeap();
@@ -401,6 +401,7 @@ public class Goblin : Enemy
         yield break;
     }
 
+
     /// <summary>
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
@@ -419,19 +420,23 @@ public class Goblin : Enemy
            CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
         }
 
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, PlayerController.instance.currentCharacter.transform.forward, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             yield return null;
-        }
-
-        if (!playerControlling)
-        {
-            if (!hitCharacter) // If missed, vulnerable for half a second
-            {
-                yield return new WaitForSeconds(0.5f);
-            }
         }
 
         SetMovementValues(true);
@@ -662,7 +667,7 @@ public class Goblin : Enemy
 
             // Check for impact before moving and adjust as needed
             RaycastHit hit;
-            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
+            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environmentLayer))
             {
                 if(!cameraRotationStopped)
                 {

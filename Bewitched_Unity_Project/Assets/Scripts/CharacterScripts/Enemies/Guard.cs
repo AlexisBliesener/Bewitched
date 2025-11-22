@@ -340,7 +340,7 @@ public class Guard : Enemy
             float buffer = sizeRadius + 0.5f;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
                 Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
@@ -504,6 +504,18 @@ public class Guard : Enemy
         {
             CameraController.instance.OnAttack(transform.forward, 0.01f);
         }
+
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, PlayerController.instance.currentCharacter.transform.forward, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (PlayerController.instance.currentCharacter.transform.forward.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         float hitboxStartTime = Time.time;
 
