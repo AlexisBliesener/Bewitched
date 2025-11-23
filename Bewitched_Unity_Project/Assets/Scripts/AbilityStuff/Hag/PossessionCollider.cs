@@ -5,26 +5,16 @@ using UnityEngine;
 /// Tracks characters that enter or exit the possession collider area.
 /// Used to determine which characters can be possessed by the player.
 /// </summary>
-[RequireComponent(typeof(Collider))]
 public class PossessionCollider : MonoBehaviour
 {
     [Tooltip("List of characters currently inside the possession collider, excluding the player.")]
     private List<Character> charactersInPossession = new List<Character>();
     [SerializeField, Tooltip("The current character that is being controlled")]
     private Character currentCharacter;
-    [Tooltip("The collider component of the possession collider")]
-    private Collider colliderComponent;
-
-    private void Awake()
-    {
-        colliderComponent = GetComponent<Collider>();
-    }
-
-    public Collider GetColliderComponent()
-    {
-        return colliderComponent;
-    }
-
+    /// <summary>
+    /// Sets the collider radius of the PossessionCollider to use it in OntriggerEnter and OnTriggerExit.
+    /// </summary>
+    /// <param name="currentPossesionDistance">The current possession distance.</param>
     public void SetColliderRadius(float currentPossesionDistance)
     {
         Vector3 newScale = transform.localScale;

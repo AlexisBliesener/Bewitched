@@ -814,16 +814,29 @@ public class PossessionAbility : MonoBehaviour
         timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
     }
 
+    /// <summary>
+    /// Gets the starting possession distance
+    /// </summary>
+    /// <returns>The starting possession distance</returns>
     public float GetStartingPossessionDistance()
     {
         return startingPossessionDistance;
     }
 
+    /// <summary>
+    /// Gets the ending possession distance
+    /// </summary>
+    /// <returns>The ending possession distance</returns>
     public float GetEndingPossessionDistance()
     {
         return endingPossesionDistance;
     }
 
+    /// <summary>
+    /// Sets the starting and ending possession distances and updates the collider radius
+    /// </summary>
+    /// <param name="starting">The starting distance</param>
+    /// <param name="ending">The ending distance</param>
     public void SetPossessionDistance(float starting, float ending)
     {
         startingPossessionDistance = starting;

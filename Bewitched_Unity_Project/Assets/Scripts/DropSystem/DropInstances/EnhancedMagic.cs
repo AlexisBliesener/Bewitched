@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEngine;
 /// <summary>
-/// Handles the "Clear Focus" upgrade,
+/// Handles the "Enhanced Magic" upgrade,
 /// Increase the range of the Witch's possession range by precent
 /// </summary>
 public class EnhancedMagic : MonoBehaviour, IDrop
@@ -83,7 +83,7 @@ public class EnhancedMagic : MonoBehaviour, IDrop
     }
 
     /// <summary>
-    /// Activates the Backup Plan upgrade.
+    /// Activates the Enhanced Magic upgrade.
     /// </summary>
     public void Activate(DropData dropData = null)
     {
@@ -92,7 +92,7 @@ public class EnhancedMagic : MonoBehaviour, IDrop
     }
 
     /// <summary>
-    /// Deactivates the Backup Plan upgrade, and resets the cool down time.
+    /// Deactivates the Enhanced Magic upgrade, and resets the cool down time.
     /// </summary>
     public void Deactivate()
     {
