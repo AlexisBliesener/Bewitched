@@ -56,7 +56,7 @@ public class Adrenaline : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "Adrenaline" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Adrenaline) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -82,7 +82,7 @@ public class Adrenaline : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "Adrenaline" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Adrenaline) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -219,9 +219,9 @@ public class Adrenaline : MonoBehaviour, IDrop
     /// <returns>The modified damage</returns>
     public float GetModifiedDamage(float baseDamage)
     {
-        if (buffActive && stackNum < damageMultiplier.Length)
+        if (buffActive)
         {
-            return baseDamage * damageMultiplier[stackNum];
+            return baseDamage * damageMultiplier[GetStackIndex()];
         }
         return baseDamage;
     }
@@ -233,5 +233,12 @@ public class Adrenaline : MonoBehaviour, IDrop
     {
         return buffActive;
     }
-
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, damageMultiplier.Length - 1);
+    }
 }

@@ -1,23 +1,22 @@
 using System.IO;
 using UnityEngine;
-
 /// <summary>
-/// Handles the "Clear Focus" upgrade,
-/// decreasing the time taken to focus the possession cone.
+/// Handles the "Enhanced Magic" upgrade,
+/// Increase the range of the Witch's possession range by precent
 /// </summary>
-public class ClearFocus : MonoBehaviour, IDrop
+public class EnhancedMagic : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
-
-    [Tooltip("The amount of stacks this upgrade has.")]
+    [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
+    [SerializeField, Tooltip("The percent of increase in range for each stack"), Range(0, 100)]
+    private float[] perStackPercent = { 15f, 30f, 45f };
+    [Tooltip("The base start range of the eleth's possession range this from possession class")]
+    private float baseStartDistancePossession;
+    [Tooltip("The base end range of the eleth's possession range this from possession class")]
+    private float baseEndDistancePossession;
 
-    [Header("Focus Settings")]
-    [SerializeField, Tooltip("Base reduction multiplier for focus time per stack")]
-    private float[] focusTimeReduction = { 0.9f }; 
-    [Tooltip("The base focus time for possession")]
-    private float baseFocusTime;
-    [Tooltip("Whether the upgrade effect is currently active.")]
+    [Tooltip("Whether the effect is currently active")]
     private bool active = false;
 
     #region Saving/Loading
@@ -35,7 +34,7 @@ public class ClearFocus : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(EnhancedMagic) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -61,7 +60,7 @@ public class ClearFocus : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(EnhancedMagic) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -79,11 +78,12 @@ public class ClearFocus : MonoBehaviour, IDrop
     private void Start()
     {
         if (PossessionAbility.instance == null) return;
-        baseFocusTime = PossessionAbility.instance.GetFocusTime();
+        baseStartDistancePossession = PossessionAbility.instance.GetStartingPossessionDistance();
+        baseEndDistancePossession = PossessionAbility.instance.GetEndingPossessionDistance();
     }
 
     /// <summary>
-    /// Activates the Clear Focus upgrade.
+    /// Activates the Enhanced Magic upgrade.
     /// </summary>
     public void Activate(DropData dropData = null)
     {
@@ -92,31 +92,32 @@ public class ClearFocus : MonoBehaviour, IDrop
     }
 
     /// <summary>
-    /// Deactivates the Clear Focus upgrade.
+    /// Deactivates the Enhanced Magic upgrade, and resets the cool down time.
     /// </summary>
     public void Deactivate()
     {
         active = false;
         if (PossessionAbility.instance != null)
         {
-            PossessionAbility.instance.SetFocusTime(baseFocusTime);
+            PossessionAbility.instance.SetPossessionDistance(baseStartDistancePossession, baseEndDistancePossession);
         }
-        
     }
-
     /// <summary>
-    /// Applies the focus time reduction to PossessionAbility.
+    /// Applies the cooldown reduction to PossessionAbility.
     /// </summary>
     private void ApplyUpgrade()
     {
         if (!active || PossessionAbility.instance == null) return;
-
-        float reduction = 1f;
-        for (int i = 0; i <= stackNum && i < focusTimeReduction.Length; i++)
-        {
-            reduction *= focusTimeReduction[i]; 
-        }
-
-        PossessionAbility.instance.SetFocusTime(baseFocusTime * reduction);
+        float startPossessionDistance = baseStartDistancePossession * (1 + perStackPercent[GetStackIndex()] / 100f);
+        float endPossessionDistance = baseEndDistancePossession * (1 + perStackPercent[GetStackIndex()] / 100f);
+        PossessionAbility.instance.SetPossessionDistance(startPossessionDistance, endPossessionDistance);
+    }
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, perStackPercent.Length - 1);
     }
 }
