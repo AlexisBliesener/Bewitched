@@ -34,7 +34,7 @@ public class BackupPlan : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "BackupPlan" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(BackupPlan) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -60,7 +60,7 @@ public class BackupPlan : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "BackupPlan" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(BackupPlan) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -109,6 +109,14 @@ public class BackupPlan : MonoBehaviour, IDrop
     {
         if (!active || PossessionAbility.instance == null) return;
 
-        PossessionAbility.instance.SetHitsToCharge(hitsNeeded[stackNum]);
+        PossessionAbility.instance.SetHitsToCharge(hitsNeeded[GetStackIndex()]);
+    }
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, hitsNeeded.Length - 1);
     }
 }

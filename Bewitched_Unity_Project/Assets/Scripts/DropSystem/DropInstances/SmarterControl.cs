@@ -40,7 +40,7 @@ public class SmarterControl : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "SmarterControl" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(SmarterControl) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -66,7 +66,7 @@ public class SmarterControl : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "SmarterControl" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(SmarterControl) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
