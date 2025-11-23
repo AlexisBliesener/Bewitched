@@ -5,12 +5,33 @@ using UnityEngine;
 /// Tracks characters that enter or exit the possession collider area.
 /// Used to determine which characters can be possessed by the player.
 /// </summary>
+[RequireComponent(typeof(Collider))]
 public class PossessionCollider : MonoBehaviour
 {
     [Tooltip("List of characters currently inside the possession collider, excluding the player.")]
     private List<Character> charactersInPossession = new List<Character>();
     [SerializeField, Tooltip("The current character that is being controlled")]
     private Character currentCharacter;
+    [Tooltip("The collider component of the possession collider")]
+    private Collider colliderComponent;
+
+    private void Awake()
+    {
+        colliderComponent = GetComponent<Collider>();
+    }
+
+    public Collider GetColliderComponent()
+    {
+        return colliderComponent;
+    }
+
+    public void SetColliderRadius(float currentPossesionDistance)
+    {
+        Vector3 newScale = transform.localScale;
+        newScale.x = currentPossesionDistance;
+        newScale.z = currentPossesionDistance;
+        transform.localScale = newScale;
+    }
 
     /// <summary>
     /// Used to set the currentCharacter variable
@@ -31,7 +52,7 @@ public class PossessionCollider : MonoBehaviour
         List<Character> characterToRemove = new List<Character>();
         foreach (Character character in charactersInPossession)
         {
-            // If the character is null or can't possess then remove it
+            // If the character is null then remove it
             if (character == null)
             {
                 characterToRemove.Add(character);

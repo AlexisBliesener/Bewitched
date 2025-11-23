@@ -239,6 +239,9 @@ public class PossessionAbility : MonoBehaviour
             possessionAbilitySlider.value = possessionAbilitySlider.maxValue;
             possessionAbilitySlider.onValueChanged.AddListener(OnPossessionSliderChange);
         }
+
+        // Set the collider radius to max of starting and ending
+        SetPossessionDistance(startingPossessionDistance, endingPossesionDistance);
     }
 
     private void OnDisable()
@@ -646,6 +649,10 @@ public class PossessionAbility : MonoBehaviour
                 possessionState = PossessionStates.canNotPossess;
             }
         }
+        else
+        {
+            possessionState = PossessionStates.canNotPossess;
+        }
     }
 
     /// <summary>
@@ -805,5 +812,25 @@ public class PossessionAbility : MonoBehaviour
     public void SetFocusTime(float newTime)
     {
         timeToFocus = Mathf.Max(0.1f, newTime); // never 0 or negative
+    }
+
+    public float GetStartingPossessionDistance()
+    {
+        return startingPossessionDistance;
+    }
+
+    public float GetEndingPossessionDistance()
+    {
+        return endingPossesionDistance;
+    }
+
+    public void SetPossessionDistance(float starting, float ending)
+    {
+        startingPossessionDistance = starting;
+        endingPossesionDistance = ending;
+        if (possessionCollider != null)
+        {
+            possessionCollider.SetColliderRadius(Mathf.Max(starting, ending));
+        }
     }
 }
