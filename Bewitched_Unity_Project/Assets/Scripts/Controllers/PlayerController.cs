@@ -108,7 +108,6 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        instance = this;
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         if (hagHealth != null)
         {
@@ -126,6 +125,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        instance = this;
         currentCharacter = oldHag;
 
         characterController = currentCharacter.GetComponent<CharacterController>();
