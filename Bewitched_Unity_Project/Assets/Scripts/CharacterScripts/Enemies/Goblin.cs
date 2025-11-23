@@ -142,7 +142,7 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
-                currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
+                //currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
