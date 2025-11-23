@@ -118,6 +118,6 @@ public class EnhancedMagic : MonoBehaviour, IDrop
     /// <returns>The index of the stack</returns>
     private int GetStackIndex()
     {
-        return Mathf.Clamp(stackNum, 0, damageMultiplier.Length - 1);
+        return Mathf.Clamp(stackNum, 0, perStackPercent.Length - 1);
     }
 }
