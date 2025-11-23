@@ -153,7 +153,7 @@ public class Hag : Character
         AudioManager.TryPlaySnapshot("GameOver");
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
-        StartCoroutine(FadeToBlack(15f));
+        StartCoroutine(FadeToBlack(13f));
         //Wait until the sound effect is over before returning to the main menu
         Invoke("Die", 12f);
         if (hitStunActual != null) Destroy(hitStunActual);
