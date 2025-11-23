@@ -15,7 +15,7 @@ public class GlassCannon : MonoBehaviour, IDrop
     private float[] decreaseHealthPercent = { 50f, 75f, 87.5f };
     [SerializeField, Tooltip("The percent of increase in damage for each stack"), Range(0, 500)]
     private float[] increaseDamagePercent = { 100f, 200f, 300f };
-    [SerializeField, Tooltip("Eleth reference")]
+    [Tooltip("Eleth reference")]
     private Hag eleth;
 
     [Tooltip("Whether the effect is currently active")]
