@@ -61,7 +61,7 @@ public class GrandFinale : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "GrandFinale" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GrandFinale) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -87,7 +87,7 @@ public class GrandFinale : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "GrandFinale" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GrandFinale) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -155,6 +155,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     public void Explode(float timePossessing, bool explodePlayer)
     {
         if (lastExplodedCharater == PlayerController.instance.currentCharacter) return;
+        int stackNum = Mathf.Clamp(this.stackNum, 0, enemyExplosionTime.Length - 1);
         if (explodePlayer)
         {
             ExplodePlayer();
@@ -182,7 +183,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     private void ExplodeEnemy()
     {
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
-
+        int stackNum = Mathf.Clamp(this.stackNum, 0, explosionRadiusMin.Length - 1);
         float radius = Mathf.Lerp(
             explosionRadiusMax[stackNum],
             explosionRadiusMin[stackNum],
@@ -238,6 +239,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// </summary>
     private void ExplodePlayer()
     {
+        int stackNum = Mathf.Clamp(this.stackNum, 0, playerExplodeDamage.Length - 1);
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
         PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[stackNum]);
     }

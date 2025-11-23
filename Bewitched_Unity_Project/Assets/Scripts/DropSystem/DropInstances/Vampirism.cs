@@ -36,7 +36,7 @@ public class Vampirism : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "Vampirism" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -62,7 +62,7 @@ public class Vampirism : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "Vampirism" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -109,6 +109,7 @@ public class Vampirism : MonoBehaviour, IDrop
         {
             if (PlayerController.instance != null)
             {
+                int stackNum = Mathf.Clamp(this.stackNum, 0, percentHeal.Length - 1); 
                 PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[stackNum]);
             }
             else
