@@ -42,6 +42,9 @@ public class HealthController : MonoBehaviour
     // <summary> Get current character.</summary>
     private Character currentCharacter;
 
+    private float timeEnemyHealthRanOut = -1;
+
+
     /// Timestamp of last received damage (set by this controller)
     public float TimeLastHit { get; private set; } = -Mathf.Infinity;
     [Tooltip("Called when the character's health changes, it will pass the current health and max health")]
@@ -160,14 +163,22 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public void DrainLife(float amt)
     {
-
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
         if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
         {
-            PlayerController.instance.oldHag.health.DrainLife(amt - old);
+            if (timeEnemyHealthRanOut == -1f)
+            {
+                Debug.Log("GRACE " + Time.time);
+                timeEnemyHealthRanOut = Time.time;
+            }
+            else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
+            {
+                Debug.Log("DRAINING PLAYER " + Time.time);
+                PlayerController.instance.oldHag.health.DrainLife(amt - old);
+            }
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();

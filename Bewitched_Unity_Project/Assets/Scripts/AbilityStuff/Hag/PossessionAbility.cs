@@ -24,6 +24,8 @@ public class PossessionAbility : MonoBehaviour
     private const string FILE_ENDING = ".json";
 
     [Header("Possession Settings")]
+    [SerializeField, Tooltip("The grace period eleth will get in a 'dead' enemy before she starts taking possession drain damage")]
+    private float possessionDrainGracePeriod = 0.5f;
     [SerializeField, Tooltip("Maximum distance from the camera where possession is possible.")]
     protected float maxPossessionDistance;
     [SerializeField, Tooltip("Layer mask used to check valid possession targets.")]
@@ -216,6 +218,16 @@ public class PossessionAbility : MonoBehaviour
     public void SetPossessionOverride(Enemy enemy)
     {
         possessionOverride = enemy;
+    }
+
+    /// <summary>
+    /// Returns the possession drain grace period.
+    /// The grace period eleth will get in a 'dead' enemy before she starts taking possession drain damage
+    /// </summary>
+    /// <returns>The possession drain grace period</returns>
+    public float GetPossessionDrainGracePeriod()
+    {
+        return possessionDrainGracePeriod;
     }
 
     private void Awake()

@@ -365,8 +365,10 @@ MonoBehaviour:
   inFrontWeight: 50
   pauseMenu: {fileID: 0}
   interactUI: {fileID: 0}
+  narrativePanel: {fileID: 0}
   exitDoor: {fileID: 0}
   movementInput: {x: 0, y: 0}
+  movementInputV3: {x: 0, y: 0, z: 0}
   direction: {x: 0, y: 0, z: 0}
 --- !u!114 &3751507528405304438
 MonoBehaviour:
@@ -396,6 +398,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 962c00d601d43da4da1959ad750da17b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  possessionDrainGracePeriod: 0.5
   maxPossessionDistance: 10
   possessionMask:
     serializedVersion: 2
@@ -421,6 +424,7 @@ MonoBehaviour:
   hitsToCharge: 3
   possessionChargeTime: 1.5
   dodgeDistance: 4
+  counterLockDuration: 0.3
   environmentLayer:
     serializedVersion: 2
     m_Bits: 256
