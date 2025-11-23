@@ -410,7 +410,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
-        if (PlayerController.instance.currentCharacter == this) Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
+        //if (PlayerController.instance.currentCharacter == this) Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
         if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
