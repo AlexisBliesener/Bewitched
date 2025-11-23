@@ -50,7 +50,7 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "ShieldingSpirits" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(ShieldingSpirits) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -76,7 +76,7 @@ public class ShieldingSpirits : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "ShieldingSpirits" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(ShieldingSpirits) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
