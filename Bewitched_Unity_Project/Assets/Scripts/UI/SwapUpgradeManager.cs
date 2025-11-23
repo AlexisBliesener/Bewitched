@@ -260,13 +260,19 @@ public class SwapUpgradeManager : MonoBehaviour
                     DropSystem.Instance.SellUpgrade(upgrade, false);
                 }
 
-                DropSystem.Instance.playerUpgrades.Add(newUpgrade);
-                HUDManager.Instance.AddUpgrade(newUpgrade);
+                DropSystem.Instance.SelectDropsOption(newUpgrade);
+                HUDManager.Instance.RefreshHUD();
                 DropSystem.Instance.pendingSwap = null;
                 UpdateSwappableUpgrades();
                 CloseScreen();
-                ShopManager.Instance.UpdateSellOptions();
-
+                if (ShopManager.Instance != null)
+                {
+                    ShopManager.Instance.UpdateSellOptions();
+                }
+                else
+                {
+                    Debug.LogWarning("ShopManager instance is null.");
+                }
             });
 
             EventTrigger trigger = button.GetComponent<EventTrigger>();

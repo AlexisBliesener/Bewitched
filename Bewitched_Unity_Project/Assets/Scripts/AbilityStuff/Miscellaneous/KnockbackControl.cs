@@ -19,8 +19,13 @@ public class KnockbackControl : MonoBehaviour
     // call this function to add an impact force:
     public void AddImpact(Vector3 direction, float force)
     {
+        float finalForce = force;
+        if (GetOffOfMe.instance != null)
+        {
+            finalForce = GetOffOfMe.instance.GetModifiedKnockback(force); // if the GetOffOfMe upgrade is not active, it will return the base knockback (force)
+        }
         direction.Normalize();
-        impact += new Vector3(direction.x, 0, direction.z) * force / mass;
+        impact += new Vector3(direction.x, 0, direction.z) * finalForce / mass;
         gettingKnockback = true;
     }
 
