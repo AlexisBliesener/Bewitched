@@ -112,7 +112,6 @@ public class OffGuard : MonoBehaviour, IDrop
     public float GetModifiedDamage(float baseDamage)
     {
         if (!active) return baseDamage;
-        Debug.Log("MEEEEW base damage : " + baseDamage * ( 1 + damagePercentPerStack[GetStackIndex()] / 100f));
         return baseDamage * ( 1 + damagePercentPerStack[GetStackIndex()] / 100f);
     }
     /// <summary>
@@ -123,7 +122,6 @@ public class OffGuard : MonoBehaviour, IDrop
     public float GetModifiedStunDuration(float baseStunDuration)
     {
         if (!active) return baseStunDuration;
-        Debug.Log("MEEEEW stun duration: " +  baseStunDuration * (1 + stunDurationPercentPerStack[GetStackIndex()] / 100f));
         return baseStunDuration * (1 + stunDurationPercentPerStack[GetStackIndex()] / 100f);
     }
     /// <summary>
