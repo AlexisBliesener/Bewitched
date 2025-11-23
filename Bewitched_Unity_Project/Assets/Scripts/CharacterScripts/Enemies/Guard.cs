@@ -12,7 +12,7 @@ public class Guard : Enemy
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
     [Tooltip("Thrust Speed")]
-    [SerializeField] float thrustSpeed = 10;
+    [SerializeField] float thrustSpeed = 20;
     [Tooltip("Lance Handle Damage")]
     [SerializeField] float lanceHandleDamage = 20;
     [Tooltip("Lance Tip Damage")]
@@ -34,6 +34,8 @@ public class Guard : Enemy
     [SerializeField] float aiShieldAngleThreshold = 20;
     [Tooltip("AI Time delay before shield drops")]
     [SerializeField] float aiShieldDropDelay = 0.5f;
+    [Tooltip("Shield knockback value")]
+    [SerializeField] float shieldKnockbackAmount = 8;
 
     private float timeLastValidShield = 0;
 
@@ -342,7 +344,7 @@ public class Guard : Enemy
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                Debug.Log(hit.collider.gameObject);
+                //Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
                 targetPos = hit.point - direction * buffer;
             }
@@ -586,6 +588,7 @@ public class Guard : Enemy
             shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
             shieldStatus = ShieldStatus.Raised;
             timeLastValidShield = Time.time;
+            shieldObject.GetComponent<ShieldHitbox>().SetKnockbackAmount(shieldKnockbackAmount);
         }
     }
 
