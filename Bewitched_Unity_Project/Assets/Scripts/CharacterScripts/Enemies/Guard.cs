@@ -60,7 +60,6 @@ public class Guard : Enemy
     [Tooltip("Editor gameobjects for visually moving points")]
     private List<GameObject> patrolObjs = new List<GameObject>();
 
-    private bool inPrimaryWindup = false;
     private Vector3 targetPos;
 
     private GameObject shieldObject;
@@ -224,6 +223,7 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
+                currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
@@ -947,6 +947,7 @@ public class Guard : Enemy
                 SetMovementValues(false);
                 yield return null;
             }
+            inPrimaryWindup = false;
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
             {
                 attackingPrimary = false;

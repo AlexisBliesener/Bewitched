@@ -86,8 +86,6 @@ public class Goblin : Enemy
     private GoblinAnimator goblinAnimator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
-    [Tooltip("Is this goblin is currently in the windup animation")]
-    private bool inPrimaryWindup = false;
     [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
     bool aiControlledOnPrimary = false;
 
@@ -125,7 +123,7 @@ public class Goblin : Enemy
         currentPlayer = playerController.GetCurrentCharacter();
 
         SetDebugString();
-        if (playerControlling) Debug.Log(debugAIInfo);
+        //if (playerControlling) Debug.Log(debugAIInfo);
 
         SetAIState();
 
@@ -144,6 +142,7 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
+                currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
@@ -193,14 +192,17 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
+            tempLockedChar = PlayerController.instance.GetLockedTarget();
             aiControlledOnPrimary = false;
             if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
+                //Debug.Log("Player approach");
                 inPrimaryWindup = true;
                 attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
             }
             else
             {
+                //Debug.Log("Just stab");
                 attackStateCoroutine = StartCoroutine(HandleStab(tempLockedChar));
             }
         }
@@ -238,11 +240,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
-        {
-            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-
+        //if (playerControlling) Debug.Log("Windup Ended");
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
@@ -264,7 +262,7 @@ public class Goblin : Enemy
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
             {
-                Debug.Log(hit.collider.gameObject);
+                //Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
                 targetPos = hit.point - direction * buffer;
             }
@@ -288,6 +286,8 @@ public class Goblin : Enemy
                     CameraController.instance.OnAttack(this.gameObject.transform.forward, chaseTime * dis);
                 }
             }
+
+            //if (playerControlling) Debug.Log("Chase time: " + (chaseTime * dis));
 
             inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
@@ -326,6 +326,7 @@ public class Goblin : Enemy
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
                 }
+                //if (playerControlling) Debug.Log("Chasing: " + (Time.time - timeStarted));
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
                 yield return null;
@@ -338,11 +339,17 @@ public class Goblin : Enemy
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
+        else
+        {
+            Debug.Log("No locked target");
+            inPrimaryWindup = false;
+        }
 
         if (counterIndicatorVFX != null)
         {
             DestroyCounterIndicator();
         }
+        //if (playerControlling) Debug.Log("Ended approach");
 
         attackState = AttackState.Attacking;
 
@@ -353,7 +360,7 @@ public class Goblin : Enemy
         targetPos = Vector3.negativeInfinity;
 
         float hitboxStartTime = Time.time;
-        Debug.Log(goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        //if (playerControlling) Debug.Log(goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);

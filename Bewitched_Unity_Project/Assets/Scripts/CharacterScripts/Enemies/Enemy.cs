@@ -120,6 +120,9 @@ public abstract class Enemy : Character
 
     private Vector3 previousPlayerCostlyPosition;
 
+    [Tooltip("If in windup for primary")]
+    protected bool inPrimaryWindup = false;
+
     public enum PathState
     {
         Unset,
@@ -590,6 +593,8 @@ public abstract class Enemy : Character
                 SetMovementValues(false);
                 yield return null;
             }
+
+            inPrimaryWindup = false;
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
             {
                 attackingPrimary = false;

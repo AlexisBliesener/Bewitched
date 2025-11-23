@@ -67,8 +67,6 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
-    [Tooltip("If in windup for primary")]
-    bool inPrimaryWindup = false;
     [Tooltip("Ogre animator script that controls the ogre animations")]
     private OgreAnimator ogreAnimator;
 
@@ -160,6 +158,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
+                currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
@@ -239,6 +238,7 @@ public class Ogre : Enemy
         while (timeStarted < 1.125f / ogreAnimator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
+            SetMovementValues(false);
             yield return null;
         }
         inPrimaryWindup = false;
