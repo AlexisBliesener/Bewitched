@@ -126,7 +126,6 @@ public class HealthController : MonoBehaviour
             if (GlassCannon.instance != null)
             {
                 finalDamage = GlassCannon.instance.GetModifiedDamage(amt); // if the glass cannon is inactive, it will return the base damage
-                if (finalDamage != amt) Debug.Log("Glass Cannon: " + amt + " -> " + finalDamage);
             }
 
             // Apply vampirism upgrade
