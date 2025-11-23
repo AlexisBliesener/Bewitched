@@ -1,5 +1,53 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &286740525672441254
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9195209521417104787}
+  - component: {fileID: 3589405022747714640}
+  m_Layer: 0
+  m_Name: EnhancedMagic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9195209521417104787
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286740525672441254}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3589405022747714640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286740525672441254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde05ef44faaf49309349193c25bf86d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  perStackPercent:
+  - 15
+  - 30
+  - 45
 --- !u!1 &1689055857934838755
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,6 +397,8 @@ Transform:
   - {fileID: 8652705406772565308}
   - {fileID: 4761561958198899982}
   - {fileID: 5346027843200522454}
+  - {fileID: 4235669473738837553}
+  - {fileID: 9195209521417104787}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &960958994120514185
@@ -446,6 +496,22 @@ MonoBehaviour:
     dropScript: {fileID: 8637887266863425160}
     buyAmount: 30
     sellAmount: 15
+  - dropName: Get Off of Me
+    description: All knockback effects are increased.
+    dropID: 8
+    icon: {fileID: 21300000, guid: d38e34d7b6ed46c4f945628cc810707f, type: 3}
+    rarityIndex: 1
+    dropScript: {fileID: 8250993673618807608}
+    buyAmount: 40
+    sellAmount: 20
+  - dropName: Enhanced Magic
+    description: Increase the range of the Witch's possession range by 15%.
+    dropID: 9
+    icon: {fileID: 21300000, guid: d38e34d7b6ed46c4f945628cc810707f, type: 3}
+    rarityIndex: 2
+    dropScript: {fileID: 286740525672441254}
+    buyAmount: 30
+    sellAmount: 15
   dropPickupPrefab: {fileID: 5122284995239111528, guid: fdb400db3bbf84639be2a33525885c3f, type: 3}
   usePitySystem: 1
   dropUpgrade: 0
@@ -463,6 +529,54 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pityIncrement: 5
   maxPityBonus: 75
+--- !u!1 &8250993673618807608
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4235669473738837553}
+  - component: {fileID: 1840802779872068338}
+  m_Layer: 0
+  m_Name: GetOffOfMe
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4235669473738837553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8250993673618807608}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5730874076301672956}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1840802779872068338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8250993673618807608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2286032ec61742e18f7adc968ccc81c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  knockBackMultiplier:
+  - 1.25
+  - 1.5
+  - 1.75
 --- !u!1 &8637887266863425160
 GameObject:
   m_ObjectHideFlags: 0
