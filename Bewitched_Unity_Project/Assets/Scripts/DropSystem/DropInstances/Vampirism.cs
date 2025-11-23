@@ -109,13 +109,20 @@ public class Vampirism : MonoBehaviour, IDrop
         {
             if (PlayerController.instance != null)
             {
-                int stackNum = Mathf.Clamp(this.stackNum, 0, percentHeal.Length - 1); 
-                PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[stackNum]);
+                PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[GetStackIndex()]);
             }
             else
             {
                 Debug.LogWarning("Player Controller instance is not set!");
             }
         }
+    }
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, percentHeal.Length - 1);
     }
 }

@@ -108,9 +108,16 @@ public class EnhancedMagic : MonoBehaviour, IDrop
     private void ApplyUpgrade()
     {
         if (!active || PossessionAbility.instance == null) return;
-        int stackNum = Mathf.Clamp(this.stackNum, 0, perStackPercent.Length - 1);
-        float startPossessionDistance = baseStartDistancePossession * (1 + perStackPercent[stackNum] / 100f);
-        float endPossessionDistance = baseEndDistancePossession * (1 + perStackPercent[stackNum] / 100f);
+        float startPossessionDistance = baseStartDistancePossession * (1 + perStackPercent[GetStackIndex()] / 100f);
+        float endPossessionDistance = baseEndDistancePossession * (1 + perStackPercent[GetStackIndex()] / 100f);
         PossessionAbility.instance.SetPossessionDistance(startPossessionDistance, endPossessionDistance);
+    }
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, damageMultiplier.Length - 1);
     }
 }

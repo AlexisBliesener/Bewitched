@@ -219,10 +219,9 @@ public class Adrenaline : MonoBehaviour, IDrop
     /// <returns>The modified damage</returns>
     public float GetModifiedDamage(float baseDamage)
     {
-        int stackNum = Mathf.Clamp(this.stackNum, 0, damageMultiplier.Length - 1);
         if (buffActive)
         {
-            return baseDamage * damageMultiplier[stackNum];
+            return baseDamage * damageMultiplier[GetStackIndex()];
         }
         return baseDamage;
     }
@@ -234,5 +233,12 @@ public class Adrenaline : MonoBehaviour, IDrop
     {
         return buffActive;
     }
-
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, damageMultiplier.Length - 1);
+    }
 }

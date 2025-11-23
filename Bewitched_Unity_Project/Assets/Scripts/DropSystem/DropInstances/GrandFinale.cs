@@ -155,14 +155,13 @@ public class GrandFinale : MonoBehaviour, IDrop
     public void Explode(float timePossessing, bool explodePlayer)
     {
         if (lastExplodedCharater == PlayerController.instance.currentCharacter) return;
-        int stackNum = Mathf.Clamp(this.stackNum, 0, enemyExplosionTime.Length - 1);
         if (explodePlayer)
         {
             ExplodePlayer();
         }
         else
         {
-            if (Time.time - timePossessing > enemyExplosionTime[stackNum])
+            if (Time.time - timePossessing > enemyExplosionTime[GetStackIndex()])
                 ExplodeEnemy();
         }
     }
@@ -183,10 +182,9 @@ public class GrandFinale : MonoBehaviour, IDrop
     private void ExplodeEnemy()
     {
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
-        int stackNum = Mathf.Clamp(this.stackNum, 0, explosionRadiusMin.Length - 1);
         float radius = Mathf.Lerp(
-            explosionRadiusMax[stackNum],
-            explosionRadiusMin[stackNum],
+            explosionRadiusMax[GetStackIndex()],
+            explosionRadiusMin[GetStackIndex()],
             PlayerController.instance.currentCharacter.health.GetHealth() /
             PlayerController.instance.currentCharacter.health.GetMaxHealth()
         );
@@ -208,8 +206,8 @@ public class GrandFinale : MonoBehaviour, IDrop
                 Vector3 direction = (hitChar.transform.position - PlayerController.instance.currentCharacter.transform.position).normalized;
 
                 float dmg = Mathf.Lerp(
-                    explosionMinDamage[stackNum],
-                    explosionMaxDamage[stackNum],
+                    explosionMinDamage[GetStackIndex()],
+                    explosionMaxDamage[GetStackIndex()],
                     (radius - dist) / radius
                 );
 
@@ -239,9 +237,8 @@ public class GrandFinale : MonoBehaviour, IDrop
     /// </summary>
     private void ExplodePlayer()
     {
-        int stackNum = Mathf.Clamp(this.stackNum, 0, playerExplodeDamage.Length - 1);
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
-        PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[stackNum]);
+        PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[GetStackIndex()]);
     }
 
     /// <summary>
@@ -254,5 +251,12 @@ public class GrandFinale : MonoBehaviour, IDrop
         float dist = (pos.position - PlayerController.instance.currentCharacter.transform.position).magnitude;
         return !Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, pos.position - PlayerController.instance.currentCharacter.transform.position, dist, environment);
     }
-
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, playerExplodeDamage.Length - 1);
+    }
 }
