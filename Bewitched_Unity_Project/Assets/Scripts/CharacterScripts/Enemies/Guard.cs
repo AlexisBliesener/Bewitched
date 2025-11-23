@@ -19,6 +19,8 @@ public class Guard : Enemy
     [SerializeField] float lanceTipDamage = 5;
     [Tooltip("Lance Thrust Duration")]
     [SerializeField] float lanceDuration = 0.5f;
+    [Tooltip("Lance range")]
+    [SerializeField] float lanceRange = 1.2f;
 
     [SerializeField] AttackStatusEffects lanceTipEffects;
     [SerializeField] AttackStatusEffects lanceHandleEffects;
@@ -338,8 +340,8 @@ public class Guard : Enemy
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.55f);
-            float buffer = sizeRadius + 0.5f;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange);
+            float buffer = sizeRadius + lanceRange;
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
@@ -370,7 +372,7 @@ public class Guard : Enemy
 
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + lanceRange)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     targetPos = transform.position;
