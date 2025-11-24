@@ -42,6 +42,7 @@ public class HealthController : MonoBehaviour
     // <summary> Get current character.</summary>
     private Character currentCharacter;
 
+    [Tooltip("The time when the enemy died, assuming eleth is possessed this is used for the grace period before starting eleth possession life drain")]
     private float timeEnemyHealthRanOut = -1;
 
 

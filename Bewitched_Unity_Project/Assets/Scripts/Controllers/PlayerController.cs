@@ -64,7 +64,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
+    [Tooltip("Movement input from the player on X and Y")]
     public Vector2 movementInput;
+    [Tooltip("Movement input from the player on X and Z")]
     public Vector3 movementInputV3;
 
     public Vector3 direction;

@@ -50,6 +50,8 @@ public abstract class Enemy : Character
     public float lowHealthThresholdPercentage = 30;
     [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 0.9f)]
     protected float counterWindowLength;
+    [SerializeField, Tooltip("The distance the player will move forward when doing a non locked primary attack")]
+    protected float nonLockPrimaryMovement;
 
 
     protected PlayerController playerController;
@@ -117,9 +119,6 @@ public abstract class Enemy : Character
     Dictionary<List<int>, int> attackingCostlyNodes = new Dictionary<List<int>, int>();
 
     protected bool overrideBlock = false;
-
-    [SerializeField]
-    protected float nonLockPrimaryMovement;
 
     public enum PathState
     {
