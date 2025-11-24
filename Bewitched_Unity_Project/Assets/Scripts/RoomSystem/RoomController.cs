@@ -153,8 +153,7 @@ public class RoomController : MonoBehaviour
         {
             if (IsPlayerOutOfRoom())
             {
-                // I know you guys doing testing so I just commented this out for now so strider can test the changes you did
-                // KillEnemyOnLeave();
+                KillEnemyOnLeave();
                 lastEnemyKilled = true;
                 ClearRoom();
             }
@@ -191,7 +190,7 @@ public class RoomController : MonoBehaviour
         if (PlayerController.instance.GetHag().gameObject != PlayerController.instance.currentCharacter.gameObject)
         {
             PlayerController.instance.GetHag().gameObject.transform.position = PlayerController.instance.currentCharacter.gameObject.transform.position;
-            PlayerController.instance.currentCharacter.health.SetCurrentHealth(0); // RIP
+            PlayerController.instance.currentCharacter.health.KillEnemy(); // RIP
         }
         // just to be safe, we will kill all enemies that are for some reason still alive in the room... 
         foreach (Enemy enemy in roomEnemies)
@@ -199,7 +198,6 @@ public class RoomController : MonoBehaviour
             enemy.health.SetCurrentHealth(0); 
             Destroy(enemy.gameObject);
         }
-
     }
 
     /// <summary>

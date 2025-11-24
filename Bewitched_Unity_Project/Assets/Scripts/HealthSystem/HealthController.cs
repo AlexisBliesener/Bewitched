@@ -107,6 +107,16 @@ public class HealthController : MonoBehaviour
         NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
+    /// <summary>
+    /// Kills an enemy automatically
+    /// </summary>
+    public void KillEnemy()
+    {
+        IsDead = true;
+        OnDeath?.Invoke(gameObject);
+    }
+
     /// <summary>
     /// Set current health to max health.
     /// and will trigger OnHealthChanged event.
