@@ -42,6 +42,17 @@ public class ElethAnimator : CharacterAnimator
     /// </summary>
     public override void SwitchState(string newState)
     {
+        if (newState == "Death")
+        {
+            ResetAllTriggers();
+            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
+            animator.SetTrigger("Death");
+            canChange = false;
+            PlayerController.instance.SetAllowMovement(false);
+            currentAnimationState = "Death";
+            return;
+        }
+
         if (overriding) return;
 
         if (!animationStates.Contains(newState))
@@ -52,7 +63,6 @@ public class ElethAnimator : CharacterAnimator
         if (!canChange || currentAnimationState == "Death")
             return;
 
- 
 
         if (currentAnimationState == "Possession")
         {
@@ -62,16 +72,6 @@ public class ElethAnimator : CharacterAnimator
         {
             PlayerController.instance.SetAllowMovement(false);
         }
-        else if (newState == "Death")
-        {
-            animator.SetFloat("DeathSpeedMult", deathSpeedMult);
-            animator.SetTrigger("Death");
-            canChange = false;
-            PlayerController.instance.SetAllowMovement(false);
-            return;
-        }
-
-
         
         ResetAllTriggers();
 
