@@ -3,6 +3,7 @@ using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Hag : Character
 {
@@ -30,6 +31,7 @@ public class Hag : Character
 
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
+    public GameObject fadeToBlack;
 
     private void Start()
     {
@@ -151,6 +153,7 @@ public class Hag : Character
         AudioManager.TryPlaySnapshot("GameOver");
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
+        StartCoroutine(FadeToBlack(13f));
         //Wait until the sound effect is over before returning to the main menu
         Invoke("Die", 12f);
         if (hitStunActual != null) Destroy(hitStunActual);
@@ -162,6 +165,28 @@ public class Hag : Character
         StopAllCoroutines();
         deathUI.SetActive(true);
         //SceneManager.LoadScene(0); // go back to main menu
+    }
+
+    /// <summary>
+    /// Fade to black, called when Eleth dies
+    /// </summary>
+    IEnumerator FadeToBlack(float fadeSpeed)
+    {
+        fadeToBlack.SetActive(true);
+        Image fadeImage = fadeToBlack.transform.GetChild(0).GetComponent<Image>();
+
+        Color bkgColor = fadeImage.color;
+        bkgColor.a = 0.2f;
+        fadeImage.color = bkgColor;
+
+        while (bkgColor.a < 1f)
+        {
+            bkgColor.a += Time.deltaTime / fadeSpeed;
+            if (bkgColor.a > 1f) bkgColor.a = 1f;
+
+            fadeImage.color = bkgColor;
+            yield return null;
+        }
     }
 
     private void Update()
