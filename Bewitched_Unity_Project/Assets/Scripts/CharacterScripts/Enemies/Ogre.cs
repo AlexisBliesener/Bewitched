@@ -3,6 +3,7 @@ using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 public class Ogre : Enemy
 {
@@ -67,8 +68,6 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
-    [Tooltip("If in windup for primary")]
-    bool inPrimaryWindup = false;
     [Tooltip("Ogre animator script that controls the ogre animations")]
     private OgreAnimator ogreAnimator;
 
@@ -97,6 +96,7 @@ public class Ogre : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        ResetAttackingArea();
 
         SetDebugString();
         //if (!playerControlling) Debug.Log(debugAIInfo);
@@ -160,7 +160,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
 
@@ -239,6 +239,7 @@ public class Ogre : Enemy
         while (timeStarted < 1.125f / ogreAnimator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
+            SetMovementValues(false);
             yield return null;
         }
         inPrimaryWindup = false;
@@ -263,7 +264,7 @@ public class Ogre : Enemy
             float buffer = sizeRadius + 1;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
                 Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
@@ -333,6 +334,8 @@ public class Ogre : Enemy
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
 
+        SetCostlyAttackingCone(maxSurroundingRadius, batSwingAngle);
+
         Vector3 endForward = Vector3.zero;
         Vector3 startForward = Vector3.zero;
 
@@ -355,6 +358,30 @@ public class Ogre : Enemy
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
         batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
+
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        Vector3 direction;
+        if (PlayerController.instance.movementInputV3 != Vector3.zero)
+        {
+            direction = Camera.main.transform.TransformVector(PlayerController.instance.movementInputV3);
+        }
+        else
+        {
+            direction = PlayerController.instance.currentCharacter.transform.forward;
+        }
+
+        direction.y = 0f; // Prevent tilting
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, direction, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (direction.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (direction.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
@@ -863,4 +890,6 @@ public class Ogre : Enemy
             ev.release();
         }
     }
+
+    
 }

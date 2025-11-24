@@ -150,7 +150,7 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 64
-  environment:
+  environmentLayer:
     serializedVersion: 2
     m_Bits: 256
   combatCam: {fileID: 9071181073663236059}
@@ -179,6 +179,7 @@ MonoBehaviour:
   lowHealthThresholdPercentage: 30
   counterWindowLength: 1
   moveToTargetDistance: 3
+  nonLockPrimaryMovement: 0
   perfectCounterTimeMaterial: {fileID: 0}
   defaultMaterial: {fileID: 0}
   pathState: 0

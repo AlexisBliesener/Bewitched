@@ -11,6 +11,8 @@ public class HealthController : MonoBehaviour
     const string FILE_ENDING = ".json";
     [Tooltip("Maximum health for this character.")]
     [SerializeField] private float maxHealth = 100f;
+    [Tooltip("Base maximum health for this character")]
+    private float maxHealthBase = 100f; // THis is used for the health bar as a maximum value in the slider
     [Tooltip("Coefficient value of max health to classify as low health")]
     [Range(0f, 1f)]
     [SerializeField] private float lowHealthCoefficient = 0.3f;
@@ -27,7 +29,7 @@ public class HealthController : MonoBehaviour
     /// <summary>Current health value.</summary>
     public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
-    public bool IsDead => CurrentHealth <= 0f;
+    public bool IsDead = false;
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
 
@@ -42,10 +44,14 @@ public class HealthController : MonoBehaviour
     // <summary> Get current character.</summary>
     private Character currentCharacter;
 
+    [Tooltip("The time when the enemy died, assuming eleth is possessed this is used for the grace period before starting eleth possession life drain")]
+    private float timeEnemyHealthRanOut = -1;
+
+
     /// Timestamp of last received damage (set by this controller)
     public float TimeLastHit { get; private set; } = -Mathf.Infinity;
-    [Tooltip("Called when the character's health changes, it will pass the current health and max health")]
-    public event Action<float, float> OnHealthChanged; // current, max
+    [Tooltip("Called when the character's health changes, it will pass the current health and max health base")]
+    public event Action<float, float> OnHealthChanged; // current, max base
     [Tooltip("Called when the character is damaged, it will pass the amount of health damaged")]
     public event Action<float, HealthController> OnDamaged; // amount, this
     [Tooltip("Called when the character is healed, it will pass the amount of health healed")]
@@ -56,6 +62,7 @@ public class HealthController : MonoBehaviour
     private void Awake()
     {
         CurrentHealth = maxHealth;
+        maxHealthBase = maxHealth;
         NotifyHealthChanged();
     }
 
@@ -65,22 +72,24 @@ public class HealthController : MonoBehaviour
     }
 
 
-    private void Update()
+    protected void Update()
     {
+        if (!IsDead && CurrentHealth <= 0f && (PlayerController.instance.currentCharacter == PlayerController.instance.oldHag || PlayerController.instance.currentCharacter != GetComponent<Character>()))
+        {
+            if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag == GetComponent<Character>())
+            {
+                StartCoroutine(PossessionAbility.instance.RespawnEleth());
+            }
+            IsDead = true;
+            OnDeath?.Invoke(gameObject);
+        }
+
         // If we don't auto update or already dead, skip!
         if (!updateOnModel || IsDead) return;
+
         if (decayRate > 0f)
         {
-            float old = CurrentHealth;
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - ( maxHealth * decayRate * 0.01f * Time.deltaTime));
-            if (CurrentHealth != old)
-            {
-                NotifyHealthChanged();
-                if (IsDead)
-                {
-                    OnDeath?.Invoke(gameObject);
-                }
-            }
+            DrainLife((maxHealth * decayRate * 0.01f * Time.deltaTime));
         }
     }
 
@@ -101,6 +110,16 @@ public class HealthController : MonoBehaviour
         NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
+    /// <summary>
+    /// Kills an enemy automatically
+    /// </summary>
+    public void KillEnemy()
+    {
+        IsDead = true;
+        OnDeath?.Invoke(gameObject);
+    }
+
     /// <summary>
     /// Set current health to max health.
     /// and will trigger OnHealthChanged event.
@@ -116,20 +135,32 @@ public class HealthController : MonoBehaviour
     public virtual void SubHealth(float amt)
     {
         if (IsDead || amt <= 0f || invincible) return;
-        float old = CurrentHealth;
-        CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
-        // Apply vampirism upgrade
-        if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetComponent<Character>())
+        float old = CurrentHealth;
+        float finalDamage = amt;
+        if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetCharacter())
         {
+            if (GlassCannon.instance != null)
+            {
+                finalDamage = GlassCannon.instance.GetModifiedDamage(amt); // if the glass cannon is inactive, it will return the base damage
+            }
+
+            // Apply vampirism upgrade
             if (Vampirism.instance != null)
             {
-                Vampirism.instance.stealHealth(amt);
+                Vampirism.instance.stealHealth(finalDamage);
             }
             else
             {
                 Debug.LogWarning("Vamprism upgrade instance is not set!");
             }
+        }
+        
+        CurrentHealth = Mathf.Max(0f, CurrentHealth - finalDamage);
+
+        if (CurrentHealth  == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.SubHealth(finalDamage - old);
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();
@@ -137,10 +168,10 @@ public class HealthController : MonoBehaviour
         else
         {
             TimeLastHit = Time.time;
-            OnDamaged?.Invoke(amt, this);
+            OnDamaged?.Invoke(finalDamage, this);
         }
 
-        if (GetComponent<Character>() != PlayerController.instance.currentCharacter &&  characterAnimator != null)
+        if (characterAnimator != null)
         {
             StartCoroutine(characterAnimator.SetHit());
         }
@@ -151,14 +182,26 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public void DrainLife(float amt)
     {
-
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+        if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            if (timeEnemyHealthRanOut == -1f)
+            {
+                timeEnemyHealthRanOut = Time.time;
+            }
+            else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
+            {
+                PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
+            }
+        }
+
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
     /// <summary>
     /// Heal the character.
     /// </summary>
@@ -212,8 +255,14 @@ public class HealthController : MonoBehaviour
     /// Set maximum health. Clamped to 1 or more. 
     /// Current health is adjusted if above new max.
     /// </summary>
-    public void SetMaxHealth(float max)
+    /// <param name="max">The new maximum health value.</param>
+    /// <param name="setBase">Whether to set the base maximum health value (maxHealthBase is used for the health bar slider as max value).</param>
+    public void SetMaxHealth(float max, bool setBase = true)
     {
+        if (setBase)
+        {
+            maxHealthBase = Mathf.Max(1f, max);
+        }
         maxHealth = Mathf.Max(1f, max);
         CurrentHealth = Mathf.Min(CurrentHealth, maxHealth);
         NotifyHealthChanged();
@@ -232,12 +281,17 @@ public class HealthController : MonoBehaviour
     {
         return invincible;
     }
+    /// <summary>
+    /// Get the base maximum health value
+    /// </summary>
+    /// <returns>The base maximum health value</returns>
+    public float GetBaseMaxHealth() => maxHealthBase;
 
     #endregion
     private void NotifyHealthChanged()
     {
-        // This sends out current and max health values
-        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        // This sends out current and max health base values
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealthBase);
     }
 
 
