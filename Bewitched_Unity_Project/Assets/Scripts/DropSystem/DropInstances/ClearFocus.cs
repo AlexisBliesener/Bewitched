@@ -35,7 +35,7 @@ public class ClearFocus : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "ClearFocus" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -61,7 +61,7 @@ public class ClearFocus : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "ClearFocus" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
