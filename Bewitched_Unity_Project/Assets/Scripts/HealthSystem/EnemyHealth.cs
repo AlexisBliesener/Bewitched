@@ -26,6 +26,11 @@ public class EnemyHealth : HealthController
             {
                 finalDamage = Adrenaline.instance.GetModifiedDamage(amt);
             }
+            // Apply OffGuard if active
+            if (OffGuard.instance != null && enemy.InAttackStartup())
+            {
+                finalDamage = OffGuard.instance.GetModifiedDamage(amt); // if the offguard is inactive, it will return the base damage (amt)
+            }
             ShowMiniHealthBar(true, GetCharacter());
             if (characterAnimator != null)
             {

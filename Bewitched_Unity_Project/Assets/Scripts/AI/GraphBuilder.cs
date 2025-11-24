@@ -531,6 +531,7 @@ public class GraphBuilder : MonoBehaviour
     /// <returns></returns>
     public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, float goalDistance = -1, Character targetChar = null)
     {
+        if (enemy == null || enemy.gameObject == null) yield break;
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         enemySearches[enemy] = true;
 
@@ -716,15 +717,16 @@ public class GraphBuilder : MonoBehaviour
         while (true)
         {
             int tempNumSearchers = 0;
-            List<GameObject> enemies = new List<GameObject>();
-            if (RoomSystem.Instance.GetActiveRoomController())
+            List<Enemy> enemies = new List<Enemy>();
+            RoomController roomController = RoomSystem.Instance.GetActiveRoomController();
+            if (roomController != null)
             {
                 enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
             }
 
-            foreach (GameObject enemyObj in enemies)
+            foreach (Enemy enemy in enemies)
             {
-                if (enemyObj != null && enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemy != null && enemy.gameObject.activeInHierarchy)
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
@@ -958,5 +960,25 @@ public class GraphBuilder : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the nodes in a line from an origin in a direction of a certain length
+    /// </summary>
+    /// <param name="origin"> Origin position </param>
+    /// <param name="direction"> Direction to move </param>
+    /// <param name="length"> Length of line </param>
+    /// <param name="width"> Width of line </param>
+    /// <returns> List of node positions in line </returns>
+    public List<List<int>> GetNodesInLine(Vector3 origin, Vector3 direction, float length, float width)
+    {
+        List<List<int>> nodes = new List<List<int>>();
+        float distanceSearched = 0;
+        while (distanceSearched < length)
+        {
+            nodes = nodes.Union(GetNodesInRadius(origin + direction * distanceSearched, width)).ToList();
+            distanceSearched += width / 2;
+        }
+        return nodes;
     }
 }

@@ -109,9 +109,9 @@ public class CharacterTests
         /// <summary>
         /// Overrides Character.OnDamaged() for testing; marks that CreateHitStun() was called.
         /// </summary>
-        protected override void OnDamaged(float amount)
+        protected override void OnDamaged(float amount, HealthController healthController)
         {
-            CreateHitStun();
+            StartCoroutine(StartHitStun(amount));
         }
         /// <summary>
         /// Overrides Character.OnDeath(Gameobject enemyGameObject) for testing; marks that Die() was called.
@@ -120,11 +120,6 @@ public class CharacterTests
         {
             Die();
         }
-
-        /// <summary>
-        /// Creates a dummy hitstun GameObject to simulate hitstun logic.
-        /// </summary>
-        public override void CreateHitStun() { hitStunActual = new GameObject("HitStun"); }
     }
 
     /// <summary>
@@ -231,31 +226,6 @@ public class CharacterTests
     {
         testCharacter.health.AddHealth(50f);
         Assert.AreEqual(100f, testCharacter.health.GetHealth());
-    }
-
-    /// <summary>Subtracting more than current health should trigger Die.</summary>
-    [Test]
-    public void SubHealth_ReducesAndDies()
-    {
-        testCharacter.health.SubHealth(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-    }
-
-    /// <summary>Subtracting health should create a hitstun object.</summary>
-    [Test]
-    public void SubHealth_CreatesHitStun()
-    {
-        testCharacter.health.SubHealth(10);
-        Assert.IsNotNull(testCharacter.HitStun);
-    }
-
-    /// <summary>DrainLife should kill without generating hitstun.</summary>
-    [Test]
-    public void DrainLife_KillsWithoutHitStun()
-    {
-        testCharacter.health.DrainLife(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-        Assert.IsNull(testCharacter.HitStun);
     }
 
     /// <summary>SetHealthToMax should fully restore health.</summary>

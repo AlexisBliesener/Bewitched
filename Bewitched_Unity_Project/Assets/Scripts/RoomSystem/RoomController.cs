@@ -37,10 +37,13 @@ public class RoomController : MonoBehaviour
     [Tooltip("Doors that will be locked/unlocked when the room is activ; it should have a IDoor component!")]
     // Unity inspector will not show the custom IDoor object in the inspector so we need to use a list of gameobjects and then cast them to IDoor in the awake function
     [SerializeField] private List<GameObject> doorsObjects = new List<GameObject>();
+    [SerializeField] private List<GameObject> doorsToUnlockObjects = new List<GameObject>();
     [Tooltip("The list of the doors found in the room, this is going to be used in the awake function to get IDoor components")]
     private List<IDoor> doors = new List<IDoor>();
+    [Tooltip("The list of doors that will be unlocked when the room is cleared")]
+    private List<IDoor> unlockOnClear = new List<IDoor>();
     [Tooltip("The list of the enmies found in the bounds, you can add enemies to this list in the inspector")]
-    [SerializeField] public List<GameObject> roomEnemies = new List<GameObject>();
+    [SerializeField] public List<Enemy> roomEnemies = new List<Enemy>();
     [Tooltip("The current state of the room")]
     private RoomState currentState = RoomState.Inactive;
     [Tooltip("The state of the door (lock/unlock)")]
@@ -65,7 +68,7 @@ public class RoomController : MonoBehaviour
     /// <summary>
     /// Get the number of active enemies in the room
     /// </summary>
-    public int GetActiveEnemyCount() => roomEnemies.Count(enemy => enemy != null && enemy.activeInHierarchy);
+    public int GetActiveEnemyCount() => roomEnemies.Count(enemy => enemy != null && enemy.gameObject.activeInHierarchy);
 
     /// <summary>
     /// Gets the room bounds 
@@ -113,8 +116,8 @@ public class RoomController : MonoBehaviour
     /// This will be triggered when the room state changes
     /// </summary>
     public event Action<RoomController, RoomState> OnStateChanged;
-
-
+    [Tooltip("If the player is inside the room entry trigger")]
+    private bool isPlayerInsideTrigger = false; // This to prevent when the entry trigger is outside the room bounds so when the player enters it triggers the enter room event but then the update function will see it as it's outside the room bounds so we used this bool to check if the player is inside the trigger
 
     private void Awake()
     {
@@ -146,13 +149,19 @@ public class RoomController : MonoBehaviour
         }
         // We will check if we already killed the last enemy, if not we will check if the room is still active (The last enemy is still make the room acitve ), 
         // if so we will check if the last enemy is the player (possessed), and last we will check if the player is out of the current room 
-        if ( !isEventRoom && !lastEnemyKilled && currentState == RoomState.Active && roomEnemies.Count == 1 && roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
+        if ( !isEventRoom && !lastEnemyKilled && currentState == RoomState.Active && roomEnemies.Count == 1 && roomEnemies[0] == PlayerController.instance.currentCharacter)
         {
             if (IsPlayerOutOfRoom())
             {
                 KillEnemyOnLeave();
                 lastEnemyKilled = true;
+                ClearRoom();
             }
+        } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom() && !isPlayerInsideTrigger)
+        {
+            UnlockDoors();
+            DeactivateEnemies();
+            ChangeState(RoomState.Inactive);
         }
     }
     private void OnTriggerEnter(Collider other)
@@ -163,6 +172,14 @@ public class RoomController : MonoBehaviour
         if (other.gameObject == PlayerController.instance.currentCharacter.gameObject)
         {
             EnterRoom();
+            isPlayerInsideTrigger = true;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject == PlayerController.instance.currentCharacter.gameObject)
+        {
+            isPlayerInsideTrigger = false;
         }
     }
     /// <summary>
@@ -173,18 +190,14 @@ public class RoomController : MonoBehaviour
         if (PlayerController.instance.GetHag().gameObject != PlayerController.instance.currentCharacter.gameObject)
         {
             PlayerController.instance.GetHag().gameObject.transform.position = PlayerController.instance.currentCharacter.gameObject.transform.position;
-            PlayerController.instance.currentCharacter.health.SetCurrentHealth(0); // RIP
+            PlayerController.instance.currentCharacter.health.KillEnemy(); // RIP
         }
         // just to be safe, we will kill all enemies that are for some reason still alive in the room... 
-        foreach (GameObject enemyGameObject in roomEnemies)
+        foreach (Enemy enemy in roomEnemies)
         {
-            if (enemyGameObject.TryGetComponent(out Enemy enemy))
-            {
-                enemy.health.SetCurrentHealth(0); 
-            }
-            Destroy(enemyGameObject);
+            enemy.health.SetCurrentHealth(0); 
+            Destroy(enemy.gameObject);
         }
-
     }
 
     /// <summary>
@@ -227,13 +240,15 @@ public class RoomController : MonoBehaviour
     {
 
         if (isEventRoom) return;
+        roomEnemies.RemoveAll(enemy => enemy == null);
         Collider[] colliders = Physics.OverlapBox(transform.position + roomBounds.center, roomBounds.size * 0.5f, transform.rotation, enemyLayerMask);
 
         foreach (Collider collider in colliders)
         {
-            if (collider.CompareTag(enemyTag) && !roomEnemies.Contains(collider.gameObject))
+            Enemy enemy = collider.GetComponentInParent<Enemy>();
+            if (enemy != null && enemy.CompareTag(enemyTag) && !roomEnemies.Contains(enemy))
             {
-                roomEnemies.Add(collider.gameObject);
+                roomEnemies.Add(enemy);
             }
         }
     }
@@ -245,12 +260,9 @@ public class RoomController : MonoBehaviour
     private void ActivateEnemies()
     {
         if (isEventRoom) return;
-        foreach (GameObject enemy in roomEnemies)
+        foreach (Enemy enemy in roomEnemies)
         {
-            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent))
-            {
-                enemyComponent.aiState = Enemy.AIMovementState.Patrolling;
-            }
+            enemy.aiState = Enemy.AIMovementState.Patrolling;
         }
     }
 
@@ -261,17 +273,17 @@ public class RoomController : MonoBehaviour
     private void DeactivateEnemies()
     {
         if (isEventRoom) return;
-        foreach (GameObject enemy in roomEnemies)
+        foreach (Enemy enemy in roomEnemies)
         {
             // If the enemy is not active, we will set it to active and set the ai state to blocked
-            if (enemy != null && !enemy.activeInHierarchy)
+            if (enemy != null && !enemy.gameObject.activeInHierarchy)
             {
-                enemy.SetActive(true);
+                enemy.gameObject.SetActive(true);
             }
             // Just to be safe, we will check if the enmey for some reason is still in patrolling state, if so we will set it to blocked
-            if (enemy != null && enemy.TryGetComponent(out Enemy enemyComponent) && enemyComponent.aiState != Enemy.AIMovementState.Blocked)
+            if (enemy != null && enemy.aiState != Enemy.AIMovementState.Blocked)
             {
-                enemyComponent.aiState = Enemy.AIMovementState.Blocked;
+                enemy.aiState = Enemy.AIMovementState.Blocked;
             }
         }
     }
@@ -290,6 +302,17 @@ public class RoomController : MonoBehaviour
             if (door != null)
             {
                 doors.Add(door);
+            }
+        }
+
+        foreach(GameObject doorObject in doorsToUnlockObjects)
+        {
+            if (doorObject == null) continue;
+
+            IDoor door = doorObject.GetComponent<IDoor>();
+            if (door != null)
+            {
+                unlockOnClear.Add(door);
             }
         }
     }
@@ -322,7 +345,7 @@ public class RoomController : MonoBehaviour
     private void UnlockDoors()
     {
         if (doorState == DoorState.Unlocked) return;
-        foreach (IDoor door in doors)
+        foreach (IDoor door in unlockOnClear)
         {
             door?.Unlock();
         }
@@ -345,12 +368,12 @@ public class RoomController : MonoBehaviour
     {
         // Remove destroyed enemies from the list
         // we will remove any enemy that is null (Died/destoryed)
-        roomEnemies.RemoveAll(enemy => enemy == null);
+        roomEnemies.RemoveAll(enemy => enemy == null || enemy.IsDead);
 
         // If this is an event enemy, we will not clear the room
         if (isEventRoom) return;
         // Check if any enemies are still active
-        bool hasActiveEnemies = roomEnemies.Any(enemy => enemy.activeInHierarchy);
+        bool hasActiveEnemies = roomEnemies.Any(enemy => enemy.gameObject.activeInHierarchy);
 
         if (!hasActiveEnemies && currentState == RoomState.Active)
         {
@@ -362,7 +385,7 @@ public class RoomController : MonoBehaviour
             // We will not clear the room yet if there is only one enemy remaining 
             // because when the last enemy is possessed the doors will be unlocked
             // and if the player leaves the last enemy, the dooes will be locked again
-            if (roomEnemies[0] == PlayerController.instance.currentCharacter.gameObject)
+            if (roomEnemies[0] == PlayerController.instance.currentCharacter)
             {
                 UnlockDoors();
             }
@@ -417,7 +440,7 @@ public class RoomController : MonoBehaviour
     /// <summary>
     /// Add an enemy to the room enemies list
     /// </summary>
-    public void AddEnemy(GameObject enemy)
+    public void AddEnemy(Enemy enemy)
     {
         roomEnemies.Add(enemy);
     }

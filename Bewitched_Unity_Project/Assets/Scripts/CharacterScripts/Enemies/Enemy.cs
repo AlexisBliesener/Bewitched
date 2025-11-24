@@ -38,6 +38,8 @@ public abstract class Enemy : Character
     public float timeBeforeSearch = 5;
     [Tooltip("AI Attack Delay"), Range(0, 10)]
     public float attackDelayAI = 0.5f;
+    [Tooltip("Retreat wait time")]
+    public float retreatWaitTime = 0.5f;
 
     [Header("Attack Settings")]
     [Tooltip("Chance for AI primary attack"), Range(0, 1)]
@@ -46,8 +48,10 @@ public abstract class Enemy : Character
     public float secondaryAttackChance = .5f;
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
     public float lowHealthThresholdPercentage = 30;
-    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 1)]
+    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 0.9f)]
     protected float counterWindowLength;
+    [SerializeField, Tooltip("The distance the player will move forward when doing a non locked primary attack")]
+    protected float nonLockPrimaryMovement;
 
 
     protected PlayerController playerController;
@@ -88,6 +92,8 @@ public abstract class Enemy : Character
 
     protected NavPath currentPath;
 
+    protected float timeSinceRetreat = 0;
+
     /// <summary>
     /// Path getter function
     /// </summary>
@@ -108,6 +114,9 @@ public abstract class Enemy : Character
 
     [Tooltip("Dictionary of costly nodes with the cost they have been given")]
     Dictionary<List<int>, int> surroundingCostlyNodes = new Dictionary<List<int>, int>();
+
+    [Tooltip("Dictionary of attacking costly nodes with the costs they have been given")]
+    Dictionary<List<int>, int> attackingCostlyNodes = new Dictionary<List<int>, int>();
 
     protected bool overrideBlock = false;
 
@@ -254,8 +263,8 @@ public abstract class Enemy : Character
     protected virtual void FixedUpdate()
     {
         // Sets if the enemy needs to do he windup and move part of the primary attack
-        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, this.gameObject.transform.position.y, lockedCharacter.transform.position.z), 
-            this.gameObject.transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z), 
+            transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
         }
@@ -464,7 +473,7 @@ public abstract class Enemy : Character
         //Bug fix for kill all enemies button causing idle audio bugs
         if (idleAudio.isValid()) idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
-        Destroy(gameObject, 0.1f);
+        Destroy(gameObject);
     }
 
     public void SetRangeChecks()
@@ -475,7 +484,7 @@ public abstract class Enemy : Character
         float distToChar = (currentPlayer.transform.position - transform.position).magnitude;
         if (currentInSightRange)
         {
-            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environment))
+            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environmentLayer))
             {
                 currentInSightRange = false;
             }
@@ -572,13 +581,13 @@ public abstract class Enemy : Character
         if (duration > 0)
         {
             if (stunned) yield break;
+            if (hitStunActual != null) Destroy(hitStunActual);
             hitStunActual = Instantiate(hitStunPrefab, transform);
             stunned = true;
             float timeStarted = Time.time;
             while (Time.time - timeStarted < duration)
             {
-                if (playerControlling) PlayerController.instance.SetAllowMovement(false);
-                else aiState = AIMovementState.Blocked;
+                SetMovementValues(false);
                 yield return null;
             }
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
@@ -597,6 +606,7 @@ public abstract class Enemy : Character
                 attackState = AttackState.Neutral;
                 SurroundingPoints.instance.RemoveAttackingEnemy(this);
             }
+            ResetAttackingArea();
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -616,23 +626,6 @@ public abstract class Enemy : Character
     public virtual bool SetWalkPoint()
     {
         return false;
-    }
-
-    public override void CreateHitStun()
-    {
-    }
-
-    public override void HandleHitStun()
-    {
-        if (hitStunActual != null)
-        {
-            if (Time.time - health.TimeLastHit > hitStunDuration / GetComponent<CharacterAnimator>().GetHitStunMult())
-            {
-                SetMovementValues(true);
-            }
-        }
-
-        base.HandleHitStun();
     }
 
     public void SetPlayerControlledBuffs(bool val, Buffs playerBuffs)
@@ -662,7 +655,7 @@ public abstract class Enemy : Character
     public bool CheckCharacterBehindEnvironment(Transform pos)
     {
         float dist = (pos.position - transform.position).magnitude;
-        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environment))
+        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environmentLayer))
         {
             return false;
         }
@@ -1000,6 +993,11 @@ public abstract class Enemy : Character
             pathState = PathState.Unset;
         }
 
+        if (state == AIMovementState.Retreating)
+        {
+            timeSinceRetreat = Time.time;
+        }
+
         aiState = state;
     }
 
@@ -1031,12 +1029,16 @@ public abstract class Enemy : Character
             foreach (List<int> position in nodes)
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
-                float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
-                float ratio = (totalDist - dist) / totalDist;
-                node.AddCost(this, (int)(10 * ratio));
+                float distFromPlayer = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
+                if (distFromPlayer < sizeRadius + maxSurroundingRadius)
+                {
+                    float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
+                    float ratio = (totalDist - dist) / totalDist;
+                    node.AddCost(this, (int)(20 * ratio));
 
-                surroundingCostlyNodes[position] = (int)(10 * ratio);
-                numSet++;
+                    surroundingCostlyNodes[position] = (int)(20 * ratio);
+                    numSet++;
+                }
             }
             previousCostlyPosition = transform.position;
         }
@@ -1061,6 +1063,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void ManageSurrounding()
     {
+        if (currentPlayer == null) return; // if there is no player 
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
         if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))
@@ -1117,5 +1120,34 @@ public abstract class Enemy : Character
             ev.start();
             ev.release();
         }
+    }
+
+    /// <summary>
+    /// Creates a dictionary of costly nodes and sets their costs for attacking
+    /// </summary>
+    /// <param name="direction"> Direction of attack </param>
+    /// <param name="length"> Length of costly area </param>
+    public void SetCostlyAttackingArea(Vector3 direction, float length)
+    {
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, sizeRadius);
+        foreach (List<int> node in nodes)
+        {
+            GraphBuilder.instance.AddNodeCost(node, this, 10);
+            attackingCostlyNodes[node] = 10;
+        }
+    }
+
+    /// <summary>
+    /// Resets the costly attacking area values
+    /// </summary>
+    public void ResetAttackingArea()
+    {
+        int numReset = 0;
+        foreach (List<int> position in attackingCostlyNodes.Keys)
+        {
+            numReset++;
+            GraphBuilder.instance.AddNodeCost(position, this, -attackingCostlyNodes[position]);
+        }
+        attackingCostlyNodes = new Dictionary<List<int>, int>();
     }
 }

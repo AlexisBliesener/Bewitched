@@ -3,6 +3,7 @@ using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Hag : Character
 {
@@ -30,8 +31,7 @@ public class Hag : Character
 
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
-
-
+    public GameObject fadeToBlack;
 
     private void Start()
     {
@@ -95,9 +95,9 @@ public class Hag : Character
         //timeLastSecondary = Time.time;
     }
 
-    protected override void OnDamaged(float amount)
+    protected override void OnDamaged(float amount, HealthController healthController)
     {
-        base.OnDamaged(amount);
+        base.OnDamaged(amount, healthController);
         //Play the Witch's hit sound effect when she gets damaged.
         AudioManager.TryGetReference("WitchHit", out EventReference evRef);
         EventInstance inst = RuntimeManager.CreateInstance(evRef);
@@ -128,6 +128,12 @@ public class Hag : Character
             go.SetActive(true);
         }
         controller.detectCollisions = true;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 10, ground))
+        {
+            float yPos = hit.point.y + 1.2f;
+            transform.position = new Vector3(transform.position.x, yPos, transform.position.z);
+        }
     }
 
     /// <summary>
@@ -147,6 +153,7 @@ public class Hag : Character
         AudioManager.TryPlaySnapshot("GameOver");
         //Disable player controller
         PlayerController.instance.gameObject.SetActive(false);
+        StartCoroutine(FadeToBlack(13f));
         //Wait until the sound effect is over before returning to the main menu
         Invoke("Die", 12f);
         if (hitStunActual != null) Destroy(hitStunActual);
@@ -160,9 +167,31 @@ public class Hag : Character
         //SceneManager.LoadScene(0); // go back to main menu
     }
 
+    /// <summary>
+    /// Fade to black, called when Eleth dies
+    /// </summary>
+    IEnumerator FadeToBlack(float fadeSpeed)
+    {
+        fadeToBlack.SetActive(true);
+        Image fadeImage = fadeToBlack.transform.GetChild(0).GetComponent<Image>();
+
+        Color bkgColor = fadeImage.color;
+        bkgColor.a = 0.2f;
+        fadeImage.color = bkgColor;
+
+        while (bkgColor.a < 1f)
+        {
+            bkgColor.a += Time.deltaTime / fadeSpeed;
+            if (bkgColor.a > 1f) bkgColor.a = 1f;
+
+            fadeImage.color = bkgColor;
+            yield return null;
+        }
+    }
+
     private void Update()
     {
-        HandleHitStun();
+
     }
 
     public IEnumerator KnockBackCone()
@@ -211,7 +240,7 @@ public class Hag : Character
 
 
         RaycastHit hit;
-        if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environment))
+        if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environmentLayer))
         {
             transform.position = transform.position + transform.forward.normalized * blinkDistance;
         }

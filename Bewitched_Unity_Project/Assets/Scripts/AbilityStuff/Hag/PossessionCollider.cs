@@ -11,6 +11,17 @@ public class PossessionCollider : MonoBehaviour
     private List<Character> charactersInPossession = new List<Character>();
     [SerializeField, Tooltip("The current character that is being controlled")]
     private Character currentCharacter;
+    /// <summary>
+    /// Sets the collider radius of the PossessionCollider to use it in OntriggerEnter and OnTriggerExit.
+    /// </summary>
+    /// <param name="currentPossesionDistance">The current possession distance.</param>
+    public void SetColliderRadius(float currentPossesionDistance)
+    {
+        Vector3 newScale = transform.localScale;
+        newScale.x = currentPossesionDistance;
+        newScale.z = currentPossesionDistance;
+        transform.localScale = newScale;
+    }
 
     /// <summary>
     /// Used to set the currentCharacter variable
@@ -31,8 +42,8 @@ public class PossessionCollider : MonoBehaviour
         List<Character> characterToRemove = new List<Character>();
         foreach (Character character in charactersInPossession)
         {
-            // If the character is null or can't possess then remove it
-            if (character == null || character.canPossess == false)
+            // If the character is null then remove it
+            if (character == null)
             {
                 characterToRemove.Add(character);
             }

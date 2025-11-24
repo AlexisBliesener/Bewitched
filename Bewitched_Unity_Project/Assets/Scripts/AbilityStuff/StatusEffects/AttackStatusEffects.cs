@@ -173,7 +173,7 @@ public class AttackStatusEffects : MonoBehaviour
         if (timeStopDuration == 0) return;
 
         Time.timeScale = 0;
-        user.StartCoroutine(user.StartTime(timeStopDuration));
+        StartCoroutine(user.StartTime(timeStopDuration));
     }
 
     public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)
@@ -186,7 +186,12 @@ public class AttackStatusEffects : MonoBehaviour
         }
         else
         {
-            character.StartCoroutine(character.StartHitStun(stunDurationPlayer));
+            float finalStunDuration = stunDurationPlayer;
+            if (OffGuard.instance != null && character.attackState == Character.AttackState.Windup)
+            {
+                finalStunDuration = OffGuard.instance.GetModifiedStunDuration(stunDurationPlayer); // if the offguard is inactive, it will return the base stun duration (stunDurationPlayer)
+            }
+            character.StartCoroutine(character.StartHitStun(finalStunDuration));
         }
     }
 

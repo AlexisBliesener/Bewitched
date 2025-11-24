@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [Header("UI Settings")]
     [Tooltip("The hag health bar")]
     public GameObject hagHealthBar;
-    [SerializeField, Tooltip("The ui input module used for input")] 
+    [SerializeField, Tooltip("The ui input module used for input")]
     private InputSystemUIInputModule UIInput;
 
     [Header("Buff Holder")]
@@ -55,6 +55,8 @@ public class PlayerController : MonoBehaviour
     public IInteract nearbyInteractable;
     [SerializeField, Tooltip("UI prefab for the interact button (it will be shown when the player is near the interactable object)")]
     private GameObject interactUI;
+    [SerializeField, Tooltip("UI prefab for the narrative panel (it will be shown when the player enters the narrative trigger)")]
+    public GameObject narrativePanel;
 
     [Header("Staircase Door")]
     public StaircaseDoor exitDoor;
@@ -62,11 +64,14 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
+    [Tooltip("Movement input from the player on X and Y")]
     public Vector2 movementInput;
+    [Tooltip("Movement input from the player on X and Z")]
+    public Vector3 movementInputV3;
 
     public Vector3 direction;
 
-    private Vector3 velocity = new Vector3(0,0,0);
+    private Vector3 velocity = new Vector3(0, 0, 0);
 
     private float speed;
 
@@ -75,8 +80,6 @@ public class PlayerController : MonoBehaviour
     private bool sprinting = false;
     [Tooltip("If ui has been clicked before interact was clicked")]
     private bool uiClicked = false;
-
-    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -96,9 +99,16 @@ public class PlayerController : MonoBehaviour
         characterController = controller;
     }
 
+    /// <summary>
+    /// Returns if the player is currently sprinting
+    /// </summary>
+    public bool GetSprinting()
+    {
+        return sprinting;
+    }
+
     private void Start()
     {
-        instance = this;
         HealthController hagHealth = oldHag.GetComponent<HealthController>();
         if (hagHealth != null)
         {
@@ -116,6 +126,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        instance = this;
         currentCharacter = oldHag;
 
         characterController = currentCharacter.GetComponent<CharacterController>();
@@ -135,7 +146,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnDisable()
     {
-        if(UIInput != null)
+        if (UIInput != null)
         {
             UIInput.actionsAsset["UI/Submit"].performed -= UIClicked;
         }
@@ -150,21 +161,53 @@ public class PlayerController : MonoBehaviour
         uiClicked = true;
     }
 
+    /// <summary>
+    /// This is called when the player interacts with the interactable object
+    /// It will trigger the pickup event
+    /// </summary>
+    public void Interact(InputAction.CallbackContext context)
+    {
+        if (context.canceled)
+        {
+            sprinting = false;
+        }
+        else if (context.performed)
+        {
+            sprinting = false;
+            if (!sprinting)
+            {
+                if (nearbyInteractable != null && nearbyInteractable.CanInteract)
+                {
+                    nearbyInteractable.Interact();
+                }
+                else if (exitDoor != null)
+                {
+                    exitDoor.OpenDoor();
+                }
+            }
+
+            if (currentCharacter == oldHag && movementInput != Vector2.zero)
+            {
+                sprinting = true;
+            }
+        }
+    }
+
     private void FixedUpdate()
     {
         TargetEnemy();
         HandleCooldownUI();
-        speed = currentCharacter.GetSpeed();
 
-        if(currentCharacter == oldHag && sprinting)
-        {
-            speed = oldHag.GetSprintSpeed();
-        }
-
-        if (allowMovement)
+        if (allowMovement && !pauseMenu.activeInHierarchy)
         {
             if (movementInput.sqrMagnitude > 0.01)
             {
+                speed = currentCharacter.GetSpeed();
+                if (currentCharacter == oldHag && sprinting)
+                {
+                    speed = oldHag.GetSprintSpeed();
+                }
+
                 Vector3 desiredVelocity = direction * speed;
                 desiredVelocity = Camera.main.transform.TransformDirection(desiredVelocity);
                 desiredVelocity.y = 0f; // Prevent tilting
@@ -207,11 +250,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
             else
-            {   
+            {
                 velocity = new Vector3(0, 0, 0);
                 characterController.Move(velocity);
             }
-          
+
             currentCharacter.SetVelocity(velocity);
         }
     }
@@ -269,13 +312,14 @@ public class PlayerController : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         movementInput = context.ReadValue<Vector2>();
+        movementInputV3 = new Vector3(movementInput.x, 0, movementInput.y);
         direction = new Vector3(movementInput.x, 0, movementInput.y).normalized;
     }
 
     public void PrimaryFire(InputAction.CallbackContext context)
     {
         if (context.started)
-        { 
+        {
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());
@@ -312,7 +356,15 @@ public class PlayerController : MonoBehaviour
         {
             if (pauseMenu.activeInHierarchy == false) // If not paused
             {
-                Time.timeScale = 0;
+                if (TimeController.instance != null)
+                {
+                    TimeController.instance.PauseGame();
+                }
+                else
+                {
+                    Debug.LogWarning("TimeController instance is not set!");
+                }
+
                 pauseMenu.SetActive(true);
             }
             else
@@ -322,46 +374,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// This is called when the player interacts with the interactable object
-    /// It will trigger the pickup event
-    /// </summary>
-    public void Interact(InputAction.CallbackContext context)
-    {
-        if (context.canceled)
-        {
-            if (sprinting)
-            {
-                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
-            }
-            sprinting = false;
-        }
-        else if(context.performed)
-        {
-            if (!sprinting && !uiClicked)
-            {
-                if (nearbyInteractable != null)
-                {
-                    nearbyInteractable.Interact();
-                    // Hide the interact UI since the interact action has been performed
-                    HideInteractUI();
-                }
-                else if (exitDoor != null)
-                {
-                    exitDoor.OpenDoor();
-                }
-            }
-            else
-            {
-                uiClicked = false;
-            }
-            if (currentCharacter == oldHag)
-            {
-                oldHag.GetComponent<ElethAnimator>().ToggleSprint();
-                sprinting = true;
-            }
-        }
-    }
     /// <summary>
     /// Shows the interact UI, this is called when the player is near the interactable object
     /// </summary>
@@ -381,7 +393,14 @@ public class PlayerController : MonoBehaviour
     }
     public void ResumeGame()
     {
-        Time.timeScale = 1;
+        if (TimeController.instance != null)
+        {
+            TimeController.instance.ResumeGame();
+        }
+        else
+        {
+            Debug.LogWarning("TimeController instance is not set!");
+        }
         pauseMenu.SetActive(false);
     }
 
@@ -432,8 +451,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
         dir = Camera.main.transform.TransformDirection(dir);
-
-        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
