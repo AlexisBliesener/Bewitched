@@ -64,7 +64,10 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The character controller of the current character")]
     private CharacterController characterController;
 
+    [Tooltip("Movement input from the player on X and Y")]
     public Vector2 movementInput;
+    [Tooltip("Movement input from the player on X and Z")]
+    public Vector3 movementInputV3;
 
     public Vector3 direction;
 
@@ -77,8 +80,6 @@ public class PlayerController : MonoBehaviour
     private bool sprinting = false;
     [Tooltip("If ui has been clicked before interact was clicked")]
     private bool uiClicked = false;
-
-    // private bool dodging = false;
 
     [Tooltip("The window to counter this enemy is open")]
     private Enemy enemyCounterable = null;
@@ -311,6 +312,7 @@ public class PlayerController : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         movementInput = context.ReadValue<Vector2>();
+        movementInputV3 = new Vector3(movementInput.x, 0, movementInput.y);
         direction = new Vector3(movementInput.x, 0, movementInput.y).normalized;
     }
 
@@ -449,8 +451,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 dir = new Vector3(movementInput.x, 0, movementInput.y);
         dir = Camera.main.transform.TransformDirection(dir);
-
-        Debug.DrawRay(currentCharacter.gameObject.transform.position, dir, Color.red);
 
         if (movementInput.magnitude < 0.001f)
             dir = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z);
