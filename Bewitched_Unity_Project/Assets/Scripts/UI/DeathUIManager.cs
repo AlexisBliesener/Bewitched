@@ -27,8 +27,8 @@ public class DeathUIManager : MonoBehaviour
     [Header("Upgrades Acquired")]
     [Tooltip("List of upgrades that the player has acquired.")]
     private List<DropData> playerUpgrades;
-    [Tooltip("List of placeholders to be replaced by upgrade icons.")]
-    private GameObject[] upgradeIcons;
+    [Tooltip("List of placeholder Images to be replaced by upgrade icons.")]
+    private Image[] upgradeSlots;
 
     /// <summary>
     /// Shows the screen on enable, allows player to use cursor to navigate the screen
@@ -45,6 +45,13 @@ public class DeathUIManager : MonoBehaviour
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
 
+        /// Get upgrade slot placeholders
+        upgradeSlots = new Image[statsScreen.transform.childCount];
+        for (int i = 0; i < statsScreen.transform.childCount; i++)
+        {
+            upgradeSlots[i] = statsScreen.transform.GetChild(i).GetComponent<Image>();
+        }
+
         /// Stats (upgrades)
         if (DropSystem.Instance != null)
         {
@@ -56,7 +63,6 @@ public class DeathUIManager : MonoBehaviour
             // if no upgrades collected, show empty slots.
             Debug.LogWarning("DropSystem.Instance not found.");
         }
-        upgradeIcons = statsScreen.GetComponentsInChildren<GameObject>(true);
     }
 
     /// <summary>
@@ -67,22 +73,76 @@ public class DeathUIManager : MonoBehaviour
         AudioManager.UnsubscribeCheckClick();
     }
 
-    /// will need to add stats and death animation into the death screen
-
     /// <summary>
     /// Updates the placeholder upgrade slots 
     /// with the player's acquired upgrades they got in the run.
     /// </summary>
     private void UpdateStats()
     {
-        for (int i = 0; i < upgradeIcons.Length; i++)
+        Dictionary<string, (DropData upgrade, int count)> groupedUpgrades = new();
+        foreach (var upgrade in playerUpgrades)
         {
-            Image iconSlot = upgradeIcons[i].GetComponent<Image>();
-            if (iconSlot != null)
+            if (upgrade == null) continue;
+
+            string name = upgrade.GetDropName();
+            if (!groupedUpgrades.ContainsKey(name))
+                groupedUpgrades[name] = (upgrade, 1);
+            else
+                groupedUpgrades[name] = (groupedUpgrades[name].upgrade, groupedUpgrades[name].count + 1);
+        }
+
+        // Stack exact upgrades
+        int slotIndex = 0;
+        foreach (var kvp in groupedUpgrades)
+        {
+            if (slotIndex >= upgradeSlots.Length)
+                break;
+
+            Image slot = upgradeSlots[slotIndex];
+            DropData upgrade = kvp.Value.upgrade;
+            int count = kvp.Value.count;
+
+            
+            // First icon
+            Transform main = slot.transform.Find("MainIcon");
+            if (main == null)
             {
-                iconSlot.sprite = playerUpgrades[i].GetIcon();
+                GameObject mainObj = new GameObject("MainIcon", typeof(RectTransform), typeof(Image));
+                mainObj.transform.SetParent(slot.transform, false);
+                main = mainObj.transform;
             }
 
+            Image mainIcon = main.GetComponent<Image>();
+            mainIcon.sprite = upgrade.GetIcon();
+            mainIcon.enabled = true;
+
+            // First icon renders on top
+            main.SetAsLastSibling();
+            
+
+            // Stack exact icons under
+            for (int i = 1; i < count; i++)
+            {
+                GameObject clone = new GameObject(upgrade.GetDropName() + "_stack_" + i, typeof(RectTransform));
+                clone.transform.SetParent(slot.transform, false);
+
+                Image cloneImage = clone.AddComponent<Image>();
+                cloneImage.sprite = upgrade.GetIcon();
+                cloneImage.preserveAspect = true;
+
+                RectTransform rt = clone.GetComponent<RectTransform>();
+                rt.anchorMin = new Vector2(0.5f, 1f);
+                rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+
+                float offset = 15f;
+                rt.anchoredPosition = new Vector2(0, -i * offset);
+
+                // behind the first icon
+                clone.transform.SetAsFirstSibling();
+            }
+
+            slotIndex++;
         }
     }
 }

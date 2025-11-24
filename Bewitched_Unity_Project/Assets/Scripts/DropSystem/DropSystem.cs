@@ -251,6 +251,10 @@ public class DropSystem : MonoBehaviour
                     Debug.LogWarning("The swap upgrade UI is null!");
                 }
             }
+            if (!isNewUnique)
+            {
+                drop.IncreaseStack();
+            }
             HUDManager.Instance.AddUpgrade(drop);
         }
         else
@@ -326,11 +330,12 @@ public class DropSystem : MonoBehaviour
             SoulSystem.Instance.AddSouls(totalRefund);
         }
         playerUpgrades.RemoveAll(u => u != null && u.GetID() == drop.GetID());
-        for (int i = 0; i < playerUpgrades.Count; i++)
+        for (int i = 0; i < toRemove.Count; i++)
         {
-            if (playerUpgrades[i].GetID() == drop.GetID())
+            if (toRemove[i].GetID() == drop.GetID())
             {
-                playerUpgrades[i].Deactivate();
+                toRemove[i].ResetStack();
+                toRemove[i].Deactivate();
             }
         }
 

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
@@ -23,6 +24,8 @@ public class Goblin : Enemy
     [SerializeField] AttackStatusEffects spinEffects;
     [Tooltip("Knife Effects"), ShowIf(nameof(dev))]
     [SerializeField] AttackStatusEffects[] knifeEffects;
+    [SerializeField, Tooltip("Spin VFX Prefab")]
+    private GameObject spinVFXPrefab;
 
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
@@ -43,6 +46,8 @@ public class Goblin : Enemy
     [SerializeField] private float offSetForward = 0.5f;
 
     [Header("Spin Settings for Goblin")]
+    [SerializeField, Tooltip("The counter window for the goblin spin"), Range(0f, 0.9f)]
+    private float secondaryCounterWindow;
     [Tooltip("Spin Damage"), Range(0, 200)]
     [SerializeField] float spinDamage = 30;
     [Tooltip("Distance to dodge in first part of spin"), Range(0, 10)]
@@ -90,10 +95,9 @@ public class Goblin : Enemy
     private bool inPrimaryWindup = false;
     [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
     bool aiControlledOnPrimary = false;
-
-
-
     private int numDeflections = 0;
+    [Tooltip("Current spin VFX")]
+    private GameObject spinVFX;
 
     private void Start()
     {
@@ -262,9 +266,8 @@ public class Goblin : Enemy
             float buffer = sizeRadius + offSetForward;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
-                Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
                 targetPos = hit.point - direction * buffer;
             }
@@ -293,7 +296,7 @@ public class Goblin : Enemy
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 RaycastHit rayHit;
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environment | characters))
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environmentLayer | characters))
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     goblinAnimator.ExitLeap();
@@ -307,6 +310,8 @@ public class Goblin : Enemy
                 {
                     if (!triggerSet)
                     {
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
                         goblinAnimator.ExitLeap();
                         triggerSet = true;
                     }
@@ -314,7 +319,7 @@ public class Goblin : Enemy
                     if (counterIndicatorVFX != null)
                     {
                         DestroyCounterIndicator();
-                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+                        
                     }
                 }
                 else // attack is dodgable
@@ -397,6 +402,7 @@ public class Goblin : Enemy
         yield break;
     }
 
+
     /// <summary>
     /// Coroutine handling the AI state changes, AI delay, and locking movement for the player when stabbing
     /// </summary>
@@ -415,19 +421,35 @@ public class Goblin : Enemy
            CameraController.instance.OnAttack(this.gameObject.transform.forward, 0.01f);
         }
 
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        Vector3 direction;
+        if (PlayerController.instance.movementInputV3 != Vector3.zero)
+        {
+            direction = Camera.main.transform.TransformVector(PlayerController.instance.movementInputV3);
+        }
+        else
+        {
+            direction = PlayerController.instance.currentCharacter.transform.forward;
+        }
+            
+        direction.y = 0f; // Prevent tilting
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, direction, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (direction.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (direction.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
             yield return null;
-        }
-
-        if (!playerControlling)
-        {
-            if (!hitCharacter) // If missed, vulnerable for half a second
-            {
-                yield return new WaitForSeconds(0.5f);
-            }
         }
 
         SetMovementValues(true);
@@ -447,7 +469,6 @@ public class Goblin : Enemy
 
         if(aiControlledOnPrimary)
         {
-            Debug.Log("primary ended");
             goblinAnimator.EndPrimary();
         }
 
@@ -625,8 +646,45 @@ public class Goblin : Enemy
 
         float distanceTravelled = 0;
         bool cameraRotationStopped = false;
+
+        spinVFX = Instantiate(spinVFXPrefab, transform);
+        spinVFX.GetComponent<DestroyAfterTime>().SetTime(spinDuration - (1.25f ));
+
+        bool triggerSet = false;
+
         while (distanceTravelled < distance)
         {
+            if (distanceTravelled * secondaryCounterWindow > distance) //  not dodgable
+            {
+                if (!triggerSet)
+                {
+                    if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
+                    goblinAnimator.ExitLeap();
+                    triggerSet = true;
+                }
+
+                if (counterIndicatorVFX != null)
+                {
+                    DestroyCounterIndicator();
+                }
+            }
+            else // attack is dodgable
+            {
+                if (counterIndicatorVFX == null)
+                {
+                    counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                    counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
+                    PlayerController.instance.SetCounterAvaliable(this);
+                }
+            }
+
+            if (spinVFX != null)
+            {
+                spinVFX.transform.position = transform.position;
+            }
+
+
             timeSinceBegan += Time.deltaTime;
             SetMovementValues(false); // Helps if player possesses enemy mid-attack
 
@@ -649,7 +707,7 @@ public class Goblin : Enemy
 
             // Check for impact before moving and adjust as needed
             RaycastHit hit;
-            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environment))
+            if (Physics.Raycast(transform.position, velocity.normalized, out hit, velocity.magnitude * Time.deltaTime, environmentLayer))
             {
                 if(!cameraRotationStopped)
                 {
@@ -1100,7 +1158,6 @@ public class Goblin : Enemy
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
                 int goblinAttackCount = (int)Random.Range(0, Mathf.Min((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
-                Debug.Log("Attacking with: " + goblinAttackCount + " others");
                 for (int i = 0; i < goblinAttackCount; i++)
                 {
                     StartCoroutine(goblins[i].SpinWithDelay());
