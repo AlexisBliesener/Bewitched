@@ -227,7 +227,6 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
-                currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
