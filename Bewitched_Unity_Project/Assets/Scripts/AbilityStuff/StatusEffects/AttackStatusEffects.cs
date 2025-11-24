@@ -43,9 +43,11 @@ public class AttackStatusEffects : MonoBehaviour
     [Tooltip("The Type of Knockback to Apply")]
     [SerializeField] private KnockbackType knockbackType = KnockbackType.BasicForward;
 
-    [Header("Time Stop Values")]
-    [Tooltip("The Duration of the Time Stop")]
-    [SerializeField] float timeStopDuration = 0;
+    [Header("Time Slow Values")]
+    [Tooltip("The Duration of the Time Slow")]
+    [SerializeField] float timeSlowDuration = 0;
+    [Tooltip("The time scale to set the time to")]
+    [SerializeField] float slowTimeScale = 0;
 
     [Header("Hitstun settings")]
     [Tooltip("The duration of the hitstun when the player attacks")]
@@ -117,7 +119,7 @@ public class AttackStatusEffects : MonoBehaviour
 
     public void SetTimeStop(float duration) // For testing
     {
-        timeStopDuration = duration;
+        timeSlowDuration = duration;
     }
 
     #endregion
@@ -165,15 +167,11 @@ public class AttackStatusEffects : MonoBehaviour
     /// <summary>
     /// Applies the time stop
     /// </summary>
-    /// <param name="user"> User of the attack </param>
-    /// <param name="character"> Character attack is being used on </param>
-    /// <param name="hitbox"> Hitbox the attack is using </param>
-    public void ApplyTimeStop(Character user, Character character, DefaultHitbox hitbox)
+    public void ApplyTimeSlow()
     {
-        if (timeStopDuration == 0) return;
+        if (timeSlowDuration == 0) return;
 
-        Time.timeScale = 0;
-        StartCoroutine(user.StartTime(timeStopDuration));
+        TimeController.instance.StartTimeSlow(slowTimeScale, timeSlowDuration);
     }
 
     public void ApplyHitStun(Character user, Character character, DefaultHitbox hitbox)
@@ -204,7 +202,7 @@ public class AttackStatusEffects : MonoBehaviour
     public void ApplyStatusEffects(Character user, Character character, DefaultHitbox hitbox)
     {
         ApplyKnockback(user, character, hitbox);
-        ApplyTimeStop(user, character, hitbox);
+        ApplyTimeSlow();
         ApplyHitStun(user, character, hitbox);
     }
 }

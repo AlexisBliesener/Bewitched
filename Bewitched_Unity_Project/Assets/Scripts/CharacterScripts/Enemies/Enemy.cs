@@ -116,9 +116,14 @@ public abstract class Enemy : Character
     Dictionary<List<int>, int> surroundingCostlyNodes = new Dictionary<List<int>, int>();
 
     [Tooltip("Dictionary of attacking costly nodes with the costs they have been given")]
-    Dictionary<List<int>, int> attackingCostlyNodes = new Dictionary<List<int>, int>();
+    protected Dictionary<List<int>, int> attackingCostlyNodes = new Dictionary<List<int>, int>();
 
     protected bool overrideBlock = false;
+
+    private Vector3 previousPlayerCostlyPosition;
+
+    [Tooltip("If in windup for primary")]
+    protected bool inPrimaryWindup = false;
 
     public enum PathState
     {
@@ -590,6 +595,8 @@ public abstract class Enemy : Character
                 SetMovementValues(false);
                 yield return null;
             }
+
+            inPrimaryWindup = false;
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
             {
                 attackingPrimary = false;
@@ -606,7 +613,6 @@ public abstract class Enemy : Character
                 attackState = AttackState.Neutral;
                 SurroundingPoints.instance.RemoveAttackingEnemy(this);
             }
-            ResetAttackingArea();
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
@@ -1020,7 +1026,7 @@ public abstract class Enemy : Character
             return;
         }
 
-        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
+        if (Vector3.Distance(transform.position, previousCostlyPosition) > invalidAreaResetThreshold || Vector3.Distance(currentPlayer.transform.position, previousPlayerCostlyPosition) > invalidAreaResetThreshold || surroundingCostlyNodes.Count == 0)
         {
             int numSet = 0;
             ResetSurroundingArea();
@@ -1030,17 +1036,18 @@ public abstract class Enemy : Character
             {
                 Node node = GraphBuilder.instance.GetNodeFromPosition(position);
                 float distFromPlayer = Vector3.Distance(node.GetPosition(currentPlayer.gameObject), currentPlayer.transform.position);
-                if (distFromPlayer < sizeRadius + maxSurroundingRadius)
+                if (distFromPlayer < sizeRadius + maxSurroundingRadius + currentPlayer.sizeRadius)
                 {
                     float dist = Vector3.Distance(node.GetPosition(gameObject), transform.position);
                     float ratio = (totalDist - dist) / totalDist;
-                    node.AddCost(this, (int)(20 * ratio));
+                    node.AddCost(this, (int)(10 * ratio));
 
-                    surroundingCostlyNodes[position] = (int)(20 * ratio);
+                    surroundingCostlyNodes[position] = (int)(10 * ratio);
                     numSet++;
                 }
             }
             previousCostlyPosition = transform.position;
+            previousPlayerCostlyPosition = currentPlayer.transform.position;
         }
     }
 
@@ -1123,31 +1130,57 @@ public abstract class Enemy : Character
     }
 
     /// <summary>
-    /// Creates a dictionary of costly nodes and sets their costs for attacking
+    /// Creates a dictionary of costly nodes in a line and sets their costs for attacking
     /// </summary>
     /// <param name="direction"> Direction of attack </param>
     /// <param name="length"> Length of costly area </param>
-    public void SetCostlyAttackingArea(Vector3 direction, float length)
+    public void SetCostlyAttackingLine(Vector3 direction, float length)
     {
-        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, sizeRadius);
-        foreach (List<int> node in nodes)
+        ResetAttackingArea(true);
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, 1.5f * sizeRadius);
+        foreach (List<int> position in nodes)
         {
-            GraphBuilder.instance.AddNodeCost(node, this, 10);
-            attackingCostlyNodes[node] = 10;
+            Node node = GraphBuilder.instance.GetNodeFromPosition(position);
+            node.AddCost(this, 100);
+            attackingCostlyNodes[position] = 100;
+        }
+    }
+
+    /// <summary>
+    /// Creates a dictionary of costly nodes in a cone
+    /// </summary>
+    /// <param name="radius"> Radius of attack </param>
+    /// <param name="angle"> Angle of attack </param>
+    public void SetCostlyAttackingCone(float radius, float angle)
+    {
+        ResetAttackingArea(true);
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(transform.position, radius);
+        foreach (List<int> position in nodes)
+        {
+            Node node = GraphBuilder.instance.GetNodeFromPosition(position);
+            if (Vector3.Angle(node.GetPosition(gameObject) - transform.position, transform.forward) <= angle)
+            {
+                node.AddCost(this, 100);
+                attackingCostlyNodes[position] = 100;
+            }
         }
     }
 
     /// <summary>
     /// Resets the costly attacking area values
     /// </summary>
-    public void ResetAttackingArea()
+    /// <param name="overrideAttackState"> If this is done at the beginning of an attack it works regardless of attack state </param>
+    public void ResetAttackingArea(bool overrideAttackState = false)
     {
-        int numReset = 0;
-        foreach (List<int> position in attackingCostlyNodes.Keys)
+        if (attackState == AttackState.Neutral || overrideAttackState)
         {
-            numReset++;
-            GraphBuilder.instance.AddNodeCost(position, this, -attackingCostlyNodes[position]);
+            int numReset = 0;
+            foreach (List<int> position in attackingCostlyNodes.Keys)
+            {
+                numReset++;
+                GraphBuilder.instance.AddNodeCost(position, this, -attackingCostlyNodes[position]);
+            }
+            attackingCostlyNodes = new Dictionary<List<int>, int>();
         }
-        attackingCostlyNodes = new Dictionary<List<int>, int>();
     }
 }
