@@ -227,7 +227,7 @@ public class Goblin : Enemy
         targetPos = transform.position;
         float windupStart = Time.time;
 
-        while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
+        while (Time.time  - windupStart < 0.708 / goblinAnimator.GetPrimaryWindupMult())
         {
             SetMovementValues(false);
             if (tempLockedCharacter)
