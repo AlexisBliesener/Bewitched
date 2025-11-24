@@ -211,7 +211,9 @@ MonoBehaviour:
       Data3: 426175625
       Data4: -1061530669
     Path: event:/SoundEffects/Character/Goblin/GoblinDeath
+  minMoveDistance: 1.25
   knifePrefab: {fileID: 4856905325420635979, guid: abfa6d899891f124788e7f520cfdf344, type: 3}
+  rightHandBone: {fileID: 6263264632735862252}
   dashHitbox: {fileID: 3667148837929869742, guid: 4c9ecf47860026441959e5b89ba089df, type: 3}
   dashEffects: {fileID: 672220797181763766, guid: 9d41d4cd556feca4e87abc767ece1fd8, type: 3}
   spinHitbox: {fileID: 2590818123613103327, guid: d403e190d57802d43b0d58d1bafbf7e5, type: 3}
@@ -1844,6 +1846,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 5743683392297101344}
   m_SourcePrefab: {fileID: 100100000, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+--- !u!4 &6263264632735862252 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4324313040044004425, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
+  m_PrefabInstance: {fileID: 7703581107334453669}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7361687617241982196 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
