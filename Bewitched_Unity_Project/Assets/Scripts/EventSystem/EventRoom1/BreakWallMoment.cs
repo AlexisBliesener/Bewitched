@@ -69,10 +69,9 @@ public class BreakWallMoment : MonoBehaviour
         PlayerController.instance.SetAllowMovement(false);
         PlayerController.instance.currentCharacter.gameObject.SetActive(false);
         // we will kill all the enemies on the arena 
-        foreach (GameObject enemyGameObject in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
+        foreach (Enemy enemy in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
         {
-            if (enemyGameObject == null || enemyGameObject == PlayerController.instance.currentCharacter.gameObject) continue;
-            Enemy enemy = enemyGameObject.GetComponent<Enemy>();
+            if (enemy == null || enemy.gameObject == PlayerController.instance.currentCharacter.gameObject) continue;
             enemy.health.SetCurrentHealth(0);
         }
         //End the level music

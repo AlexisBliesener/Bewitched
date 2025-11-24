@@ -157,7 +157,7 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Mask for the ground layer"), ShowIf(nameof(dev))]
     public LayerMask ground;
     [Tooltip("Mask for the environment layer"), ShowIf(nameof(dev))]
-    public LayerMask environment;
+    public LayerMask environmentLayer;
     [SerializeField, Tooltip("The Cinemachine FreeLook camera used for zoomed out in combat movement."), ShowIf(nameof(dev))]
     private CinemachineFreeLook combatCam;
     [SerializeField, Tooltip("The Cinemachine Virtual Camera used for aiming and close-up view."), ShowIf(nameof(dev))]
@@ -368,7 +368,7 @@ public abstract class Character : MonoBehaviour
     /// <summary>
     /// OnDamaged is called when the character is damaged.
     /// </summary>
-    protected virtual void OnDamaged(float amount)
+    protected virtual void OnDamaged(float amount, HealthController healthController)
     {
 
     }
@@ -885,7 +885,7 @@ public abstract class Character : MonoBehaviour
             GetComponent<KnockbackControl>().AddImpact(-direction, Mathf.Clamp(weight * velocity.magnitude, 0, 50));
         }
 
-        if (hit.gameObject.layer == environment) // If colliding with environment, reset impact
+        if (hit.gameObject.layer == environmentLayer) // If colliding with environment, reset impact
         {
             GetComponent<KnockbackControl>().ResetImpact();
         }

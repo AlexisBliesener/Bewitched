@@ -13,16 +13,19 @@ public class CutSceneEvent1 : MonoBehaviour
     private float speedOfTheMovement = 0.5f;
     [SerializeField, Tooltip("The flag to check if the player is moving")]
     private bool isMoving = false;
+    [SerializeField, Tooltip("Reference to the Hag character script.")]
+    protected Hag eleth;
 
     /// <summary>
     /// This will set the player to the start position and set the flag to true
     /// </summary>
-    void OnEnable()
+    private void Start()
     {
-        PlayerController.instance.GetHag().transform.position = startPosition.transform.position;
-        PlayerController.instance.GetHag().transform.rotation = startPosition.transform.rotation;
-        PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().OverrideAnimator("Run");
+        eleth = PlayerController.instance.GetHag();
+        eleth.transform.position = startPosition.transform.position;
+        eleth.transform.rotation = startPosition.transform.rotation;
         isMoving = true;
+        eleth.GetComponent<CharacterAnimator>().OverrideAnimator("Run");
     }
 
     /// <summary>
@@ -32,10 +35,10 @@ public class CutSceneEvent1 : MonoBehaviour
     {
         if (isMoving)
         {
-            PlayerController.instance.GetHag().transform.position = Vector3.Lerp(PlayerController.instance.GetHag().transform.position, targetPosition.transform.position, speedOfTheMovement * Time.deltaTime);
-            if (Vector3.Distance(PlayerController.instance.GetHag().transform.position, targetPosition.transform.position) < 1f)
+            eleth.transform.position = Vector3.Lerp(eleth.transform.position, targetPosition.transform.position, speedOfTheMovement * Time.deltaTime);
+            if (Vector3.Distance(eleth.transform.position, targetPosition.transform.position) < 1f)
             {
-                PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().OverrideAnimator("Idle");
+                eleth.GetComponent<CharacterAnimator>().OverrideAnimator("Idle");
                 isMoving = false;
             }
         }
@@ -43,6 +46,6 @@ public class CutSceneEvent1 : MonoBehaviour
 
     private void OnDisable()
     {
-        PlayerController.instance.GetHag().GetComponent<CharacterAnimator>().EndAnimatorOverride();
+        eleth.GetComponent<CharacterAnimator>().EndAnimatorOverride();
     }
 }

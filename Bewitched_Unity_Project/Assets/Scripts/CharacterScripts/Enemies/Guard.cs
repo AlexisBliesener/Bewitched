@@ -32,6 +32,10 @@ public class Guard : Enemy
     [SerializeField] float shieldLowerTime = 0.3f;
     [Tooltip("Angle range for AI to lower shield")]
     [SerializeField] float aiShieldAngleThreshold = 20;
+    [Tooltip("AI Time delay before shield drops")]
+    [SerializeField] float aiShieldDropDelay = 0.5f;
+
+    private float timeLastValidShield = 0;
 
     [Tooltip("Guard animator script that controls the guard animations")]
     private GuardAnimator guardAnimator; 
@@ -336,7 +340,7 @@ public class Guard : Enemy
             float buffer = sizeRadius + 0.5f;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environment | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
             {
                 Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point
@@ -501,6 +505,30 @@ public class Guard : Enemy
             CameraController.instance.OnAttack(transform.forward, 0.01f);
         }
 
+        RaycastHit hitInfo;
+        Vector3 moveDist;
+        Vector3 direction;
+        if (PlayerController.instance.movementInputV3 != Vector3.zero)
+        {
+            direction = Camera.main.transform.TransformVector(PlayerController.instance.movementInputV3);
+        }
+        else
+        {
+            direction = PlayerController.instance.currentCharacter.transform.forward;
+        }
+
+        direction.y = 0f; // Prevent tilting
+        if (Physics.Raycast(PlayerController.instance.currentCharacter.transform.position, direction, out hitInfo, nonLockPrimaryMovement + GetCharacterController().radius * 1.1f, environmentLayer))
+        {
+            moveDist = (direction.normalized * (hitInfo.distance - GetCharacterController().radius * 1.1f));
+        }
+        else
+        {
+            moveDist = (direction.normalized * nonLockPrimaryMovement);
+        }
+        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+
         float hitboxStartTime = Time.time;
 
         while (Time.time - hitboxStartTime < 0.25f / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
@@ -566,7 +594,7 @@ public class Guard : Enemy
     /// </summary>
     public IEnumerator RaiseShield()
     {
-        if (shieldStatus == ShieldStatus.Lowering) yield break;
+        if (shieldStatus == ShieldStatus.Lowering || shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) yield break;
         shieldStatus = ShieldStatus.Raising;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < shieldRaiseTime)
@@ -575,12 +603,13 @@ public class Guard : Enemy
             yield return null;
         }
 
-        if (shieldStatus == ShieldStatus.Raising)
+        if (shieldStatus == ShieldStatus.Raising && shieldObject == null)
         {
             shieldObject = Instantiate(shieldPrefab, transform);
             shieldObject.transform.position += transform.forward * sizeRadius;
             shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
             shieldStatus = ShieldStatus.Raised;
+            timeLastValidShield = Time.time;
         }
     }
 
@@ -900,33 +929,69 @@ public class Guard : Enemy
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
-        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling && shieldStatus == ShieldStatus.Lowered)
+        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling)
         {
-            shieldStatus = ShieldStatus.Raised;
-            StartCoroutine(BeginSecondary());
+            if (shieldStatus == ShieldStatus.Lowered)
+            {
+                StartCoroutine(BeginSecondary());
+            }
+            if (shieldStatus == ShieldStatus.Raised)
+            {
+                timeLastValidShield = Time.time;
+            }
         }
-        else if ((angle > aiShieldAngleThreshold || dist > (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius)) && !playerControlling && shieldStatus == ShieldStatus.Raised)
+        else if (!playerControlling && shieldStatus == ShieldStatus.Raised && Time.time - timeLastValidShield > aiShieldDropDelay)
         {
-            shieldStatus = ShieldStatus.Lowering;
             ReleaseSecondary();
         }
     }
 
 
-/// <summary>
-/// Sets if the player is controlling this enemy
-/// </summary>
-/// <param name="val"> Value to set </param>
-public override void SetControlled(bool val)
+    /// <summary>
+    /// Sets if the player is controlling this enemy
+    /// </summary>
+    /// <param name="val"> Value to set </param>
+    public override void SetControlled(bool val)
     {
         base.SetControlled(val);
-        if (val)
+        if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+    }
+
+    public override IEnumerator StartHitStun(float duration)
+    {
+        if (duration > 0)
         {
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
-        }
-        else
-        {
-            if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+            if (stunned) yield break;
+            if (hitStunActual != null) Destroy(hitStunActual);
+            hitStunActual = Instantiate(hitStunPrefab, transform);
+            stunned = true;
+            float timeStarted = Time.time;
+            while (Time.time - timeStarted < duration)
+            {
+                SetMovementValues(false);
+                yield return null;
+            }
+            if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
+            {
+                attackingPrimary = false;
+                timeLastPrimary = Time.time;
+            }
+            if (attackingSecondary)
+            {
+                attackingSecondary = false;
+                timeLastSecondary = Time.time;
+                ReleaseSecondary();
+            }
+            SetMovementValues(true);
+            if (attackState != AttackState.Neutral)
+            {
+                attackState = AttackState.Neutral;
+                SurroundingPoints.instance.RemoveAttackingEnemy(this);
+            }
+            ResetAttackingArea();
+            stunned = false;
+            Destroy(hitStunActual);
+            hitStunActual = null;
         }
     }
 }

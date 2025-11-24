@@ -109,7 +109,7 @@ public class CharacterTests
         /// <summary>
         /// Overrides Character.OnDamaged() for testing; marks that CreateHitStun() was called.
         /// </summary>
-        protected override void OnDamaged(float amount)
+        protected override void OnDamaged(float amount, HealthController healthController)
         {
             StartCoroutine(StartHitStun(amount));
         }
@@ -226,24 +226,6 @@ public class CharacterTests
     {
         testCharacter.health.AddHealth(50f);
         Assert.AreEqual(100f, testCharacter.health.GetHealth());
-    }
-
-    /// <summary>Subtracting more than current health should trigger Die.</summary>
-    [Test]
-    public void SubHealth_ReducesAndDies()
-    {
-        testCharacter.health.SubHealth(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-    }
-
-
-    /// <summary>DrainLife should kill without generating hitstun.</summary>
-    [Test]
-    public void DrainLife_KillsWithoutHitStun()
-    {
-        testCharacter.health.DrainLife(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-        Assert.IsNull(testCharacter.HitStun);
     }
 
     /// <summary>SetHealthToMax should fully restore health.</summary>

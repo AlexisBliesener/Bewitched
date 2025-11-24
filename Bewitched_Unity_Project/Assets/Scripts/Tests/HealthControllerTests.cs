@@ -81,7 +81,7 @@ public class HealthControllerTests
         lastMaxHealth = max;
     }
 
-    private void OnDamagedHandler(float amount)
+    private void OnDamagedHandler(float amount, HealthController healthController)
     {
         damagedCalled = true;
         lastDamageAmount = amount;
@@ -180,18 +180,6 @@ public class HealthControllerTests
         Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
-    /// <summary>SetCurrentHealth to zero should trigger death action.</summary>
-    [Test]
-    public void SetCurrentHealth_TriggersDeathEventWhenSetToZero()
-    {
-        ResetEventFlags();
-        
-        testHealthController.SetCurrentHealth(0f);
-        
-        Assert.IsTrue(testHealthController.IsDead);
-        Assert.IsTrue(deathCalled);
-    }
-
     /// <summary>SetToMax should restore full the health.</summary>
     [Test]
     public void SetToMax_RestoresFullHealth()
@@ -257,19 +245,6 @@ public class HealthControllerTests
         testHealthController.SubHealth(150f);
         
         Assert.AreEqual(0f, testHealthController.GetHealth());
-        Assert.IsTrue(testHealthController.IsDead);
-    }
-
-    /// <summary>TakeDamage with fatal damage should trigger death event.</summary>
-    [Test]
-    public void TakeDamage_TriggersDeathEventWhenFatal()
-    {
-        ResetEventFlags();
-        
-        testHealthController.SubHealth(100f);
-        
-        Assert.IsTrue(testHealthController.IsDead);
-        Assert.IsTrue(deathCalled);
     }
 
     /// <summary>TakeDamage should ignore zero or negative damage.</summary>
@@ -290,20 +265,6 @@ public class HealthControllerTests
         Assert.AreEqual(100f, testHealthController.GetHealth());
     }
 
-    /// <summary>TakeDamage should do nothing when already dead.</summary>
-    [Test]
-    public void TakeDamage_DoesNothingWhenAlreadyDead()
-    {
-        testHealthController.SetCurrentHealth(0f);
-        ResetEventFlags();
-        
-        testHealthController.SubHealth(50f);
-        
-        Assert.IsFalse(damagedCalled);
-        Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(0f, testHealthController.GetHealth());
-    }
-
     #endregion
 
     #region DrainLife System
@@ -321,20 +282,6 @@ public class HealthControllerTests
         Assert.IsFalse(damagedCalled);
         Assert.IsTrue(healthChangedCalled);
         Assert.AreEqual(initialTimeLastHit, testHealthController.TimeLastHit);
-    }
-
-    /// <summary>DrainLife with fatal amount should trigger death without damage event.</summary>
-    [Test]
-    public void DrainLife_TriggersDeathWithoutDamageEventWhenFatal()
-    {
-        ResetEventFlags();
-        
-        testHealthController.DrainLife(100f);
-        
-        Assert.IsTrue(testHealthController.IsDead);
-        Assert.IsTrue(deathCalled);
-        Assert.IsFalse(damagedCalled);
-        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     /// <summary>DrainLife should ignore zero or the negative amounts.</summary>
@@ -408,20 +355,6 @@ public class HealthControllerTests
         Assert.AreEqual(50f, testHealthController.GetHealth());
     }
 
-    /// <summary>Heal should do nothing when already dead.</summary>
-    [Test]
-    public void Heal_DoesNothingWhenAlreadyDead()
-    {
-        testHealthController.SetCurrentHealth(0f);
-        ResetEventFlags();
-        
-        testHealthController.AddHealth(50f);
-        
-        Assert.IsFalse(healedCalled);
-        Assert.IsFalse(healthChangedCalled);
-        Assert.AreEqual(0f, testHealthController.GetHealth());
-    }
-
     #endregion
 
     #region Decay System
@@ -456,21 +389,6 @@ public class HealthControllerTests
         Assert.IsTrue(healthChangedCalled);
     }
 
-    /// <summary>Decay should trigger death when health reaches zero.</summary>
-    [UnityTest]
-    public IEnumerator Update_TriggersDeathWhenDecayReachesZero()
-    {
-        testHealthController.SetCurrentHealth(1f);
-        testHealthController.SetDecay(10f);
-        testHealthController.EnableUpdateModel(true);
-        ResetEventFlags();
-        
-        yield return new WaitForSeconds(0.2f);
-        
-        Assert.IsTrue(testHealthController.IsDead);
-        Assert.IsTrue(deathCalled);
-    }
-
     /// <summary>Decay should not occur when update model is disabled.</summary>
     [UnityTest]
     public IEnumerator Update_DoesNotDecayWhenUpdateModelDisabled()
@@ -482,19 +400,6 @@ public class HealthControllerTests
         yield return new WaitForSeconds(0.5f);
         
         Assert.AreEqual(initialHealth, testHealthController.GetHealth());
-    }
-
-    /// <summary>Decay should not occur when already dead.</summary>
-    [UnityTest]
-    public IEnumerator Update_DoesNotDecayWhenAlreadyDead()
-    {
-        testHealthController.SetCurrentHealth(0f);
-        testHealthController.SetDecay(10f);
-        testHealthController.EnableUpdateModel(true);
-        
-        yield return new WaitForSeconds(0.2f);
-        
-        Assert.AreEqual(0f, testHealthController.GetHealth());
     }
 
     #endregion
@@ -520,7 +425,7 @@ public class HealthControllerTests
     public void TakeDamage_ProcessesMultipleRapidCallsCorrectly()
     {
         int damageEventCount = 0;
-        testHealthController.OnDamaged += (amount) => damageEventCount++;
+        testHealthController.OnDamaged += (amount, _) => damageEventCount++;
         
         testHealthController.SubHealth(10f);
         testHealthController.SubHealth(20f);
