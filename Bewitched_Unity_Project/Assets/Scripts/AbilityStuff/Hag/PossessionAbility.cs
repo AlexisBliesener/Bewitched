@@ -49,8 +49,10 @@ public class PossessionAbility : MonoBehaviour
     protected Hag eleth;
     [Tooltip("The current character that is being controlled (Hag or possessed enemy).")]
     protected Character currentCharacter;
-    [SerializeField, Tooltip("The current smoke vfx")]
-    private GameObject currentSmokeVFX;
+    [SerializeField, Tooltip("The in possession vfx that plays when the enemy still has health")]
+    private GameObject enemyInPossessionVFX;
+    [SerializeField, Tooltip("The in possession vfx that plays when the enemy has no more health")]
+    private GameObject elethInPossessionVFX;
 
     [Header("VFX")]
     [SerializeField, Tooltip("Highlights the enemy currently targeted for possession.")]
@@ -293,24 +295,41 @@ public class PossessionAbility : MonoBehaviour
 
         if(currentCharacter != eleth)
         {
-            if (currentSmokeVFX != null)
+            if(PlayerController.instance.currentCharacter.health.CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
             {
-                currentSmokeVFX.SetActive(true);
+                if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
+                {
+                    elethInPossessionVFX.SetActive(true);
+                    enemyInPossessionVFX.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogWarning("In Possession VFXs are not assigned!");
+                }
             }
             else
             {
-                Debug.LogWarning("Smoke VFX is not assigned!");
+                if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
+                {
+                    enemyInPossessionVFX.SetActive(true);
+                    elethInPossessionVFX.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogWarning("In Possession VFXs are not assigned!");
+                }
             }
         }
         else
         {
-            if (currentSmokeVFX != null)
+            if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
             {
-                currentSmokeVFX.SetActive(false);
+                enemyInPossessionVFX.SetActive(false);
+                elethInPossessionVFX.SetActive(false);
             }
             else
             {
-                Debug.LogWarning("Smoke VFX is not assigned!");
+                Debug.LogWarning("In Possession VFXs are not assigned!");
             }
         }
 
