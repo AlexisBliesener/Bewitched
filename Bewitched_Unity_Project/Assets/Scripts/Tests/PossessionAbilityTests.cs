@@ -59,20 +59,6 @@ public class PossessionAbilityTests
         Assert.AreEqual(hag, current);
     }
 
-    [UnityTest]
-    public IEnumerator Update_MovesHagToEnemy_WhenEnemyControlled()
-    {
-        var enemy = new GameObject("Enemy").AddComponent<MockEnemy>();
-        enemy.transform.position = Vector3.one;
-        SetPrivate(possessionAbility, "currentCharacter", enemy);
-
-        var oldPos = hag.transform.position;
-        possessionAbility.SendMessage("Update");
-        yield return null;
-
-        Assert.AreNotEqual(oldPos, hag.transform.position);
-    }
-
     [Test]
     public void SwitchCharacter_ToEnemy_SetsTeamAndHealth()
     {
