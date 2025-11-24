@@ -29,7 +29,7 @@ public class HealthController : MonoBehaviour
     /// <summary>Current health value.</summary>
     public float CurrentHealth {  get; private set; }
     /// <summary>Returns true if the character is dead.</summary>
-    public bool IsDead => CurrentHealth <= 0f;
+    public bool IsDead = false;
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
 
@@ -43,6 +43,10 @@ public class HealthController : MonoBehaviour
 
     // <summary> Get current character.</summary>
     private Character currentCharacter;
+
+    [Tooltip("The time when the enemy died, assuming eleth is possessed this is used for the grace period before starting eleth possession life drain")]
+    private float timeEnemyHealthRanOut = -1;
+
 
     /// Timestamp of last received damage (set by this controller)
     public float TimeLastHit { get; private set; } = -Mathf.Infinity;
@@ -68,22 +72,24 @@ public class HealthController : MonoBehaviour
     }
 
 
-    private void Update()
+    protected void Update()
     {
+        if (!IsDead && CurrentHealth <= 0f && (PlayerController.instance.currentCharacter == PlayerController.instance.oldHag || PlayerController.instance.currentCharacter != GetComponent<Character>()))
+        {
+            if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag == GetComponent<Character>())
+            {
+                StartCoroutine(PossessionAbility.instance.RespawnEleth());
+            }
+            IsDead = true;
+            OnDeath?.Invoke(gameObject);
+        }
+
         // If we don't auto update or already dead, skip!
         if (!updateOnModel || IsDead) return;
+
         if (decayRate > 0f)
         {
-            float old = CurrentHealth;
-            CurrentHealth = Mathf.Max(0f, CurrentHealth - ( maxHealth * decayRate * 0.01f * Time.deltaTime));
-            if (CurrentHealth != old)
-            {
-                NotifyHealthChanged();
-                if (IsDead)
-                {
-                    OnDeath?.Invoke(gameObject);
-                }
-            }
+            DrainLife((maxHealth * decayRate * 0.01f * Time.deltaTime));
         }
     }
 
@@ -104,6 +110,16 @@ public class HealthController : MonoBehaviour
         NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
+    /// <summary>
+    /// Kills an enemy automatically
+    /// </summary>
+    public void KillEnemy()
+    {
+        IsDead = true;
+        OnDeath?.Invoke(gameObject);
+    }
+
     /// <summary>
     /// Set current health to max health.
     /// and will trigger OnHealthChanged event.
@@ -119,6 +135,7 @@ public class HealthController : MonoBehaviour
     public virtual void SubHealth(float amt)
     {
         if (IsDead || amt <= 0f || invincible) return;
+
         float old = CurrentHealth;
         float finalDamage = amt;
         if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetCharacter())
@@ -138,8 +155,14 @@ public class HealthController : MonoBehaviour
                 Debug.LogWarning("Vamprism upgrade instance is not set!");
             }
         }
-
+        
         CurrentHealth = Mathf.Max(0f, CurrentHealth - finalDamage);
+
+        if (CurrentHealth  == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.SubHealth(finalDamage - old);
+        }
+
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
         else
@@ -148,7 +171,7 @@ public class HealthController : MonoBehaviour
             OnDamaged?.Invoke(finalDamage, this);
         }
 
-        if (GetCharacter()!= PlayerController.instance.currentCharacter &&  characterAnimator != null)
+        if (characterAnimator != null)
         {
             StartCoroutine(characterAnimator.SetHit());
         }
@@ -159,14 +182,26 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public void DrainLife(float amt)
     {
-
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+        if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            if (timeEnemyHealthRanOut == -1f)
+            {
+                timeEnemyHealthRanOut = Time.time;
+            }
+            else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
+            {
+                PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
+            }
+        }
+
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
     }
+
     /// <summary>
     /// Heal the character.
     /// </summary>

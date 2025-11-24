@@ -209,6 +209,7 @@ public class CharacterAnimator : MonoBehaviour
             animator.SetTrigger("Death");
             canChange = false; 
             currentAnimationState = newState;
+            return;
         }
 
         if (!canChange || currentAnimationState == "Death" || currentAnimationState == newState)
