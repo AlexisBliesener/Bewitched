@@ -348,7 +348,6 @@ public class Goblin : Enemy
         }
         else
         {
-            Debug.Log("No locked target");
             inPrimaryWindup = false;
         }
 
