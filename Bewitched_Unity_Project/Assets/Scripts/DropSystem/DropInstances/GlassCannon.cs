@@ -1,21 +1,23 @@
 using System.IO;
 using UnityEngine;
-
 /// <summary>
-/// Handles the "Backup Plan" upgrade,
-/// decreasing the possession cooldown when knocked out of an enemy.
+/// Handles the "Glass Cannon" upgrade,
+/// Half the Witch's total health. Increase all damage done by 100%
 /// </summary>
-public class BackupPlan : MonoBehaviour, IDrop
+public class GlassCannon : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
+    [Tooltip("Singleton")]
+    public static GlassCannon instance;
     [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
+    [SerializeField, Tooltip("The percent of decrease in base health for each stack"), Range(0, 100)]
+    private float[] decreaseHealthPercent = { 50f, 75f, 87.5f };
+    [SerializeField, Tooltip("The percent of increase in damage for each stack"), Range(0, 500)]
+    private float[] increaseDamagePercent = { 100f, 200f, 300f };
+    [Tooltip("Eleth reference")]
+    private Hag eleth;
 
-    [Header("Cooldown Settings")]
-    [SerializeField, Tooltip("The number of hits needed for possession at each stack amount")]
-    private int[] hitsNeeded = { 3, 2, 1 }; 
-    [Tooltip("The base number of hits needed to get possession from possession class")]
-    private int baseHits;
     [Tooltip("Whether the effect is currently active")]
     private bool active = false;
 
@@ -34,7 +36,7 @@ public class BackupPlan : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, nameof(BackupPlan) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GlassCannon) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -60,7 +62,7 @@ public class BackupPlan : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, nameof(BackupPlan) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GlassCannon) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -75,14 +77,25 @@ public class BackupPlan : MonoBehaviour, IDrop
     }
 
     #endregion
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+    }
+
     private void Start()
     {
-        if (PossessionAbility.instance == null) return;
-        baseHits = PossessionAbility.instance.GetHitsToCharge();
+        if (PlayerController.instance == null || PlayerController.instance.GetHag() == null) return;
+        eleth = PlayerController.instance.GetHag();
     }
 
     /// <summary>
-    /// Activates the Backup Plan upgrade.
+    /// Activates the Glass Cannon upgrade.
     /// </summary>
     public void Activate(DropData dropData = null)
     {
@@ -91,15 +104,25 @@ public class BackupPlan : MonoBehaviour, IDrop
     }
 
     /// <summary>
-    /// Deactivates the Backup Plan upgrade, and resets the cool down time.
+    /// Deactivates the Glass Cannon upgrade, and resets the cool down time.
     /// </summary>
     public void Deactivate()
     {
         active = false;
-        if (PossessionAbility.instance != null)
+        if (eleth != null)
         {
-            PossessionAbility.instance.SetHitsToCharge(baseHits);
+            eleth.health.SetMaxHealth(eleth.health.GetBaseMaxHealth(), false);
         }
+    }
+    /// <summary>
+    /// Get the modified damage for the Glass Cannon upgrade
+    /// </summary>
+    /// <param name="baseDamage">The base damage to apply</param>
+    /// <returns>The modified damage (if it is inactive, it will return the base damage)</returns>
+    public float GetModifiedDamage(float baseDamage)
+    {
+        if (!active) return baseDamage;
+        return baseDamage * (1 + increaseDamagePercent[GetStackIndex()] / 100f);
     }
 
     /// <summary>
@@ -107,9 +130,9 @@ public class BackupPlan : MonoBehaviour, IDrop
     /// </summary>
     private void ApplyUpgrade()
     {
-        if (!active || PossessionAbility.instance == null) return;
-
-        PossessionAbility.instance.SetHitsToCharge(hitsNeeded[GetStackIndex()]);
+        if (!active || eleth == null) return;
+        float newMaxHealth = eleth.health.GetBaseMaxHealth() * (1 - decreaseHealthPercent[GetStackIndex()] / 100f);
+        eleth.health.SetMaxHealth(newMaxHealth, false);
     }
     /// <summary>
     /// Gets the index of the stack with fallback to the last stack
@@ -117,6 +140,6 @@ public class BackupPlan : MonoBehaviour, IDrop
     /// <returns>The index of the stack</returns>
     private int GetStackIndex()
     {
-        return Mathf.Clamp(stackNum, 0, hitsNeeded.Length - 1);
+        return Mathf.Clamp(stackNum, 0, decreaseHealthPercent.Length - 1);
     }
 }

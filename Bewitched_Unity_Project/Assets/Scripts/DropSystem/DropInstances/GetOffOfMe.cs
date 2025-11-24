@@ -2,23 +2,33 @@ using System.IO;
 using UnityEngine;
 
 /// <summary>
-/// Handles the "Clear Focus" upgrade,
-/// decreasing the time taken to focus the possession cone.
+/// Handles the "Get Off of Me" upgrade,
+/// All knockback effects are increased (Knockback effects are continually multiplied)
 /// </summary>
-public class ClearFocus : MonoBehaviour, IDrop
+public class GetOffOfMe : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
 
-    [Tooltip("The amount of stacks this upgrade has.")]
+    [Tooltip("Singleton")]
+    public static GetOffOfMe instance;
+
+    [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
 
-    [Header("Focus Settings")]
-    [SerializeField, Tooltip("Base reduction multiplier for focus time per stack")]
-    private float[] focusTimeReduction = { 0.9f }; 
-    [Tooltip("The base focus time for possession")]
-    private float baseFocusTime;
-    [Tooltip("Whether the upgrade effect is currently active.")]
+    [SerializeField, Tooltip("The knockback multiplier per stack when swapping enemies")]
+    private float[] knockbackMultiplier = { 1.25f, 1.5f, 1.75f };
+    [Tooltip("Whether the effect is currently active")]
     private bool active = false;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+    }
 
     #region Saving/Loading
 
@@ -35,7 +45,7 @@ public class ClearFocus : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GetOffOfMe) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -61,7 +71,7 @@ public class ClearFocus : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, nameof(ClearFocus) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(GetOffOfMe) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -76,47 +86,36 @@ public class ClearFocus : MonoBehaviour, IDrop
     }
 
     #endregion
-    private void Start()
-    {
-        if (PossessionAbility.instance == null) return;
-        baseFocusTime = PossessionAbility.instance.GetFocusTime();
-    }
 
     /// <summary>
-    /// Activates the Clear Focus upgrade.
+    /// Activates the GetOffOfMe effect
     /// </summary>
+    /// <param name="dropData">The drop data of the upgrade</param>
     public void Activate(DropData dropData = null)
     {
         active = true;
-        ApplyUpgrade();
     }
-
     /// <summary>
-    /// Deactivates the Clear Focus upgrade.
+    /// Deactivates the GetOffOfMe effect
     /// </summary>
     public void Deactivate()
     {
         active = false;
-        if (PossessionAbility.instance != null)
-        {
-            PossessionAbility.instance.SetFocusTime(baseFocusTime);
-        }
-        
     }
-
     /// <summary>
-    /// Applies the focus time reduction to PossessionAbility.
+    /// Get the modified knockback for the GetOffOfMe upgrage
     /// </summary>
-    private void ApplyUpgrade()
+    /// <param name="baseKnockback">The base knockback to apply</param>
+    /// <returns>The modified knockback</returns>
+    public float GetModifiedKnockback(float baseKnockback)
     {
-        if (!active || PossessionAbility.instance == null) return;
+        if (!active) return baseKnockback;
+    
+        // if the stack is greater than the length of the array, fall back to the last multiplier
+        if (stackNum >= knockbackMultiplier.Length) 
+            return baseKnockback * knockbackMultiplier[knockbackMultiplier.Length - 1];
 
-        float reduction = 1f;
-        for (int i = 0; i <= stackNum && i < focusTimeReduction.Length; i++)
-        {
-            reduction *= focusTimeReduction[i]; 
-        }
-
-        PossessionAbility.instance.SetFocusTime(baseFocusTime * reduction);
+        // otherwise, return the multiplier at the current stack
+        return baseKnockback * knockbackMultiplier[stackNum];
     }
 }

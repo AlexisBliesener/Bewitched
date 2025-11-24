@@ -2,24 +2,35 @@ using System.IO;
 using UnityEngine;
 
 /// <summary>
-/// Handles the Vampirism effect, allowing the player to heal a percentage of damage dealt
-/// when the effect is active. Implemented as a singleton.
+/// Handles the "Off Guard" upgrade,
+/// Increase the damage and stun effect when hitting an enemy that is winding up for an attack
 /// </summary>
-public class Vampirism : MonoBehaviour, IDrop
+public class OffGuard : MonoBehaviour, IDrop
 {
     const string FILE_ENDING = ".json";
 
     [Tooltip("Singleton")]
-    public static Vampirism instance;
+    public static OffGuard instance;
 
     [Tooltip("The amount of stacks this upgrade has")]
     public int stackNum { get; set; }
 
-    [SerializeField, Tooltip("The percent of health gained from damage done"), Range(0, 100)]
-    private int[] percentHeal = { 2 };
-
-    [Tooltip("Whether the effect is currently active.")]
+    [SerializeField, Tooltip("The damage increase per stack when hitting a winding up enemy"), Range(0, 100)]
+    private float[] damagePercentPerStack = { 10f, 15f, 20f };
+    [SerializeField, Tooltip("The stun duration increase per stack when hitting a winding up enemy"), Range(0, 100)]
+    private float[] stunDurationPercentPerStack = { 10f, 15f, 20f };
+    [Tooltip("Whether the effect is currently active")]
     private bool active = false;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+    }
 
     #region Saving/Loading
 
@@ -36,7 +47,7 @@ public class Vampirism : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(OffGuard) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -62,7 +73,7 @@ public class Vampirism : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(OffGuard) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -78,44 +89,40 @@ public class Vampirism : MonoBehaviour, IDrop
 
     #endregion
 
-    private void Awake()
-    {
-        instance = this;
-    }
-
     /// <summary>
-    /// Activates the Vampirism effect, enabling life steal.
+    /// Activates the OffGuard effect
     /// </summary>
+    /// <param name="dropData">The drop data of the upgrade</param>
     public void Activate(DropData dropData = null)
     {
         active = true;
     }
     /// <summary>
-    /// Deactivates the Vampirism effect, disabling life steal.
+    /// Deactivates the OffGuard effect
     /// </summary>
     public void Deactivate()
     {
         active = false;
     }
     /// <summary>
-    /// Steals health from the damage dealt to enemies.
-    /// When active, heals the player by a percentage of the damage done,
-    /// based on the current stack level.
+    /// Get the modified damage for the OffGuard upgrade
     /// </summary>
-    /// <param name="damageDone">The amount of damage dealt by the player.</param>
-    public void stealHealth(float damageDone)
+    /// <param name="baseDamage">The base damage to apply</param>
+    /// <returns>The modified damage</returns>
+    public float GetModifiedDamage(float baseDamage)
     {
-        if (active)
-        {
-            if (PlayerController.instance != null)
-            {
-                PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[GetStackIndex()]);
-            }
-            else
-            {
-                Debug.LogWarning("Player Controller instance is not set!");
-            }
-        }
+        if (!active) return baseDamage;
+        return baseDamage * ( 1 + damagePercentPerStack[GetStackIndex()] / 100f);
+    }
+    /// <summary>
+    /// Get the modified stun duration for the OffGuard upgrade
+    /// </summary>
+    /// <param name="baseStunDuration">The base stun duration to apply</param>
+    /// <returns>The modified stun duration</returns>
+    public float GetModifiedStunDuration(float baseStunDuration)
+    {
+        if (!active) return baseStunDuration;
+        return baseStunDuration * (1 + stunDurationPercentPerStack[GetStackIndex()] / 100f);
     }
     /// <summary>
     /// Gets the index of the stack with fallback to the last stack
@@ -123,6 +130,6 @@ public class Vampirism : MonoBehaviour, IDrop
     /// <returns>The index of the stack</returns>
     private int GetStackIndex()
     {
-        return Mathf.Clamp(stackNum, 0, percentHeal.Length - 1);
+        return Mathf.Clamp(stackNum, 0, damagePercentPerStack.Length - 1);
     }
 }
