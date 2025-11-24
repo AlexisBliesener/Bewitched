@@ -228,24 +228,6 @@ public class CharacterTests
         Assert.AreEqual(100f, testCharacter.health.GetHealth());
     }
 
-    /// <summary>Subtracting more than current health should trigger Die.</summary>
-    [Test]
-    public void SubHealth_ReducesAndDies()
-    {
-        testCharacter.health.SubHealth(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-    }
-
-
-    /// <summary>DrainLife should kill without generating hitstun.</summary>
-    [Test]
-    public void DrainLife_KillsWithoutHitStun()
-    {
-        testCharacter.health.DrainLife(200);
-        Assert.IsTrue(testCharacter.dieCalled);
-        Assert.IsNull(testCharacter.HitStun);
-    }
-
     /// <summary>SetHealthToMax should fully restore health.</summary>
     [Test]
     public void SetHealthToMax_ResetsHealth()

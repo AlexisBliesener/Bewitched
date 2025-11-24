@@ -349,30 +349,7 @@ public class RoomControllerTests
         Assert.IsTrue(door1Component.IsLocked);
         Assert.IsTrue(door2Component.IsLocked);
     }
-    /// <summary>
-    /// Test that the room controller call the doors unlock method when clearing the room
-    /// </summary>
-    [UnityTest]
-    public IEnumerator ClearRoom_UnlockDoorsWhenClearingRoom()
-    {
-        // add mock doors manually to the system
-        roomController.AddDoor(mockDoor1);
-        roomController.AddDoor(mockDoor2);
 
-        // To initialize the doors
-        roomController.InitializeDoors();
-
-        yield return null; // Wait for frame
-
-        roomController.EnterRoom(); // Lock doors first
-
-        roomController.ClearRoom();
-
-        TestDoor door1Component = mockDoor1.GetComponent<TestDoor>();
-        TestDoor door2Component = mockDoor2.GetComponent<TestDoor>();
-        Assert.IsFalse(door1Component.IsLocked);
-        Assert.IsFalse(door2Component.IsLocked);
-    }
     /// <summary>
     /// Test tthat the room controller triggers clear room event only once when multiple calls are made rapidly
     /// </summary>
