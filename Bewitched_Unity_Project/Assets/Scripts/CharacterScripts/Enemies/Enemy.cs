@@ -1133,6 +1133,7 @@ public abstract class Enemy : Character
     /// <param name="length"> Length of costly area </param>
     public void SetCostlyAttackingLine(Vector3 direction, float length)
     {
+        ResetAttackingArea(true);
         List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, 1.5f * sizeRadius);
         foreach (List<int> position in nodes)
         {
@@ -1149,6 +1150,7 @@ public abstract class Enemy : Character
     /// <param name="angle"> Angle of attack </param>
     public void SetCostlyAttackingCone(float radius, float angle)
     {
+        ResetAttackingArea(true);
         List<List<int>> nodes = GraphBuilder.instance.GetNodesInRadius(transform.position, radius);
         foreach (List<int> position in nodes)
         {
@@ -1164,9 +1166,10 @@ public abstract class Enemy : Character
     /// <summary>
     /// Resets the costly attacking area values
     /// </summary>
-    public void ResetAttackingArea()
+    /// <param name="overrideAttackState"> If this is done at the beginning of an attack it works regardless of attack state </param>
+    public void ResetAttackingArea(bool overrideAttackState = false)
     {
-        if (attackState == AttackState.Neutral)
+        if (attackState == AttackState.Neutral || overrideAttackState)
         {
             int numReset = 0;
             foreach (List<int> position in attackingCostlyNodes.Keys)
@@ -1175,7 +1178,6 @@ public abstract class Enemy : Character
                 GraphBuilder.instance.AddNodeCost(position, this, -attackingCostlyNodes[position]);
             }
             attackingCostlyNodes = new Dictionary<List<int>, int>();
-            Debug.Log("Reset " + numReset + " nodes");
         }
     }
 }
