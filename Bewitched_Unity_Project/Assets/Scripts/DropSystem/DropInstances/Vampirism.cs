@@ -36,7 +36,7 @@ public class Vampirism : MonoBehaviour, IDrop
             Directory.CreateDirectory(folderPath);
         }
 
-        string filePath = Path.Combine(folderPath, "Vampirism" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
         File.WriteAllText(filePath, statsStr);
 
 
@@ -62,7 +62,7 @@ public class Vampirism : MonoBehaviour, IDrop
 
         string folderPath = Path.Combine(Application.dataPath, "JSON");
         folderPath = Path.Combine(folderPath, "UpgradeStats");
-        string filePath = Path.Combine(folderPath, "Vampirism" + FILE_ENDING);
+        string filePath = Path.Combine(folderPath, nameof(Vampirism) + FILE_ENDING);
 
         string jsonStr = File.ReadAllText(filePath);
 
@@ -109,12 +109,20 @@ public class Vampirism : MonoBehaviour, IDrop
         {
             if (PlayerController.instance != null)
             {
-                PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[stackNum]);
+                PlayerController.instance.oldHag.health.AddHealth(damageDone * 0.01f * percentHeal[GetStackIndex()]);
             }
             else
             {
                 Debug.LogWarning("Player Controller instance is not set!");
             }
         }
+    }
+    /// <summary>
+    /// Gets the index of the stack with fallback to the last stack
+    /// </summary>
+    /// <returns>The index of the stack</returns>
+    private int GetStackIndex()
+    {
+        return Mathf.Clamp(stackNum, 0, percentHeal.Length - 1);
     }
 }

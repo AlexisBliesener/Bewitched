@@ -94,7 +94,7 @@ public class RoomSystemEditor : Editor
         // Kill button
         if (GUILayout.Button("Kill All Enemies", GUILayout.Width(120)))
         {
-            roomSystem.GetRooms()[index].roomController.roomEnemies.ForEach(enemy => enemy.GetComponent<Enemy>().Die());
+            roomSystem.GetRooms()[index].roomController.roomEnemies.ForEach(enemy => {if (enemy != null) enemy.Die();});
             EditorUtility.SetDirty(roomSystem);
             return;
         }

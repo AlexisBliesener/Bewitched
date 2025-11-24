@@ -646,6 +646,7 @@ MonoBehaviour:
   weight: 10
   pushForceModifer: 0.15
   sizeRadius: 1.5
+  numSurroundingPoints: 8
   minSurroundingRadius: 3
   maxSurroundingRadius: 6
   teamID: 2
@@ -658,7 +659,6 @@ MonoBehaviour:
   secondaryCooldown: 5
   secondaryAttackCost: 0
   secondaryAICost: 4
-  primaryAttackRange: 4
   health: {fileID: 0}
   canPossess: 1
   primaryComboSteps: 2
@@ -674,7 +674,7 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 64
-  environment:
+  environmentLayer:
     serializedVersion: 2
     m_Bits: 256
   combatCam: {fileID: 7853329458351722323}
@@ -688,6 +688,7 @@ MonoBehaviour:
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   attackState: 3
   lobotimzed: 0
+  cantAttack: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
   sightRange: 10
@@ -696,10 +697,13 @@ MonoBehaviour:
   patrolRange: 12
   timeBeforeSearch: 2.5
   attackDelayAI: 0
+  retreatWaitTime: 0.5
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
+  counterWindowLength: 0.9
   moveToTargetDistance: 0
+  nonLockPrimaryMovement: 1
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0
@@ -732,8 +736,6 @@ MonoBehaviour:
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
   batSwingDamage: 30
   batSwingAngle: 120
-  batSwingDuration: 0.25
-  batWindupPeriod: 1.25
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50
@@ -742,7 +744,6 @@ MonoBehaviour:
   ogreJumpKnockbackMaximum: 70
   ogreJumpSlamImpactRange: 8
   screamRange: 10
-  screamWindupDuration: 0.5
   minSittingTime: 3
   maxSittingTime: 7
   offsetAttackIndicator: {x: 0, y: 2.5, z: 0}

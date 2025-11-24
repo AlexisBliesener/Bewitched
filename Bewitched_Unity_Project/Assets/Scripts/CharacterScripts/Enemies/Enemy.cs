@@ -48,8 +48,10 @@ public abstract class Enemy : Character
     public float secondaryAttackChance = .5f;
     [Tooltip("The threshold percentage that the enemy is low health for specific behaviors"), Range(0, 100)]
     public float lowHealthThresholdPercentage = 30;
-    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 1)]
+    [SerializeField, Tooltip("The percentage of the approach that the player will be able to counter during, from the start of the approach"), Range(0, 0.9f)]
     protected float counterWindowLength;
+    [SerializeField, Tooltip("The distance the player will move forward when doing a non locked primary attack")]
+    protected float nonLockPrimaryMovement;
 
 
     protected PlayerController playerController;
@@ -476,7 +478,7 @@ public abstract class Enemy : Character
         //Bug fix for kill all enemies button causing idle audio bugs
         if (idleAudio.isValid()) idleAudio.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         // Destory the enemy after a delay to avoid the error "Destroying object during on physics callbacks"
-        Destroy(gameObject, 0.1f);
+        Destroy(gameObject);
     }
 
     public void SetRangeChecks()
@@ -487,7 +489,7 @@ public abstract class Enemy : Character
         float distToChar = (currentPlayer.transform.position - transform.position).magnitude;
         if (currentInSightRange)
         {
-            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environment))
+            if (Physics.Raycast(transform.position, currentPlayer.transform.position - transform.position, distToChar, environmentLayer))
             {
                 currentInSightRange = false;
             }
@@ -659,7 +661,7 @@ public abstract class Enemy : Character
     public bool CheckCharacterBehindEnvironment(Transform pos)
     {
         float dist = (pos.position - transform.position).magnitude;
-        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environment))
+        if (Physics.Raycast(transform.position, pos.position - transform.position, dist, environmentLayer))
         {
             return false;
         }
@@ -1068,6 +1070,7 @@ public abstract class Enemy : Character
     /// </summary>
     public void ManageSurrounding()
     {
+        if (currentPlayer == null) return; // if there is no player 
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         //Debug.Log("Dist: " + dist + ", min: " + (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius) + ", max: " + (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
         if (dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && dist >= (currentPlayer.sizeRadius + minSurroundingRadius + sizeRadius))

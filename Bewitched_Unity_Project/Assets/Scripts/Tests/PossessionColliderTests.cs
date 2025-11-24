@@ -46,6 +46,7 @@ public class PossessionColliderTests
 
         // PossessionCollider setup
         possessionColliderGO = new GameObject("PossessionCollider");
+        possessionColliderGO.AddComponent<BoxCollider>();
         possessionCollider = possessionColliderGO.AddComponent<PossessionCollider>();
     }
 

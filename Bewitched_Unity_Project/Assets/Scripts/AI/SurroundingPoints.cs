@@ -124,7 +124,7 @@ public class SurroundingPoints : MonoBehaviour
     /// <param name="enemy">Enemy finding a path</param>
     public IEnumerator FindPathToRetreat(Enemy enemy)
     {
-        if (PlayerController.instance == null || !PlayerController.instance.isActiveAndEnabled) yield break;
+        if (PlayerController.instance == null || !PlayerController.instance.isActiveAndEnabled || currentPlayer == null || enemy == null) yield break;
         float goalDistance = enemy.sizeRadius + currentPlayer.sizeRadius + enemy.maxSurroundingRadius;
         Vector3 targetPos = currentPlayer.transform.position + (enemy.transform.position - currentPlayer.transform.position).normalized * goalDistance;
         yield return StartCoroutine(GraphBuilder.instance.AStarSearch(enemy, enemy.transform.position, targetPos, targetChar: currentPlayer));
@@ -236,6 +236,7 @@ public class SurroundingPoints : MonoBehaviour
             PriorityQueue<Enemy> tempEnemies = new PriorityQueue<Enemy>();
             foreach (Enemy enemy in surroundingEnemies)
             {
+                if (enemy == null) continue;
                 if (EnemyCanAttack(enemy)) // Don't attack if already attacking, lobotomized, dead, or playerControlled
                 {
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());

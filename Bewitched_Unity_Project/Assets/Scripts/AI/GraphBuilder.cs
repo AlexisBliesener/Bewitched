@@ -531,6 +531,7 @@ public class GraphBuilder : MonoBehaviour
     /// <returns></returns>
     public IEnumerator AStarSearch(Enemy enemy, Vector3 originPos, Vector3 destination, float goalDistance = -1, Character targetChar = null)
     {
+        if (enemy == null || enemy.gameObject == null) yield break;
         float maxSearchDistance = 1.5f * (destination - originPos).magnitude;
         enemySearches[enemy] = true;
 
@@ -716,15 +717,16 @@ public class GraphBuilder : MonoBehaviour
         while (true)
         {
             int tempNumSearchers = 0;
-            List<GameObject> enemies = new List<GameObject>();
-            if (RoomSystem.Instance.GetActiveRoomController())
+            List<Enemy> enemies = new List<Enemy>();
+            RoomController roomController = RoomSystem.Instance.GetActiveRoomController();
+            if (roomController != null)
             {
                 enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
             }
 
-            foreach (GameObject enemyObj in enemies)
+            foreach (Enemy enemy in enemies)
             {
-                if (enemyObj != null && enemyObj.activeInHierarchy && enemyObj.TryGetComponent(out Enemy enemy))
+                if (enemy != null && enemy.gameObject.activeInHierarchy)
                 {
                     if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
                     {
