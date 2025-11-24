@@ -97,6 +97,10 @@ public class PossessionAbility : MonoBehaviour
     private float counterLockDuration = 0.3f;
     [SerializeField, Tooltip("The layer that the enviornment objects are in")]
     private LayerMask environmentLayer;
+    [SerializeField, Tooltip("The time scale to set when performing a possession counter"), Range(0, 1)]
+    private float counterTimeScale = 0.7f;
+    [SerializeField, Tooltip("The transition time to get to and from the time scale on a possession counter")]
+    private float counterTimeTransition = 0.15f;
 
     [Header("Runtime Data")]
     [Tooltip("The angle of possession cone currently being used.")]

@@ -9,6 +9,9 @@ public class ShieldHitbox : DefaultHitbox
     [Tooltip("Hitboxes that have been shielded")]
     List<DefaultHitbox> blockedBoxes = new List<DefaultHitbox>();
 
+    [Tooltip("Knockback amount on impact")]
+    private float knockbackAmt = 5;
+
     void Update()
     {
         if (user == null)
@@ -38,6 +41,15 @@ public class ShieldHitbox : DefaultHitbox
         transform.rotation = transform.rotation;
     }
 
+    /// <summary>
+    /// Sets the knockback amount
+    /// </summary>
+    /// <param name="amt"> Amount to set </param>
+    public void SetKnockbackAmount(float amt)
+    {
+        knockbackAmt = amt;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (active)
@@ -49,6 +61,7 @@ public class ShieldHitbox : DefaultHitbox
                     blockedBoxes.Add(hitbox);
 
                     hitbox.AddToHit(user); // Adds character to hit so it does not hit again (effectively invulnerable to the attack)
+                    user.GetComponent<KnockbackControl>().AddImpact((user.transform.position - transform.position).normalized, knockbackAmt);
 
                     // Hit VFX
                     if (hitVFX != null)

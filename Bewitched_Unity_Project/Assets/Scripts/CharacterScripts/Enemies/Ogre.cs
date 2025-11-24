@@ -3,6 +3,7 @@ using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 public class Ogre : Enemy
 {
@@ -67,8 +68,6 @@ public class Ogre : Enemy
     //Is this an event enemy?
     bool isEventEnemy = false;
 
-    [Tooltip("If in windup for primary")]
-    bool inPrimaryWindup = false;
     [Tooltip("Ogre animator script that controls the ogre animations")]
     private OgreAnimator ogreAnimator;
 
@@ -97,6 +96,7 @@ public class Ogre : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        ResetAttackingArea();
 
         SetDebugString();
         //if (!playerControlling) Debug.Log(debugAIInfo);
@@ -160,7 +160,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost);
 
@@ -239,6 +239,7 @@ public class Ogre : Enemy
         while (timeStarted < 1.125f / ogreAnimator.GetPrimaryWindupMult())
         {
             timeStarted += Time.deltaTime;
+            SetMovementValues(false);
             yield return null;
         }
         inPrimaryWindup = false;
@@ -332,6 +333,8 @@ public class Ogre : Enemy
         }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
+
+        SetCostlyAttackingCone(maxSurroundingRadius, batSwingAngle);
 
         Vector3 endForward = Vector3.zero;
         Vector3 startForward = Vector3.zero;
@@ -887,4 +890,6 @@ public class Ogre : Enemy
             ev.release();
         }
     }
+
+    
 }
