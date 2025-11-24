@@ -1140,7 +1140,6 @@ public abstract class Enemy : Character
             node.AddCost(this, 100);
             attackingCostlyNodes[position] = 100;
         }
-        Debug.Log(attackingCostlyNodes.Count);
     }
 
     /// <summary>
@@ -1160,7 +1159,6 @@ public abstract class Enemy : Character
                 attackingCostlyNodes[position] = 100;
             }
         }
-        Debug.Log(attackingCostlyNodes.Count);
     }
 
     /// <summary>

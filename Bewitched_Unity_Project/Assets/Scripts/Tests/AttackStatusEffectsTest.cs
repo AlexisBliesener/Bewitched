@@ -176,7 +176,7 @@ public class AttackStatusEffectsTest
 
         Assert.AreEqual(1, Time.timeScale);
         effects.SetTimeStop(0.15f);
-        effects.ApplyTimeStop(user, enemy, hitbox);
+        effects.ApplyTimeSlow();
 
         Assert.AreEqual(0, Time.timeScale);
 
