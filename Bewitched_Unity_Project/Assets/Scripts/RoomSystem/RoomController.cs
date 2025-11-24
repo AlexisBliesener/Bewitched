@@ -37,8 +37,11 @@ public class RoomController : MonoBehaviour
     [Tooltip("Doors that will be locked/unlocked when the room is activ; it should have a IDoor component!")]
     // Unity inspector will not show the custom IDoor object in the inspector so we need to use a list of gameobjects and then cast them to IDoor in the awake function
     [SerializeField] private List<GameObject> doorsObjects = new List<GameObject>();
+    [SerializeField] private List<GameObject> doorsToUnlockObjects = new List<GameObject>();
     [Tooltip("The list of the doors found in the room, this is going to be used in the awake function to get IDoor components")]
     private List<IDoor> doors = new List<IDoor>();
+    [Tooltip("The list of doors that will be unlocked when the room is cleared")]
+    private List<IDoor> unlockOnClear = new List<IDoor>();
     [Tooltip("The list of the enmies found in the bounds, you can add enemies to this list in the inspector")]
     [SerializeField] public List<Enemy> roomEnemies = new List<Enemy>();
     [Tooltip("The current state of the room")]
@@ -187,7 +190,7 @@ public class RoomController : MonoBehaviour
         if (PlayerController.instance.GetHag().gameObject != PlayerController.instance.currentCharacter.gameObject)
         {
             PlayerController.instance.GetHag().gameObject.transform.position = PlayerController.instance.currentCharacter.gameObject.transform.position;
-            PlayerController.instance.currentCharacter.health.SetCurrentHealth(0); // RIP
+            PlayerController.instance.currentCharacter.health.KillEnemy(); // RIP
         }
         // just to be safe, we will kill all enemies that are for some reason still alive in the room... 
         foreach (Enemy enemy in roomEnemies)
@@ -195,7 +198,6 @@ public class RoomController : MonoBehaviour
             enemy.health.SetCurrentHealth(0); 
             Destroy(enemy.gameObject);
         }
-
     }
 
     /// <summary>
@@ -302,6 +304,17 @@ public class RoomController : MonoBehaviour
                 doors.Add(door);
             }
         }
+
+        foreach(GameObject doorObject in doorsToUnlockObjects)
+        {
+            if (doorObject == null) continue;
+
+            IDoor door = doorObject.GetComponent<IDoor>();
+            if (door != null)
+            {
+                unlockOnClear.Add(door);
+            }
+        }
     }
 
     /// <summary>
@@ -332,7 +345,7 @@ public class RoomController : MonoBehaviour
     private void UnlockDoors()
     {
         if (doorState == DoorState.Unlocked) return;
-        foreach (IDoor door in doors)
+        foreach (IDoor door in unlockOnClear)
         {
             door?.Unlock();
         }

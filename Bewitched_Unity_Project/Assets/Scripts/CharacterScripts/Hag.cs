@@ -240,7 +240,7 @@ public class Hag : Character
 
 
         RaycastHit hit;
-        if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environment))
+        if (!Physics.Raycast(transform.position, transform.forward, out hit, blinkDistance, environmentLayer))
         {
             transform.position = transform.position + transform.forward.normalized * blinkDistance;
         }
