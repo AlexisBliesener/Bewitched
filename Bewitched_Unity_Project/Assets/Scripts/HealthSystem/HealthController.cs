@@ -171,13 +171,11 @@ public class HealthController : MonoBehaviour
         {
             if (timeEnemyHealthRanOut == -1f)
             {
-                Debug.Log("GRACE " + Time.time);
                 timeEnemyHealthRanOut = Time.time;
             }
             else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
             {
-                Debug.Log("DRAINING PLAYER " + Time.time);
-                PlayerController.instance.oldHag.health.DrainLife(amt - old);
+                PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
             }
         }
 

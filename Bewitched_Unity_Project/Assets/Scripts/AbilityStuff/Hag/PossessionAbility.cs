@@ -24,6 +24,8 @@ public class PossessionAbility : MonoBehaviour
     private const string FILE_ENDING = ".json";
 
     [Header("Possession Settings")]
+    [SerializeField, Tooltip("The possession drain on eleth when the enemy possessed is dead, in percentage of health per second"), Range(0f,100f)]
+    private float possessionDrain;
     [SerializeField, Tooltip("The grace period eleth will get in a 'dead' enemy before she starts taking possession drain damage")]
     private float possessionDrainGracePeriod = 0.5f;
     [SerializeField, Tooltip("Maximum distance from the camera where possession is possible.")]
@@ -210,6 +212,16 @@ public class PossessionAbility : MonoBehaviour
     public void SetCanLeavePossession(bool val)
     {
         canLeavePossession = val;
+    }
+
+    /// <summary>
+    /// Return the possession drain on eleth when the enemy possessed is dead
+    /// In percentage of health per second
+    /// </summary>
+    /// <returns>The possession drain on eleth when the enemy possessed is dead</returns>
+    public float GetPossessionDrain()
+    {
+        return possessionDrain;
     }
 
     /// <summary>
