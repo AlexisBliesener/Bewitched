@@ -1,5 +1,4 @@
 using DG.Tweening;
-using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
@@ -14,6 +13,8 @@ public class Goblin : Enemy
     [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
+    [SerializeField, Tooltip("Right hand bone transform"), ShowIf(nameof(dev))]
+    private Transform rightHandBone;
     [Tooltip("Dash Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject dashHitbox;
     [Tooltip("Dash Effects"), ShowIf(nameof(dev))]
@@ -79,6 +80,8 @@ public class Goblin : Enemy
     [Tooltip("Maximum time delay before spin from AI")]
     [SerializeField] float maxSpinDelay = 0.7f;
 
+    [SerializeField, Tooltip("Minimum distance to move to target when attacking (This is used when a target is locked and need to move to this target (used in stab and knife approach) "), Range(0, 10)]
+    private float minMoveDistance = 1.25f;
     [Header("Goblin AI Settings")]
     [Tooltip("Minimum Patrol Distance"), Range(0, 100)]
     [SerializeField] float minPatrolDistance = 3;
@@ -109,6 +112,12 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
         sizeRadius = GetComponent<CharacterController>().radius;
+        if (rightHandBone == null)
+        {
+            // if hand prefab is not set, fallback to this gameobject
+            rightHandBone = this.gameObject.transform;
+            Debug.LogWarning("right hand bone transform is not set, fallback to this gameobject");
+        }
     }
 
     protected override void FixedUpdate()
@@ -272,10 +281,16 @@ public class Goblin : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
-            SetCostlyAttackingArea(direction, dis);
-            transform.DOMove(targetPos, chaseTime * dis);
-            transform.DOLookAt(targetPos, chaseTime * dis);
-
+            SetCostlyAttackingArea(direction, dis);  
+            Vector3 toTarget = targetPos - transform.position;
+            if (toTarget.sqrMagnitude >= minMoveDistance * minMoveDistance)
+            {
+                transform.DOMove(targetPos, chaseTime * dis);
+            }
+            if (toTarget.sqrMagnitude > 0.0001f)
+            {
+                transform.DOLookAt(targetPos, chaseTime * dis);
+            }
             float timeStarted = Time.time;
             timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
@@ -351,8 +366,8 @@ public class Goblin : Enemy
 
         attackState = AttackState.Attacking;
 
-        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        Vector3 offsetPosition = rightHandBone.transform.position + rightHandBone.transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, rightHandBone.transform.rotation, rightHandBone.transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         targetPos = Vector3.negativeInfinity;
@@ -412,8 +427,8 @@ public class Goblin : Enemy
         goblinAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
-        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        Vector3 offsetPosition = rightHandBone.transform.position + rightHandBone.transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, rightHandBone.transform.rotation, rightHandBone.transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         if (playerControlling)
@@ -442,9 +457,15 @@ public class Goblin : Enemy
         {
             moveDist = (direction.normalized * nonLockPrimaryMovement);
         }
-        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-
+        Vector3 toTarget = (PlayerController.instance.currentCharacter.transform.position + moveDist) - transform.position;
+        if (toTarget.sqrMagnitude >= minMoveDistance * minMoveDistance)
+        {
+            transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        }
+        if (toTarget.sqrMagnitude > 0.0001f)
+        {
+            transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        }
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
