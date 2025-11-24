@@ -108,6 +108,7 @@ public class Goblin : Enemy
     protected override void FixedUpdate()
     {
         CreateLocalInvalidArea();
+        ResetAttackingArea();
         ManageSurrounding();
 
         if (playerControlling)
@@ -267,7 +268,7 @@ public class Goblin : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
-            SetCostlyAttackingArea(direction, dis);
+            SetCostlyAttackingLine(direction, dis);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
@@ -386,8 +387,6 @@ public class Goblin : Enemy
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
         aiState = AIMovementState.Retreating;
-
-        ResetAttackingArea();
 
         if (tempLockedCharacter)
         {

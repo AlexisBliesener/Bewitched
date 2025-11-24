@@ -174,6 +174,7 @@ public class Guard : Enemy
     {
         if (dead || lobotimzed) return;
         ManageSurrounding();
+        ResetAttackingArea();
         currentPlayer = target = playerController.GetCurrentCharacter();
         SetAIState();
         SetBehavior();
@@ -350,6 +351,7 @@ public class Guard : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
+            SetCostlyAttackingLine(direction, dis);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
@@ -969,7 +971,6 @@ public class Guard : Enemy
                 attackState = AttackState.Neutral;
                 SurroundingPoints.instance.RemoveAttackingEnemy(this);
             }
-            ResetAttackingArea();
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;

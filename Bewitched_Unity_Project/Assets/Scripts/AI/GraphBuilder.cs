@@ -974,7 +974,9 @@ public class GraphBuilder : MonoBehaviour
         float distanceSearched = 0;
         while (distanceSearched < length)
         {
-            nodes = nodes.Union(GetNodesInRadius(origin + direction * distanceSearched, width)).ToList();
+            List<List<int>> newNodes = GetNodesInRadius(origin + direction * distanceSearched, width);
+            Debug.Log("Mini list length: " + newNodes.Count + ", position: " + (origin + direction * distanceSearched) + ", radius: " + width);
+            nodes = nodes.Union(newNodes).ToList();
             distanceSearched += width / 2;
         }
         return nodes;

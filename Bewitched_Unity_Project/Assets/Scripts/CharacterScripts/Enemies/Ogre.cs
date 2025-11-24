@@ -3,6 +3,7 @@ using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 public class Ogre : Enemy
 {
@@ -95,6 +96,7 @@ public class Ogre : Enemy
         SetAIState();
         SetBehavior();
         CreateLocalInvalidArea();
+        ResetAttackingArea();
 
         SetDebugString();
         //if (!playerControlling) Debug.Log(debugAIInfo);
@@ -331,6 +333,8 @@ public class Ogre : Enemy
         }
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
+
+        SetCostlyAttackingCone(maxSurroundingRadius, batSwingAngle);
 
         Vector3 endForward = Vector3.zero;
         Vector3 startForward = Vector3.zero;
@@ -862,4 +866,6 @@ public class Ogre : Enemy
             ev.release();
         }
     }
+
+    
 }
