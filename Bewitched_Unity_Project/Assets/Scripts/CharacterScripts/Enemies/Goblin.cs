@@ -1,4 +1,5 @@
 using DG.Tweening;
+using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
@@ -45,6 +46,8 @@ public class Goblin : Enemy
     [SerializeField] private float offSetForward = 0.5f;
 
     [Header("Spin Settings for Goblin")]
+    [SerializeField, Tooltip("The counter window for the goblin spin"), Range(0f, 0.9f)]
+    private float secondaryCounterWindow;
     [Tooltip("Spin Damage"), Range(0, 200)]
     [SerializeField] float spinDamage = 30;
     [Tooltip("Distance to dodge in first part of spin"), Range(0, 10)]
@@ -307,8 +310,6 @@ public class Goblin : Enemy
                 {
                     if (!triggerSet)
                     {
-                        Debug.Log("current counter " + PlayerController.instance.GetCounterAvailable() + "\n this " + this);
-
                         if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
 
                         goblinAnimator.ExitLeap();
@@ -649,8 +650,35 @@ public class Goblin : Enemy
         spinVFX = Instantiate(spinVFXPrefab, transform);
         spinVFX.GetComponent<DestroyAfterTime>().SetTime(spinDuration - (1.25f ));
 
+        bool triggerSet = false;
+
         while (distanceTravelled < distance)
         {
+            if (distanceTravelled * secondaryCounterWindow > distance) //  not dodgable
+            {
+                if (!triggerSet)
+                {
+                    if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
+                    goblinAnimator.ExitLeap();
+                    triggerSet = true;
+                }
+
+                if (counterIndicatorVFX != null)
+                {
+                    DestroyCounterIndicator();
+                }
+            }
+            else // attack is dodgable
+            {
+                if (counterIndicatorVFX == null)
+                {
+                    counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
+                    counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
+                    PlayerController.instance.SetCounterAvaliable(this);
+                }
+            }
+
             if (spinVFX != null)
             {
                 spinVFX.transform.position = transform.position;
@@ -1130,7 +1158,6 @@ public class Goblin : Enemy
                 StartCoroutine(BeginSecondary());
                 // Plan other goblin attack here and add to cost ahead of time
                 int goblinAttackCount = (int)Random.Range(0, Mathf.Min((remaining - secondaryAICost) / secondaryAICost, goblins.Count-1)); // Gets a random number of available goblins
-                Debug.Log("Attacking with: " + goblinAttackCount + " others");
                 for (int i = 0; i < goblinAttackCount; i++)
                 {
                     StartCoroutine(goblins[i].SpinWithDelay());
