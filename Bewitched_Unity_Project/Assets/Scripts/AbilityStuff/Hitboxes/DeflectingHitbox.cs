@@ -66,7 +66,7 @@ public class DeflectingHitbox : DefaultHitbox
             {
                 if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible() && user.teamID != character.teamID)
                 {
-                    character.health.SubHealth(damage);
+                    character.health.SubHealth(damage, user);
                     AddStatusEffects(character);
                     AddToHit(character);
 

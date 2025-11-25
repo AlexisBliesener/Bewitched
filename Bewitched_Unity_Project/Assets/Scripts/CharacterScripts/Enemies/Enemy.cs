@@ -287,6 +287,11 @@ public abstract class Enemy : Character
         debugAIInfo = "Character: " + gameObject.ToString() + ", State: " + aiState.ToString() + "\nAttack status: " + attackState + ", inProcess: " + inProcess.ToString() + ", path state: " + pathState + ", has path: " + (currentPath != null);
     }
 
+    public void ResetComboStep()
+    {
+        currentPrimaryComboStep = -1;
+    }
+
 
     /// <summary>
     /// Function for handling movement

@@ -13,7 +13,7 @@ public class EnemyHealth : HealthController
     /// <summary>
     /// Override to show mini health bar when damaged by player
     /// </summary>
-    public override void SubHealth(float amt)
+    public override void SubHealth(float amt, Character damageBy)
     {
         // To show mini health bar when damaged by player if the player wasn't the enemy itself
         float finalDamage = amt;
@@ -32,12 +32,12 @@ public class EnemyHealth : HealthController
                 finalDamage = OffGuard.instance.GetModifiedDamage(amt); // if the offguard is inactive, it will return the base damage (amt)
             }
             ShowMiniHealthBar(true, GetCharacter());
-            if (characterAnimator != null)
+            if (characterAnimator != null && damageBy != GetCharacter())
             {
                 StartCoroutine(characterAnimator.SetHit());
             }
         }
-        base.SubHealth(finalDamage);
+        base.SubHealth(finalDamage, damageBy);
     }
     //This is used to force an enemy to die when toggling the kill bool in the inspector
     void OnValidate()
