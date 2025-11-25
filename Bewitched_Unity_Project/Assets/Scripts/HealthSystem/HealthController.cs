@@ -132,7 +132,7 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Reduces health by some amount. Updates damage events and timestamp.
     /// </summary>
-    public virtual void SubHealth(float amt)
+    public virtual void SubHealth(float amt, Character damageBy = null)
     {
         if (IsDead || amt <= 0f || invincible) return;
 
@@ -160,7 +160,7 @@ public class HealthController : MonoBehaviour
 
         if (CurrentHealth  == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
         {
-            PlayerController.instance.oldHag.health.SubHealth(finalDamage - old);
+            PlayerController.instance.oldHag.health.SubHealth(finalDamage - old, damageBy);
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();
@@ -171,7 +171,7 @@ public class HealthController : MonoBehaviour
             OnDamaged?.Invoke(finalDamage, this);
         }
 
-        if (characterAnimator != null)
+        if (characterAnimator != null && damageBy != null && damageBy != GetCharacter())
         {
             StartCoroutine(characterAnimator.SetHit());
         }

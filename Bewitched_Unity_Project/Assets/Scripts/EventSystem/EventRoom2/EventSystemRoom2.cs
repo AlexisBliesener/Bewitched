@@ -251,7 +251,7 @@ public class EventSystemRoom2 : MonoBehaviour
     private void GiveDamage()
     {
         EventEnemy enemyEvent = enemiesEvent[UnityEngine.Random.Range(0, enemiesEvent.Count)];
-        enemyEvent.GetEnemy().health.SubHealth(100f);
+        enemyEvent.GetEnemy().health.SubHealth(100f, PlayerController.instance.oldHag);
     }
     /// <summary>
     /// Subscribe to the cut scene director stopped event

@@ -138,7 +138,7 @@ public class GoblinAnimator : CharacterAnimator
     {
         if(PlayerController.instance.currentCharacter == character)
         {
-            if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
+            if ( currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
                 character.ResetPrimaryComboStep();
             }
@@ -198,6 +198,7 @@ public class GoblinAnimator : CharacterAnimator
             }
             canChange = false;
             currentAnimationState = newState;
+            return;
         }
         else if (newState == "Death")
         {

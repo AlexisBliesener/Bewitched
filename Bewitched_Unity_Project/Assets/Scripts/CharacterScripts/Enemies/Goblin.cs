@@ -13,8 +13,6 @@ public class Goblin : Enemy
     [Header("References/Prefabs"), ShowIf(nameof(dev))]
     [Tooltip("Knife Prefab")]
     [SerializeField] GameObject knifePrefab;
-    [SerializeField, Tooltip("Right hand bone transform"), ShowIf(nameof(dev))]
-    private Transform rightHandBone;
     [Tooltip("Dash Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject dashHitbox;
     [Tooltip("Dash Effects"), ShowIf(nameof(dev))]
@@ -108,12 +106,6 @@ public class Goblin : Enemy
         SetDebuggingValues();
         SetPatrolOrigin();
         sizeRadius = GetComponent<CharacterController>().radius;
-        if (rightHandBone == null)
-        {
-            // if hand prefab is not set, fallback to this gameobject
-            rightHandBone = this.gameObject.transform;
-            Debug.LogWarning("right hand bone transform is not set, fallback to this gameobject");
-        }
     }
 
     protected override void FixedUpdate()
@@ -159,7 +151,7 @@ public class Goblin : Enemy
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
 
-                    health.SubHealth(primaryAttackCost);
+                    health.SubHealth(primaryAttackCost, this);
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
                     {
@@ -286,7 +278,6 @@ public class Goblin : Enemy
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
             bool triggerSet = false;
 
             if (playerControlling)
@@ -306,6 +297,7 @@ public class Goblin : Enemy
             inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
+                timeLastPrimary = Time.time;
                 RaycastHit rayHit;
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environmentLayer | characters))
                 {
@@ -368,8 +360,8 @@ public class Goblin : Enemy
 
         attackState = AttackState.Attacking;
 
-        Vector3 offsetPosition = rightHandBone.transform.position + rightHandBone.transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, rightHandBone.transform.rotation, rightHandBone.transform);
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation, transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         targetPos = Vector3.negativeInfinity;
@@ -428,8 +420,8 @@ public class Goblin : Enemy
         goblinAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
-        Vector3 offsetPosition = rightHandBone.transform.position + rightHandBone.transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, rightHandBone.transform.rotation, rightHandBone.transform);
+        Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation, transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         if (playerControlling)

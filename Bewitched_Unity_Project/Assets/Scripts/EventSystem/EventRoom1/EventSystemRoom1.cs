@@ -197,7 +197,7 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void GiveDamage()
     {
-        enemyEvent.GetEnemy().health.SubHealth(100f);
+        enemyEvent.GetEnemy().health.SubHealth(100f, PlayerController.instance.oldHag);
     }
 
     [ContextMenu("Possess")]

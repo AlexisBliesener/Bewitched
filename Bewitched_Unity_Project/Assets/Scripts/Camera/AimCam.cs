@@ -47,14 +47,14 @@ public class AimCam : MonoBehaviour
 
         cameraPOVComponent.m_VerticalAxis.m_MaxSpeed = 300 * ySensitivity;
 
-        if (CameraController.GetIsAiming())
-        {
-            // Scale and apply input to yaw
-            yaw += lookDir.x * xSensitivity;
-            characterToFollow.transform.Rotate(new Vector3(0, yaw - prevYaw, 0)); 
-            cameraPOVComponent.m_HorizontalAxis.Value = characterToFollow.transform.rotation.y;
-            prevYaw = yaw;
-        }
+        //if (CameraController.GetIsAiming())
+        //{
+        //    // Scale and apply input to yaw
+        //    yaw += lookDir.x * xSensitivity;
+        //    characterToFollow.transform.Rotate(new Vector3(0, yaw - prevYaw, 0)); 
+        //    cameraPOVComponent.m_HorizontalAxis.Value = characterToFollow.transform.rotation.y;
+        //    prevYaw = yaw;
+        //}
     }
 
     /// <summary>

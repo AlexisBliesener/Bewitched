@@ -198,7 +198,7 @@ public class DefaultHitbox : MonoBehaviour
                 if (character && !hitChars.Contains(character) && character != user && !character.health.GetInvincible())
                 {
                     if (character is Enemy) (character as Enemy).DoHitSoundEffect(damage);
-                    character.health.SubHealth(damage);
+                    character.health.SubHealth(damage, user);
 
                     if(character == PlayerController.instance.currentCharacter)
                     {
@@ -309,7 +309,7 @@ public class DefaultHitbox : MonoBehaviour
             if (impacts[i].TryGetComponent(out Character hitChar) && hitChar.teamID != user.teamID)
             {
                 impactEffects.ApplyStatusEffects(user, hitChar, this);
-                hitChar.health.SubHealth(slamDamage);
+                hitChar.health.SubHealth(slamDamage, user);
 
             }
         }

@@ -230,7 +230,7 @@ public class Guard : Enemy
             {
                 if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
-                    health.SubHealth(primaryAttackCost);
+                    health.SubHealth(primaryAttackCost, this);
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
                     {
@@ -582,7 +582,7 @@ public class Guard : Enemy
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                health.SubHealth(secondaryAttackCost, this);
             }
             SecondaryAttack();
 

@@ -114,6 +114,11 @@ public class CharacterAnimator : MonoBehaviour
         {
             if(!overriding)
             {
+                if (character.GetComponent<Enemy>() != null)
+                {
+                    character.GetComponent<Enemy>().ResetComboStep();
+                    animator.SetFloat("PrimaryCombo", -1);
+                }
                 currentAnimationState = "Hit";
                 ResetAllTriggers();
                 animator.SetFloat("HitSpeedMult", hitStunMult);

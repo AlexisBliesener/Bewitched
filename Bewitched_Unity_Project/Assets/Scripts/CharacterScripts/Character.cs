@@ -943,6 +943,6 @@ public abstract class Character : MonoBehaviour
             timeStarted += Time.deltaTime;
             yield return null;
         }
-        health.SubHealth(amount);
+        health.SubHealth(amount, this);
     }
 }

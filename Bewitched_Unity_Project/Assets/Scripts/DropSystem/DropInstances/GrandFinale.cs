@@ -211,7 +211,7 @@ public class GrandFinale : MonoBehaviour, IDrop
                     (radius - dist) / radius
                 );
 
-                hitChar.health.SubHealth(dmg);
+                hitChar.health.SubHealth(dmg, PlayerController.instance.oldHag);
                 Enemy enemy = hitChar.GetComponent<Enemy>();
                 if (enemy != null && !enemy.IsPlayerControlling())
                     hitChar.health.ShowMiniHealthBar(true, hitChar);
@@ -238,7 +238,7 @@ public class GrandFinale : MonoBehaviour, IDrop
     private void ExplodePlayer()
     {
         Instantiate(explosionVFX, PlayerController.instance.oldHag.transform.position, Quaternion.identity);
-        PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[GetStackIndex()]);
+        PlayerController.instance.oldHag.health.SubHealth(playerExplodeDamage[GetStackIndex()], PlayerController.instance.oldHag);
     }
 
     /// <summary>
