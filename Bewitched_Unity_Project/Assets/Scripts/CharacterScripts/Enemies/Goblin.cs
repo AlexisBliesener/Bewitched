@@ -274,7 +274,7 @@ public class Goblin : Enemy
  
             Vector3 toTarget = targetPos - transform.position;
 
-            SetCostlyAttackingLine(direction, dis);
+            SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
             float timeStarted = Time.time;

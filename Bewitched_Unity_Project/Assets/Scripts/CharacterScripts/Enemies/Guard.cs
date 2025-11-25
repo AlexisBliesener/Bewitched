@@ -351,7 +351,7 @@ public class Guard : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
-            SetCostlyAttackingLine(direction, dis);
+            SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 

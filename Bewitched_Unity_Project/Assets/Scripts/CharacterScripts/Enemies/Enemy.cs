@@ -1139,10 +1139,11 @@ public abstract class Enemy : Character
     /// </summary>
     /// <param name="direction"> Direction of attack </param>
     /// <param name="length"> Length of costly area </param>
-    public void SetCostlyAttackingLine(Vector3 direction, float length)
+    /// <param name="width"> Width of costly area </param>
+    public void SetCostlyAttackingLine(Vector3 direction, float length, float width)
     {
         ResetAttackingArea(true);
-        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, 1.5f * sizeRadius);
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, width);
         foreach (List<int> position in nodes)
         {
             Node node = GraphBuilder.instance.GetNodeFromPosition(position);
