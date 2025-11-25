@@ -54,7 +54,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 3, y: 1, z: 3}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &6844038092387472577
 MonoBehaviour:
@@ -69,7 +69,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spinSpeed: 90
-  pickupRange: 1
+  pickupRange: 1.5
   isPlayerInRange: 0
 --- !u!1 &5122284995239111528
 GameObject:
@@ -245,15 +245,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1155752204961165097, guid: a71b3fe82da1d9d4abaf6b529c7ae3e9, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1155752204961165097, guid: a71b3fe82da1d9d4abaf6b529c7ae3e9, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1155752204961165097, guid: a71b3fe82da1d9d4abaf6b529c7ae3e9, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1155752204961165097, guid: a71b3fe82da1d9d4abaf6b529c7ae3e9, type: 3}
       propertyPath: m_LocalPosition.x
