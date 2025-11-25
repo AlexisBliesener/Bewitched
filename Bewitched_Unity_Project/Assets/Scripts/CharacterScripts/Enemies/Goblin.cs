@@ -271,8 +271,6 @@ public class Goblin : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
- 
-            Vector3 toTarget = targetPos - transform.position;
 
             SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
@@ -417,6 +415,7 @@ public class Goblin : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleStab(Character tempLockedCharacter)
     {
+        if (playerControlling) transform.forward = PlayerController.instance.GetMovementDirection();
         goblinAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
