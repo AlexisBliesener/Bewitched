@@ -57,6 +57,11 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Currently attacking enemies and their attack costs")]
     Dictionary<Character, int> attackingEnemies = new Dictionary<Character, int>();
 
+    /// <summary>
+    /// Gets the number of surrounding enemies
+    /// </summary>
+    public int GetNumSurroundingEnemies => surroundingEnemies.Count;
+
     private void Awake()
     {
         timeLastRoomSwap = Time.time;
