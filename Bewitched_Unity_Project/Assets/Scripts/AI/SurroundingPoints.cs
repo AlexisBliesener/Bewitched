@@ -247,9 +247,9 @@ public class SurroundingPoints : MonoBehaviour
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (enemy.InAttackStartup())
+                if (enemy.InAttackStartup() && !enemy.IsPlayerControlling())
                 {
-                    return; // For now just keep returning until no enemies are attacking
+                    return; // For now just keep returning until no enemies are attacking (and the enemy isnt player controlled)
                 }
             }
 
