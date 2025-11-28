@@ -3,6 +3,7 @@ using FMOD.Studio;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -32,6 +33,8 @@ public class PossessionAbility : MonoBehaviour
     protected float maxPossessionDistance;
     [SerializeField, Tooltip("Layer mask used to check valid possession targets.")]
     private LayerMask possessionMask;
+    [SerializeField, Tooltip("The time the rotation to face the enemy will take")]
+    private float rotationTime;
 
     [Header("UI References")]
     [SerializeField, Tooltip("The slider of the possession ability UI")]
@@ -519,6 +522,12 @@ public class PossessionAbility : MonoBehaviour
         // Possess target if there is one
         if (target)
         {
+            // rotate to face the enemy being possessed
+            Vector3 enemyNoY = target.transform.position;
+            enemyNoY.y = currentCharacter.transform.position.y;
+            currentCharacter.transform.DOLookAt(enemyNoY, rotationTime);
+            yield return new WaitForSeconds(rotationTime);
+
             target.SetControlled(true);
             CharacterControlChangeEvent?.Invoke(target);
 
