@@ -344,13 +344,21 @@ public class Guard : Enemy
             float buffer = sizeRadius + lanceRange;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
             {
                 //Debug.Log(hit.collider.gameObject);
-                // Move just before environment hit point
+                // Move just before character hit point
+                targetPos = hit.point - direction * buffer;
+            }
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environmentLayer)) // Use position for environment as that can be thinner
+            {
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point if beyond buffer, stay at same position otherwise
+                if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
+            dis = (targetPos - transform.position).magnitude;
             SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);

@@ -264,13 +264,21 @@ public class Ogre : Enemy
             float buffer = sizeRadius + 1;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
             {
-                Debug.Log(hit.collider.gameObject);
-                // Move just before environment hit point
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before character hit point
+                targetPos = hit.point - direction * buffer;
+            }
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environmentLayer)) // Use position for environment as that can be thinner
+            {
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point if beyond buffer, stay at same position otherwise
+                if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = transform.position.y;
+            dis = (targetPos - transform.position).magnitude;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
