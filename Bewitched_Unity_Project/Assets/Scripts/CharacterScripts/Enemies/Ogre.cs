@@ -275,10 +275,9 @@ public class Ogre : Enemy
                 //Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point if beyond buffer, stay at same position otherwise
                 if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
-                targetPos = hit.point - direction * buffer;
+                else targetPos = hit.point - direction * buffer;
             }
             targetPos.y = transform.position.y;
-            Debug.Log("Position: " + transform.position + ", targetPosition: " + targetPos);
             dis = (targetPos - transform.position).magnitude;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);

@@ -275,7 +275,7 @@ public class Goblin : Enemy
                 //Debug.Log(hit.collider.gameObject);
                 // Move just before environment hit point if beyond buffer, stay at same position otherwise
                 if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
-                targetPos = hit.point - direction * buffer;
+                else targetPos = hit.point - direction * buffer;
             }
             targetPos.y = oldY;
             dis = (targetPos - transform.position).magnitude;
