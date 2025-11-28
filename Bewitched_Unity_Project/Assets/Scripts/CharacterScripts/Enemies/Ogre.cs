@@ -278,10 +278,11 @@ public class Ogre : Enemy
                 targetPos = hit.point - direction * buffer;
             }
             targetPos.y = transform.position.y;
+            Debug.Log("Position: " + transform.position + ", targetPosition: " + targetPos);
             dis = (targetPos - transform.position).magnitude;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);
-            transform.DOLookAt(targetPos, chaseTime * dis);
+            //transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime * dis)
@@ -388,8 +389,9 @@ public class Ogre : Enemy
         {
             moveDist = (direction.normalized * nonLockPrimaryMovement);
         }
-        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+
+        transform.DOMove(transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        //transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
