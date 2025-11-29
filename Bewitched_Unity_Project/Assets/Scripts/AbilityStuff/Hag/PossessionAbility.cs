@@ -307,7 +307,7 @@ public class PossessionAbility : MonoBehaviour
     {
         UpdateUI();
         UpdateState();
-        UpdateCrossHair();
+        //UpdateCrossHair();
         UpdateTargetVFX();
 
         if(counterLocked && Time.time - timeCounterLocked > counterLockDuration)
@@ -513,6 +513,11 @@ public class PossessionAbility : MonoBehaviour
         // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
 
+        if(possessionOverride != null)
+        {
+            target = possessionOverride;
+        }
+
         if (target != null && !target.canPossess)
         {
             target = null;
@@ -584,7 +589,8 @@ public class PossessionAbility : MonoBehaviour
             {
                 targetVFX.SetActive(true);
                 targetVFX.transform.position = possessionOverride.transform.position;
-            }else if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
+            }
+            else if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
             {
                 targetVFX.SetActive(true);
                 targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
@@ -615,23 +621,23 @@ public class PossessionAbility : MonoBehaviour
     /// <summary>
     /// Updates the color of the cross hair baised on if the player can currently possess
     /// </summary>
-    private void UpdateCrossHair()
-    {
-        if (crossHair == null)
-        {
-            Debug.LogWarning("Crosshair image is not assigned!");
-            return;
-        }
+    //private void UpdateCrossHair()
+    //{
+    //    if (crossHair == null)
+    //    {
+    //        Debug.LogWarning("Crosshair image is not assigned!");
+    //        return;
+    //    }
 
-        if (possessionState == PossessionStates.canNotPossess)
-        {
-            crossHair.color = Color.white;
-        }
-        else
-        {
-            crossHair.color = Color.red;
-        }
-    }
+    //    if (possessionState == PossessionStates.canNotPossess)
+    //    {
+    //        crossHair.color = Color.white;
+    //    }
+    //    else
+    //    {
+    //        crossHair.color = Color.red;
+    //    }
+    //}
 
     /// <summary>
     /// Updates the state of possession ability to tell if the player can currently possess or not
