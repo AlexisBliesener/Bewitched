@@ -456,7 +456,12 @@ public class PossessionAbility : MonoBehaviour
             moveDist = (dodgeDirection.normalized * dodgeDistance);
         }
 
-        for(int i = 0; i < 8; i++)
+        // rotate to face the enemy being dodged away from
+        Vector3 enemyNoY = -dodgeDirection + eleth.transform.position;
+        enemyNoY.y = eleth.transform.position.y;
+        eleth.transform.DOLookAt(enemyNoY, 0.01f);
+
+        for (int i = 0; i < 8; i++)
         {
             currentCharacter.GetComponent<CharacterController>().Move(moveDist / 8f);
             yield return null;
