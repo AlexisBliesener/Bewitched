@@ -1,6 +1,8 @@
+using System.Collections;
 using UnityEngine;
 using System;
 using System.IO;
+using UnityEngine.UI;
 
 /// <summary>
 /// This has to be attached to a character (player or enemy)
@@ -32,6 +34,8 @@ public class HealthController : MonoBehaviour
     public bool IsDead = false;
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
+    [Tooltip("The Vignette UI screen.")]
+    public GameObject vignetteUI;
 
     [Tooltip("The animator that controls this character")]
     protected CharacterAnimator characterAnimator;
@@ -169,12 +173,37 @@ public class HealthController : MonoBehaviour
         {
             TimeLastHit = Time.time;
             OnDamaged?.Invoke(finalDamage, this);
+            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter())
+            {
+                StartCoroutine(Vignette(1f));
+            }
         }
 
         if (characterAnimator != null && damageBy != null && damageBy != GetCharacter())
         {
             StartCoroutine(characterAnimator.SetHit());
         }
+    }
+
+    public IEnumerator Vignette(float duration)
+    {
+        vignetteUI.SetActive(true);
+        Image vignetteImage = vignetteUI.transform.GetChild(0).GetComponent<Image>();
+
+        Color bkgColor = vignetteImage.color;
+        bkgColor.a = 0.1f;
+        vignetteImage.color = bkgColor;
+
+        while (bkgColor.a > 0f)
+        {
+            bkgColor.a -= Time.deltaTime / duration;
+            if (bkgColor.a < 0f) bkgColor.a = 0f;
+
+            vignetteImage.color = bkgColor;
+            yield return new WaitForSeconds(.2f);
+        }
+
+        vignetteUI.SetActive(false);
     }
 
     /// <summary>
