@@ -109,7 +109,41 @@ public class GuardAnimator : CharacterAnimator
 
         animator.SetInteger("PrimaryCombo", currentPrimaryComboStep);
 
-        SwitchState(newState);
+        if(newState == "Idle")
+        {
+            legsRunning = false;
+            animator.ResetTrigger("LegsRun");
+            animator.SetTrigger("LegsIdle");
+        }
+        else if(newState == "Run")
+        {
+            legsRunning = true;
+            animator.ResetTrigger("LegsIdle");
+            animator.SetTrigger("LegsRun");
+        }
+
+            SwitchState(newState);
+    }
+
+    private bool legsRunning = false;
+    private float legLayerWeight = 0f;
+
+    protected override void Update()
+    {
+        base.Update();
+
+        if(legsRunning && (currentAnimationState == "SecondaryAttack"  || currentAnimationState == "Hit"))
+        {
+            legLayerWeight += Time.deltaTime * 5;
+            if (legLayerWeight > 1) legLayerWeight = 1;
+            animator.SetLayerWeight(1, legLayerWeight);
+        }
+        else
+        {
+            legLayerWeight -= Time.deltaTime * 5;
+            if (legLayerWeight < 0) legLayerWeight = 0;
+            animator.SetLayerWeight(1, legLayerWeight);
+        }
     }
 
     /// <summary>
