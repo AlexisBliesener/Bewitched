@@ -13,21 +13,15 @@ public class NarrativeTrigger : MonoBehaviour
     private bool showOnlyOnce = true;
     [SerializeField,Tooltip("How long the text will be displayed"), Range(1f,20f)]
     private float displayDurationInSeconds = 5f;
-    [SerializeField,Tooltip("How long the text will fade out"), Range(0.1f,2f)]
-    private float fadeOutDuration = 0.6f;
     [Tooltip("The time the text started to be displayed")]
     private float timeStarted = 0f;
-    /// <summary>
-    /// Get the correct narrative panel based on the A/B testing state
-    /// </summary>
-    /// <returns>Which narrative panel to use</returns>
-    private GameObject GetNarrativePanel()
+
+    private void Start()
     {
-        if (PlayerController.instance.narrativePanel == null)
+        if (NarrativeStatePopup.instance == null)
         {
-            Debug.LogWarning("Narrative panel is null on Player Controller");
+            Debug.LogWarning("NarrativeTrigger needs NarrativeStatePopup script to work!");
         }
-        return PlayerController.instance.narrativePanel;
     }
 
     /// <summary>
@@ -40,13 +34,8 @@ public class NarrativeTrigger : MonoBehaviour
         {
             if (character == PlayerController.instance.currentCharacter)
             {
-                GetNarrativePanel().GetComponentInChildren<TextMeshProUGUI>().text = textToShow;
                 timeStarted = Time.time;
-                if (GetNarrativePanel().activeSelf) return;
-                GetNarrativePanel().SetActive(true);
-                GetNarrativePanel().transform.DOKill();
-                GetNarrativePanel().GetComponent<CanvasGroup>().alpha = 0f;
-                GetNarrativePanel().GetComponent<CanvasGroup>().DOFade(1f,fadeOutDuration);      
+                NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.NarrativeTrigger, textToShow);
             }
         }
     }
@@ -59,8 +48,7 @@ public class NarrativeTrigger : MonoBehaviour
         {
             if (character == PlayerController.instance.currentCharacter)
             {
-                GetNarrativePanel().transform.DOKill();
-                GetNarrativePanel().SetActive(false);
+                NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.NarrativeTrigger);
                 timeStarted = 0f;
                 if (showOnlyOnce)
                 {
@@ -75,9 +63,7 @@ public class NarrativeTrigger : MonoBehaviour
     {
         if (timeStarted != 0f && Time.time - timeStarted > displayDurationInSeconds)
         {
-            GetNarrativePanel().transform.DOKill();
-            GetNarrativePanel().GetComponent<CanvasGroup>().alpha = 1f;
-            GetNarrativePanel().GetComponent<CanvasGroup>().DOFade(0f,fadeOutDuration).OnComplete(()=> GetNarrativePanel().SetActive(false));      
+            NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.NarrativeTrigger);
             timeStarted = 0f;
             if (showOnlyOnce)
             {
