@@ -32,7 +32,7 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character"), Range(0, 50)]
     public float deceleration = 5;
-    [Tooltip("Rotational velocity of the character"), Range(0, 360)]
+    [Tooltip("Rotational velocity of the character")]
     public float rotationalVelocity = 240;
     [Tooltip("Time chasing a character for an attack"), Range(0, 10)]
     public float chaseTime = 3;

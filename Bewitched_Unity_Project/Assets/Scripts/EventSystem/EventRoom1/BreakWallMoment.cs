@@ -54,7 +54,7 @@ public class BreakWallMoment : MonoBehaviour
         // Kill ogre? 
         PossessionAbility.instance.SetCanLeavePossession(true);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
-        PlayerController.instance.currentCharacter.health.SetCurrentHealth(0);
+        PlayerController.instance.currentCharacter.health.KillEnemy();
         PlayerController.instance.SetAllowMovement(true);
         DestroyImmediate(director.gameObject);
         Destroy(this);
@@ -72,7 +72,7 @@ public class BreakWallMoment : MonoBehaviour
         foreach (Enemy enemy in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
         {
             if (enemy == null || enemy.gameObject == PlayerController.instance.currentCharacter.gameObject) continue;
-            enemy.health.SetCurrentHealth(0);
+            enemy.health.KillEnemy();
         }
         //End the level music
         if(AudioManager.manager != null)

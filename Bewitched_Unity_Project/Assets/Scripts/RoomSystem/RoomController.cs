@@ -195,7 +195,7 @@ public class RoomController : MonoBehaviour
         // just to be safe, we will kill all enemies that are for some reason still alive in the room... 
         foreach (Enemy enemy in roomEnemies)
         {
-            enemy.health.SetCurrentHealth(0); 
+            enemy.health.KillEnemy(); 
             Destroy(enemy.gameObject);
         }
     }

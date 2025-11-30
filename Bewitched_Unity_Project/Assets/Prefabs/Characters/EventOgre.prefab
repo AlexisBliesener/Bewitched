@@ -1793,10 +1793,10 @@ MonoBehaviour:
   pushForceModifer: 0.1
   sizeRadius: 3
   numSurroundingPoints: 8
-  minSurroundingRadius: 3
+  minSurroundingRadius: 4
   maxSurroundingRadius: 10
   teamID: 2
-  priority: 10
+  priority: 20
   shoulderOffset: {x: 1, y: 2.5, z: 0}
   attackDelay: 1
   primaryCooldown: 0
@@ -1841,15 +1841,15 @@ MonoBehaviour:
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
-  timeBeforeSearch: 0
+  timeBeforeSearch: 10
   attackDelayAI: 0
   retreatWaitTime: 0.5
   primaryAttackChance: 0.7
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   counterWindowLength: 0.9
-  moveToTargetDistance: 2
   nonLockPrimaryMovement: 1
+  moveToTargetDistance: 2
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0
@@ -1923,6 +1923,7 @@ MonoBehaviour:
   lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
+  IsDead: 0
   deathUI: {fileID: 0}
   kill: 0
   flashSpeed: 1.5

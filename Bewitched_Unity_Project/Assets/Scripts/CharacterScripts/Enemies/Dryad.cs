@@ -344,6 +344,8 @@ public class Dryad : Enemy
             dir = (targetPos - spawnPos).normalized;
         }
 
+        SetCostlyAttackingLine(dir, (targetPos - spawnPos).magnitude, 1);
+
         Quaternion rotation = Quaternion.LookRotation(dir, Vector3.forward);
         GameObject dartObj = Instantiate(dartPrefab, spawnPos, rotation);
         DartHitbox dartHitbox = dartObj.GetComponentInChildren<DartHitbox>();
