@@ -98,7 +98,7 @@ public class Ogre : Enemy
         ResetAttackingArea();
 
         SetDebugString();
-        if (!playerControlling) Debug.Log(debugAIInfo);
+        //if (!playerControlling) Debug.Log(debugAIInfo);
 
         if (playerControlling)
         {
@@ -556,7 +556,6 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            Debug.Log("Ogre finding path to player");
             pathState = PathState.Searching;
             yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
