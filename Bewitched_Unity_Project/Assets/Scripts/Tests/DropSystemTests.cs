@@ -149,19 +149,20 @@ public class DropSystemTests
 
     /// <summary>
     /// Test that creating multiple DropSystem objects destroys duplicate instances
-    /// As singleton, this should not be possible
+    /// it should take the last instance that was created
     /// </summary>
     [UnityTest]
     public IEnumerator Instance_DestroysDuplicateInstances()
     {
+        DropSystem oldDropSystem = DropSystem.Instance;
         GameObject duplicateObject = new GameObject("DuplicateDropSystem");
-        DropSystem duplicateSystem = duplicateObject.AddComponent<DropSystem>();
+        DropSystem newSystem = duplicateObject.AddComponent<DropSystem>();
 
         // Start should be called
         yield return null;
 
-        Assert.AreEqual(dropSystem, DropSystem.Instance);
-        Assert.IsTrue(duplicateObject == null); // Should be destroyed
+        Assert.AreEqual(newSystem, DropSystem.Instance);
+        Assert.IsTrue(oldDropSystem == null); // Should be destroyed
     }
 
     /// <summary>

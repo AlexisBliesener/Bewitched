@@ -24,6 +24,8 @@ public class MainMenuManager : MonoBehaviour
     public GameObject enemiesScreen;
     [Tooltip("The Upgrade System Screen")]
     public GameObject upgradeSystemScreen;
+    [Tooltip("The Loading Screen")]
+    public GameObject loadingScreen;
 
     [Header("First Selected Buttons")]
     [Tooltip("The first button to be selected when Pause menu is opened.")]
@@ -126,10 +128,30 @@ public class MainMenuManager : MonoBehaviour
     /// </summary>
     public void LoadLevel(string sceneName)
     {
-        SceneManager.LoadScene(sceneName);
+        StartCoroutine(LoadLevelCoroutine(sceneName));
         if (SoulSystem.Instance != null)
         {
             SoulSystem.Instance.ResetSouls();
+        }
+    }
+    /// <summary>
+    /// Loads level with coroutine
+    /// </summary>
+    /// <param name="sceneName"></param>
+    private IEnumerator LoadLevelCoroutine(string sceneName)
+    {
+        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneName);
+        if (loadingScreen != null)
+        {
+            OpenScreen(loadingScreen);
+        }
+        else
+        {
+            Debug.LogWarning("Loading Screen is null on MainMenuManager");
+        }
+        while (!asyncOperation.isDone)
+        {
+            yield return null;
         }
     }
 }
