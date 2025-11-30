@@ -159,7 +159,7 @@ public class RoomController : MonoBehaviour
             }
         } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom() && !isPlayerInsideTrigger)
         {
-            UnlockDoors();
+            UnlockDoors(true);
             DeactivateEnemies();
             ChangeState(RoomState.Inactive);
         }
@@ -342,12 +342,20 @@ public class RoomController : MonoBehaviour
     /// <summary>
     /// Unlock all doors in the room
     /// </summary>
-    private void UnlockDoors()
+    /// <param name="unlockAll">If true, it will unlock all doors, otherwise it will only unlock the doors that are in the unlockOnClear list</param>
+    private void UnlockDoors(bool unlockAll = false)
     {
         if (doorState == DoorState.Unlocked) return;
         foreach (IDoor door in unlockOnClear)
         {
             door?.Unlock();
+        }
+        if (unlockAll)
+        {
+            foreach (IDoor door in doors)
+            {
+                door?.Unlock();
+            }
         }
         doorState = DoorState.Unlocked;
 
