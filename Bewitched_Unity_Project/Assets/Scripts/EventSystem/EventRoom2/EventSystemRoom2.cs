@@ -238,7 +238,7 @@ public class EventSystemRoom2 : MonoBehaviour
         foreach (EventEnemy enemyEvent in enemiesEvent)
         {
             if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject) continue; // Don't kill the player...
-            enemyEvent.GetEnemy().health.SetCurrentHealth(0);
+            enemyEvent.GetEnemy().health.KillEnemy();
             enemyEvent.GetEnemy().lobotimzed = true;
             enemyEvent.GetEnemy().gameObject.SetActive(false);
             Destroy(enemyEvent.GetEnemy().gameObject);
@@ -375,7 +375,7 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void TakeDownEnemy(HealthController healthController)
     {
-        healthController.SetCurrentHealth(0);
+        healthController.KillEnemy();
         EventEnemy enemy = healthController.GetComponent<EventEnemy>();
         if (enemy == null)
         {

@@ -404,6 +404,7 @@ MonoBehaviour:
   possessionMask:
     serializedVersion: 2
     m_Bits: 384
+  rotationTime: 0.3
   possessionAbilitySlider: {fileID: 0}
   secondaryHealthBar: {fileID: 0}
   crossHair: {fileID: 0}
@@ -430,6 +431,8 @@ MonoBehaviour:
   environmentLayer:
     serializedVersion: 2
     m_Bits: 256
+  counterTimeScale: 0.7
+  counterTimeTransition: 0.15
 --- !u!114 &7427344396718919167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -463,7 +466,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45b6ea77d66ea8d4d94d4ea3e04d3671, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeLerpDuration: 0.15
 --- !u!1 &6049376072004412199
 GameObject:
   m_ObjectHideFlags: 0
