@@ -403358,6 +403358,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5916699585025004677, guid: 8f602b65655f142ebb60ead543aa24a3, type: 3}
+      propertyPath: enemyHealthBar
+      value: 
+      objectReference: {fileID: 1721826098}
+    - target: {fileID: 7455445191468345431, guid: 8f602b65655f142ebb60ead543aa24a3, type: 3}
+      propertyPath: shieldSlider
+      value: 
+      objectReference: {fileID: 1721826099}
+    - target: {fileID: 7455445191468345431, guid: 8f602b65655f142ebb60ead543aa24a3, type: 3}
+      propertyPath: enemyHealthSlider
+      value: 
+      objectReference: {fileID: 1721826100}
     - target: {fileID: 7516775768371684888, guid: 8f602b65655f142ebb60ead543aa24a3, type: 3}
       propertyPath: m_Name
       value: DropSystem
@@ -433878,6 +433890,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed6a1b78b4f3af7418db895fabacfdae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &1721826098 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 6905586832177465063, guid: b9829b0350d5330458c1890649c958d6, type: 3}
+  m_PrefabInstance: {fileID: 684874788}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1721826099 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5729347538438127111, guid: b9829b0350d5330458c1890649c958d6, type: 3}
+  m_PrefabInstance: {fileID: 684874788}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &1721826100 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 882824764759155233, guid: b9829b0350d5330458c1890649c958d6, type: 3}
+  m_PrefabInstance: {fileID: 684874788}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1723135375
 PrefabInstance:
   m_ObjectHideFlags: 0
