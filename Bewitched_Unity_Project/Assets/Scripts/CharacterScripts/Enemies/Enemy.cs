@@ -94,6 +94,9 @@ public abstract class Enemy : Character
 
     protected float timeSinceRetreat = 0;
 
+    [Tooltip("Is this an event enemy?")]
+    protected bool isEventEnemy = false;
+
     /// <summary>
     /// Path getter function
     /// </summary>
@@ -476,6 +479,8 @@ public abstract class Enemy : Character
             // Spawn soul on death
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
+
+        if (isEventEnemy) GraphBuilder.instance.RemoveEventEnemy(this);
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);

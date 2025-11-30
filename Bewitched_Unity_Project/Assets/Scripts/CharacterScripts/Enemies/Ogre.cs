@@ -65,8 +65,6 @@ public class Ogre : Enemy
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
-    //Is this an event enemy?
-    bool isEventEnemy = false;
 
     [Tooltip("Ogre animator script that controls the ogre animations")]
     private OgreAnimator ogreAnimator;
@@ -90,6 +88,7 @@ public class Ogre : Enemy
         transform.eulerAngles = currentRotation;
 
         if (dead || lobotimzed) return;
+        GraphBuilder.instance.AddEventEnemy(this);
 
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
@@ -99,7 +98,7 @@ public class Ogre : Enemy
         ResetAttackingArea();
 
         SetDebugString();
-        //if (!playerControlling) Debug.Log(debugAIInfo);
+        if (!playerControlling) Debug.Log(debugAIInfo);
 
         if (playerControlling)
         {
@@ -107,7 +106,7 @@ public class Ogre : Enemy
         }
         else
         {
-            lockedCharacter = currentPlayer;
+            lockedCharacter = currentPlayer = playerController.GetCurrentCharacter(); ;
         }
 
         base.FixedUpdate();
@@ -515,11 +514,19 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing || (aiState == AIMovementState.Patrolling && isEventEnemy))
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             StopIdleAudio();
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             StopIdleAudio();
             Surround();
         }
@@ -549,27 +556,19 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
-            }
+            Debug.Log("Ogre finding path to player");
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
-            }   
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));  
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
-            } 
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 

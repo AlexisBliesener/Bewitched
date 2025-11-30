@@ -122,6 +122,9 @@ public class GraphBuilder : MonoBehaviour
 
     private Coroutine searchRoutine = null;
 
+    [Tooltip("List of boss enemies")]
+    private List<Enemy> bossEnemies = new List<Enemy>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -723,6 +726,10 @@ public class GraphBuilder : MonoBehaviour
             {
                 enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
             }
+            foreach (Enemy enemy in bossEnemies)
+            {
+                if (!enemies.Contains(enemy)) enemies.Add(enemy);
+            }
 
             foreach (Enemy enemy in enemies)
             {
@@ -981,5 +988,23 @@ public class GraphBuilder : MonoBehaviour
             distanceSearched += width / 2;
         }
         return nodes;
+    }
+    
+    /// <summary>
+    /// Adds an event enemy
+    /// </summary>
+    /// <param name="enemy"> Enemy to add </param>
+    public void AddEventEnemy(Enemy enemy)
+    {
+        if (!bossEnemies.Contains(enemy)) bossEnemies.Add(enemy);
+    }
+
+    /// <summary>
+    /// Removes an event enemy
+    /// </summary>
+    /// <param name="enemy"> Enemy to remove </param>
+    public void RemoveEventEnemy(Enemy enemy)
+    {
+        if (bossEnemies.Contains(enemy)) bossEnemies.Remove(enemy);
     }
 }
