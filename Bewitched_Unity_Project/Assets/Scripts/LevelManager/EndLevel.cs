@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -5,7 +6,9 @@ using UnityEngine.SceneManagement;
 /// If the trigger collider is touched by the player, it will load the next scene (from the build settings)
 /// </summary>
 public class EndLevel : MonoBehaviour
-{
+{   
+    [SerializeField,Tooltip("The Loading Screen")]
+    private GameObject loadingScreen;
     private void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent(out Character character))
@@ -20,8 +23,36 @@ public class EndLevel : MonoBehaviour
                 {
                     nextIndex = 0;
                 }
-                SceneManager.LoadScene(nextIndex);
+                StartCoroutine(LoadLevelCoroutine(nextIndex));
             }
+        }
+    }
+
+    /// <summary>
+    /// Loads level with coroutine
+    /// </summary>
+    /// <param name="sceneIndex">the index of the scene to load</param>
+    private IEnumerator LoadLevelCoroutine(int sceneIndex)
+    {
+        Time.timeScale = 0.0f;
+        if (loadingScreen != null)
+        {
+            loadingScreen.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Loading Screen is null");
+        }
+        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneIndex);
+        asyncOperation.allowSceneActivation = false;
+        while (!asyncOperation.isDone)
+        {
+            if (asyncOperation.progress >= 0.9f)
+            {
+                Time.timeScale = 1.0f;
+                asyncOperation.allowSceneActivation = true;
+            }
+            yield return null;
         }
     }
 }
