@@ -157,11 +157,12 @@ public class DropSystemTests
         GameObject duplicateObject = new GameObject("DuplicateDropSystem");
         DropSystem duplicateSystem = duplicateObject.AddComponent<DropSystem>();
 
+        DropSystem oldDropSystem = DropSystem.Instance;
         // Start should be called
         yield return null;
 
         Assert.AreEqual(dropSystem, DropSystem.Instance);
-        Assert.IsTrue(duplicateObject == null); // Should be destroyed
+        Assert.IsTrue(oldDropSystem == null); // Should be destroyed
     }
 
     /// <summary>
