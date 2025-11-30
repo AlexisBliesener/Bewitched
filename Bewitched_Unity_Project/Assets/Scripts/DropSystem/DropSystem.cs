@@ -65,25 +65,30 @@ public class DropSystem : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        // Only one instance of DropSystem should be there
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
-    /// <summary>
-    /// Initialize the pity system if it is enabled
-    /// </summary>
-    private void Start()
-    {
         if (usePitySystem)
         {
             pitySystem = GetComponent<PitySystem>();
             // Add all rarities to the pity system
             pitySystem.Initialize(availableRarities.Distinct().ToList());
         }
+        // Copy old upgrades to new instance
+        if (Instance != null && Instance != this)
+        {
+            foreach (DropData drop in Instance.playerUpgrades)
+            {
+                if (drop != null)
+                {
+                    DropData currentDrop = availableDrops.FirstOrDefault(d => d.GetID() == drop.GetID());
+                    if (currentDrop != null)
+                    {
+                        SelectDropsOption(currentDrop);
+                    }
+                }
+            }
+            Destroy(Instance.gameObject);
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
     /// <summary>
     /// It tries to drop an item from enemies.

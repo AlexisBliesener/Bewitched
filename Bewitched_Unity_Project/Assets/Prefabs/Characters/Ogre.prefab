@@ -546,8 +546,8 @@ GameObject:
   - component: {fileID: 732372681308907037}
   - component: {fileID: 6417695604396302911}
   - component: {fileID: 4985444316756526280}
-  - component: {fileID: 8720534003032205823}
   - component: {fileID: 4731386785871686445}
+  - component: {fileID: -2715540321798150031}
   m_Layer: 7
   m_Name: Ogre
   m_TagString: Enemy
@@ -647,8 +647,8 @@ MonoBehaviour:
   pushForceModifer: 0.15
   sizeRadius: 1.5
   numSurroundingPoints: 8
-  minSurroundingRadius: 3
-  maxSurroundingRadius: 6
+  minSurroundingRadius: 4
+  maxSurroundingRadius: 7
   teamID: 2
   priority: 1
   shoulderOffset: {x: 1, y: 2.5, z: 0}
@@ -691,7 +691,7 @@ MonoBehaviour:
   cantAttack: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
-  sightRange: 10
+  sightRange: 20
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
@@ -702,8 +702,8 @@ MonoBehaviour:
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   counterWindowLength: 0.9
-  moveToTargetDistance: 0
   nonLockPrimaryMovement: 1
+  moveToTargetDistance: 0
   perfectCounterTimeMaterial: {fileID: 2100000, guid: 2f7edf59329a4f1479f6ee097a7068d9, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 972bb0a5b7428824eb42d9e1319ebc91, type: 2}
   pathState: 0
@@ -869,30 +869,9 @@ MonoBehaviour:
   lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
+  IsDead: 0
   deathUI: {fileID: 0}
   kill: 0
---- !u!114 &8720534003032205823
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2214453077761272128}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7792964f00e36f4c94a53c9eff94a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dev: 0
-  primaryAnimationDelay:
-  - 0
-  - 0
-  - 0
-  secondaryAnimationDelay: 0.5
-  walkSpeedMult: 1
-  idleSpeedMult: 1
-  deathSpeedMult: 1
-  hitStunMult: 1
 --- !u!114 &4731386785871686445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -905,6 +884,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24eb7e84f7c7f470893b183b0278589b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-2715540321798150031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2214453077761272128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d25fae28dde38df49b31ba95c4174d21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dev: 0
+  primaryAnimationDelay:
+  - 0.5
+  secondaryAnimationDelay: 0.5
+  walkSpeedMult: 1
+  idleSpeedMult: 1
+  deathSpeedMult: 1
+  hitStunMult: 1
+  primaryWindupSpeedMultPlayer: 2
+  primaryWindupSpeedMultEnemy: 0.7
+  primaryComboSpeedMultPlayer:
+  - 1
+  - 1
+  primaryComboSpeedMultEnemy:
+  - 0.7
+  - 0.7
+  secondaryWindupSpeedMultPlayer: 1
+  secondaryWindupSpeedMultEnemy: 1
+  secondaryAttackSpeedMultPlayer: 1
+  secondaryAttackSpeedMultEnemy: 1
 --- !u!1 &2237057286393030811
 GameObject:
   m_ObjectHideFlags: 0
