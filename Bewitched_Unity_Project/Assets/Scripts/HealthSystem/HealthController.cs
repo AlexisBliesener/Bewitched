@@ -194,9 +194,9 @@ public class HealthController : MonoBehaviour
         {
             TimeLastHit = Time.time;
             OnDamaged?.Invoke(finalDamage, this);
-            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter() && vignetteUI != null)
+            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter())
             {
-                StartCoroutine(Vignette(1f));
+                StartCoroutine(PlayerController.instance.oldHag.health.Vignette(1f));
             }
         }
 
@@ -211,23 +211,27 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public IEnumerator Vignette(float duration)
     {
-        vignetteUI.SetActive(true);
-        Image vignetteImage = vignetteUI.transform.GetChild(0).GetComponent<Image>();
-
-        Color bkgColor = vignetteImage.color;
-        bkgColor.a = 0.1f;
-        vignetteImage.color = bkgColor;
-
-        while (bkgColor.a > 0f)
+        if (!PlayerController.instance.oldHag.health.vignetteUI.activeInHierarchy)
         {
-            bkgColor.a -= Time.deltaTime / duration;
-            if (bkgColor.a < 0f) bkgColor.a = 0f;
+            PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
+            Image vignetteImage = PlayerController.instance.oldHag.health.vignetteUI.transform.GetChild(0).GetComponent<Image>();
 
+            Color bkgColor = vignetteImage.color;
+            bkgColor.a = 0.1f;
             vignetteImage.color = bkgColor;
-            yield return new WaitForSeconds(.2f);
+
+            while (bkgColor.a > 0f)
+            {
+                bkgColor.a -= Time.deltaTime / duration;
+                if (bkgColor.a < 0f) bkgColor.a = 0f;
+
+                vignetteImage.color = bkgColor;
+                yield return new WaitForSeconds(.2f);
+            }
+
+            PlayerController.instance.oldHag.health.vignetteUI.SetActive(false);
         }
 
-        vignetteUI.SetActive(false);
     }
 
     /// <summary>
@@ -239,15 +243,15 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
-        if (!isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && vignetteUI != null)
+        if (!isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag.health.vignetteUI != null)
         {
             isDraining = true;
-            vignetteUI.SetActive(true);
+            PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
             if (drainVignettePulse != null) 
             {
                 StopCoroutine(drainVignettePulse);
             }
-            drainVignettePulse = StartCoroutine(VignettePulse());
+            drainVignettePulse = StartCoroutine(PlayerController.instance.oldHag.health.VignettePulse());
         }
 
 
@@ -272,7 +276,7 @@ public class HealthController : MonoBehaviour
     /// </summary>
     private IEnumerator VignettePulse()
     {
-        Image vignette = vignetteUI.transform.GetChild(0).GetComponent<Image>();
+        Image vignette = PlayerController.instance.oldHag.health.vignetteUI.transform.GetChild(0).GetComponent<Image>();
 
         float minAlpha = 0.1f;
         float maxAlpha = 0.3f;
