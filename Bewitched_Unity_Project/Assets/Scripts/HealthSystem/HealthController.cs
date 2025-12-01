@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.IO;
 using UnityEngine.UI;
+using UnityEngine.InputSystem.Interactions;
 
 /// <summary>
 /// This has to be attached to a character (player or enemy)
@@ -66,6 +67,8 @@ public class HealthController : MonoBehaviour
     public event Action<float> OnHealed; // amount
     [Tooltip("Called when the character dies, it will pass the game object of the character")]
     public event Action<GameObject> OnDeath;
+    [Tooltip("Holds the cororuntine playing the vignette hit effect")]
+    private Coroutine vignetteHitCorountine;
 
     private void Awake()
     {
@@ -196,7 +199,7 @@ public class HealthController : MonoBehaviour
             OnDamaged?.Invoke(finalDamage, this);
             if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter())
             {
-                StartCoroutine(PlayerController.instance.oldHag.health.Vignette(1f));
+                vignetteHitCorountine = StartCoroutine(PlayerController.instance.oldHag.health.Vignette(1f));
             }
         }
 
@@ -211,7 +214,7 @@ public class HealthController : MonoBehaviour
     /// </summary>
     public IEnumerator Vignette(float duration)
     {
-        if (!PlayerController.instance.oldHag.health.vignetteUI.activeInHierarchy)
+        if (!PlayerController.instance.oldHag.health.isDraining)
         {
             PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
             Image vignetteImage = PlayerController.instance.oldHag.health.vignetteUI.transform.GetChild(0).GetComponent<Image>();
@@ -229,7 +232,8 @@ public class HealthController : MonoBehaviour
                 yield return new WaitForSeconds(.2f);
             }
 
-            PlayerController.instance.oldHag.health.vignetteUI.SetActive(false);
+            if(!PlayerController.instance.oldHag.health.isDraining)
+                PlayerController.instance.oldHag.health.vignetteUI.SetActive(false);
         }
 
     }
@@ -243,17 +247,6 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
-        if (!isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag.health.vignetteUI != null)
-        {
-            isDraining = true;
-            PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
-            if (drainVignettePulse != null) 
-            {
-                StopCoroutine(drainVignettePulse);
-            }
-            drainVignettePulse = StartCoroutine(PlayerController.instance.oldHag.health.VignettePulse());
-        }
-
 
         if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
         {
@@ -261,10 +254,31 @@ public class HealthController : MonoBehaviour
             {
                 timeEnemyHealthRanOut = Time.time;
             }
-            else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
+
+            if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
             {
                 PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
+                if (!PlayerController.instance.oldHag.health.isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag.health.vignetteUI != null)
+                {
+                    PlayerController.instance.oldHag.health.isDraining = true;
+                    PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
+                    if (drainVignettePulse != null)
+                    {
+                        StopCoroutine(drainVignettePulse);
+                    }
+
+                    if(vignetteHitCorountine != null)
+                    {
+                        StopCoroutine(vignetteHitCorountine);
+                    }
+              
+                    drainVignettePulse = StartCoroutine(PlayerController.instance.oldHag.health.VignettePulse());
+                }
             }
+        }
+        else if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.isDraining = false;
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();
@@ -283,7 +297,7 @@ public class HealthController : MonoBehaviour
         float pulseSpeed = 2f;
         Color c = vignette.color;
 
-        while (isDraining)
+        while (PlayerController.instance.oldHag.health.isDraining)
         {
             float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
 
