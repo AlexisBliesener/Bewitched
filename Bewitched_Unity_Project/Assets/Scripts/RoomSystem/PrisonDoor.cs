@@ -55,7 +55,10 @@ public class PrisonDoor : MonoBehaviour, IDoor
         {
             Debug.LogWarning("Audio manager does not exisit!");
         }
-
+        if (!disableColliderHalfway)
+        {
+            boxCollider.enabled = true;
+        }
         for (int i = 0; i < steps; i++)
         {
             doorModel.transform.position += step;

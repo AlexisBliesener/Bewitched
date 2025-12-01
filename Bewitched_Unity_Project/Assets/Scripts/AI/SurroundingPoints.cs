@@ -57,6 +57,11 @@ public class SurroundingPoints : MonoBehaviour
     [Tooltip("Currently attacking enemies and their attack costs")]
     Dictionary<Character, int> attackingEnemies = new Dictionary<Character, int>();
 
+    /// <summary>
+    /// Gets the number of surrounding enemies
+    /// </summary>
+    public int GetNumSurroundingEnemies => surroundingEnemies.Count;
+
     private void Awake()
     {
         timeLastRoomSwap = Time.time;
@@ -67,7 +72,6 @@ public class SurroundingPoints : MonoBehaviour
 
     private void Update()
     {
-        //Debug.Log("Number of available attack points: " + attackPoints);
         currentPlayer = PlayerController.instance.currentCharacter;
 
         HandleSurroundAttack();
@@ -242,9 +246,9 @@ public class SurroundingPoints : MonoBehaviour
                     tempEnemies.Enqueue(enemy, enemy.GetAttackingPriority());
                 }
 
-                if (enemy.InAttackStartup())
+                if (enemy.InAttackStartup() && !enemy.IsPlayerControlling())
                 {
-                    return; // For now just keep returning until no enemies are attacking
+                    return; // For now just keep returning until no enemies are attacking (and the enemy isnt player controlled)
                 }
             }
 

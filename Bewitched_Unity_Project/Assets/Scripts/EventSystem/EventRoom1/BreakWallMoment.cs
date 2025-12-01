@@ -8,6 +8,7 @@ public class BreakWallMoment : MonoBehaviour
     private PlayableDirector director;
     [SerializeField, Tooltip("The vfx to play when all goblins are killed, and it's waiting for the player to breaj the wall")]
     private GameObject flashingVFX;
+    private bool isBreakWallActivated = true;
     private void Start()
     {
         if (director == null)
@@ -54,7 +55,7 @@ public class BreakWallMoment : MonoBehaviour
         // Kill ogre? 
         PossessionAbility.instance.SetCanLeavePossession(true);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
-        PlayerController.instance.currentCharacter.health.SetCurrentHealth(0);
+        PlayerController.instance.currentCharacter.health.KillEnemy();
         PlayerController.instance.SetAllowMovement(true);
         DestroyImmediate(director.gameObject);
         Destroy(this);
@@ -66,13 +67,15 @@ public class BreakWallMoment : MonoBehaviour
     {
         // Hide the flashing VFX
         flashingVFX.SetActive(false);
+        isBreakWallActivated = false;
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.BreakWallActivated);
         PlayerController.instance.SetAllowMovement(false);
         PlayerController.instance.currentCharacter.gameObject.SetActive(false);
         // we will kill all the enemies on the arena 
         foreach (Enemy enemy in RoomSystem.Instance.GetActiveRoomController().roomEnemies)
         {
             if (enemy == null || enemy.gameObject == PlayerController.instance.currentCharacter.gameObject) continue;
-            enemy.health.SetCurrentHealth(0);
+            enemy.health.KillEnemy();
         }
         //End the level music
         if(AudioManager.manager != null)
@@ -89,6 +92,15 @@ public class BreakWallMoment : MonoBehaviour
         if (other.GetComponent<DefaultHitbox>() != null && this.enabled)
         {
             director.gameObject.SetActive(true);
+        }
+    }
+
+    private void Update()
+    {
+        if (isBreakWallActivated)
+        {
+            // To keep showing all the texts in the list 
+            NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.BreakWallActivated);
         }
     }
 }
