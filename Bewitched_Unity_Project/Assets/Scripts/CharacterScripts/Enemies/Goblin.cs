@@ -158,6 +158,11 @@ public class Goblin : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
+                    if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
                     timeLastPrimary = Time.time;
 
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);

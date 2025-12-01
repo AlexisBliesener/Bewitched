@@ -169,6 +169,11 @@ public class Ogre : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
+                    if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
                     timeLastPrimary = Time.time;
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
@@ -251,6 +256,7 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     public IEnumerator BatApproach(Character tempLockedCharacter)
     {
+        bool triggerSet = false;
         attackState = AttackState.Approaching;
         inPrimaryWindup = false;
 
@@ -287,12 +293,17 @@ public class Ogre : Enemy
             {
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
+                    if (!triggerSet)
+                    {
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
+                        ogreAnimator.SetSwing();
+                        triggerSet = true;
+                    }
+
                     if (counterIndicatorVFX != null)
                     {
-                        if (counterIndicatorVFX != null)
-                        {
-                            DestroyCounterIndicator();
-                        }
+                        DestroyCounterIndicator();
                         counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
@@ -314,14 +325,11 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
-        if (ogreAnimator != null)
+        if (!triggerSet)
         {
             ogreAnimator.SetSwing();
         }
-        else
-        {
-            Debug.LogWarning("Animator not set!");
-        }
+
 
         attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
         yield break;
