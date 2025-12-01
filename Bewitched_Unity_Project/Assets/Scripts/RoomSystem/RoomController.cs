@@ -159,9 +159,9 @@ public class RoomController : MonoBehaviour
             }
         } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom() && !isPlayerInsideTrigger)
         {
-            ChangeState(RoomState.Inactive);
-            UnlockDoors();
-            DeactivateEnemies();
+            // UnlockDoors(true);
+            // DeactivateEnemies();
+            // ChangeState(RoomState.Inactive);
         }
     }
     private void OnTriggerEnter(Collider other)
