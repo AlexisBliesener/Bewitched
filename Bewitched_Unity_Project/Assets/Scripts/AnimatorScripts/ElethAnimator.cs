@@ -1,6 +1,4 @@
-using NaughtyAttributes;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
 /// <summary>
 /// Specialized animator controller for the Eleth character.
@@ -36,12 +34,18 @@ public class ElethAnimator : CharacterAnimator
         animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
     }
 
+    public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
+    {
+       
+    }
+
     /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// Specific to the eleth animator adds in the possession state
     /// </summary>
     public override void SwitchState(string newState)
     {
+
         if (newState == "Death")
         {
             ResetAllTriggers();
@@ -136,10 +140,29 @@ public class ElethAnimator : CharacterAnimator
         if (PlayerController.instance.movementInput.magnitude < 0.1f)
         {
             SwitchState("Idle");
+            legsRunning = false;
+            animator.ResetTrigger("LegsRun");
+            animator.SetTrigger("LegsIdle");
         }
         else
         {
             SwitchState("Run");
+            legsRunning = true;
+            animator.ResetTrigger("LegsIdle");
+            animator.SetTrigger("LegsRun");
+        }
+
+        if (legsRunning && (currentAnimationState == "Hit"))
+        {
+            legLayerWeight += Time.deltaTime * 5;
+            if (legLayerWeight > 1) legLayerWeight = 1;
+            animator.SetLayerWeight(1, legLayerWeight);
+        }
+        else
+        {
+            legLayerWeight -= Time.deltaTime * 5;
+            if (legLayerWeight < 0) legLayerWeight = 0;
+            animator.SetLayerWeight(1, legLayerWeight);
         }
     }
 
