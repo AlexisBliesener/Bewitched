@@ -94,6 +94,9 @@ public abstract class Enemy : Character
 
     protected float timeSinceRetreat = 0;
 
+    [Tooltip("Is this an event enemy?")]
+    protected bool isEventEnemy = false;
+
     /// <summary>
     /// Path getter function
     /// </summary>
@@ -476,6 +479,8 @@ public abstract class Enemy : Character
             // Spawn soul on death
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
+
+        if (isEventEnemy) GraphBuilder.instance.RemoveEventEnemy(this);
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
@@ -1139,10 +1144,11 @@ public abstract class Enemy : Character
     /// </summary>
     /// <param name="direction"> Direction of attack </param>
     /// <param name="length"> Length of costly area </param>
-    public void SetCostlyAttackingLine(Vector3 direction, float length)
+    /// <param name="width"> Width of costly area </param>
+    public void SetCostlyAttackingLine(Vector3 direction, float length, float width)
     {
         ResetAttackingArea(true);
-        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, 1.5f * sizeRadius);
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, width);
         foreach (List<int> position in nodes)
         {
             Node node = GraphBuilder.instance.GetNodeFromPosition(position);
