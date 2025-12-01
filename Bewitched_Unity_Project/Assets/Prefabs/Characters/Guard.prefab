@@ -750,18 +750,18 @@ MonoBehaviour:
   pathfindingPriority: 2
   hitEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -44228599
+      Data2: 1312092029
+      Data3: -10784858
+      Data4: -1121182628
+    Path: event:/SoundEffects/Character/Guard/GuardHit
   deathEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -515542138
+      Data2: 1193795276
+      Data3: 1756318596
+      Data4: -1015232429
+    Path: event:/SoundEffects/Character/Guard/GuardDeath
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 0}
   thrustSpeed: 0
@@ -905,6 +905,7 @@ MonoBehaviour:
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   IsDead: 0
   deathUI: {fileID: 0}
+  vignetteUI: {fileID: 0}
   kill: 0
 --- !u!114 &3760014529022969405
 MonoBehaviour:
@@ -2830,6 +2831,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1441328694381242113}
   - component: {fileID: 7408915317042716269}
+  - component: {fileID: 352008211308133836}
   m_Layer: 0
   m_Name: guardBlockoutFull
   m_TagString: Untagged
@@ -2884,6 +2886,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &352008211308133836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5728868522596853562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c51d35b30aef41d588170b6e0a3b8e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsPlaying: []
+  character: {fileID: 0}
+  isEventEnemy: 0
 --- !u!1 &5918707468189698461
 GameObject:
   m_ObjectHideFlags: 0
