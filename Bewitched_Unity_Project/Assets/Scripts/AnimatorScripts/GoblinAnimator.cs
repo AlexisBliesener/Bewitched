@@ -162,9 +162,6 @@ public class GoblinAnimator : CharacterAnimator
         SwitchState(newState);
     }
 
-    private bool legsRunning = false;
-    private float legLayerWeight = 0f;
-
     protected override void Update()
     {
         base.Update();

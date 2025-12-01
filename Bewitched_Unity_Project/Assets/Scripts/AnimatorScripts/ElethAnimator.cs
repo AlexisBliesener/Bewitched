@@ -1,7 +1,4 @@
-using NaughtyAttributes;
 using UnityEngine;
-using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.TextCore.Text;
 
 /// <summary>
 /// Specialized animator controller for the Eleth character.
@@ -36,9 +33,6 @@ public class ElethAnimator : CharacterAnimator
 
         animator.SetFloat("PossessionSpeedMult", possessionSpeedMult);
     }
-
-    private bool legsRunning = false;
-    private float legLayerWeight = 0f;
 
     public override void SwitchState(string newState, int currentPrimaryComboStep, float timeLastPrimary, float[] primaryComboResetTime)
     {
