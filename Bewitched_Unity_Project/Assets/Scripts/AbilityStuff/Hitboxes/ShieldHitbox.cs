@@ -78,17 +78,8 @@ public class ShieldHitbox : DefaultHitbox
                         Debug.LogWarning("HitVFX is not assigned!");
                     }
 
-                    //Hit sound effect implementation. Implement unique hit type later
-                    string soundEffectKey = "Hit";
-                    if (AudioManager.TryGetReference(soundEffectKey, out EventReference evRef))
-                    {
-                        EventInstance inst = RuntimeManager.CreateInstance(evRef);
-                        inst.setParameterByName("Type", (float)damageType);
-                        inst.start();
-                        inst.release();
-                    }
-                    else Debug.LogError("Could not find a valid hit/death event. Is it assigned in the refSheet?");
-
+                    //Shield hit implementation
+                    AudioManager.TryPlayOneShot("ShieldBlock",gameObject);
                 }
             }
         }
