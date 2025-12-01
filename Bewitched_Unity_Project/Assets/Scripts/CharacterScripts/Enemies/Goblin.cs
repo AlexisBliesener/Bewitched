@@ -158,6 +158,8 @@ public class Goblin : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
+                    //Debug.Log("gob combo " + currentPrimaryComboStep);
+
                     timeLastPrimary = Time.time;
 
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);

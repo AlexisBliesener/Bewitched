@@ -125,6 +125,7 @@ MonoBehaviour:
   lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
+  IsDead: 0
   deathUI: {fileID: 0}
 --- !u!114 &1515034274812679110
 MonoBehaviour:
@@ -145,7 +146,7 @@ MonoBehaviour:
   approachSpeed: 7
   acceleration: 10
   deceleration: 5
-  rotationalVelocity: 240
+  rotationalVelocity: 360
   chaseTime: 3
   windupTime: 0.25
   weight: 20
@@ -201,6 +202,7 @@ MonoBehaviour:
   - {fileID: 7969434494551433535}
   - {fileID: 2842741981244821987}
   deathUI: {fileID: 0}
+  fadeToBlack: {fileID: 0}
 --- !u!143 &3937552589655486426
 CharacterController:
   m_ObjectHideFlags: 0
