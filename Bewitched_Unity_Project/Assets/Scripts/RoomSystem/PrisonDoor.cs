@@ -1,4 +1,6 @@
 using System.Collections;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +19,8 @@ public class PrisonDoor : MonoBehaviour, IDoor
     private const int TOTAL_STEPS = 50;
     [Tooltip("Time (in seconds) between each movement step.")]
     private const float STEP_DELAY = 0.01f;
+    [SerializeField] private EventReference doorOpen;
+    [SerializeField] private EventReference doorClose;
 
     private void Start()
     {
@@ -30,7 +34,7 @@ public class PrisonDoor : MonoBehaviour, IDoor
     /// </summary>
     public void Lock()
     {
-        StartCoroutine(MoveDoor(moveStep, TOTAL_STEPS, "PrisonDoorClose"));
+        StartCoroutine(MoveDoor(moveStep, TOTAL_STEPS, doorClose));
     }
 
     /// <summary>
@@ -38,24 +42,27 @@ public class PrisonDoor : MonoBehaviour, IDoor
     /// </summary>
     public void Unlock()
     {
-        StartCoroutine(MoveDoor(-moveStep, TOTAL_STEPS, "PrisonDoorOpen", disableColliderHalfway: true));
+        StartCoroutine(MoveDoor(-moveStep, TOTAL_STEPS, doorOpen, disableColliderHalfway: true));
     }
 
     /// <summary>
     /// Coroutine that moves the door step by step.
     /// </summary>
-    private IEnumerator MoveDoor(Vector3 step, int steps, string sound, bool disableColliderHalfway = false)
+    private IEnumerator MoveDoor(Vector3 step, int steps, EventReference sound, bool disableColliderHalfway = false)
     {
         // Play sound
-        if(AudioManager.manager != null)
+        if(!sound.IsNull)
         {
-            AudioManager.TryPlayOneShot(sound, gameObject);
+            RuntimeManager.PlayOneShotAttached(sound,gameObject);
         }
         else
         {
             Debug.LogWarning("Audio manager does not exisit!");
         }
-
+        if (!disableColliderHalfway)
+        {
+            boxCollider.enabled = true;
+        }
         for (int i = 0; i < steps; i++)
         {
             doorModel.transform.position += step;

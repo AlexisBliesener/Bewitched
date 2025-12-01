@@ -122,6 +122,9 @@ public class GraphBuilder : MonoBehaviour
 
     private Coroutine searchRoutine = null;
 
+    [Tooltip("List of boss enemies")]
+    private List<Enemy> bossEnemies = new List<Enemy>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -568,7 +571,7 @@ public class GraphBuilder : MonoBehaviour
 
             nodesSearched++;
 
-            if (targetNode == current || (goalDistance != -1 && Vector3.Distance(current.GetPosition(), destination) < goalDistance)) // If in range, add node to path and end
+            if (targetNode == current || (goalDistance != -1 && Vector3.Distance(current.GetPosition(), destination) < goalDistance && current.GetCost(enemy) < 7 - (.5f * SurroundingPoints.instance.GetNumSurroundingEnemies))) // If in range, add node to path and end
             {
                 path.SetDestination(current);
                 path.CalculatePath();
@@ -722,6 +725,10 @@ public class GraphBuilder : MonoBehaviour
             if (roomController != null)
             {
                 enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
+            }
+            foreach (Enemy enemy in bossEnemies)
+            {
+                if (!enemies.Contains(enemy)) enemies.Add(enemy);
             }
 
             foreach (Enemy enemy in enemies)
@@ -976,9 +983,28 @@ public class GraphBuilder : MonoBehaviour
         float distanceSearched = 0;
         while (distanceSearched < length)
         {
-            nodes = nodes.Union(GetNodesInRadius(origin + direction * distanceSearched, width)).ToList();
+            List<List<int>> newNodes = GetNodesInRadius(origin + direction * distanceSearched, width);
+            nodes = nodes.Union(newNodes).ToList();
             distanceSearched += width / 2;
         }
         return nodes;
+    }
+    
+    /// <summary>
+    /// Adds an event enemy
+    /// </summary>
+    /// <param name="enemy"> Enemy to add </param>
+    public void AddEventEnemy(Enemy enemy)
+    {
+        if (!bossEnemies.Contains(enemy)) bossEnemies.Add(enemy);
+    }
+
+    /// <summary>
+    /// Removes an event enemy
+    /// </summary>
+    /// <param name="enemy"> Enemy to remove </param>
+    public void RemoveEventEnemy(Enemy enemy)
+    {
+        if (bossEnemies.Contains(enemy)) bossEnemies.Remove(enemy);
     }
 }

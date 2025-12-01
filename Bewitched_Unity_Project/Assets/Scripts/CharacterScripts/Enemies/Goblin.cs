@@ -1,5 +1,4 @@
 using DG.Tweening;
-using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using NaughtyAttributes;
@@ -91,8 +90,6 @@ public class Goblin : Enemy
     private GoblinAnimator goblinAnimator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
-    [Tooltip("Is this goblin is currently in the windup animation")]
-    private bool inPrimaryWindup = false;
     [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
     bool aiControlledOnPrimary = false;
     private int numDeflections = 0;
@@ -114,6 +111,7 @@ public class Goblin : Enemy
     protected override void FixedUpdate()
     {
         CreateLocalInvalidArea();
+        ResetAttackingArea();
         ManageSurrounding();
 
         if (playerControlling)
@@ -148,13 +146,19 @@ public class Goblin : Enemy
         {
             if (playerControlling)
             {
+                //currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
 
-                    health.SubHealth(primaryAttackCost);
+                    health.SubHealth(primaryAttackCost, this);
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
                     {
                         currentPrimaryComboStep = 0;
                     }
@@ -197,14 +201,17 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
+            tempLockedChar = PlayerController.instance.GetLockedTarget();
             aiControlledOnPrimary = false;
             if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
             {
+                //Debug.Log("Player approach");
                 inPrimaryWindup = true;
                 attackStateCoroutine = StartCoroutine(KnifeWindup(tempLockedChar));
             }
             else
             {
+                //Debug.Log("Just stab");
                 attackStateCoroutine = StartCoroutine(HandleStab(tempLockedChar));
             }
         }
@@ -242,11 +249,7 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        if (playerControlling) // Since the player should only be controlling here if possessed at this point, reset target if player controlled
-        {
-            tempLockedCharacter = PlayerController.instance.GetLockedTarget();
-        }
-
+        //if (playerControlling) Debug.Log("Windup Ended");
         attackStateCoroutine = StartCoroutine(KnifeApproach(tempLockedCharacter));
     }
 
@@ -256,6 +259,7 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeApproach(Character tempLockedCharacter)
     {
+        bool triggerSet = false;
         attackState = AttackState.Approaching;
         if (tempLockedCharacter)
         {
@@ -266,19 +270,26 @@ public class Goblin : Enemy
             float buffer = sizeRadius + offSetForward;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
             {
-                // Move just before environment hit point
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before character hit point
                 targetPos = hit.point - direction * buffer;
             }
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environmentLayer)) // Use position for environment as that can be thinner
+            {
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point if beyond buffer, stay at same position otherwise
+                if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
+                else targetPos = hit.point - direction * buffer;
+            }
             targetPos.y = oldY;
-            SetCostlyAttackingArea(direction, dis);
+            dis = (targetPos - transform.position).magnitude;
+
+            SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
-
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
-            bool triggerSet = false;
 
             if (playerControlling)
             {
@@ -292,9 +303,12 @@ public class Goblin : Enemy
                 }
             }
 
+            //if (playerControlling) Debug.Log("Chase time: " + (chaseTime * dis));
+
             inPrimaryWindup = false;
             while (Time.time - timeStarted < chaseTime * dis)
             {
+                timeLastPrimary = Time.time;
                 RaycastHit rayHit;
                 if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + offSetForward || Physics.Raycast(transform.position, direction, out rayHit, 0.5f, environmentLayer | characters))
                 {
@@ -331,33 +345,41 @@ public class Goblin : Enemy
                         PlayerController.instance.SetCounterAvaliable(this);
                     }
                 }
+                //if (playerControlling) Debug.Log("Chasing: " + (Time.time - timeStarted));
                 SetMovementValues(false);
                 GetCharacterController().enabled = false;
                 yield return null;
             }
 
-            if(!triggerSet)
-            {
-                goblinAnimator.ExitLeap();
-            }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
+        }
+        else
+        {
+            inPrimaryWindup = false;
+        }
+
+        if (!triggerSet)
+        {
+            goblinAnimator.ExitLeap();
         }
 
         if (counterIndicatorVFX != null)
         {
             DestroyCounterIndicator();
         }
+        //if (playerControlling) Debug.Log("Ended approach");
 
         attackState = AttackState.Attacking;
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation, transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         targetPos = Vector3.negativeInfinity;
 
         float hitboxStartTime = Time.time;
+        //if (playerControlling) Debug.Log(goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
             SetMovementValues(false);
@@ -384,8 +406,6 @@ public class Goblin : Enemy
         pathState = PathState.Unset;
         aiState = AIMovementState.Retreating;
 
-        ResetAttackingArea();
-
         if (tempLockedCharacter)
         {
             tempLockedCharacter.SetAttacker(null);
@@ -409,11 +429,12 @@ public class Goblin : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleStab(Character tempLockedCharacter)
     {
+        if (playerControlling) transform.forward = PlayerController.instance.GetMovementDirection();
         goblinAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         Vector3 offsetPosition = transform.position + transform.forward * offSetForward;
-        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation);
+        GameObject knifeHitbox = Instantiate(knifePrefab, offsetPosition, transform.rotation, transform);
         knifeHitbox.GetComponent<DefaultHitbox>().Init(this, dmg: knifeDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: knifeEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: knifeDuration);
 
         if (playerControlling)
@@ -444,7 +465,6 @@ public class Goblin : Enemy
         }
         transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-
         float hitboxStartTime = Time.time;
         while (Time.time - hitboxStartTime < 0.25f / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {

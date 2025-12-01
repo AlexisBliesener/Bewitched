@@ -147,6 +147,7 @@ public class EventSystemRoom1 : MonoBehaviour
                     PossessionAbility.instance.SetPossessionOverride(enemyEvent.GetEnemy());
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     enemyEvent.GetEnemy().canPossess = true;
+                    NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.OgrePossessionAvailable);
                     enemyEvent.GetEnemy().aiState = Enemy.AIMovementState.Blocked;
                     return;
                 }
@@ -160,6 +161,7 @@ public class EventSystemRoom1 : MonoBehaviour
                 fightState = FightState.Fighting;
                 enemyEvent.SetState(EventEnemy.EventEnemyState.Attacking);
                 enemyEvent.GetEnemy().health.GetComponent<EventHealth>().SetFlashing(false);
+                NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.OgrePossessionAvailable);
                 break;
             case FightState.LastEnemies:
                 // Start making the enemies jump down
@@ -186,6 +188,7 @@ public class EventSystemRoom1 : MonoBehaviour
             
         fightState = FightState.LastEnemies;
         enemyEvent.SetState(EventEnemy.EventEnemyState.Possessed);
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.OgrePossessionAvailable);
         // if (door != null)
         // {
         //     door.Unlock();
@@ -197,7 +200,7 @@ public class EventSystemRoom1 : MonoBehaviour
     /// </summary>
     private void GiveDamage()
     {
-        enemyEvent.GetEnemy().health.SubHealth(100f);
+        enemyEvent.GetEnemy().health.SubHealth(100f, PlayerController.instance.oldHag);
     }
 
     [ContextMenu("Possess")]

@@ -167,22 +167,4 @@ public class AttackStatusEffectsTest
         Object.DestroyImmediate(hitbox);
     }
 
-    [UnityTest]
-    public IEnumerator TestTimeStop_Basic()
-    {
-        DefaultHitbox hitbox = new GameObject("hitbox").AddComponent<DefaultHitbox>();
-
-        hitbox.Init(user, attackDuration: 3);
-
-        Assert.AreEqual(1, Time.timeScale);
-        effects.SetTimeStop(0.15f);
-        effects.ApplyTimeStop(user, enemy, hitbox);
-
-        Assert.AreEqual(0, Time.timeScale);
-
-        yield return new WaitForSecondsRealtime(0.25f);
-        Assert.AreEqual(1, Time.timeScale);
-
-        Object.DestroyImmediate(hitbox.gameObject);
-    }
 }

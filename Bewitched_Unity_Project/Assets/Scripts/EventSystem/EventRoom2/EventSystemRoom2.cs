@@ -238,7 +238,7 @@ public class EventSystemRoom2 : MonoBehaviour
         foreach (EventEnemy enemyEvent in enemiesEvent)
         {
             if (enemyEvent.GetEnemy().gameObject == PlayerController.instance.currentCharacter.gameObject) continue; // Don't kill the player...
-            enemyEvent.GetEnemy().health.SetCurrentHealth(0);
+            enemyEvent.GetEnemy().health.KillEnemy();
             enemyEvent.GetEnemy().lobotimzed = true;
             enemyEvent.GetEnemy().gameObject.SetActive(false);
             Destroy(enemyEvent.GetEnemy().gameObject);
@@ -251,7 +251,7 @@ public class EventSystemRoom2 : MonoBehaviour
     private void GiveDamage()
     {
         EventEnemy enemyEvent = enemiesEvent[UnityEngine.Random.Range(0, enemiesEvent.Count)];
-        enemyEvent.GetEnemy().health.SubHealth(100f);
+        enemyEvent.GetEnemy().health.SubHealth(100f, PlayerController.instance.oldHag);
     }
     /// <summary>
     /// Subscribe to the cut scene director stopped event
@@ -375,7 +375,7 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void TakeDownEnemy(HealthController healthController)
     {
-        healthController.SetCurrentHealth(0);
+        healthController.KillEnemy();
         EventEnemy enemy = healthController.GetComponent<EventEnemy>();
         if (enemy == null)
         {

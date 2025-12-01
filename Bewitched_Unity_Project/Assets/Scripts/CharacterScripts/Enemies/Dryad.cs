@@ -138,7 +138,7 @@ public class Dryad : Enemy
             {
                 if( (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
-                    health.SubHealth(primaryAttackCost);
+                    health.SubHealth(primaryAttackCost, this);
 
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
@@ -196,7 +196,7 @@ public class Dryad : Enemy
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                health.SubHealth(secondaryAttackCost, this);
             }
             SecondaryAttack();
 
@@ -343,6 +343,8 @@ public class Dryad : Enemy
             targetPos.y += tempLockedCharacter.GetCharacterController().height * 0.5f;
             dir = (targetPos - spawnPos).normalized;
         }
+
+        SetCostlyAttackingLine(dir, (targetPos - spawnPos).magnitude, 1);
 
         Quaternion rotation = Quaternion.LookRotation(dir, Vector3.forward);
         GameObject dartObj = Instantiate(dartPrefab, spawnPos, rotation);

@@ -32,7 +32,7 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character"), Range(0, 50)]
     public float deceleration = 5;
-    [Tooltip("Rotational velocity of the character"), Range(0, 360)]
+    [Tooltip("Rotational velocity of the character")]
     public float rotationalVelocity = 240;
     [Tooltip("Time chasing a character for an attack"), Range(0, 10)]
     public float chaseTime = 3;
@@ -410,7 +410,7 @@ public abstract class Character : MonoBehaviour
 
     public virtual bool CheckPrimaryUsable()
     {
-        //Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
+        //if (PlayerController.instance.currentCharacter == this) Debug.Log("On cooldown: " + !CheckPrimaryCooldown() + ", stunned: " + stunned + ", secondary in progress: " + attackingSecondary);
         if (!CheckPrimaryCooldown() || stunned || attackingSecondary) return false;
 
         return true;
@@ -943,6 +943,6 @@ public abstract class Character : MonoBehaviour
             timeStarted += Time.deltaTime;
             yield return null;
         }
-        health.SubHealth(amount);
+        health.SubHealth(amount, this);
     }
 }

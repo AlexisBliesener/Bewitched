@@ -12,13 +12,15 @@ public class Guard : Enemy
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
     [Tooltip("Thrust Speed")]
-    [SerializeField] float thrustSpeed = 10;
+    [SerializeField] float thrustSpeed = 20;
     [Tooltip("Lance Handle Damage")]
     [SerializeField] float lanceHandleDamage = 20;
     [Tooltip("Lance Tip Damage")]
     [SerializeField] float lanceTipDamage = 5;
     [Tooltip("Lance Thrust Duration")]
     [SerializeField] float lanceDuration = 0.5f;
+    [Tooltip("Lance range")]
+    [SerializeField] float lanceRange = 1.2f;
 
     [SerializeField] AttackStatusEffects lanceTipEffects;
     [SerializeField] AttackStatusEffects lanceHandleEffects;
@@ -34,6 +36,8 @@ public class Guard : Enemy
     [SerializeField] float aiShieldAngleThreshold = 20;
     [Tooltip("AI Time delay before shield drops")]
     [SerializeField] float aiShieldDropDelay = 0.5f;
+    [Tooltip("Shield knockback value")]
+    [SerializeField] float shieldKnockbackAmount = 8;
 
     private float timeLastValidShield = 0;
 
@@ -60,7 +64,6 @@ public class Guard : Enemy
     [Tooltip("Editor gameobjects for visually moving points")]
     private List<GameObject> patrolObjs = new List<GameObject>();
 
-    private bool inPrimaryWindup = false;
     private Vector3 targetPos;
 
     private GameObject shieldObject;
@@ -171,6 +174,7 @@ public class Guard : Enemy
     {
         if (dead || lobotimzed) return;
         ManageSurrounding();
+        ResetAttackingArea();
         currentPlayer = target = playerController.GetCurrentCharacter();
         SetAIState();
         SetBehavior();
@@ -224,11 +228,16 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
-                    health.SubHealth(primaryAttackCost);
+                    health.SubHealth(primaryAttackCost, this);
                     currentPrimaryComboStep += 1;
                     if (currentPrimaryComboStep >= primaryComboSteps)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
+                    if(lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
                     {
                         currentPrimaryComboStep = 0;
                     }
@@ -331,28 +340,37 @@ public class Guard : Enemy
     {
         attackState = AttackState.Approaching;
         inPrimaryWindup = false;
+        bool triggerSet = false;
         if (tempLockedCharacter)
         {
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + 0.55f);
-            float buffer = sizeRadius + 0.5f;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange);
+            float buffer = sizeRadius + lanceRange;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
             {
-                Debug.Log(hit.collider.gameObject);
-                // Move just before environment hit point
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before character hit point
                 targetPos = hit.point - direction * buffer;
             }
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environmentLayer)) // Use position for environment as that can be thinner
+            {
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point if beyond buffer, stay at same position otherwise
+                if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
+                else targetPos = hit.point - direction * buffer;
+            }
             targetPos.y = oldY;
+            dis = (targetPos - transform.position).magnitude;
+            SetCostlyAttackingLine(direction, dis, 1.5f * sizeRadius);
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
             timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
-            bool triggerSet = false;
 
             if (playerControlling)
             {
@@ -368,7 +386,7 @@ public class Guard : Enemy
 
             while (Time.time - timeStarted < chaseTime * dis)
             {
-                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + 0.25f)
+                if (tempLockedCharacter == null || Vector3.Distance(transform.position, tempLockedCharacter.transform.position) < sizeRadius + lanceRange)
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     targetPos = transform.position;
@@ -407,15 +425,16 @@ public class Guard : Enemy
                 yield return null;
             }
 
-            if (!triggerSet)
-            {
-                guardAnimator.ExitPrimaryWindup();
-            }
             if (targetPos != Vector3.negativeInfinity)
             {
                 transform.position = targetPos;
             }
             GetCharacterController().enabled = true;
+        }
+
+        if (!triggerSet)
+        {
+            guardAnimator.ExitPrimaryWindup();
         }
 
         if (counterIndicatorVFX != null)
@@ -577,7 +596,7 @@ public class Guard : Enemy
         {
             if (PlayerController.instance.currentCharacter == this)
             {
-                health.SubHealth(secondaryAttackCost);
+                health.SubHealth(secondaryAttackCost, this);
             }
             SecondaryAttack();
 
@@ -610,6 +629,7 @@ public class Guard : Enemy
             shieldObject.GetComponent<ShieldHitbox>().Init(this, attackDuration: Mathf.Infinity);
             shieldStatus = ShieldStatus.Raised;
             timeLastValidShield = Time.time;
+            shieldObject.GetComponent<ShieldHitbox>().SetKnockbackAmount(shieldKnockbackAmount);
         }
     }
 
@@ -954,7 +974,7 @@ public class Guard : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
-        if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+         ReleaseSecondary();
     }
 
     public override IEnumerator StartHitStun(float duration)
@@ -971,6 +991,7 @@ public class Guard : Enemy
                 SetMovementValues(false);
                 yield return null;
             }
+            inPrimaryWindup = false;
             if (attackingPrimary) // Reset primary and secondary abilities so enemies don't break
             {
                 attackingPrimary = false;
@@ -988,7 +1009,6 @@ public class Guard : Enemy
                 attackState = AttackState.Neutral;
                 SurroundingPoints.instance.RemoveAttackingEnemy(this);
             }
-            ResetAttackingArea();
             stunned = false;
             Destroy(hitStunActual);
             hitStunActual = null;
