@@ -16,6 +16,7 @@ public class NarrativeStatePopup : MonoBehaviour
     public enum NarrativeState
     {
         PlayerPossessionDraining,
+        BreakWallActivated,
         OgrePossessionAvailable,
         NarrativeTrigger,
         RoomDoorsOpened,
@@ -27,10 +28,11 @@ public class NarrativeStatePopup : MonoBehaviour
         { NarrativeState.OgrePossessionAvailable, -1 },
         { NarrativeState.PlayerPossessionDraining, -1 },
         { NarrativeState.RoomDoorsOpened, -1 },
+        { NarrativeState.BreakWallActivated, -1 },
     };
 
     [SerializeField, Tooltip("Th priority states, the first is the most important and it will override the others")]
-    private List<NarrativeState> priorityStates = new List<NarrativeState>() { NarrativeState.PlayerPossessionDraining, NarrativeState.OgrePossessionAvailable, NarrativeState.NarrativeTrigger, NarrativeState.RoomDoorsOpened};
+    private List<NarrativeState> priorityStates = new List<NarrativeState>() { NarrativeState.PlayerPossessionDraining, NarrativeState.BreakWallActivated, NarrativeState.OgrePossessionAvailable, NarrativeState.NarrativeTrigger, NarrativeState.RoomDoorsOpened, NarrativeState.None};
     [SerializeField, Tooltip("States in this list will be queued if they trigger while a higher priority narrative is already active. They will automatically show once the high priority state finishes.")]
     private List<NarrativeState> statesAllowedToQueue = new List<NarrativeState>() {  NarrativeState.RoomDoorsOpened };
     [SerializeField, Tooltip("Player Possession Draining Texts"), TextArea(3, 10)]
@@ -39,6 +41,8 @@ public class NarrativeStatePopup : MonoBehaviour
     private List<string> ogrePossessionAvailableTexts;
     [SerializeField, Tooltip("Room Doors Opened Texts"), TextArea(3, 10)]
     private List<string> roomDoorsOpenedTexts;
+    [SerializeField, Tooltip("Break Wall Activated Texts"), TextArea(3, 10)]
+    private List<string> breakWallActivatedTexts;
     [Tooltip("The current state")]
     private NarrativeState currentState = NarrativeState.None;
     [Tooltip("The time the last state started")]
@@ -129,7 +133,6 @@ public class NarrativeStatePopup : MonoBehaviour
             }
             return;
         }
-        Debug.Log("Hiding narrative panel " + state);
 
         currentState = NarrativeState.None;
         GetNarrativePanel().transform.DOKill();
@@ -209,6 +212,8 @@ public class NarrativeStatePopup : MonoBehaviour
                 return playerPossessionDrainingTexts;
             case NarrativeState.RoomDoorsOpened:
                 return roomDoorsOpenedTexts;
+            case NarrativeState.BreakWallActivated:
+                return breakWallActivatedTexts;
             default:
                 return null;
         }
