@@ -49,6 +49,10 @@ public class CharacterAnimator : MonoBehaviour
     [Tooltip("Character controller attached to this gameobject.")]
     protected CharacterController characterController;
     protected bool overriding;
+    [Tooltip("If the players legs should be moving in the lower mask of the model")]
+    protected bool legsRunning = false;
+    [Tooltip("The weight of the lower body animamtion layer mask")]
+    protected float legLayerWeight = 0f;
 
     protected virtual void Awake()
     {

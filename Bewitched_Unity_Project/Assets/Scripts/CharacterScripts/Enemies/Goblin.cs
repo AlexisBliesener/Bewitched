@@ -158,6 +158,11 @@ public class Goblin : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
+                    if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
                     timeLastPrimary = Time.time;
 
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
@@ -254,6 +259,7 @@ public class Goblin : Enemy
     /// <returns> Time </returns>
     public IEnumerator KnifeApproach(Character tempLockedCharacter)
     {
+        bool triggerSet = false;
         attackState = AttackState.Approaching;
         if (tempLockedCharacter)
         {
@@ -284,7 +290,6 @@ public class Goblin : Enemy
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
             float timeStarted = Time.time;
-            bool triggerSet = false;
 
             if (playerControlling)
             {
@@ -346,16 +351,17 @@ public class Goblin : Enemy
                 yield return null;
             }
 
-            if(!triggerSet)
-            {
-                goblinAnimator.ExitLeap();
-            }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
         else
         {
             inPrimaryWindup = false;
+        }
+
+        if (!triggerSet)
+        {
+            goblinAnimator.ExitLeap();
         }
 
         if (counterIndicatorVFX != null)
