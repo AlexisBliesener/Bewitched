@@ -195,6 +195,7 @@ public class HealthController : MonoBehaviour
             else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
             {
                 PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
+                NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.PlayerPossessionDraining);
             }
         }
 
