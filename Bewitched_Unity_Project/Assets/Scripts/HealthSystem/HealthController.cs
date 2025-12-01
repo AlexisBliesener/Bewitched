@@ -274,6 +274,7 @@ public class HealthController : MonoBehaviour
               
                     drainVignettePulse = StartCoroutine(PlayerController.instance.oldHag.health.VignettePulse());
                 }
+                NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.PlayerPossessionDraining);
             }
         }
         else if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
