@@ -159,9 +159,9 @@ public class RoomController : MonoBehaviour
             }
         } else if (currentState == RoomState.Active && !lastEnemyKilled && IsPlayerOutOfRoom() && !isPlayerInsideTrigger)
         {
-            UnlockDoors();
-            DeactivateEnemies();
-            ChangeState(RoomState.Inactive);
+            // UnlockDoors(true);
+            // DeactivateEnemies();
+            // ChangeState(RoomState.Inactive);
         }
     }
     private void OnTriggerEnter(Collider other)
@@ -214,6 +214,7 @@ public class RoomController : MonoBehaviour
         //Change to combat music. If it's event room, wait till cutscene is over
         if(roomEnemies.Count!=0&& !isEventRoom) AudioManager.ChangeMusicParameter("InCombat", "True");
         OnPlayerEntered?.Invoke(this);
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.RoomDoorsOpened);
     }
 
 
@@ -358,6 +359,11 @@ public class RoomController : MonoBehaviour
         else
         {
             Debug.LogWarning("CameraController instance is not set");
+        }
+
+        if ((currentState == RoomState.Cleared || (currentState == RoomState.Active)))
+        {
+            NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.RoomDoorsOpened);
         }
     }
 
