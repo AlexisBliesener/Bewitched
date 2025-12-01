@@ -31,6 +31,7 @@ public class Hag : Character
 
     [Tooltip("Death UI Pop-up Screen")]
     public GameObject deathUI;
+    [Tooltip("Fade to Black UI Screen")]
     public GameObject fadeToBlack;
 
     private void Start()
