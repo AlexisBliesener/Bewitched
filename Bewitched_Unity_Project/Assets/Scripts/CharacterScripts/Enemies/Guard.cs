@@ -237,6 +237,11 @@ public class Guard : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
+                    if(lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    {
+                        currentPrimaryComboStep = 0;
+                    }
+
                     timeLastPrimary = Time.time;
 
                     guardAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
@@ -335,6 +340,7 @@ public class Guard : Enemy
     {
         attackState = AttackState.Approaching;
         inPrimaryWindup = false;
+        bool triggerSet = false;
         if (tempLockedCharacter)
         {
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
@@ -365,7 +371,6 @@ public class Guard : Enemy
 
             float timeStarted = Time.time;
             timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
-            bool triggerSet = false;
 
             if (playerControlling)
             {
@@ -420,15 +425,16 @@ public class Guard : Enemy
                 yield return null;
             }
 
-            if (!triggerSet)
-            {
-                guardAnimator.ExitPrimaryWindup();
-            }
             if (targetPos != Vector3.negativeInfinity)
             {
                 transform.position = targetPos;
             }
             GetCharacterController().enabled = true;
+        }
+
+        if (!triggerSet)
+        {
+            guardAnimator.ExitPrimaryWindup();
         }
 
         if (counterIndicatorVFX != null)
@@ -968,7 +974,7 @@ public class Guard : Enemy
     public override void SetControlled(bool val)
     {
         base.SetControlled(val);
-        if (shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) ReleaseSecondary();
+         ReleaseSecondary();
     }
 
     public override IEnumerator StartHitStun(float duration)
