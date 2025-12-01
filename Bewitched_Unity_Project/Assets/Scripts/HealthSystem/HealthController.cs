@@ -36,7 +36,10 @@ public class HealthController : MonoBehaviour
     public GameObject deathUI;
     [Tooltip("The Vignette UI screen.")]
     [SerializeField] private GameObject vignetteUI;
+    /// <summary> Check if Eleth's health is draining </summary>
     private bool isDraining = false; 
+    /// <summary> Use to start and stop vignette pulse coroutine </summary>
+    private Coroutine drainVignettePulse;
 
     [Tooltip("The animator that controls this character")]
     protected CharacterAnimator characterAnimator;
@@ -95,7 +98,15 @@ public class HealthController : MonoBehaviour
             isDraining = false;
 
             if (vignetteUI != null && vignetteUI.activeInHierarchy)
-            vignetteUI.SetActive(false);
+            {
+                vignetteUI.SetActive(false);
+            }
+            if (drainVignettePulse != null)
+            {
+                StopCoroutine(drainVignettePulse);
+                drainVignettePulse = null;
+            }
+
         }
 
         // If we don't auto update or already dead, skip!
@@ -232,10 +243,11 @@ public class HealthController : MonoBehaviour
         {
             isDraining = true;
             vignetteUI.SetActive(true);
-            Image vignetteImage = vignetteUI.transform.GetChild(0).GetComponent<Image>();
-            Color bkgColor = vignetteImage.color;
-            bkgColor.a = 0.3f;
-            vignetteImage.color = bkgColor;
+            if (drainVignettePulse != null) 
+            {
+                StopCoroutine(drainVignettePulse);
+            }
+            drainVignettePulse = StartCoroutine(VignettePulse());
         }
 
 
@@ -253,6 +265,32 @@ public class HealthController : MonoBehaviour
 
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
+    }
+
+    /// <summary>
+    /// Coroutine for vignette pulse when Eleth's health is draining and player needs to unpossess
+    /// </summary>
+    private IEnumerator VignettePulse()
+    {
+        Image vignette = vignetteUI.transform.GetChild(0).GetComponent<Image>();
+
+        float minAlpha = 0.1f;
+        float maxAlpha = 0.3f;
+        float pulseSpeed = 2f;
+        Color c = vignette.color;
+
+        while (isDraining)
+        {
+            float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
+
+            c.a = Mathf.Lerp(minAlpha, maxAlpha, t);
+            vignette.color = c;
+
+            yield return null;
+        }
+
+        c.a = 0f;
+        vignette.color = c;
     }
 
     /// <summary>
