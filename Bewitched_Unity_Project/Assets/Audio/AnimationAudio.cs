@@ -297,24 +297,24 @@ public class AnimationAudio : MonoBehaviour
     /// Moves an event from another animation clip if it exists, if not it instantiates a new event
     /// </summary>
     /// <param name="currentAnim">Animation Event. STRING: Event Name, INT: Spatialization</param>
-    void SpawnEvent(AnimationEvent currentAnim)
-    {
-        string clipName = currentAnim.animatorClipInfo.clip.name;
-        AudioManager.TryGetReference(currentAnim.stringParameter,out var evRef);
-        foreach(var pair in animEvents)
-        {
-            pair.Value.getDescription(out var description);
-            description.getPath(out string path);
-            //If this animation clip has the event we're looking for, move it
-            if (path == evRef.Path)
-            {
-                MoveEventWithStrings(clipName,pair.Key);
-                return;
-            }
-        }
-        //If no animation clip is playing the event we want, start a new event instead.
-        StartEvent(currentAnim);
-    }
+    //void SpawnEvent(AnimationEvent currentAnim)
+    //{
+    //    string clipName = currentAnim.animatorClipInfo.clip.name;
+    //    AudioManager.TryGetReference(currentAnim.stringParameter,out var evRef);
+    //    foreach(var pair in animEvents)
+    //    {
+    //        pair.Value.getDescription(out var description);
+    //        description.getPath(out string path);
+    //        //If this animation clip has the event we're looking for, move it
+    //        if (path == evRef.Path)
+    //        {
+    //            MoveEventWithStrings(clipName,pair.Key);
+    //            return;
+    //        }
+    //    }
+    //    //If no animation clip is playing the event we want, start a new event instead.
+    //    StartEvent(currentAnim);
+    //}
 
     /// <summary>
     /// Function used to stop all animation audio sound effects when the character dies
