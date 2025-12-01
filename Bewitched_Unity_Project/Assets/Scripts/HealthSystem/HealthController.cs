@@ -35,7 +35,8 @@ public class HealthController : MonoBehaviour
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
     [Tooltip("The Vignette UI screen.")]
-    public GameObject vignetteUI;
+    [SerializeField] private GameObject vignetteUI;
+    private bool isDraining = false; 
 
     [Tooltip("The animator that controls this character")]
     protected CharacterAnimator characterAnimator;
@@ -84,8 +85,17 @@ public class HealthController : MonoBehaviour
             {
                 StartCoroutine(PossessionAbility.instance.RespawnEleth());
             }
+
             IsDead = true;
             OnDeath?.Invoke(gameObject);
+        }
+
+        if(isDraining && PlayerController.instance.currentCharacter == PlayerController.instance.oldHag)
+        {
+            isDraining = false;
+
+            if (vignetteUI != null && vignetteUI.activeInHierarchy)
+            vignetteUI.SetActive(false);
         }
 
         // If we don't auto update or already dead, skip!
@@ -173,7 +183,7 @@ public class HealthController : MonoBehaviour
         {
             TimeLastHit = Time.time;
             OnDamaged?.Invoke(finalDamage, this);
-            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter())
+            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter() && vignetteUI != null)
             {
                 StartCoroutine(Vignette(1f));
             }
@@ -185,6 +195,9 @@ public class HealthController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Coroutine for vignette fade in and fade out when Eleth gets hurt
+    /// </summary>
     public IEnumerator Vignette(float duration)
     {
         vignetteUI.SetActive(true);
@@ -214,6 +227,17 @@ public class HealthController : MonoBehaviour
         if (IsDead || amt <= 0f || invincible) return;
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
+
+        if (!isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && vignetteUI != null)
+        {
+            isDraining = true;
+            vignetteUI.SetActive(true);
+            Image vignetteImage = vignetteUI.transform.GetChild(0).GetComponent<Image>();
+            Color bkgColor = vignetteImage.color;
+            bkgColor.a = 0.3f;
+            vignetteImage.color = bkgColor;
+        }
+
 
         if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
         {
