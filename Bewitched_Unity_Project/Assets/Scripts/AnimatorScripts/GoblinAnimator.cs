@@ -140,6 +140,7 @@ public class GoblinAnimator : CharacterAnimator
         {
             if ( currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
+                GetComponent<Goblin>().SetMovementValues(true);
                 character.ResetPrimaryComboStep();
             }
         }
