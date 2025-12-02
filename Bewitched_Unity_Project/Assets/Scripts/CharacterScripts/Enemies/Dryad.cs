@@ -52,8 +52,6 @@ public class Dryad : Enemy
     private float lowHealthAggroActive = 17.5f; // half of the dryad health
     [Tooltip("Dryad animator script that controls the dryad animations")]
     protected DryadAnimator dryadAnimator;
-    [SerializeField, Tooltip("If this dryad was ai controlled when it started its primary attack")]
-    bool aiControlledOnPrimary = false;
 
     void Start()
     {

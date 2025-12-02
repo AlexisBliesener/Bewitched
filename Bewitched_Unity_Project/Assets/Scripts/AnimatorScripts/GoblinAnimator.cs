@@ -23,6 +23,13 @@ public class GoblinAnimator : CharacterAnimator
     private float dizzyTimePlayer;
     [SerializeField, Tooltip("Dizzy time after secondary attack enemy")]
     private float dizzyTimeEnemy;
+    [Tooltip("The goblin script for this ogre animator")]
+    private Goblin goblinScript;
+
+    private void Start()
+    {
+        goblinScript = GetComponentInParent<Goblin>();
+    }
 
     protected override void Awake()
     {
@@ -75,7 +82,7 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack windup speed multiplier</returns>
     public float GetPrimaryWindupMult()
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (goblinScript.IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
             return primaryWindupSpeedMultEnemy;
@@ -87,7 +94,7 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>secondary attack windup speed multiplier</returns>
     public float GetSecondaryWindupMult()
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (goblinScript.IsPlayerControlling())
             return secondaryWindupSpeedMultPlayer;
         else
             return secondaryWindupSpeedMultEnemy;
@@ -100,7 +107,7 @@ public class GoblinAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (goblinScript.IsPlayerControlling())
         {
             comboStep = Mathf.Clamp(comboStep, 0, primaryComboSpeedMultPlayer.Length-1);
             return primaryComboSpeedMultPlayer[comboStep];
@@ -124,7 +131,7 @@ public class GoblinAnimator : CharacterAnimator
     /// </summary>
     private IEnumerator WaitForDizzy()
     {
-        if (GetComponentInParent<Goblin>().IsPlayerControlling())
+        if (goblinScript.IsPlayerControlling())
             yield return new WaitForSeconds(dizzyTimePlayer);
         else
             yield return new WaitForSeconds(dizzyTimeEnemy);
@@ -140,7 +147,7 @@ public class GoblinAnimator : CharacterAnimator
         {
             if ( currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
-                GetComponent<Goblin>().SetMovementValues(true);
+                goblinScript.SetMovementValues(true);
                 character.ResetPrimaryComboStep();
             }
         }
@@ -214,7 +221,7 @@ public class GoblinAnimator : CharacterAnimator
         {
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
-            if (GetComponentInParent<Goblin>().IsPlayerControlling())
+            if (goblinScript.IsPlayerControlling())
             {
                 animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                 animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -262,7 +269,7 @@ public class GoblinAnimator : CharacterAnimator
                 canChange = true;
                 break;
             case "PrimaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (goblinScript.IsPlayerControlling())
                 {
                     animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                     animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -280,7 +287,7 @@ public class GoblinAnimator : CharacterAnimator
                 canChange = false;
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (goblinScript.IsPlayerControlling())
                 {
                     animator.SetFloat("SecondaryWindupSpeedMult", secondaryWindupSpeedMultPlayer);
                 }
@@ -305,13 +312,13 @@ public class GoblinAnimator : CharacterAnimator
         switch (animation)
         {
             case "PrimaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (goblinScript.IsPlayerControlling())
                     yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultPlayer[comboNum]);
                 else
                     yield return new WaitForSeconds(primaryAnimationDelay[0] / primaryComboSpeedMultEnemy[0]);
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Goblin>().IsPlayerControlling())
+                if (goblinScript.IsPlayerControlling())
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultPlayer);
                 else
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultEnemy);

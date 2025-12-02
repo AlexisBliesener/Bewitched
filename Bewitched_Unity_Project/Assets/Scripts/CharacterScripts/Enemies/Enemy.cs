@@ -193,8 +193,11 @@ public abstract class Enemy : Character
     protected EventInstance idleAudio;
     private float lastPrimaryChance = 0;
     private float lastSecondaryChance = 0;
+    [Tooltip("if the enemy needs to move into windup during the primary attack")]
     protected bool primaryMovementNeeded = false;
+    [Tooltip("If the enemy is currently winding up")]
     protected bool tempWindingup = false;
+    [Tooltip("If the enemy was ai controlled when they started the primary attack")]
     protected bool aiControlledOnPrimary = false;
 
     /// <summary>

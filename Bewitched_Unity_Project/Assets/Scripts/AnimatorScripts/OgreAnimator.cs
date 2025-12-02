@@ -23,6 +23,13 @@ public class OgreAnimator : CharacterAnimator
     protected float secondaryAttackSpeedMultPlayer = 1f;
     [SerializeField, Tooltip("Secondary attack animation speed multiplier for enemies."), Range(0.1f, 10f)]
     protected float secondaryAttackSpeedMultEnemy = 1f;
+    [Tooltip("The ogre script for this ogre animator")]
+    private Ogre ogreScript;
+
+    private void Start()
+    {
+        ogreScript = GetComponentInParent<Ogre>();
+    }
 
     /// <summary>
     /// Resets all animator triggers
@@ -48,7 +55,7 @@ public class OgreAnimator : CharacterAnimator
     /// <returns>primary attack windup speed multiplier</returns>
     public float GetPrimaryWindupMult()
     {
-        if (GetComponentInParent<Ogre>().IsPlayerControlling())
+        if (ogreScript.IsPlayerControlling())
             return primaryWindupSpeedMultPlayer;
         else
             return primaryWindupSpeedMultEnemy;
@@ -60,7 +67,7 @@ public class OgreAnimator : CharacterAnimator
     /// <returns>secondary attack windup speed multiplier</returns>
     public float GetSecondaryWindupMult()
     {
-        if (GetComponentInParent<Ogre>().IsPlayerControlling())
+        if (ogreScript.IsPlayerControlling())
             return secondaryWindupSpeedMultPlayer;
         else
             return secondaryWindupSpeedMultEnemy;
@@ -73,7 +80,7 @@ public class OgreAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if (GetComponentInParent<Ogre>().IsPlayerControlling())
+        if (ogreScript.IsPlayerControlling())
             return primaryComboSpeedMultPlayer[comboStep];
         else
             return primaryComboSpeedMultEnemy[0];
@@ -88,7 +95,7 @@ public class OgreAnimator : CharacterAnimator
         {
             if ((currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep]))
             {
-                GetComponentInParent<Ogre>().SetMovementValues(true);
+                ogreScript.SetMovementValues(true);
                 character.ResetPrimaryComboStep();
             }
         }
@@ -122,7 +129,7 @@ public class OgreAnimator : CharacterAnimator
         {
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
-            if (GetComponentInParent<Ogre>().IsPlayerControlling())
+            if (ogreScript.IsPlayerControlling())
             {
                 animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                 animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -167,7 +174,7 @@ public class OgreAnimator : CharacterAnimator
                 canChange = true;
                 break;
             case "PrimaryAttack":
-                if (GetComponentInParent<Ogre>().IsPlayerControlling())
+                if (ogreScript.IsPlayerControlling())
                 {
                     animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                     animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -183,7 +190,7 @@ public class OgreAnimator : CharacterAnimator
                 canChange = false;
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Ogre>().IsPlayerControlling())
+                if (ogreScript.IsPlayerControlling())
                 {
                     animator.SetFloat("SecondaryWindupSpeedMult", secondaryWindupSpeedMultPlayer);
                     animator.SetFloat("SecondaryAttackSpeedMult", secondaryAttackSpeedMultPlayer);
@@ -215,13 +222,13 @@ public class OgreAnimator : CharacterAnimator
         switch (animation)
         {
             case "PrimaryAttack":
-                if (GetComponentInParent<Ogre>().IsPlayerControlling())
+                if (ogreScript.IsPlayerControlling())
                     yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultPlayer[comboNum]);
                 else
                     yield return new WaitForSeconds(primaryAnimationDelay[0] / primaryComboSpeedMultEnemy[0]);
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Ogre>().IsPlayerControlling())
+                if (ogreScript.IsPlayerControlling())
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultPlayer);
                 else
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultEnemy);
