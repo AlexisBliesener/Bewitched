@@ -133,7 +133,8 @@ public class Ogre : Enemy
 
         if (playerControlling)
         {
-            if (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            aiControlledOnPrimary = false;
+            if (tempWindingup)
             {
                 attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
             }
@@ -144,6 +145,7 @@ public class Ogre : Enemy
         }
         else
         {
+            aiControlledOnPrimary = true;
             attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
         }
     }
@@ -159,7 +161,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
+                if (!inPrimaryWindup && !tempWindingup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost, this);
 
@@ -169,12 +171,18 @@ public class Ogre : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
-                    if (lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    if (lockedCharacter != null && primaryMovementNeeded)
                     {
                         currentPrimaryComboStep = 0;
+                        tempWindingup = true;
+                        timeLastPrimary = Mathf.Infinity;
+                    }
+                    else
+                    {
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
                     }
 
-                    timeLastPrimary = Time.time;
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
@@ -299,6 +307,8 @@ public class Ogre : Enemy
 
                         ogreAnimator.SetSwing();
                         triggerSet = true;
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
                     }
 
                     if (counterIndicatorVFX != null)
@@ -328,6 +338,9 @@ public class Ogre : Enemy
         if (!triggerSet)
         {
             ogreAnimator.SetSwing();
+            triggerSet = true;
+            tempWindingup = false;
+            timeLastPrimary = Time.time;
         }
 
 
@@ -411,14 +424,15 @@ public class Ogre : Enemy
         }
 
         Destroy(pivot);
-        if(!playerControlling)
+        if(aiControlledOnPrimary)
         {
             ogreAnimator.EndPrimary();
+            SetMovementValues(true);
         }
         
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
-        SetMovementValues(true);
+        
         attackState = AttackState.Neutral;
 
         if (tempLockedCharacter)

@@ -88,6 +88,7 @@ public class OgreAnimator : CharacterAnimator
         {
             if ((currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep]))
             {
+                GetComponentInParent<Ogre>().SetMovementValues(true);
                 character.ResetPrimaryComboStep();
             }
         }
