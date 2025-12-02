@@ -1,6 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using System;
 using System.IO;
+using UnityEngine.UI;
+using UnityEngine.InputSystem.Interactions;
 
 /// <summary>
 /// This has to be attached to a character (player or enemy)
@@ -32,6 +35,12 @@ public class HealthController : MonoBehaviour
     public bool IsDead = false;
     [Tooltip("The Death UI screen.")]
     public GameObject deathUI;
+    [Tooltip("The Vignette UI screen.")]
+    [SerializeField] private GameObject vignetteUI;
+    /// <summary> Check if Eleth's health is draining </summary>
+    private bool isDraining = false; 
+    /// <summary> Use to start and stop vignette pulse coroutine </summary>
+    private Coroutine drainVignettePulse;
 
     [Tooltip("The animator that controls this character")]
     protected CharacterAnimator characterAnimator;
@@ -58,6 +67,8 @@ public class HealthController : MonoBehaviour
     public event Action<float> OnHealed; // amount
     [Tooltip("Called when the character dies, it will pass the game object of the character")]
     public event Action<GameObject> OnDeath;
+    [Tooltip("Holds the cororuntine playing the vignette hit effect")]
+    private Coroutine vignetteHitCorountine;
 
     private void Awake()
     {
@@ -80,8 +91,25 @@ public class HealthController : MonoBehaviour
             {
                 StartCoroutine(PossessionAbility.instance.RespawnEleth());
             }
+
             IsDead = true;
             OnDeath?.Invoke(gameObject);
+        }
+
+        if(isDraining && PlayerController.instance.currentCharacter == PlayerController.instance.oldHag)
+        {
+            isDraining = false;
+
+            if (vignetteUI != null && vignetteUI.activeInHierarchy)
+            {
+                vignetteUI.SetActive(false);
+            }
+            if (drainVignettePulse != null)
+            {
+                StopCoroutine(drainVignettePulse);
+                drainVignettePulse = null;
+            }
+
         }
 
         // If we don't auto update or already dead, skip!
@@ -169,12 +197,45 @@ public class HealthController : MonoBehaviour
         {
             TimeLastHit = Time.time;
             OnDamaged?.Invoke(finalDamage, this);
+            if(PlayerController.instance != null && PlayerController.instance.currentCharacter == GetCharacter())
+            {
+                vignetteHitCorountine = StartCoroutine(PlayerController.instance.oldHag.health.Vignette(1f));
+            }
         }
 
         if (characterAnimator != null && damageBy != null && damageBy != GetCharacter())
         {
             StartCoroutine(characterAnimator.SetHit());
         }
+    }
+
+    /// <summary>
+    /// Coroutine for vignette fade in and fade out when Eleth gets hurt
+    /// </summary>
+    public IEnumerator Vignette(float duration)
+    {
+        if (!PlayerController.instance.oldHag.health.isDraining)
+        {
+            PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
+            Image vignetteImage = PlayerController.instance.oldHag.health.vignetteUI.transform.GetChild(0).GetComponent<Image>();
+
+            Color bkgColor = vignetteImage.color;
+            bkgColor.a = 0.1f;
+            vignetteImage.color = bkgColor;
+
+            while (bkgColor.a > 0f)
+            {
+                bkgColor.a -= Time.deltaTime / duration;
+                if (bkgColor.a < 0f) bkgColor.a = 0f;
+
+                vignetteImage.color = bkgColor;
+                yield return new WaitForSeconds(.2f);
+            }
+
+            if(!PlayerController.instance.oldHag.health.isDraining)
+                PlayerController.instance.oldHag.health.vignetteUI.SetActive(false);
+        }
+
     }
 
     /// <summary>
@@ -186,20 +247,69 @@ public class HealthController : MonoBehaviour
         float old = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amt);
 
+
         if (CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
         {
             if (timeEnemyHealthRanOut == -1f)
             {
                 timeEnemyHealthRanOut = Time.time;
             }
-            else if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
+
+            if (Time.time - timeEnemyHealthRanOut > PossessionAbility.instance.GetPossessionDrainGracePeriod())
             {
                 PlayerController.instance.oldHag.health.DrainLife(PlayerController.instance.oldHag.health.maxHealth * PossessionAbility.instance.GetPossessionDrain() * 0.01f * Time.deltaTime);
+                if (!PlayerController.instance.oldHag.health.isDraining && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.oldHag.health.vignetteUI != null)
+                {
+                    PlayerController.instance.oldHag.health.isDraining = true;
+                    PlayerController.instance.oldHag.health.vignetteUI.SetActive(true);
+                    if (drainVignettePulse != null)
+                    {
+                        StopCoroutine(drainVignettePulse);
+                    }
+
+                    if(vignetteHitCorountine != null)
+                    {
+                        StopCoroutine(vignetteHitCorountine);
+                    }
+              
+                    drainVignettePulse = StartCoroutine(PlayerController.instance.oldHag.health.VignettePulse());
+                }
+                NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.PlayerPossessionDraining);
             }
+        }
+        else if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
+        {
+            PlayerController.instance.oldHag.health.isDraining = false;
         }
 
         if (CurrentHealth != old) NotifyHealthChanged();
         if (IsDead) OnDeath?.Invoke(gameObject);
+    }
+
+    /// <summary>
+    /// Coroutine for vignette pulse when Eleth's health is draining and player needs to unpossess
+    /// </summary>
+    private IEnumerator VignettePulse()
+    {
+        Image vignette = PlayerController.instance.oldHag.health.vignetteUI.transform.GetChild(0).GetComponent<Image>();
+
+        float minAlpha = 0.1f;
+        float maxAlpha = 0.3f;
+        float pulseSpeed = 2f;
+        Color c = vignette.color;
+
+        while (PlayerController.instance.oldHag.health.isDraining)
+        {
+            float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
+
+            c.a = Mathf.Lerp(minAlpha, maxAlpha, t);
+            vignette.color = c;
+
+            yield return null;
+        }
+
+        c.a = 0f;
+        vignette.color = c;
     }
 
     /// <summary>

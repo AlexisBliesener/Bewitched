@@ -65,8 +65,6 @@ public class Ogre : Enemy
 
     [Tooltip("Bool determining if ogre is going to patrol point")]
     bool outGoing = false;
-    //Is this an event enemy?
-    bool isEventEnemy = false;
 
     [Tooltip("Ogre animator script that controls the ogre animations")]
     private OgreAnimator ogreAnimator;
@@ -90,6 +88,7 @@ public class Ogre : Enemy
         transform.eulerAngles = currentRotation;
 
         if (dead || lobotimzed) return;
+        GraphBuilder.instance.AddEventEnemy(this);
 
         ManageSurrounding();
         currentPlayer = playerController.GetCurrentCharacter();
@@ -107,7 +106,7 @@ public class Ogre : Enemy
         }
         else
         {
-            lockedCharacter = currentPlayer;
+            lockedCharacter = currentPlayer = playerController.GetCurrentCharacter(); ;
         }
 
         base.FixedUpdate();
@@ -134,7 +133,8 @@ public class Ogre : Enemy
 
         if (playerControlling)
         {
-            if (tempLockedCharacter != null && Vector3.Distance(tempLockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            aiControlledOnPrimary = false;
+            if (tempWindingup)
             {
                 attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
             }
@@ -145,6 +145,7 @@ public class Ogre : Enemy
         }
         else
         {
+            aiControlledOnPrimary = true;
             attackStateCoroutine = StartCoroutine(BatWindup(tempLockedCharacter));
         }
     }
@@ -160,7 +161,7 @@ public class Ogre : Enemy
             attackingPrimary = true;
             if (playerControlling)
             {
-                if ((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
+                if (!inPrimaryWindup && !tempWindingup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost, this);
 
@@ -170,7 +171,18 @@ public class Ogre : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
-                    timeLastPrimary = Time.time;
+                    if (lockedCharacter != null && primaryMovementNeeded)
+                    {
+                        currentPrimaryComboStep = 0;
+                        tempWindingup = true;
+                        timeLastPrimary = Mathf.Infinity;
+                    }
+                    else
+                    {
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
+                    }
+
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
@@ -252,6 +264,7 @@ public class Ogre : Enemy
     /// <returns> Time </returns>
     public IEnumerator BatApproach(Character tempLockedCharacter)
     {
+        bool triggerSet = false;
         attackState = AttackState.Approaching;
         inPrimaryWindup = false;
 
@@ -264,28 +277,43 @@ public class Ogre : Enemy
             float buffer = sizeRadius + 1;
             RaycastHit hit;
             // Raycast to check for environment collision
-            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, environmentLayer | characters))
+            if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
             {
-                Debug.Log(hit.collider.gameObject);
-                // Move just before environment hit point
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before character hit point
                 targetPos = hit.point - direction * buffer;
             }
+            if (Physics.Raycast(transform.position, direction, out hit, dis, environmentLayer)) // Use position for environment as that can be thinner
+            {
+                //Debug.Log(hit.collider.gameObject);
+                // Move just before environment hit point if beyond buffer, stay at same position otherwise
+                if ((hit.point - transform.position).magnitude < buffer) targetPos = transform.position;
+                else targetPos = hit.point - direction * buffer;
+            }
             targetPos.y = transform.position.y;
+            dis = (targetPos - transform.position).magnitude;
             GetCharacterController().enabled = false;
             transform.DOMove(targetPos, chaseTime * dis);
-            transform.DOLookAt(targetPos, chaseTime * dis);
+            //transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
             while (Time.time - timeStarted < chaseTime * dis)
             {
                 if (Time.time - timeStarted >= 3 * chaseTime * dis / 4) // Fourth quarter, not dodgable
                 {
+                    if (!triggerSet)
+                    {
+                        if (PlayerController.instance.GetCounterAvailable() == this) PlayerController.instance.SetCounterAvaliable(null);
+
+                        ogreAnimator.SetSwing();
+                        triggerSet = true;
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
+                    }
+
                     if (counterIndicatorVFX != null)
                     {
-                        if (counterIndicatorVFX != null)
-                        {
-                            DestroyCounterIndicator();
-                        }
+                        DestroyCounterIndicator();
                         counterIndicatorVFX = null;
                         PlayerController.instance.SetCounterAvaliable(null);
                     }
@@ -307,14 +335,14 @@ public class Ogre : Enemy
             GetCharacterController().enabled = true;
         }
 
-        if (ogreAnimator != null)
+        if (!triggerSet)
         {
             ogreAnimator.SetSwing();
+            triggerSet = true;
+            tempWindingup = false;
+            timeLastPrimary = Time.time;
         }
-        else
-        {
-            Debug.LogWarning("Animator not set!");
-        }
+
 
         attackStateCoroutine = StartCoroutine(SwingBat(tempLockedCharacter));
         yield break;
@@ -380,8 +408,9 @@ public class Ogre : Enemy
         {
             moveDist = (direction.normalized * nonLockPrimaryMovement);
         }
-        transform.DOMove(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
-        transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+
+        transform.DOMove(transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        //transform.DOLookAt(PlayerController.instance.currentCharacter.transform.position + moveDist, 0.25f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
 
         while (timeSinceStarted < 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep))
         {
@@ -395,14 +424,15 @@ public class Ogre : Enemy
         }
 
         Destroy(pivot);
-        if(!playerControlling)
+        if(aiControlledOnPrimary)
         {
             ogreAnimator.EndPrimary();
+            SetMovementValues(true);
         }
         
 
         yield return new WaitForSeconds(1); // Temporary cooldown time
-        SetMovementValues(true);
+        
         attackState = AttackState.Neutral;
 
         if (tempLockedCharacter)
@@ -506,11 +536,19 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing || (aiState == AIMovementState.Patrolling && isEventEnemy))
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             StopIdleAudio();
             Chase();
         }
         else if (aiState == AIMovementState.Surrounding)
         {
+            if (pathState == PathState.Unset)
+            {
+                StartCoroutine(FindPath());
+            }
             StopIdleAudio();
             Surround();
         }
@@ -540,27 +578,18 @@ public class Ogre : Enemy
         }
         else if (aiState == AIMovementState.Chasing)
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
-            }
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, false));
         }
         else if (aiState == AIMovementState.Surrounding) // Handles the same as chasing, just in closer range
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));
-            }   
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToPlayer(this, true));  
         }
         else if (aiState == AIMovementState.Retreating) // Handles the same as chasing, just in closer range
         {
-            if (pathState == PathState.Unset)
-            {
-                pathState = PathState.Searching;
-                yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
-            } 
+            pathState = PathState.Searching;
+            yield return StartCoroutine(SurroundingPoints.instance.FindPathToRetreat(this));
         }
     }
 

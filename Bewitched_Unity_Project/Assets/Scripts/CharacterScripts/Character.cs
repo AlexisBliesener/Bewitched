@@ -32,7 +32,7 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character"), Range(0, 50)]
     public float deceleration = 5;
-    [Tooltip("Rotational velocity of the character"), Range(0, 360)]
+    [Tooltip("Rotational velocity of the character")]
     public float rotationalVelocity = 240;
     [Tooltip("Time chasing a character for an attack"), Range(0, 10)]
     public float chaseTime = 3;
@@ -111,9 +111,9 @@ public abstract class Character : MonoBehaviour
     [Header("Primary Combo Stats")]
     [Tooltip("The amount of combo steps that this character has on their primary attack")]
     public int primaryComboSteps;
-    [Tooltip("Primary Cooldown Reset Time")]
+    [Tooltip("Primary Cooldown Reset Time"), ReadOnly]
     public float[] primaryComboResetTime;
-    [Tooltip("Primary combo min time to wait to hit the next combo")]
+    [Tooltip("Primary combo min time to wait to hit the next combo"), ReadOnly]
     public float[] primaryComboMinTime;
 
     [Tooltip("Character to lock onto")]

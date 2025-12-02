@@ -1692,8 +1692,6 @@ GameObject:
   - component: {fileID: 5765999755318136425}
   - component: {fileID: 8203416577890364646}
   - component: {fileID: 6913424874105996671}
-  - component: {fileID: 2193481641806798966}
-  - component: {fileID: 6143939213391954947}
   m_Layer: 7
   m_Name: EventOgre
   m_TagString: Enemy
@@ -1793,7 +1791,7 @@ MonoBehaviour:
   pushForceModifer: 0.1
   sizeRadius: 3
   numSurroundingPoints: 8
-  minSurroundingRadius: 3
+  minSurroundingRadius: 4
   maxSurroundingRadius: 10
   teamID: 2
   priority: 20
@@ -1841,7 +1839,7 @@ MonoBehaviour:
   maxSightAngle: 70
   hearingRange: 2
   patrolRange: 12
-  timeBeforeSearch: 0
+  timeBeforeSearch: 10
   attackDelayAI: 0
   retreatWaitTime: 0.5
   primaryAttackChance: 0.7
@@ -2066,70 +2064,6 @@ LineRenderer:
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
 --- !u!114 &6913424874105996671
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7357877285543014215}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d25fae28dde38df49b31ba95c4174d21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dev: 0
-  primaryAnimationDelay:
-  - 0.5
-  secondaryAnimationDelay: 0.5
-  walkSpeedMult: 1
-  idleSpeedMult: 1
-  deathSpeedMult: 1
-  hitStunMult: 1
-  primaryWindupSpeedMultPlayer: 2
-  primaryWindupSpeedMultEnemy: 0.7
-  primaryComboSpeedMultPlayer:
-  - 1
-  - 1
-  primaryComboSpeedMultEnemy:
-  - 0.7
-  - 0.7
-  secondaryWindupSpeedMultPlayer: 1
-  secondaryWindupSpeedMultEnemy: 1
-  secondaryAttackSpeedMultPlayer: 1
-  secondaryAttackSpeedMultEnemy: 1
---- !u!114 &2193481641806798966
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7357877285543014215}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d25fae28dde38df49b31ba95c4174d21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dev: 0
-  primaryAnimationDelay:
-  - 0.5
-  secondaryAnimationDelay: 0.5
-  walkSpeedMult: 1
-  idleSpeedMult: 1
-  deathSpeedMult: 1
-  hitStunMult: 1
-  primaryWindupSpeedMultPlayer: 2
-  primaryWindupSpeedMultEnemy: 0.7
-  primaryComboSpeedMultPlayer:
-  - 1
-  - 1
-  primaryComboSpeedMultEnemy:
-  - 0.7
-  - 0.7
-  secondaryWindupSpeedMultPlayer: 1
-  secondaryWindupSpeedMultEnemy: 1
-  secondaryAttackSpeedMultPlayer: 1
-  secondaryAttackSpeedMultEnemy: 1
---- !u!114 &6143939213391954947
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

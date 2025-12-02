@@ -231,6 +231,37 @@ public class AnimationAudio : MonoBehaviour
         ev.setCallback(destroyCallback, EVENT_CALLBACK_TYPE.DESTROYED);
     }
 
+   /// <summary>
+   /// Moves an event from one clip to another
+   /// </summary>
+   /// <param name="destination">The clip to move the event to</param>
+   /// <param name="target">The clip to take an animation event from</param>
+   /// <exception cref="ArgumentException"></exception>
+    void MoveEventWithStrings(string destination, string target)
+    {
+        if (destination == target) return;
+        if (animEvents.ContainsKey(destination)) throw new ArgumentException("An event is already playing from this clip!");
+        if (!animEvents.ContainsKey(target)) throw new ArgumentException("No event from the given animation clip name was found.");
+
+        EventInstance ev = animEvents[target];
+        //If the event already has user data, update it
+        if (ev.getUserData(out IntPtr ptr) == FMOD.RESULT.OK)
+        {
+            //For debuging purposes mostly
+            if (ptr == IntPtr.Zero)
+            {
+                Debug.LogError("Event has no user data but is in user data block");
+                return;
+            }
+            //Change the object pinned at this memory address to be the new clipName
+            GCHandle handle = GCHandle.FromIntPtr(ptr);
+            (handle.Target as EntryData).key = destination;
+
+        }
+        //If no user data, the event has been prepared but not started, don't set user data yet
+        animEvents[destination] = ev;
+        animEvents.Remove(target);
+    }
     /// <summary>
     /// Moves an event called from another animation clip to the animation clip that calls this
     /// </summary>
@@ -262,6 +293,29 @@ public class AnimationAudio : MonoBehaviour
         animEvents[clipName] = ev;
         animEvents.Remove(key);
     }
+    /// <summary>
+    /// Moves an event from another animation clip if it exists, if not it instantiates a new event
+    /// </summary>
+    /// <param name="currentAnim">Animation Event. STRING: Event Name, INT: Spatialization</param>
+    void SpawnEvent(AnimationEvent currentAnim)
+    {
+        string clipName = currentAnim.animatorClipInfo.clip.name;
+        AudioManager.TryGetReference(currentAnim.stringParameter,out EventReference evRef);
+        foreach(var pair in animEvents)
+        {
+            pair.Value.getDescription(out var description);
+            description.getPath(out string path);
+            //If this animation clip has the event we're looking for, move it
+            if (path == evRef.ToString())
+            {
+                MoveEventWithStrings(clipName,pair.Key);
+                return;
+            }
+        }
+        //If no animation clip is playing the event we want, start a new event instead.
+        StartEvent(currentAnim);
+    }
+
     /// <summary>
     /// Function used to stop all animation audio sound effects when the character dies
     /// </summary>

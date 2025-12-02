@@ -177,19 +177,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8265603e762f7de4097c1cc3d364c242, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  threatWeight: 5
-  distWeight: 3
+  threatWeight: 3
+  distWeight: 5
   maxDistance: 10
-  timeWaitToPriorityRotate: 1
-  hitRotationTime: 0.1
+  timeWaitToPriorityRotate: 3
+  hitRotationTime: 0.4
   attackingRotationTime: 0.5
   generalPriorityRotationTime: 0.01
   goblinSecondaryRotateTime: 0.2
   combatCam: {fileID: 0}
-  aimCam: {fileID: 0}
   explorationCam: {fileID: 0}
   currentCharacter: {fileID: 0}
-  crossHair: {fileID: 0}
 --- !u!114 &5556196742744654720
 MonoBehaviour:
   m_ObjectHideFlags: 0

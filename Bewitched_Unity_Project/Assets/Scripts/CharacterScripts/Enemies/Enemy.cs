@@ -94,6 +94,9 @@ public abstract class Enemy : Character
 
     protected float timeSinceRetreat = 0;
 
+    [Tooltip("Is this an event enemy?")]
+    protected bool isEventEnemy = false;
+
     /// <summary>
     /// Path getter function
     /// </summary>
@@ -190,6 +193,12 @@ public abstract class Enemy : Character
     protected EventInstance idleAudio;
     private float lastPrimaryChance = 0;
     private float lastSecondaryChance = 0;
+    [Tooltip("if the enemy needs to move into windup during the primary attack")]
+    protected bool primaryMovementNeeded = false;
+    [Tooltip("If the enemy is currently winding up")]
+    protected bool tempWindingup = false;
+    [Tooltip("If the enemy was ai controlled when they started the primary attack")]
+    protected bool aiControlledOnPrimary = false;
 
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing
@@ -263,20 +272,24 @@ public abstract class Enemy : Character
         {
             Debug.LogWarning("Player controller is not set!");
         }
-    }
 
-    protected virtual void FixedUpdate()
-    {
         // Sets if the enemy needs to do he windup and move part of the primary attack
-        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z), 
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z),
             transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
+            primaryMovementNeeded = true;
         }
         else
         {
             animator.SetPrimaryMovementNeeded(false);
+            primaryMovementNeeded = false;
         }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+
     }
 
     /// <summary>
@@ -476,6 +489,8 @@ public abstract class Enemy : Character
             // Spawn soul on death
             SoulSystem.Instance.SpawnSoul(transform.position);
         }
+
+        if (isEventEnemy) GraphBuilder.instance.RemoveEventEnemy(this);
 
         GameObject.FindGameObjectWithTag("Lock Manager").GetComponent<LockManager>().IncrementKills();
         health.ShowMiniHealthBar(false);
@@ -1139,10 +1154,11 @@ public abstract class Enemy : Character
     /// </summary>
     /// <param name="direction"> Direction of attack </param>
     /// <param name="length"> Length of costly area </param>
-    public void SetCostlyAttackingLine(Vector3 direction, float length)
+    /// <param name="width"> Width of costly area </param>
+    public void SetCostlyAttackingLine(Vector3 direction, float length, float width)
     {
         ResetAttackingArea(true);
-        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, 1.5f * sizeRadius);
+        List<List<int>> nodes = GraphBuilder.instance.GetNodesInLine(transform.position, direction, length, width);
         foreach (List<int> position in nodes)
         {
             Node node = GraphBuilder.instance.GetNodeFromPosition(position);
