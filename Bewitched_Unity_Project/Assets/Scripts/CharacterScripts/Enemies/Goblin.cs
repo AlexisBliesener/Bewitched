@@ -29,7 +29,7 @@ public class Goblin : Enemy
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
     [SerializeField] float knifeDuration = 0.25f;
-    [Tooltip("Thrust Speed")]
+    [Tooltip("Thrust Speed"), ReadOnly]
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };

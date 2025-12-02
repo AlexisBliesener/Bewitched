@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NaughtyAttributes;
 using static Enemy;
 
 public class Guard : Enemy
@@ -11,7 +12,7 @@ public class Guard : Enemy
     [SerializeField] GameObject lanceHandlePrefab;
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
-    [Tooltip("Thrust Speed")]
+    [Tooltip("Thrust Speed"), ReadOnly]
     [SerializeField] float thrustSpeed = 20;
     [Tooltip("Lance Handle Damage")]
     [SerializeField] float lanceHandleDamage = 20;
