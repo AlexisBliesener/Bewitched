@@ -111,6 +111,15 @@ public class Dryad : Enemy
                 enemy.SetTargeted(true);
             }
         }
+
+        if(playerControlling)
+        {
+            aiControlledOnPrimary = false;
+        }
+        else
+        {
+            aiControlledOnPrimary = true;
+        }
         attackingPrimary = true;
         attackStateCoroutine = StartCoroutine(ThrowDart(lockedCharacter));
     }
@@ -136,7 +145,7 @@ public class Dryad : Enemy
         {
             if (playerControlling)
             {
-                if( (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost, this);
 
@@ -157,7 +166,6 @@ public class Dryad : Enemy
             {
                 if (!attackingPrimary)
                 {
-                    aiControlledOnPrimary = true;
                     attackingPrimary = true;
                     currentPrimaryComboStep = 0;
                     timeLastPrimary = Time.time;
@@ -359,8 +367,8 @@ public class Dryad : Enemy
             CameraController.instance.OnAttack(dir, 0.15f);
         }
 
-
-        SetMovementValues(true);
+        if(aiControlledOnPrimary)
+            SetMovementValues(true);
 
         if (tempLockedCharacter)
         {

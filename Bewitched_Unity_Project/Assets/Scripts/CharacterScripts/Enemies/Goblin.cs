@@ -169,8 +169,6 @@ public class Goblin : Enemy
                         timeLastPrimary = Time.time;
                     }
 
-                       
-
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
                     PrimaryAttack();
