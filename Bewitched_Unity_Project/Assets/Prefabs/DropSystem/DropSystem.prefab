@@ -441,10 +441,12 @@ MonoBehaviour:
     dropChance: 15
   - displayName: Common
     dropChance: 50
+  - displayName: Uncommon
+    dropChance: 30
   availableDrops:
   - dropName: Grand Finale
     description: When leaving an enemy on low health, trigger a large explosion around
-      you. Get hit out of your body, suffer the same explosion damage to yourself.
+      you.
     dropID: 1
     icon: {fileID: 21300000, guid: c7c3da95fb51f4a42b3683c67a28f347, type: 3}
     rarityIndex: 0
@@ -458,13 +460,13 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 9b18d70f02d618847ac9bd285deb9565, type: 3}
     rarityIndex: 1
     dropScript: {fileID: 1689055857934838755}
-    buyAmount: 50
-    sellAmount: 25
+    buyAmount: 55
+    sellAmount: 30
   - dropName: Smarter Control
     description: 'Lowers the rate at which enemies'' health depletes. '
     dropID: 4
     icon: {fileID: 21300000, guid: 393d6aeaf500c0d4b92959ccad014967, type: 3}
-    rarityIndex: 1
+    rarityIndex: 3
     dropScript: {fileID: 5725360512968179944}
     buyAmount: 45
     sellAmount: 25
@@ -472,19 +474,19 @@ MonoBehaviour:
     description: Increase the damage buff granted from swapping to a new enemy.
     dropID: 5
     icon: {fileID: 21300000, guid: 951f3c1d2ae4b0c4a8aa1060febc4ea6, type: 3}
-    rarityIndex: 1
+    rarityIndex: 2
     dropScript: {fileID: 6538570816644836317}
-    buyAmount: 40
-    sellAmount: 20
+    buyAmount: 30
+    sellAmount: 15
   - dropName: Shielding Spirits
     description: When possessing an enemy, grant a temporary shield. Lasts for 5
       seconds.
     dropID: 6
     icon: {fileID: 21300000, guid: d3a419f516fc4854988368e976d9d3cf, type: 3}
-    rarityIndex: 1
+    rarityIndex: 3
     dropScript: {fileID: 5780072744232477134}
-    buyAmount: 50
-    sellAmount: 25
+    buyAmount: 40
+    sellAmount: 20
   - dropName: Backup Plan
     description: Decrease the time it takes for the possession ability to recharge
       when knocked out of an enemy.
@@ -494,14 +496,14 @@ MonoBehaviour:
     dropScript: {fileID: 8637887266863425160}
     buyAmount: 30
     sellAmount: 15
-  - dropName: Get Off of Me
+  - dropName: Bigger Hits
     description: All knockback effects are increased.
     dropID: 8
     icon: {fileID: 21300000, guid: cea5dd363e7606f4e9f96b65e2c09ac3, type: 3}
-    rarityIndex: 1
+    rarityIndex: 2
     dropScript: {fileID: 8250993673618807608}
-    buyAmount: 40
-    sellAmount: 20
+    buyAmount: 25
+    sellAmount: 15
   - dropName: Enhanced Magic
     description: Increase the range of the Witch's possession range by 15%.
     dropID: 9
@@ -515,10 +517,10 @@ MonoBehaviour:
       winding up for an attack.
     dropID: 10
     icon: {fileID: 21300000, guid: cea5dd363e7606f4e9f96b65e2c09ac3, type: 3}
-    rarityIndex: 1
+    rarityIndex: 3
     dropScript: {fileID: 8654940293131745072}
-    buyAmount: 45
-    sellAmount: 25
+    buyAmount: 40
+    sellAmount: 20
   - dropName: Glass Cannon
     description: Half the Witch's total health. Increase all damage done by 100%
     dropID: 11
@@ -555,7 +557,7 @@ GameObject:
   - component: {fileID: 4235669473738837553}
   - component: {fileID: 1840802779872068338}
   m_Layer: 0
-  m_Name: GetOffOfMe
+  m_Name: BiggerHits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -682,9 +684,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damagePercentPerStack:
-  - 10
   - 15
   - 20
+  - 25
   stunDurationPercentPerStack:
   - 10
   - 15
