@@ -663,11 +663,11 @@ MonoBehaviour:
   canPossess: 1
   primaryComboSteps: 2
   primaryComboResetTime:
-  - 2
-  - 2
+  - 0.8
+  - 0.8
   primaryComboMinTime:
-  - 0.4
-  - 0.4
+  - 0.5
+  - 0.5
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -871,6 +871,7 @@ MonoBehaviour:
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   IsDead: 0
   deathUI: {fileID: 0}
+  vignetteUI: {fileID: 0}
   kill: 0
 --- !u!114 &4731386785871686445
 MonoBehaviour:
@@ -898,7 +899,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dev: 0
   primaryAnimationDelay:
-  - 0.5
+  - 0
+  - 0
   secondaryAnimationDelay: 0.5
   walkSpeedMult: 1
   idleSpeedMult: 1
@@ -1567,6 +1569,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4359677995529063536}
   - component: {fileID: 3297661752411376414}
+  - component: {fileID: 2191704007409330476}
   m_Layer: 0
   m_Name: ogreBlockoutFull
   m_TagString: Untagged
@@ -1614,6 +1617,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2191704007409330476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4020413355354789578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c51d35b30aef41d588170b6e0a3b8e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsPlaying: []
+  character: {fileID: 0}
+  isEventEnemy: 0
 --- !u!1 &4318364867878691480
 GameObject:
   m_ObjectHideFlags: 0

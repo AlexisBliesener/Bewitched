@@ -29,7 +29,7 @@ public class Goblin : Enemy
     [Header("Knife Settings for Goblin")]
     [Tooltip("Knife duration")]
     [SerializeField] float knifeDuration = 0.25f;
-    [Tooltip("Thrust Speed")]
+    [Tooltip("Thrust Speed"), ReadOnly]
     [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Knife Damage")]
     [SerializeField] float[] knifeDamage = { 20 };
@@ -90,8 +90,7 @@ public class Goblin : Enemy
     private GoblinAnimator goblinAnimator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
-    [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
-    bool aiControlledOnPrimary = false;
+
     private int numDeflections = 0;
     [Tooltip("Current spin VFX")]
     private GameObject spinVFX;
@@ -148,7 +147,7 @@ public class Goblin : Enemy
             {
                 //currentPrimaryComboStep = currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep;
                 //Debug.Log("In primary windup: " + inPrimaryWindup + ", current combo step: " + currentPrimaryComboStep + ", greater than wait time: " + (Time.time - timeLastPrimary >= goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep)));
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
+                if (!inPrimaryWindup && !tempWindingup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / goblinAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
 
                     health.SubHealth(primaryAttackCost, this);
@@ -158,9 +157,17 @@ public class Goblin : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
-                    //Debug.Log("gob combo " + currentPrimaryComboStep);
-
-                    timeLastPrimary = Time.time;
+                    if (lockedCharacter != null && primaryMovementNeeded)
+                    {
+                        currentPrimaryComboStep = 0;
+                        tempWindingup = true;
+                        timeLastPrimary = Mathf.Infinity;
+                    }
+                    else
+                    {
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
+                    }
 
                     characterAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(characterAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
@@ -200,7 +207,7 @@ public class Goblin : Enemy
         {
             tempLockedChar = PlayerController.instance.GetLockedTarget();
             aiControlledOnPrimary = false;
-            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            if (tempWindingup)
             {
                 //Debug.Log("Player approach");
                 inPrimaryWindup = true;
@@ -257,6 +264,7 @@ public class Goblin : Enemy
     public IEnumerator KnifeApproach(Character tempLockedCharacter)
     {
         attackState = AttackState.Approaching;
+        bool triggerSet = false;
         if (tempLockedCharacter)
         {
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
@@ -286,7 +294,6 @@ public class Goblin : Enemy
             transform.DOMove(targetPos, chaseTime * dis);
             transform.DOLookAt(targetPos, chaseTime * dis);
             float timeStarted = Time.time;
-            bool triggerSet = false;
 
             if (playerControlling)
             {
@@ -311,10 +318,16 @@ public class Goblin : Enemy
                 {
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     goblinAnimator.ExitLeap();
+                    triggerSet = true;
+                    tempWindingup = false;
+                    timeLastPrimary = Time.time;
                 }
                 else if(tempLockedCharacter == null)
                 {
                     goblinAnimator.ExitLeap();
+                    triggerSet = true;
+                    timeLastPrimary = Time.time;
+                    tempWindingup = false;
                 }
 
                 if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
@@ -325,6 +338,8 @@ public class Goblin : Enemy
 
                         goblinAnimator.ExitLeap();
                         triggerSet = true;
+                        timeLastPrimary = Time.time;
+                        tempWindingup = false;
                     }
 
                     if (counterIndicatorVFX != null)
@@ -348,16 +363,19 @@ public class Goblin : Enemy
                 yield return null;
             }
 
-            if(!triggerSet)
-            {
-                goblinAnimator.ExitLeap();
-            }
             transform.position = targetPos;
             GetCharacterController().enabled = true;
         }
         else
         {
             inPrimaryWindup = false;
+        }
+
+        if (!triggerSet)
+        {
+            goblinAnimator.ExitLeap();
+            timeLastPrimary = Time.time;
+            tempWindingup = false;
         }
 
         if (counterIndicatorVFX != null)
@@ -393,10 +411,10 @@ public class Goblin : Enemy
                     yield return null;
                 }
             }
+            SetMovementValues(true);
             goblinAnimator.EndPrimary();
         }
 
-        SetMovementValues(true);
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
@@ -468,7 +486,8 @@ public class Goblin : Enemy
             yield return null;
         }
 
-        SetMovementValues(true);
+        if(aiControlledOnPrimary)
+            SetMovementValues(true);
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;

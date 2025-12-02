@@ -111,9 +111,9 @@ public abstract class Character : MonoBehaviour
     [Header("Primary Combo Stats")]
     [Tooltip("The amount of combo steps that this character has on their primary attack")]
     public int primaryComboSteps;
-    [Tooltip("Primary Cooldown Reset Time")]
+    [Tooltip("Primary Cooldown Reset Time"), ReadOnly]
     public float[] primaryComboResetTime;
-    [Tooltip("Primary combo min time to wait to hit the next combo")]
+    [Tooltip("Primary combo min time to wait to hit the next combo"), ReadOnly]
     public float[] primaryComboMinTime;
 
     [Tooltip("Character to lock onto")]
