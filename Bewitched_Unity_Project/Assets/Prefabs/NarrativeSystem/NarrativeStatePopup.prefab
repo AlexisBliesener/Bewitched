@@ -46,9 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   priorityStates: 000000000100000002000000030000000400000005000000
   statesAllowedToQueue: 04000000
-  playerPossessionDrainingTexts: []
-  ogrePossessionAvailableTexts: []
-  roomDoorsOpenedTexts: []
-  breakWallActivatedTexts: []
+  playerPossessionDrainingTexts:
+  - Leave possesion
+  ogrePossessionAvailableTexts:
+  - Possess ogre
+  roomDoorsOpenedTexts:
+  - Doors have opened
+  breakWallActivatedTexts:
+  - Go break the wall
   fadeOutDuration: 0.6
   sameStateRepeatDelay: 5
