@@ -696,13 +696,13 @@ MonoBehaviour:
   canPossess: 1
   primaryComboSteps: 3
   primaryComboResetTime:
-  - 0.6
+  - 0.4
   - 0.6
   - 1
   primaryComboMinTime:
-  - 0.3
-  - 0.3
-  - 0.3
+  - 0.2
+  - 0.4
+  - 0.8
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -723,7 +723,7 @@ MonoBehaviour:
   counterIndicatorVFXPrefab: {fileID: 7690807259707339217, guid: b74ace887a3d3644ea22b859681d0e72, type: 3}
   attackState: 0
   lobotimzed: 0
-  cantAttack: 1
+  cantAttack: 0
   minStopDistance: 2
   seenBuffer: 0.5
   sightRange: 20
@@ -764,7 +764,7 @@ MonoBehaviour:
     Path: event:/SoundEffects/Character/Guard/GuardDeath
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
-  thrustSpeed: 0
+  thrustSpeed: 10
   lanceHandleDamage: 10
   lanceTipDamage: 10
   lanceDuration: 0.2

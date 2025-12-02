@@ -194,6 +194,8 @@ public abstract class Enemy : Character
     private float lastPrimaryChance = 0;
     private float lastSecondaryChance = 0;
     protected bool primaryMovementNeeded = false;
+    protected bool tempWindingup = false;
+    protected bool aiControlledOnPrimary = false;
 
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing

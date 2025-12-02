@@ -90,8 +90,7 @@ public class Goblin : Enemy
     private GoblinAnimator goblinAnimator;
     [Tooltip("The position the goblin will try to move to on attack")]
     private Vector3 targetPos = Vector3.negativeInfinity;
-    [SerializeField, Tooltip("If this goblin was ai controlled when it started its primary attack")]
-    bool aiControlledOnPrimary = false;
+
     private int numDeflections = 0;
     [Tooltip("Current spin VFX")]
     private GameObject spinVFX;
@@ -187,8 +186,6 @@ public class Goblin : Enemy
             }
         }
     }
-
-    private bool tempWindingup = false;
 
     public override void PrimaryAttack()
     {
