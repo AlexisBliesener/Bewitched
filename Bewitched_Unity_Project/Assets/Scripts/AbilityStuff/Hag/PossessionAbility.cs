@@ -41,8 +41,6 @@ public class PossessionAbility : MonoBehaviour
     private Slider possessionAbilitySlider;
     [SerializeField, Tooltip("UI element that displays the currently controlled character's health bar.")]
     private GameObject secondaryHealthBar;
-    [SerializeField, Tooltip("Crosshair image that changes color based on possession availability.")]
-    private Image crossHair;
     [SerializeField, Range(1,2), Tooltip("The scale of the pulse when the slider is at the max value")]
     private float pulseScale = 1.15f;
     [SerializeField, Range(0,1), Tooltip("The time it takes to pulse the slider when it's at the max value")]
@@ -307,7 +305,6 @@ public class PossessionAbility : MonoBehaviour
     {
         UpdateUI();
         UpdateState();
-        //UpdateCrossHair();
         UpdateTargetVFX();
 
         if(counterLocked && Time.time - timeCounterLocked > counterLockDuration)
@@ -315,9 +312,57 @@ public class PossessionAbility : MonoBehaviour
            counterLocked = false; 
         }
 
-        if(currentCharacter != eleth)
+        UpdateInPossessionVFX();
+
+        if (startedHoldTime != -1)
         {
-            if(PlayerController.instance.currentCharacter.health.CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
+            currentPossesionDistance = Mathf.Lerp(startingPossessionDistance, endingPossesionDistance, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+            currentPossessionAngle = Mathf.Lerp(startingPossessionAngle, endingPossesionAngle, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+        }
+        else
+        {
+            currentPossesionDistance = startingPossessionDistance;
+            currentPossessionAngle = startingPossessionAngle;
+        }
+
+        if (possessionTrigger != null)
+        {
+            possessionTrigger.transform.position = currentCharacter.transform.position;
+        }
+
+        // Keep Hag aligned with possessed character
+        if (currentCharacter != eleth)
+        {
+            eleth.transform.position = currentCharacter.transform.position;
+            eleth.transform.rotation = currentCharacter.transform.rotation;
+        }
+    }
+
+    private bool vfxDisabled = false;
+    public void SetVFXDisabled(bool val)
+    {
+        vfxDisabled = val;
+    }
+
+    private void UpdateInPossessionVFX()
+    {
+        if(vfxDisabled)
+        {
+            if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
+            {
+                enemyInPossessionVFX.SetActive(false);
+                elethInPossessionVFX.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("In Possession VFXs are not assigned!");
+            }
+            return;
+        }
+
+        if (currentCharacter != eleth)
+        {
+            if (PlayerController.instance.currentCharacter.health.CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
             {
                 if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
                 {
@@ -353,29 +398,6 @@ public class PossessionAbility : MonoBehaviour
             {
                 Debug.LogWarning("In Possession VFXs are not assigned!");
             }
-        }
-
-        if (startedHoldTime != -1)
-        {
-            currentPossesionDistance = Mathf.Lerp(startingPossessionDistance, endingPossesionDistance, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
-            currentPossessionAngle = Mathf.Lerp(startingPossessionAngle, endingPossesionAngle, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
-        }
-        else
-        {
-            currentPossesionDistance = startingPossessionDistance;
-            currentPossessionAngle = startingPossessionAngle;
-        }
-
-        if (possessionTrigger != null)
-        {
-            possessionTrigger.transform.position = currentCharacter.transform.position;
-        }
-
-        // Keep Hag aligned with possessed character
-        if (currentCharacter != eleth)
-        {
-            eleth.transform.position = currentCharacter.transform.position;
-            eleth.transform.rotation = currentCharacter.transform.rotation;
         }
     }
 
@@ -583,7 +605,20 @@ public class PossessionAbility : MonoBehaviour
     /// </summary>
     private void UpdateTargetVFX()
     {
-        if(targetVFX != null)
+        if (vfxDisabled)
+        {
+            if (targetVFX != null)
+            {
+                targetVFX.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("In Possession VFXs are not assigned!");
+            }
+            return;
+        }
+
+        if (targetVFX != null)
         {
             if (possessionOverride != null && possessionOverride == currentPossessableEnemy && currentCharacter != possessionOverride)
             {
