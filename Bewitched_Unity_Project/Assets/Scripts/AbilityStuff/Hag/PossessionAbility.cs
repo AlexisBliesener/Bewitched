@@ -619,27 +619,6 @@ public class PossessionAbility : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the color of the cross hair baised on if the player can currently possess
-    /// </summary>
-    //private void UpdateCrossHair()
-    //{
-    //    if (crossHair == null)
-    //    {
-    //        Debug.LogWarning("Crosshair image is not assigned!");
-    //        return;
-    //    }
-
-    //    if (possessionState == PossessionStates.canNotPossess)
-    //    {
-    //        crossHair.color = Color.white;
-    //    }
-    //    else
-    //    {
-    //        crossHair.color = Color.red;
-    //    }
-    //}
-
-    /// <summary>
     /// Updates the state of possession ability to tell if the player can currently possess or not
     /// </summary>
     private void UpdateState()

@@ -321,7 +321,7 @@ public class Ogre : Enemy
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
