@@ -203966,7 +203966,9 @@ MonoBehaviour:
   lowHealthCoefficient: 0.3
   decayRate: 0
   miniBarPrefab: {fileID: 0}
+  IsDead: 0
   deathUI: {fileID: 0}
+  vignetteUI: {fileID: 0}
   kill: 0
   flashSpeed: 1.5
   healthBarUI: {fileID: 0}
@@ -272215,6 +272217,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -19.24482
       objectReference: {fileID: 0}
+    - target: {fileID: 478991038209919002, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
+      propertyPath: character
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 617466934747973125, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.3484983
@@ -273327,9 +273333,9 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 64
-  environment:
+  environmentLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 0
   combatCam: {fileID: 6014310323909729124}
   aimCam: {fileID: 4014676341054465785}
   exploreCam: {fileID: 2045377170336068617}
@@ -273355,6 +273361,7 @@ MonoBehaviour:
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   counterWindowLength: 1
+  nonLockPrimaryMovement: 0
   moveToTargetDistance: 3
   perfectCounterTimeMaterial: {fileID: 0}
   defaultMaterial: {fileID: 0}
@@ -273367,18 +273374,18 @@ MonoBehaviour:
   pathfindingPriority: 2
   hitEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1076371738
+      Data2: 1263393390
+      Data3: -1448282237
+      Data4: 1264538263
+    Path: event:/SoundEffects/Character/Dryad/DryadHit
   deathEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1922489951
+      Data2: 1254343991
+      Data3: -1763208515
+      Data4: -936168094
+    Path: event:/SoundEffects/Character/Dryad/DryadDeath
   dartPrefab: {fileID: 3266930682550461916, guid: 65838c7fec7d44f538d7f6a1df3e2c54, type: 3}
   dartDuration: 10
   dartSpeed: 30
@@ -273392,7 +273399,6 @@ MonoBehaviour:
   offSetDart: {x: 0, y: 0.5, z: 0}
   minSurroundingRadiusSporeCloud: 0
   maxSurroundingRadiusSporeCloud: 4
-  aiControlledOnPrimary: 0
 --- !u!114 &8975838007468774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -273432,6 +273438,10 @@ PrefabInstance:
     - target: {fileID: 23690336704056255, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
       propertyPath: characterName
       value: EventDryad
+      objectReference: {fileID: 0}
+    - target: {fileID: 478991038209919002, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
+      propertyPath: character
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 617466934747973125, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -273935,9 +273945,9 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 64
-  environment:
+  environmentLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 0
   combatCam: {fileID: 4467394508009927953}
   aimCam: {fileID: 6430786369363871884}
   exploreCam: {fileID: 8280680789247515260}
@@ -273963,6 +273973,7 @@ MonoBehaviour:
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   counterWindowLength: 1
+  nonLockPrimaryMovement: 0
   moveToTargetDistance: 3
   perfectCounterTimeMaterial: {fileID: 0}
   defaultMaterial: {fileID: 0}
@@ -273975,18 +273986,18 @@ MonoBehaviour:
   pathfindingPriority: 2
   hitEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1076371738
+      Data2: 1263393390
+      Data3: -1448282237
+      Data4: 1264538263
+    Path: event:/SoundEffects/Character/Dryad/DryadHit
   deathEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1922489951
+      Data2: 1254343991
+      Data3: -1763208515
+      Data4: -936168094
+    Path: event:/SoundEffects/Character/Dryad/DryadDeath
   dartPrefab: {fileID: 3266930682550461916, guid: 65838c7fec7d44f538d7f6a1df3e2c54, type: 3}
   dartDuration: 10
   dartSpeed: 30
@@ -274000,7 +274011,6 @@ MonoBehaviour:
   offSetDart: {x: 0, y: 0.5, z: 0}
   minSurroundingRadiusSporeCloud: 0
   maxSurroundingRadiusSporeCloud: 4
-  aiControlledOnPrimary: 0
 --- !u!114 &5974947298056655492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -274046,6 +274056,10 @@ PrefabInstance:
     - target: {fileID: 23690336704056255, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
       propertyPath: characterName
       value: EventDryad
+      objectReference: {fileID: 0}
+    - target: {fileID: 478991038209919002, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
+      propertyPath: character
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 617466934747973125, guid: 4491f26a457fd4ced9cbba30bb45337b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -274549,9 +274563,9 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 64
-  environment:
+  environmentLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 0
   combatCam: {fileID: 4221871343571185934}
   aimCam: {fileID: 6797893491232590995}
   exploreCam: {fileID: 8467512160954588771}
@@ -274577,6 +274591,7 @@ MonoBehaviour:
   secondaryAttackChance: 0.3
   lowHealthThresholdPercentage: 30
   counterWindowLength: 1
+  nonLockPrimaryMovement: 0
   moveToTargetDistance: 3
   perfectCounterTimeMaterial: {fileID: 0}
   defaultMaterial: {fileID: 0}
@@ -274589,18 +274604,18 @@ MonoBehaviour:
   pathfindingPriority: 2
   hitEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1076371738
+      Data2: 1263393390
+      Data3: -1448282237
+      Data4: 1264538263
+    Path: event:/SoundEffects/Character/Dryad/DryadHit
   deathEventReference:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 1922489951
+      Data2: 1254343991
+      Data3: -1763208515
+      Data4: -936168094
+    Path: event:/SoundEffects/Character/Dryad/DryadDeath
   dartPrefab: {fileID: 3266930682550461916, guid: 65838c7fec7d44f538d7f6a1df3e2c54, type: 3}
   dartDuration: 10
   dartSpeed: 30
@@ -274614,7 +274629,6 @@ MonoBehaviour:
   offSetDart: {x: 0, y: 0.5, z: 0}
   minSurroundingRadiusSporeCloud: 0
   maxSurroundingRadiusSporeCloud: 4
-  aiControlledOnPrimary: 0
 --- !u!114 &5674561468118479355
 MonoBehaviour:
   m_ObjectHideFlags: 0

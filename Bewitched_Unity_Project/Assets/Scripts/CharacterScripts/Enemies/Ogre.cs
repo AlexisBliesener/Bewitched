@@ -883,11 +883,7 @@ public class Ogre : Enemy
     public override void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if (health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());

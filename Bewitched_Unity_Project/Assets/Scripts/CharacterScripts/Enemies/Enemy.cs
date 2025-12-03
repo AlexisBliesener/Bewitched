@@ -473,6 +473,8 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
+        //Death sound effect
+        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -1114,11 +1116,7 @@ public abstract class Enemy : Character
     public virtual void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if(health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());
