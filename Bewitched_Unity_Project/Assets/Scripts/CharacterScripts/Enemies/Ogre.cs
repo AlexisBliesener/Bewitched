@@ -82,6 +82,7 @@ public class Ogre : Enemy
 
     protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         Vector3 currentRotation = transform.eulerAngles;
         currentRotation.x = 0;
         currentRotation.z = 0;
@@ -108,8 +109,6 @@ public class Ogre : Enemy
         {
             lockedCharacter = currentPlayer = playerController.GetCurrentCharacter(); ;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>

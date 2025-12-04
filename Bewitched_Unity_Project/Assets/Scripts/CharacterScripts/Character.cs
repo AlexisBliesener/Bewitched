@@ -32,6 +32,8 @@ public abstract class Character : MonoBehaviour
     public float acceleration = 5;
     [Tooltip("Deceleration of the Character"), Range(0, 50)]
     public float deceleration = 5;
+    [Tooltip("Gravity of the character"), Range(0, 20)]
+    public float gravity = 8;
     [Tooltip("Rotational velocity of the character")]
     public float rotationalVelocity = 240;
     [Tooltip("Time chasing a character for an attack"), Range(0, 10)]
@@ -181,6 +183,9 @@ public abstract class Character : MonoBehaviour
     private CharacterController characterController;
     [Tooltip("Tells the animator to set the run animation if this is true, or idle animation when false, can be overriden by the animator")]
     protected bool animateMove = false;
+
+    [Tooltip("Downward velocity due to gravity")]
+    protected Vector3 gravVelocity;
 
     /// <summary>
     /// The different attacking states a character can have
@@ -944,5 +949,29 @@ public abstract class Character : MonoBehaviour
             yield return null;
         }
         health.SubHealth(amount, this);
+    }
+
+    /// <summary>
+    /// Applies gravity regardless of velocity
+    /// </summary>
+    public void ApplyGravity()
+    {
+        if (!GetCharacterController().isGrounded)
+        {
+            gravVelocity += Vector3.down * gravity * Time.deltaTime;
+            GetCharacterController().Move(gravVelocity * Time.deltaTime);
+        }
+        else
+        {
+            gravVelocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>
+    /// Fixed update, applies gravity to all characters
+    /// </summary>
+    protected virtual void FixedUpdate()
+    {
+        ApplyGravity();
     }
 }

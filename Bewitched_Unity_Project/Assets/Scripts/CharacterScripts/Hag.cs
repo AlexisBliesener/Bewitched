@@ -40,9 +40,10 @@ public class Hag : Character
         SetBaseStats();
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
         CreateLocalInvalidArea();
+        base.FixedUpdate();
     }
 
     protected override void Awake()
@@ -188,11 +189,6 @@ public class Hag : Character
             fadeImage.color = bkgColor;
             yield return null;
         }
-    }
-
-    private void Update()
-    {
-
     }
 
     public IEnumerator KnockBackCone()

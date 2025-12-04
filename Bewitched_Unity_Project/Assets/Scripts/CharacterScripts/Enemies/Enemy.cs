@@ -294,9 +294,9 @@ public abstract class Enemy : Character
         }
     }
 
-    protected virtual void FixedUpdate()
+    protected override void FixedUpdate()
     {
-
+        base.FixedUpdate();
     }
 
     /// <summary>
@@ -386,7 +386,6 @@ public abstract class Enemy : Character
             velocity = Vector3.zero;
         }
 
-        velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 

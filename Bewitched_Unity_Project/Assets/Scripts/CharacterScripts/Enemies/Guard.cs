@@ -173,6 +173,7 @@ public class Guard : Enemy
     // Update is called once per frame
     protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         if (dead || lobotimzed) return;
         ManageSurrounding();
         ResetAttackingArea();
@@ -190,8 +191,6 @@ public class Guard : Enemy
         {
             lockedCharacter = currentPlayer;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>

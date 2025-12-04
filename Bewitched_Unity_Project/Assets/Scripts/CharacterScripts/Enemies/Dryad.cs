@@ -65,7 +65,7 @@ public class Dryad : Enemy
 
     protected override void FixedUpdate()
     {
-
+        base.FixedUpdate();
         Vector3 currentRotation = transform.eulerAngles;
         currentRotation.x = 0;
         currentRotation.z = 0;
@@ -89,8 +89,6 @@ public class Dryad : Enemy
         SetBehavior();
 
         SetDebugString();
-
-        base.FixedUpdate();
     }
 
     /// <summary>
