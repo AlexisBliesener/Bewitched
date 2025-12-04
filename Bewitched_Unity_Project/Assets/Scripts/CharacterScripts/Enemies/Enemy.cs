@@ -19,6 +19,8 @@ public abstract class Enemy : Character
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
+    [SerializeField, Tooltip("The scale the possession target VFX will be on this enemy")]
+    private Vector3 possessionVFXScale;
 
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
@@ -222,6 +224,11 @@ public abstract class Enemy : Character
             Destroy(counterIndicatorVFX);
         }
         counterIndicatorVFX = null;
+    }
+
+    public Vector3 GetPossessionTargetVFXScale()
+    {
+        return possessionVFXScale;
     }
 
     protected override void Awake()

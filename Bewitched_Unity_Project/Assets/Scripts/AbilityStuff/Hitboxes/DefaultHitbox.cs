@@ -216,7 +216,7 @@ public class DefaultHitbox : MonoBehaviour
                     {
                         Instantiate(hitVFX, new Vector3(character.transform.position.x,
                             character.transform.position.y + character.GetComponent<CharacterController>().height / 2,
-                            character.transform.position.z), character.transform.rotation);
+                            character.transform.position.z),  user.transform.rotation);
                     }
                     else
                     {

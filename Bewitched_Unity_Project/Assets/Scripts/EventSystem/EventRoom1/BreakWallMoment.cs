@@ -54,6 +54,7 @@ public class BreakWallMoment : MonoBehaviour
     {
         // Kill ogre? 
         PossessionAbility.instance.SetCanLeavePossession(true);
+        PossessionAbility.instance.SetVFXDisabled(false);
         PlayerController.instance.currentCharacter.gameObject.SetActive(true);
         PlayerController.instance.currentCharacter.health.KillEnemy();
         PlayerController.instance.SetAllowMovement(true);
@@ -67,6 +68,7 @@ public class BreakWallMoment : MonoBehaviour
     {
         // Hide the flashing VFX
         flashingVFX.SetActive(false);
+        PossessionAbility.instance.SetVFXDisabled(true);
         isBreakWallActivated = false;
         NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.BreakWallActivated);
         PlayerController.instance.SetAllowMovement(false);

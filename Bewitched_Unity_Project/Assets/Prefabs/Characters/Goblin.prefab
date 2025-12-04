@@ -175,6 +175,7 @@ MonoBehaviour:
   cantAttack: 0
   minStopDistance: 1
   seenBuffer: 0.5
+  possessionVFXScale: {x: 1.3, y: 1.3, z: 1.3}
   sightRange: 15
   maxSightAngle: 60
   hearingRange: 2
@@ -253,7 +254,6 @@ MonoBehaviour:
   minPatrolDistance: 1
   maxPatrolDistance: 3
   communicationRange: 30
-  aiControlledOnPrimary: 0
 --- !u!114 &-6918275186734421657
 MonoBehaviour:
   m_ObjectHideFlags: 0

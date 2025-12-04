@@ -350,7 +350,7 @@ public class Goblin : Enemy
                 }
                 else // attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -706,7 +706,7 @@ public class Goblin : Enemy
             }
             else // attack is dodgable
             {
-                if (counterIndicatorVFX == null)
+                if (counterIndicatorVFX == null && !IsPlayerControlling())
                 {
                     counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                     counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
