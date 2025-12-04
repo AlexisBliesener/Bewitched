@@ -778,7 +778,7 @@ public class GraphBuilder : MonoBehaviour
                         enemiesToRemove.Add(enemy);
                     }
                     tempNumSearchers++;
-                    if (tempNumSearchers > maxSearchAgents)
+                    if (tempNumSearchers >= maxSearchAgents)
                     {
                         break;
                     }
