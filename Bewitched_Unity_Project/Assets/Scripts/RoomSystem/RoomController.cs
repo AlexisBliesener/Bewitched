@@ -338,6 +338,7 @@ public class RoomController : MonoBehaviour
         {
             Debug.LogWarning("CameraController instance is not set");
         }
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.RoomDoorsOpened);
     }
 
     /// <summary>
