@@ -742,12 +742,21 @@ public class GraphBuilder : MonoBehaviour
 
         while (true)
         {
-            int tempNumSearchers = 0;
             List<Enemy> tempEnemies = new List<Enemy>();
+            int tempNumSearchers = 0;
+            foreach (Enemy enemy in enemySearches.Keys)
+            {
+                if (!EnemyCanSearch(enemy)) tempNumSearchers++;
+                else if (!enemiesNeedingPath.Contains(enemy)) enemiesNeedingPath.Add(enemy);
+            }
             RoomController roomController = RoomSystem.Instance.GetActiveRoomController();
             if (roomController != null)
             {
                 tempEnemies = new List<Enemy>(RoomSystem.Instance.GetActiveRoomController().roomEnemies);
+            }
+            foreach (Enemy enemy in bossEnemies)
+            {
+                if (!tempEnemies.Contains(enemy)) tempEnemies.Add(enemy);
             }
 
             foreach (Enemy enemy in tempEnemies)
@@ -758,29 +767,23 @@ public class GraphBuilder : MonoBehaviour
                 }
             }
 
-            foreach (Enemy enemy in bossEnemies)
-            {
-                if (!enemy.IsPlayerControlling() && EnemyCanSearch(enemy) && !enemiesNeedingPath.Contains(enemy))
-                {
-                    enemiesNeedingPath.Add(enemy);
-                }
-                else if (!tempEnemies.Contains(enemy)) tempEnemies.Add(enemy);
-            }
-
             List<Enemy> enemiesToRemove = new List<Enemy>();
-            foreach (Enemy enemy in tempEnemies)
+            if (tempNumSearchers < maxSearchAgents)
             {
-                if (enemy != null && enemy.gameObject.activeInHierarchy)
+                foreach (Enemy enemy in enemiesNeedingPath)
                 {
-                    if (EnemyCanSearch(enemy) && enemiesNeedingPath.Contains(enemy))
+                    if (enemy != null && enemy.gameObject.activeInHierarchy)
                     {
-                        StartCoroutine(enemy.FindPath());
-                        enemiesToRemove.Add(enemy);
-                    }
-                    tempNumSearchers++;
-                    if (tempNumSearchers >= maxSearchAgents)
-                    {
-                        break;
+                        if (EnemyCanSearch(enemy))
+                        {
+                            StartCoroutine(enemy.FindPath());
+                            enemiesToRemove.Add(enemy);
+                        }
+                        tempNumSearchers++;
+                        if (tempNumSearchers >= maxSearchAgents)
+                        {
+                            break;
+                        }
                     }
                 }
             }
