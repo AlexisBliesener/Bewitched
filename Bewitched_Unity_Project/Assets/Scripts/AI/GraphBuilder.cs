@@ -33,6 +33,8 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("How many nodes can be searched before the next frame is played")]
     [SerializeField] int nodesSearchedPerFrame = 60;
+    [Tooltip("Boss rush AI speed multiplier"), Range(0, 1)]
+    [SerializeField] float bossRushSpeedMult = 0.25f;
     [Tooltip("How many tries an agent gets to search before it is skipped")]
     [SerializeField] int maxAgentAttempts = 3;
 
@@ -124,6 +126,9 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("List of boss enemies")]
     private List<Enemy> bossEnemies = new List<Enemy>();
+
+    [Tooltip("If possessing a boss it makes the rate of enemies searching slower to improve performance")]
+    private bool berserkMode = false;
 
     // Start is called before the first frame update
     void Start()
@@ -632,6 +637,9 @@ public class GraphBuilder : MonoBehaviour
             if (numSearchers > 0) nodesSearchThreshold = nodesSearchedPerFrame / numSearchers;
             else nodesSearchThreshold = nodesSearchedPerFrame;
 
+            if (berserkMode) nodesSearchThreshold = nodesSearchThreshold * bossRushSpeedMult;
+            Debug.Log(nodesSearchThreshold);
+
             if (nodesSearched % nodesSearchThreshold == 0) // If we have reached the threshold
             {
                 yield return null; // Go to next frame
@@ -726,10 +734,24 @@ public class GraphBuilder : MonoBehaviour
             {
                 enemies = new List<Enemy>(RoomSystem.Instance.GetActiveRoomController().roomEnemies);
             }
+
+            bool activate = false;
+
             foreach (Enemy enemy in bossEnemies)
             {
-                if (!enemies.Contains(enemy)) enemies.Add(enemy);
+                if (!enemies.Contains(enemy))
+                {
+                    if (!enemy.IsPlayerControlling())
+                    {
+                        enemies.Add(enemy);
+                    }
+                    else
+                    {
+                        activate = true;
+                    }
+                }
             }
+            berserkMode = activate;
 
             foreach (Enemy enemy in enemies)
             {
