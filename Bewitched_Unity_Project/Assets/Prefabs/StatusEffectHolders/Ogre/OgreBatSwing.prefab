@@ -45,11 +45,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackName: OgreBatSwing
-  knockbackAmount: 15
-  knockbackMinimum: 0
-  knockbackMaximum: 0
-  knockbackRange: 0
+  knockbackAmount: 400
+  knockbackMinimum: 400
+  knockbackMaximum: 400
+  knockbackRange: 400
   knockbackType: 2
-  timeStopDuration: 0
-  stunDurationPlayer: 0
-  stunDurationEnemy: 0
+  timeSlowDuration: 0
+  slowTimeScale: 0
+  stunDurationPlayer: 1.2
+  stunDurationEnemy: 0.6

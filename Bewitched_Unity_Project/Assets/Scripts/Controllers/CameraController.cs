@@ -39,21 +39,13 @@ public class CameraController : MonoBehaviour
     [Header("References")]
     [SerializeField, Tooltip("The free-look Cinemachine camera used for combat view.")]
     private CinemachineFreeLook combatCam;
-    //[SerializeField, Tooltip("The Cinemachine virtual camera used for aiming (shoulder view).")]
-    //private CinemachineVirtualCamera aimCam;
     [SerializeField, Tooltip("The Cinemachine virtual camera used for exploration view")]
     private CinemachineFreeLook explorationCam;
     [SerializeField, Tooltip("The currently controlled character whose perspective the camera follows.")]
     private Character currentCharacter;
-    //[SerializeField, Tooltip("Crosshair image displayed on screen while aiming.")]
-    //private Image crossHair;
 
     [Tooltip("The FMOD studio listener attached to the camera for 3D audio spatialization.")]
     private StudioListener listener;
-    //[Tooltip("Whether the player is currently aiming.")]
-    //private static bool aiming = false;
-    //[Tooltip("Reference to the AimCam component that manages aim-related camera logic.")]
-    //private AimCam aimCamScript;
     [Tooltip("Reference to the CombatCam component that manages framing camera logic.")]
     private CombatCam combatCamScript;
     [Tooltip("Flag to prevent camera priority switching during character transitions.")]
@@ -62,6 +54,10 @@ public class CameraController : MonoBehaviour
     private bool inCombat = false;
     [Tooltip("True if the player is currently using the right stick to control the camera")]
     private bool looking = false;
+    [Tooltip("eleth combat cam")]
+    private CinemachineFreeLook elethCombatCam;
+    [Tooltip("eleth exploration cam")]
+    private CinemachineFreeLook elethExplorationCam;
 
     /// <summary>
     /// Sets whether the player is in combat or not.
@@ -164,33 +160,16 @@ public class CameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns whether the player is currently aiming.
-    /// </summary>
-    //public static bool GetIsAiming()
-    //{
-    //    return aiming;
-    //}
-
-    /// <summary>
     /// Initializes references and sets up camera priorities and FMOD listener.
-    /// </summary>
+    /// </summary
     private void Awake()
     {
         instance = this;
-       // aiming = false;
-       // aimCamScript = aimCam.GetComponent<AimCam>();
+        elethCombatCam = combatCam;
+        elethExplorationCam = explorationCam;
         combatCamScript = combatCam.GetComponent<CombatCam>();
         combatCam.Priority = 0;
-       // aimCam.Priority = 1;
         explorationCam.Priority = 3;
-        //if (inCombat)
-        //{
-        //    aimCamScript.SetYaw(combatCam.m_XAxis.Value);
-        //}
-        //else
-        //{
-        //    aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
-        //}
 
         // FMOD set up
         if (!listener) listener = GetComponent<StudioListener>();
@@ -207,35 +186,17 @@ public class CameraController : MonoBehaviour
 
         if(inCombat)
         {
-            //if (aiming)
-            //{
-            //    currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
-            //    aimCam.Priority = 2;
-            //    combatCam.Priority = 1;
-            //    explorationCam.Priority = 0;
-            //}
-            //else
-            //{
-                combatCam.Priority = 2;
-               // aimCam.Priority = 1;
-                explorationCam.Priority = 0;
-            //}
+            combatCam.Priority = 2;
+            elethCombatCam.Priority = 2;
+            explorationCam.Priority = 0;
+            elethExplorationCam.Priority = 0;
         }
         else
         {
-            //if (aiming)
-            //{
-            //    currentCharacter.gameObject.transform.rotation = Quaternion.Euler(currentCharacter.transform.rotation.eulerAngles.x, Camera.main.transform.rotation.eulerAngles.y, currentCharacter.transform.rotation.eulerAngles.z);
-            //    aimCam.Priority = 2;
-            //    explorationCam.Priority = 1;
-            //    combatCam.Priority = 0;
-            //}
-            //else
-            //{
-                explorationCam.Priority = 2;
-              //  aimCam.Priority = 1;
-                combatCam.Priority = 0;
-           // }
+            explorationCam.Priority = 2;
+            elethExplorationCam.Priority = 2;
+            combatCam.Priority = 0;
+            elethCombatCam.Priority = 0;
         }
     }
 
@@ -246,52 +207,9 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        if(context.started)
-        {
-            looking = true;
-        }
-        else if(context.canceled)
-        {
-            looking = false;
-        }
+        Vector2 lookInput = context.ReadValue<Vector2>();
 
-        //if (aiming)
-        //{
-        //    aimCamScript.Look(context);
-        //}
-    }
-
-
-    /// <summary>
-    /// Toggles aiming mode and updates the camera/crosshair state.
-    /// </summary>
-    /// <param name="context">The input action context (started/canceled).</param>
-    public void Aim(InputAction.CallbackContext context)
-    {
-        //if (TimeController.instance.IsPaused) return;
-
-        //if (context.started)
-        //{
-        //    PossessionAbility.instance.SetStartedHoldTime(Time.time);
-        //    if (inCombat)
-        //    {
-        //        aimCamScript.SetYaw(combatCam.m_XAxis.Value);
-        //    }
-        //    else
-        //    {
-        //        aimCamScript.SetYaw(explorationCam.m_XAxis.Value);
-        //    }
-
-        //    crossHair.gameObject.SetActive(true);
-        //    aiming = true;
-        //}
-        //else if (context.canceled)
-        //{
-        //    PossessionAbility.instance.SetStartedHoldTime(-1);
-        //    crossHair.gameObject.SetActive(false);
-        //    aiming = false;
-        //}
-        //UpdateCam();
+        looking = lookInput != Vector2.zero;
     }
 
     /// <summary>
@@ -320,25 +238,14 @@ public class CameraController : MonoBehaviour
         transitioning = true;
         StartCoroutine(WaitTransitionTime());
 
-       // aimCam.Priority = 0;
         combatCam.Priority = 0;
         explorationCam.Priority = 0;
 
         currentCharacter = character;
         if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
-
-       // aimCam = character.GetAimCam();
         combatCam = character.GetCombatCam();
         explorationCam = character.GetExploreCam();
 
-        //try
-        //{
-        //    aimCamScript = aimCam.GetComponent<AimCam>();
-        //}
-        //catch
-        //{
-        //    Debug.LogWarning("No aim cam component found!");
-        //}
 
         try
         {
@@ -349,9 +256,16 @@ public class CameraController : MonoBehaviour
             Debug.LogWarning("No combat cam component found!");
         }
 
-        combatCam.Priority = 2;
-       // aimCam.Priority = 1;
-
+        if(inCombat)
+        {
+            combatCam.Priority = 2;
+            explorationCam.Priority = 1;
+        }
+        else
+        {
+            combatCam.Priority = 1;
+            explorationCam.Priority = 2;
+        }
     }
 
     /// <summary>

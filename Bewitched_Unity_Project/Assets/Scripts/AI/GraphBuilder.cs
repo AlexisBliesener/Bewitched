@@ -724,7 +724,7 @@ public class GraphBuilder : MonoBehaviour
             RoomController roomController = RoomSystem.Instance.GetActiveRoomController();
             if (roomController != null)
             {
-                enemies = RoomSystem.Instance.GetActiveRoomController().roomEnemies;
+                enemies = new List<Enemy>(RoomSystem.Instance.GetActiveRoomController().roomEnemies);
             }
             foreach (Enemy enemy in bossEnemies)
             {

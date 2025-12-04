@@ -1,4 +1,6 @@
 using UnityEngine;
+using FMODUnity;
+using FMOD.Studio;
 [RequireComponent(typeof(EventEnemy))]
 public class EventDryad : Dryad
 {
@@ -17,5 +19,10 @@ public class EventDryad : Dryad
     public void Revive()
     {
         dryadAnimator.Revive();
+    }
+
+    public override void DoHitSoundEffect(float damage)
+    {
+        return;
     }
 }

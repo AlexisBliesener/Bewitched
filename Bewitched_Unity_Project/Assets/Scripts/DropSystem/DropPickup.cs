@@ -5,7 +5,7 @@ using FMODUnity;
 using UnityEngine;
 
 
-[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(SphereCollider))]
 /// <summary>
 /// DropPickup is a prefab that can be used to pick up drops.
 /// It has a box collider and a spin speed.
@@ -34,10 +34,10 @@ public class DropPickup : MonoBehaviour, IInteract
     /// </summary>
     private void Start()
     {
-        BoxCollider box = GetComponent<BoxCollider>();
-        box.isTrigger = true;
-        box.size = new Vector3(pickupRange, pickupRange, pickupRange);
-        box.center = new Vector3(0, pickupRange / 2, 0);
+        SphereCollider sphere = GetComponent<SphereCollider>();
+        sphere.isTrigger = true;
+        sphere.radius = pickupRange;
+        sphere.center = new Vector3(0, pickupRange / 2, 0);
         //Sound Effect
         AudioManager.TryGetReference("UpgradeDrop", out EventReference evRef);
         dropSound = RuntimeManager.CreateInstance(evRef);

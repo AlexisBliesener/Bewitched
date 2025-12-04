@@ -59,8 +59,8 @@ public class CombatCam : MonoBehaviour
             isOverriding = true;
         }
         else
-        { 
-            if(isOverriding)
+        {
+            if (isOverriding)
             {
                 isOverriding = false;
                 timeOverrideEnded = Time.time;
