@@ -22,6 +22,8 @@ public class PrisonDoor : MonoBehaviour, IDoor
     [SerializeField] private EventReference doorOpen;
     [SerializeField] private EventReference doorClose;
 
+    [Tooltip("if the door is locked or not, this used to prevent multiple lock/unlock calls")]
+    private bool isLocked = false;
     private void Start()
     {
         // Automatically find the BoxCollider if not set
@@ -34,7 +36,9 @@ public class PrisonDoor : MonoBehaviour, IDoor
     /// </summary>
     public void Lock()
     {
+        if (isLocked) return;
         StartCoroutine(MoveDoor(moveStep, TOTAL_STEPS, doorClose));
+        isLocked = true;
     }
 
     /// <summary>
@@ -42,7 +46,9 @@ public class PrisonDoor : MonoBehaviour, IDoor
     /// </summary>
     public void Unlock()
     {
+        if (!isLocked) return;
         StartCoroutine(MoveDoor(-moveStep, TOTAL_STEPS, doorOpen, disableColliderHalfway: true));
+        isLocked = false;
     }
 
     /// <summary>
