@@ -8,7 +8,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: GoblinPrimary
-  m_Speed: 2
+  m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -7372766724011105312}
@@ -463,6 +463,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: PrimaryMovementNeeded
     m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1731864405745445272}
   m_Solo: 0
@@ -529,6 +532,34 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
+--- !u!1101 &-130803092583201053
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 1
+    m_ConditionEvent: PrimaryAttack
+    m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: PrimaryCombo
+    m_EventTreshold: 1
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: 3136634540179482245}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0.25
+  m_TransitionOffset: 0
+  m_ExitTime: 0.6
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
 --- !u!91 &9100000
 AnimatorController:
   m_ObjectHideFlags: 0
@@ -1009,7 +1040,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.12172699
+  m_TransitionDuration: 0.1
   m_TransitionOffset: 0
   m_ExitTime: 0.85365856
   m_HasExitTime: 0
@@ -1220,7 +1251,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: GoblinPrimary_3
-  m_Speed: 2
+  m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 2374293496809965053}
@@ -1345,7 +1376,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0.1
   m_TransitionOffset: 0
   m_ExitTime: 0.78571427
   m_HasExitTime: 0
@@ -1503,7 +1534,7 @@ AnimatorStateMachine:
     m_Position: {x: -20, y: -220, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 6672633708038427147}
-    m_Position: {x: 240, y: -310, z: 0}
+    m_Position: {x: 280, y: -350, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5220211226385425946}
     m_Position: {x: -60, y: -60, z: 0}
@@ -1591,6 +1622,7 @@ AnimatorState:
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -3385742545973075168}
+  - {fileID: -130803092583201053}
   m_StateMachineBehaviours: []
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0

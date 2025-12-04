@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.Serialization;
+using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -329,6 +329,15 @@ public class EventSystemRoom2 : MonoBehaviour
             TakeDownEnemy(healthController);
             enemyDefeatedCount += 1;
         }
+        //Hit sound effects here because of the jank health bar
+        else
+        {
+            if(AudioManager.TryPlayInstance("DryadHit",out EventInstance ev, true, healthController.gameObject))
+            {
+                ev.setParameterByNameWithLabel("Event","True");
+            }
+
+        }
 
         // check if we need to start the possession phase 
         if (enemyDefeatedCount >= Mathf.Max(1, enemiesEvent.Count) - 1)
@@ -375,6 +384,10 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void TakeDownEnemy(HealthController healthController)
     {
+        //Death sound effect
+        if(AudioManager.TryPlayInstance("DryadDeath",out EventInstance ev,spatializedSource: healthController.gameObject)){
+            ev.setParameterByNameWithLabel("Event","True");
+        }
         healthController.KillEnemy();
         EventEnemy enemy = healthController.GetComponent<EventEnemy>();
         if (enemy == null)

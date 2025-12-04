@@ -15,6 +15,13 @@ public class DryadAnimator : CharacterAnimator
     protected float secondaryWindupSpeedMultPlayer = 1f;
     [SerializeField, Tooltip("Secondary windup animation speed multiplier for enemies."), Range(0.1f, 10f)]
     protected float secondaryWindupSpeedMultEnemy = 1f;
+    [Tooltip("The dryad script for this ogre animator")]
+    private Dryad dryadScript;
+
+    private void Start()
+    {
+        dryadScript = GetComponentInParent<Dryad>();
+    }
 
     /// <summary>
     /// Returns the secondary attack windup speed multiplier
@@ -22,7 +29,7 @@ public class DryadAnimator : CharacterAnimator
     /// <returns>secondary attack windup speed multiplier</returns>
     public float GetSecondaryWindupMult()
     {
-        if (GetComponentInParent<Dryad>().IsPlayerControlling())
+        if (dryadScript.IsPlayerControlling())
             return secondaryWindupSpeedMultPlayer;
         else
             return secondaryWindupSpeedMultEnemy;
@@ -35,7 +42,7 @@ public class DryadAnimator : CharacterAnimator
     /// <returns>primary attack speed multipler</returns>
     public float GetPrimaryComboMult(int comboStep)
     {
-        if (GetComponentInParent<Dryad>().IsPlayerControlling())
+        if (dryadScript.IsPlayerControlling())
             return primaryComboSpeedMultPlayer[comboStep];
         else
             return primaryComboSpeedMultEnemy[0];
@@ -50,6 +57,7 @@ public class DryadAnimator : CharacterAnimator
         {
             if (currentAnimationState == "PrimaryAttack" && currentPrimaryComboStep != -1 && Time.time - timeLastPrimary >= primaryComboResetTime[currentPrimaryComboStep] / primaryComboSpeedMultPlayer[currentPrimaryComboStep])
             {
+                dryadScript.SetMovementValues(true);
                 character.ResetPrimaryComboStep();
             }
         }
@@ -102,7 +110,7 @@ public class DryadAnimator : CharacterAnimator
         {
             ResetAllTriggers();
             animator.SetTrigger("PrimaryAttack");
-            if (GetComponentInParent<Dryad>().IsPlayerControlling())
+            if (dryadScript.IsPlayerControlling())
             {
                 animator.SetFloat("PrimaryComboOneSpeedMult", primaryComboSpeedMultPlayer[0]);
                 animator.SetFloat("PrimaryComboTwoSpeedMult", primaryComboSpeedMultPlayer[1]);
@@ -145,7 +153,7 @@ public class DryadAnimator : CharacterAnimator
                 canChange = true;
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Dryad>().IsPlayerControlling())
+                if (dryadScript.IsPlayerControlling())
                 {
                     animator.SetFloat("SecondaryWindupSpeedMult", secondaryWindupSpeedMultPlayer);
                 }
@@ -170,13 +178,13 @@ public class DryadAnimator : CharacterAnimator
         switch (animation)
         {
             case "PrimaryAttack":
-                if (GetComponentInParent<Dryad>().IsPlayerControlling())
+                if (dryadScript.IsPlayerControlling())
                     yield return new WaitForSeconds(primaryAnimationDelay[comboNum] / primaryComboSpeedMultPlayer[comboNum]);
                 else
                     yield return new WaitForSeconds(primaryAnimationDelay[0] / primaryComboSpeedMultEnemy[0]);
                 break;
             case "SecondaryAttack":
-                if (GetComponentInParent<Dryad>().IsPlayerControlling())
+                if (dryadScript.IsPlayerControlling())
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultPlayer);
                 else
                     yield return new WaitForSeconds(secondaryAnimationDelay / secondaryWindupSpeedMultEnemy);

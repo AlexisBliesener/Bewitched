@@ -19,6 +19,8 @@ public abstract class Enemy : Character
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
+    [SerializeField, Tooltip("The scale the possession target VFX will be on this enemy")]
+    private Vector3 possessionVFXScale;
 
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
@@ -193,6 +195,12 @@ public abstract class Enemy : Character
     protected EventInstance idleAudio;
     private float lastPrimaryChance = 0;
     private float lastSecondaryChance = 0;
+    [Tooltip("if the enemy needs to move into windup during the primary attack")]
+    protected bool primaryMovementNeeded = false;
+    [Tooltip("If the enemy is currently winding up")]
+    protected bool tempWindingup = false;
+    [Tooltip("If the enemy was ai controlled when they started the primary attack")]
+    protected bool aiControlledOnPrimary = false;
 
     /// <summary>
     /// Stops the idle sound effects of the goblin if it's currently playing
@@ -216,6 +224,11 @@ public abstract class Enemy : Character
             Destroy(counterIndicatorVFX);
         }
         counterIndicatorVFX = null;
+    }
+
+    public Vector3 GetPossessionTargetVFXScale()
+    {
+        return possessionVFXScale;
     }
 
     protected override void Awake()
@@ -266,20 +279,24 @@ public abstract class Enemy : Character
         {
             Debug.LogWarning("Player controller is not set!");
         }
-    }
 
-    protected virtual void FixedUpdate()
-    {
         // Sets if the enemy needs to do he windup and move part of the primary attack
-        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z), 
+        if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z),
             transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
         {
             animator.SetPrimaryMovementNeeded(true);
+            primaryMovementNeeded = true;
         }
         else
         {
             animator.SetPrimaryMovementNeeded(false);
+            primaryMovementNeeded = false;
         }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+
     }
 
     /// <summary>
@@ -463,6 +480,8 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
+        //Death sound effect
+        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -1104,11 +1123,7 @@ public abstract class Enemy : Character
     public virtual void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if(health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());

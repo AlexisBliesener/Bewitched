@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NaughtyAttributes;
 using static Enemy;
 
 public class Guard : Enemy
@@ -11,7 +12,7 @@ public class Guard : Enemy
     [SerializeField] GameObject lanceHandlePrefab;
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
-    [Tooltip("Thrust Speed")]
+    [Tooltip("Thrust Speed"), ReadOnly]
     [SerializeField] float thrustSpeed = 20;
     [Tooltip("Lance Handle Damage")]
     [SerializeField] float lanceHandleDamage = 20;
@@ -228,7 +229,7 @@ public class Guard : Enemy
         {
             if (playerControlling)
             {
-                if (!inPrimaryWindup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
+                if (!inPrimaryWindup && !tempWindingup && (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / guardAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost, this);
                     currentPrimaryComboStep += 1;
@@ -237,12 +238,18 @@ public class Guard : Enemy
                         currentPrimaryComboStep = 0;
                     }
 
-                    if(lockedCharacter != null && Vector3.Distance(lockedCharacter.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+                    if(lockedCharacter != null && primaryMovementNeeded)
                     {
                         currentPrimaryComboStep = 0;
+                        tempWindingup = true;
+                        timeLastPrimary = Mathf.Infinity;
+                    }
+                    else
+                    {
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
                     }
 
-                    timeLastPrimary = Time.time;
 
                     guardAnimator.SwitchState("PrimaryAttack", currentPrimaryComboStep);
                     yield return StartCoroutine(guardAnimator.WaitForDelay("PrimaryAttack", currentPrimaryComboStep));
@@ -283,7 +290,8 @@ public class Guard : Enemy
 
         if (playerControlling)
         {
-            if (tempLockedChar != null && Vector3.Distance(tempLockedChar.transform.position, this.gameObject.transform.position) > moveToTargetDistance)
+            aiControlledOnPrimary = false;
+            if (tempWindingup)
             {
                 inPrimaryWindup = true;
                 attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
@@ -295,6 +303,7 @@ public class Guard : Enemy
         }
         else
         {
+            aiControlledOnPrimary = true;
             inPrimaryWindup = true;
             attackStateCoroutine = StartCoroutine(LanceWindup(tempLockedChar));
         }
@@ -370,7 +379,6 @@ public class Guard : Enemy
             transform.DOLookAt(targetPos, chaseTime * dis);
 
             float timeStarted = Time.time;
-            timeLastPrimary = Time.time + chaseTime * dis * counterWindowLength;
 
             if (playerControlling)
             {
@@ -391,10 +399,16 @@ public class Guard : Enemy
                     DOTween.Kill(gameObject); // Kill tweens if we are too close
                     targetPos = transform.position;
                     guardAnimator.ExitPrimaryWindup();
+                    triggerSet = true;
+                    tempWindingup = false;
+                    timeLastPrimary = Time.time;
                 }
                 else if (tempLockedCharacter == null)
                 {
                     guardAnimator.ExitPrimaryWindup();
+                    triggerSet = true;
+                    tempWindingup = false;
+                    timeLastPrimary = Time.time;
                 }
 
                 if (Time.time - timeStarted >= counterWindowLength * chaseTime * dis) //  not dodgable
@@ -403,6 +417,8 @@ public class Guard : Enemy
                     {
                         guardAnimator.ExitPrimaryWindup();
                         triggerSet = true;
+                        tempWindingup = false;
+                        timeLastPrimary = Time.time;
                     }
 
                     if (counterIndicatorVFX != null)
@@ -413,7 +429,7 @@ public class Guard : Enemy
                 }
                 else // attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -435,6 +451,9 @@ public class Guard : Enemy
         if (!triggerSet)
         {
             guardAnimator.ExitPrimaryWindup();
+            triggerSet = true;
+            tempWindingup = false;
+            timeLastPrimary = Time.time;
         }
 
         if (counterIndicatorVFX != null)
@@ -463,8 +482,9 @@ public class Guard : Enemy
             yield return null;
         }
 
-        if (!playerControlling)
+        if (aiControlledOnPrimary)
         {
+            SetMovementValues(true);
             if (!hitCharacter) // If missed, vulnerable for half a second
             {
                 float timeStart = Time.time;
@@ -477,8 +497,7 @@ public class Guard : Enemy
 
             guardAnimator.EndPrimary();
         }
-
-        SetMovementValues(true);
+        
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;
@@ -564,7 +583,8 @@ public class Guard : Enemy
             }
         }
 
-        SetMovementValues(true);
+        if(aiControlledOnPrimary)
+            SetMovementValues(true);
 
         attackState = AttackState.Neutral;
         pathState = PathState.Unset;

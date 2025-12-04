@@ -52,8 +52,6 @@ public class Dryad : Enemy
     private float lowHealthAggroActive = 17.5f; // half of the dryad health
     [Tooltip("Dryad animator script that controls the dryad animations")]
     protected DryadAnimator dryadAnimator;
-    [SerializeField, Tooltip("If this dryad was ai controlled when it started its primary attack")]
-    bool aiControlledOnPrimary = false;
 
     void Start()
     {
@@ -111,6 +109,15 @@ public class Dryad : Enemy
                 enemy.SetTargeted(true);
             }
         }
+
+        if(playerControlling)
+        {
+            aiControlledOnPrimary = false;
+        }
+        else
+        {
+            aiControlledOnPrimary = true;
+        }
         attackingPrimary = true;
         attackStateCoroutine = StartCoroutine(ThrowDart(lockedCharacter));
     }
@@ -136,7 +143,7 @@ public class Dryad : Enemy
         {
             if (playerControlling)
             {
-                if( (currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
+                if((currentPrimaryComboStep == -1 || Time.time - timeLastPrimary >= primaryComboMinTime[currentPrimaryComboStep] / dryadAnimator.GetPrimaryComboMult(currentPrimaryComboStep)))
                 {
                     health.SubHealth(primaryAttackCost, this);
 
@@ -157,7 +164,6 @@ public class Dryad : Enemy
             {
                 if (!attackingPrimary)
                 {
-                    aiControlledOnPrimary = true;
                     attackingPrimary = true;
                     currentPrimaryComboStep = 0;
                     timeLastPrimary = Time.time;
@@ -359,8 +365,8 @@ public class Dryad : Enemy
             CameraController.instance.OnAttack(dir, 0.15f);
         }
 
-
-        SetMovementValues(true);
+        if(aiControlledOnPrimary)
+            SetMovementValues(true);
 
         if (tempLockedCharacter)
         {
