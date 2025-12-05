@@ -109,6 +109,8 @@ public class Goblin : Enemy
 
     protected override void FixedUpdate()
     {
+
+        base.FixedUpdate();
         CreateLocalInvalidArea();
         ResetAttackingArea();
         ManageSurrounding();
@@ -131,8 +133,6 @@ public class Goblin : Enemy
         SetAIState();
 
         SetBehavior();
-
-        base.FixedUpdate();
     }
 
     /// <summary>

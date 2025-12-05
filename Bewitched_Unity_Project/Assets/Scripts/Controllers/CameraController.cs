@@ -66,7 +66,6 @@ public class CameraController : MonoBehaviour
     public void SetInCombat(bool val)
     {
         inCombat = val;
-        UpdateCam();
     }
 
     /// <summary>
@@ -176,6 +175,11 @@ public class CameraController : MonoBehaviour
         if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
     }
 
+    private void Update()
+    {
+        UpdateCam();
+    }
+
     /// <summary>
     /// Updates camera priorities based on whether the player is aiming.
     /// Prevents switching while in a transition.
@@ -275,7 +279,6 @@ public class CameraController : MonoBehaviour
     {
         yield return new WaitForSeconds(TRANSITION_TIME);
         transitioning = false;
-        UpdateCam();
     }
 
     /// <summary>
