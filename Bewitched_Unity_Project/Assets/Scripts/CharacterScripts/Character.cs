@@ -890,7 +890,10 @@ public abstract class Character : MonoBehaviour
 
         if (hit.gameObject.layer == environmentLayer) // If colliding with environment, reset impact
         {
-            GetComponent<KnockbackControl>().ResetImpact();
+            if (GetComponent<KnockbackControl>() != null)
+            {
+                GetComponent<KnockbackControl>().ResetImpact();
+            }
         }
     }
 
@@ -954,7 +957,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void ApplyGravity()
     {
-        if (!GetCharacterController().isGrounded)
+        if (GetCharacterController() != null && !GetCharacterController().isGrounded)
         {
             gravVelocity += Vector3.down * Physics.gravity.y * Time.fixedDeltaTime;
             GetCharacterController().Move(gravVelocity * Time.fixedDeltaTime);
