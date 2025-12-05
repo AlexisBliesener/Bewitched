@@ -959,7 +959,7 @@ public abstract class Character : MonoBehaviour
     {
         if (GetCharacterController() != null && !GetCharacterController().isGrounded)
         {
-            gravVelocity += Vector3.down * Physics.gravity.y * Time.fixedDeltaTime;
+            gravVelocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
             GetCharacterController().Move(gravVelocity * Time.fixedDeltaTime);
         }
         else
