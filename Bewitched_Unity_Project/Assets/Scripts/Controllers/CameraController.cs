@@ -207,14 +207,9 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        if(context.started)
-        {
-            looking = true;
-        }
-        else if(context.canceled)
-        {
-            looking = false;
-        }
+        Vector2 lookInput = context.ReadValue<Vector2>();
+
+        looking = lookInput != Vector2.zero;
     }
 
     /// <summary>
