@@ -405,6 +405,7 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void ReviveEnemy(EventEnemy eventEnemy)
     {
+        Debug.Log("revive");
         float healthbefore = eventEnemy.GetEnemy().health.GetHealth();
         eventEnemy.GetEnemy().health.SetHealthToMax();
         eventEnemy.SetState(EventEnemy.EventEnemyState.Attacking);

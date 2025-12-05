@@ -44,8 +44,7 @@ public class EventEnemy : MonoBehaviour
             case EventEnemyState.Attacking:
                 enemyForEvent.TransitionToState(Enemy.AIMovementState.Chasing);
                 break;
-            case EventEnemyState.Dizzy:
-                Debug.Log("Dizzy");
+            case EventEnemyState.Dizzy:;
                 enemyForEvent.TransitionToState(Enemy.AIMovementState.Blocked);
                 break;
             case EventEnemyState.Possessed:

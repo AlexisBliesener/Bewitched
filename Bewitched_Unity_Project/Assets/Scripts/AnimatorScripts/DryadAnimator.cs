@@ -17,6 +17,7 @@ public class DryadAnimator : CharacterAnimator
     protected float secondaryWindupSpeedMultEnemy = 1f;
     [Tooltip("The dryad script for this ogre animator")]
     private Dryad dryadScript;
+    private bool tempDeath = false;
 
     private void Start()
     {
@@ -33,6 +34,40 @@ public class DryadAnimator : CharacterAnimator
             return secondaryWindupSpeedMultPlayer;
         else
             return secondaryWindupSpeedMultEnemy;
+    }
+
+    public override IEnumerator SetHit()
+    {
+        if (animator != null)
+        {
+            if (!overriding && !tempDeath)
+            {
+                if (character.GetComponent<Enemy>() != null)
+                {
+                    character.GetComponent<Enemy>().ResetComboStep();
+                    animator.SetFloat("PrimaryCombo", -1);
+                }
+                currentAnimationState = "Hit";
+                ResetAllTriggers();
+                animator.SetFloat("HitSpeedMult", hitStunMult);
+                canChange = false;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(false);
+                }
+                animator.SetTrigger("Hit");
+                yield return new WaitForSeconds(0.12f / hitStunMult);
+                canChange = true;
+                if (character == PlayerController.instance.currentCharacter)
+                {
+                    PlayerController.instance.SetAllowMovement(true);
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Animator is not assigned!");
+        }
     }
 
     /// <summary>
@@ -84,6 +119,8 @@ public class DryadAnimator : CharacterAnimator
     {
         ResetAllTriggers();
         animator.SetTrigger("TempDeath");
+        canChange = false;
+        tempDeath = true;
     }
 
     /// <summary>
@@ -94,6 +131,7 @@ public class DryadAnimator : CharacterAnimator
         ResetAllTriggers();
         animator.SetTrigger("Revive");
         canChange = true;
+        tempDeath = false;
     }
 
     /// <summary>

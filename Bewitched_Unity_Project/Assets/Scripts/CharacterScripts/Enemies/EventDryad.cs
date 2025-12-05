@@ -8,8 +8,10 @@ public class EventDryad : Dryad
     {
         // since we don't want the dryad to die, we will just ovveride the die function and make it do nothing, mayve for animation later? 
         // TransitionToState(AIMovementState.Blocked);
+        dead = true;
         dryadAnimator.TempDeath();
-        stunned = false; 
+        stunned = false;
+        GetCharacterController().enabled = false;
     }
 
     /// <summary>
@@ -18,6 +20,8 @@ public class EventDryad : Dryad
     /// </summary>
     public void Revive()
     {
+        dead = false;
+        GetCharacterController().enabled = true;
         dryadAnimator.Revive();
     }
 
