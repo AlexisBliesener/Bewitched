@@ -233,7 +233,7 @@ public class PlayerController : MonoBehaviour
                     velocity = Vector3.zero;
                 }
 
-                velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
+                //velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
 
                 characterController.Move(velocity * Time.fixedDeltaTime);
                 //if (!CameraController.GetIsAiming())
