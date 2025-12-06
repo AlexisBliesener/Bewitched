@@ -354,8 +354,8 @@ public class Guard : Enemy
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange);
-            float buffer = sizeRadius + lanceRange;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange - 1.5f);
+            float buffer = sizeRadius + lanceRange - 1.5f;
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
