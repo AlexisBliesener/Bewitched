@@ -112,7 +112,7 @@ public class CharacterAnimator : MonoBehaviour
         return hitStunMult;
     }
 
-    public IEnumerator SetHit()
+    public virtual IEnumerator SetHit()
     {
         if(animator != null)
         {
