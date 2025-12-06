@@ -12,19 +12,19 @@ public class Guard : Enemy
     [SerializeField] GameObject lanceHandlePrefab;
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
-    [Tooltip("Thrust Speed"), ReadOnly]
-    [SerializeField] float thrustSpeed = 20;
+    [Tooltip("Thrust Speed")]
+    [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Lance Handle Damage")]
-    [SerializeField] float lanceHandleDamage = 20;
+    [SerializeField] float[] lanceHandleDamage = { 10 };
     [Tooltip("Lance Tip Damage")]
-    [SerializeField] float lanceTipDamage = 5;
+    [SerializeField] float[] lanceTipDamage = { 10 };
     [Tooltip("Lance Thrust Duration")]
     [SerializeField] float lanceDuration = 0.5f;
     [Tooltip("Lance range")]
     [SerializeField] float lanceRange = 1.2f;
 
-    [SerializeField] AttackStatusEffects lanceTipEffects;
-    [SerializeField] AttackStatusEffects lanceHandleEffects;
+    [SerializeField] AttackStatusEffects[] lanceTipEffects;
+    [SerializeField] AttackStatusEffects[] lanceHandleEffects;
 
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
@@ -463,11 +463,11 @@ public class Guard : Enemy
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
-        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: lanceHandleEffects[currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
-        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage[currentPrimaryComboStep], status: lanceTipEffects[currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
         lanceTip.transform.position += transform.right * 0.25f;
 
@@ -529,11 +529,11 @@ public class Guard : Enemy
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
-        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage[currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep], status: lanceHandleEffects[currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
-        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage[currentPrimaryComboStep], status: lanceTipEffects[currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
         lanceTip.transform.position += transform.right * 0.25f;
 
