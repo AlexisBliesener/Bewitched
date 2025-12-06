@@ -33,6 +33,10 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("How many nodes can be searched before the next frame is played")]
     [SerializeField] int nodesSearchedPerFrame = 60;
+    [Tooltip("Boss rush AI speed multiplier"), Range(0, 1)]
+    [SerializeField] float bossRushSpeedMult = 0.25f;
+    [Tooltip("Max number of agents allowed to search at a time")]
+    [SerializeField] int maxSearchAgents = 4;
     [Tooltip("How many tries an agent gets to search before it is skipped")]
     [SerializeField] int maxAgentAttempts = 3;
 
@@ -124,6 +128,9 @@ public class GraphBuilder : MonoBehaviour
 
     [Tooltip("List of boss enemies")]
     private List<Enemy> bossEnemies = new List<Enemy>();
+
+    [Tooltip("Enemies needing to search")]
+    List<Enemy> enemiesNeedingPath = new List<Enemy>();
 
     // Start is called before the first frame update
     void Start()
@@ -707,6 +714,22 @@ public class GraphBuilder : MonoBehaviour
     }
 
     /// <summary>
+    /// Tells if an enemy is in the searching dictionary and is true or false
+    /// </summary>
+    /// <param name="enemy"> Enemy to check </param>
+    /// <returns> True if enemy is not searching </returns>
+    public bool EnemyCanSearch(Enemy enemy)
+    {
+        if (enemy == null) return false;
+        if (enemySearches.ContainsKey(enemy))
+        {
+            if (enemySearches[enemy]) return false;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Runs across frames - collects enemy and queues them by priority
     /// A* search is then run for each character
     /// After 0.5 seconds, run again
@@ -719,28 +742,54 @@ public class GraphBuilder : MonoBehaviour
 
         while (true)
         {
+            List<Enemy> tempEnemies = new List<Enemy>();
             int tempNumSearchers = 0;
-            List<Enemy> enemies = new List<Enemy>();
+            foreach (Enemy enemy in enemySearches.Keys)
+            {
+                if (!EnemyCanSearch(enemy)) tempNumSearchers++;
+                else if (!enemiesNeedingPath.Contains(enemy)) enemiesNeedingPath.Add(enemy);
+            }
             RoomController roomController = RoomSystem.Instance.GetActiveRoomController();
             if (roomController != null)
             {
-                enemies = new List<Enemy>(RoomSystem.Instance.GetActiveRoomController().roomEnemies);
+                tempEnemies = new List<Enemy>(RoomSystem.Instance.GetActiveRoomController().roomEnemies);
             }
             foreach (Enemy enemy in bossEnemies)
             {
-                if (!enemies.Contains(enemy)) enemies.Add(enemy);
+                if (!tempEnemies.Contains(enemy)) tempEnemies.Add(enemy);
             }
 
-            foreach (Enemy enemy in enemies)
+            foreach (Enemy enemy in tempEnemies)
             {
-                if (enemy != null && enemy.gameObject.activeInHierarchy)
+                if (EnemyCanSearch(enemy) && !enemiesNeedingPath.Contains(enemy))
                 {
-                    if (!enemySearches.ContainsKey(enemy) || !enemySearches[enemy])
-                    {
-                        StartCoroutine(enemy.FindPath());
-                    }
-                    tempNumSearchers++;
+                    enemiesNeedingPath.Add(enemy);
                 }
+            }
+
+            List<Enemy> enemiesToRemove = new List<Enemy>();
+            if (tempNumSearchers < maxSearchAgents)
+            {
+                foreach (Enemy enemy in enemiesNeedingPath)
+                {
+                    if (enemy != null && enemy.gameObject.activeInHierarchy)
+                    {
+                        if (EnemyCanSearch(enemy))
+                        {
+                            StartCoroutine(enemy.FindPath());
+                            enemiesToRemove.Add(enemy);
+                        }
+                        tempNumSearchers++;
+                        if (tempNumSearchers >= maxSearchAgents)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            foreach (Enemy enemy in enemiesToRemove)
+            {
+                enemiesNeedingPath.Remove(enemy);
             }
             numSearchers = tempNumSearchers;
             iter++;
