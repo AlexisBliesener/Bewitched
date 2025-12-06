@@ -4,6 +4,7 @@ using FMODUnity;
 using NaughtyAttributes;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 public class Dryad : Enemy
 {
     [Header("Dryad Prefabs/Effects")]
@@ -65,7 +66,7 @@ public class Dryad : Enemy
 
     protected override void FixedUpdate()
     {
-
+        base.FixedUpdate();
         Vector3 currentRotation = transform.eulerAngles;
         currentRotation.x = 0;
         currentRotation.z = 0;
@@ -89,8 +90,6 @@ public class Dryad : Enemy
         SetBehavior();
 
         SetDebugString();
-
-        base.FixedUpdate();
     }
 
     /// <summary>

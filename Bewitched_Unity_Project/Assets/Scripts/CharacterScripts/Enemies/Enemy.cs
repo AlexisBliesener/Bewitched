@@ -19,6 +19,8 @@ public abstract class Enemy : Character
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
+    [SerializeField, Tooltip("The scale the possession target VFX will be on this enemy")]
+    private Vector3 possessionVFXScale;
 
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
@@ -224,6 +226,11 @@ public abstract class Enemy : Character
         counterIndicatorVFX = null;
     }
 
+    public Vector3 GetPossessionTargetVFXScale()
+    {
+        return possessionVFXScale;
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -287,9 +294,9 @@ public abstract class Enemy : Character
         }
     }
 
-    protected virtual void FixedUpdate()
+    protected override void FixedUpdate()
     {
-
+        base.FixedUpdate();
     }
 
     /// <summary>
@@ -379,7 +386,6 @@ public abstract class Enemy : Character
             velocity = Vector3.zero;
         }
 
-        velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
@@ -473,6 +479,8 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
+        //Death sound effect
+        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -1114,11 +1122,7 @@ public abstract class Enemy : Character
     public virtual void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if(health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());

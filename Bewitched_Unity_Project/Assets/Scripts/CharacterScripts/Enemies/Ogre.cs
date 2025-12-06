@@ -82,6 +82,7 @@ public class Ogre : Enemy
 
     protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         Vector3 currentRotation = transform.eulerAngles;
         currentRotation.x = 0;
         currentRotation.z = 0;
@@ -108,8 +109,6 @@ public class Ogre : Enemy
         {
             lockedCharacter = currentPlayer = playerController.GetCurrentCharacter(); ;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>
@@ -321,7 +320,7 @@ public class Ogre : Enemy
                 }
                 else // First 3 quarters, attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = offsetAttackIndicator;
@@ -883,11 +882,7 @@ public class Ogre : Enemy
     public override void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if (health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());

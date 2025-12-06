@@ -163,7 +163,7 @@ public class NarrativeStatePopup : MonoBehaviour
     public void ShowNarrativePanel(NarrativeState state, string text = null)
     {
         // if the state is the same and the time since the last state is less than the repeat delay
-        if (currentState == state && ((timeStarted != 0f && Time.time - timeStarted < sameStateRepeatDelay) || GetListByState(state).Count <= 1)) return;
+        if (currentState == state && ((timeStarted != 0f && Time.time - timeStarted < sameStateRepeatDelay) || (text == null && GetListByState(state).Count <= 1))) return;
         if (IsLowerPriority(state, currentState))
         {
             if (statesAllowedToQueue.Contains(state))

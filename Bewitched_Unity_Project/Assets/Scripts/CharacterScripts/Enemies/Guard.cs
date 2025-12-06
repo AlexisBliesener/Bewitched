@@ -173,6 +173,7 @@ public class Guard : Enemy
     // Update is called once per frame
     protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         if (dead || lobotimzed) return;
         ManageSurrounding();
         ResetAttackingArea();
@@ -190,8 +191,6 @@ public class Guard : Enemy
         {
             lockedCharacter = currentPlayer;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>
@@ -429,7 +428,7 @@ public class Guard : Enemy
                 }
                 else // attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);

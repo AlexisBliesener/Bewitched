@@ -182,6 +182,9 @@ public abstract class Character : MonoBehaviour
     [Tooltip("Tells the animator to set the run animation if this is true, or idle animation when false, can be overriden by the animator")]
     protected bool animateMove = false;
 
+    [Tooltip("Downward velocity due to gravity")]
+    protected Vector3 gravVelocity;
+
     /// <summary>
     /// The different attacking states a character can have
     /// </summary>
@@ -887,7 +890,10 @@ public abstract class Character : MonoBehaviour
 
         if (hit.gameObject.layer == environmentLayer) // If colliding with environment, reset impact
         {
-            GetComponent<KnockbackControl>().ResetImpact();
+            if (GetComponent<KnockbackControl>() != null)
+            {
+                GetComponent<KnockbackControl>().ResetImpact();
+            }
         }
     }
 
@@ -944,5 +950,29 @@ public abstract class Character : MonoBehaviour
             yield return null;
         }
         health.SubHealth(amount, this);
+    }
+
+    /// <summary>
+    /// Applies gravity regardless of velocity
+    /// </summary>
+    public void ApplyGravity()
+    {
+        if (GetCharacterController() != null && !GetCharacterController().isGrounded)
+        {
+            gravVelocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
+            GetCharacterController().Move(gravVelocity * Time.fixedDeltaTime);
+        }
+        else
+        {
+            gravVelocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>
+    /// Fixed update, applies gravity to all characters
+    /// </summary>
+    protected virtual void FixedUpdate()
+    {
+        ApplyGravity();
     }
 }

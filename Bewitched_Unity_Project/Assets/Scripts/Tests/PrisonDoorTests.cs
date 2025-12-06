@@ -93,8 +93,8 @@ public class PrisonDoorTests
     [UnityTest]
     public IEnumerator Unlock_ShouldDisableColliderHalfway_AndMoveDoorUp()
     {
-        // Start with collider enabled
-        boxCollider.enabled = true;
+        // Lock the door first 
+        prisonDoor.Lock(); 
         Vector3 initialPos = doorModel.transform.position;
 
         prisonDoor.Unlock();
