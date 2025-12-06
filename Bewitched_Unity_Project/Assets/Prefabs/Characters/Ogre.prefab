@@ -729,13 +729,19 @@ MonoBehaviour:
     Path: event:/SoundEffects/Character/Ogre/OgreDeath
   batHitboxPrefab: {fileID: 3266930682550461916, guid: f9791627755f53043a950c79ed274ac2, type: 3}
   batPivot: {fileID: 326237258621897175, guid: f6d6591cea902ca4891bb476ce9ea268, type: 3}
-  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  batSwingEffects:
+  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  - {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   slamBatEffects: {fileID: 0}
   slamImpactEffects: {fileID: 0}
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
-  batSwingDamage: 20
-  batSwingAngle: 100
+  batSwingDamage:
+  - 30
+  - 30
+  batSwingAngle:
+  - 60
+  - 60
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50

@@ -14,7 +14,7 @@ public class Ogre : Enemy
     [SerializeField] GameObject batPivot;
 
     [Tooltip("Bat Swing Status Effects"), ShowIf(nameof(dev))]
-    [SerializeField] AttackStatusEffects batSwingEffects;
+    [SerializeField] AttackStatusEffects[] batSwingEffects;
 
     [Tooltip("Ogre Slam Bat Hitbox"), ShowIf(nameof(dev))]
     [SerializeField] GameObject slamHitboxPrefab;
@@ -30,9 +30,9 @@ public class Ogre : Enemy
     [Header("Ogre Settings")]
 
     [Tooltip("Bat Swing Damage")]
-    [SerializeField, Range(0, 100)] float batSwingDamage = 30f;
+    [SerializeField, Range(0, 100)] float[] batSwingDamage = { 30f };
     [Tooltip("Bat Swing Angle")]
-    [SerializeField, Range(0, 360)] float batSwingAngle = 60f;
+    [SerializeField, Range(0, 360)] float[] batSwingAngle = { 60f };
     [Header("Ogre Jump Settings")]
     [Tooltip("Ogre Jump Gravity")]
     [SerializeField, Range(0, 100)] float ogreJumpGravity = 40f;
@@ -361,20 +361,20 @@ public class Ogre : Enemy
         attackState = AttackState.Attacking;
         float timeSinceStarted = 0f;
 
-        SetCostlyAttackingCone(maxSurroundingRadius, batSwingAngle);
+        SetCostlyAttackingCone(maxSurroundingRadius, batSwingAngle[currentPrimaryComboStep]);
 
         Vector3 endForward = Vector3.zero;
         Vector3 startForward = Vector3.zero;
 
         if (currentPrimaryComboStep == 1)
         {
-            endForward = Quaternion.AngleAxis(batSwingAngle / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(-7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+            endForward = Quaternion.AngleAxis(batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
         }
         else
         {
-            endForward = Quaternion.AngleAxis(-batSwingAngle / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(7 * batSwingAngle / 8, Vector3.up) * transform.forward;
+            endForward = Quaternion.AngleAxis(-batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
         }
 
         GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
@@ -383,7 +383,7 @@ public class Ogre : Enemy
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
-        batHitboxHitbox.Init(this, dmg: batSwingDamage, status: batSwingEffects, attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        batHitboxHitbox.Init(this, dmg: batSwingDamage[currentPrimaryComboStep], status: batSwingEffects[currentPrimaryComboStep], attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
         RaycastHit hitInfo;
