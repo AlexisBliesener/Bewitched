@@ -218,12 +218,6 @@ public class Guard : Enemy
     /// </summary>
     public override IEnumerator BeginPrimary()
     {
-        while (shieldStatus != ShieldStatus.Lowered)
-        {
-            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
-            yield return null;
-        }
-
         if (gameObject != null)
         {
             if (playerControlling)
@@ -313,6 +307,12 @@ public class Guard : Enemy
     /// </summary>
     public IEnumerator LanceWindup(Character tempLockedCharacter)
     {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
+            yield return null;
+        }
+
         inCounter = false;
         attackState = AttackState.Windup;
         // save the current position to use the y value later
@@ -525,6 +525,12 @@ public class Guard : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
     {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
+            yield return null;
+        }
+
         guardAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
@@ -632,7 +638,7 @@ public class Guard : Enemy
     /// </summary>
     public IEnumerator RaiseShield()
     {
-        if (shieldStatus == ShieldStatus.Lowering || shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) yield break;
+        if (shieldStatus == ShieldStatus.Lowering || shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising || attackingPrimary) yield break;
         shieldStatus = ShieldStatus.Raising;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < shieldRaiseTime)
@@ -968,7 +974,10 @@ public class Guard : Enemy
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
-        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling)
+        float normalAngle = Mathf.Clamp01(angle / aiShieldAngleThreshold);
+        float normalDist = Mathf.Clamp01(dist / (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
+        float score = normalAngle + normalDist;
+        if (score < 1 && attackState == AttackState.Neutral && !playerControlling)
         {
             if (shieldStatus == ShieldStatus.Lowered)
             {
