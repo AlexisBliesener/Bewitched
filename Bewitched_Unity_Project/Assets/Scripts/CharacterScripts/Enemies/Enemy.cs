@@ -305,6 +305,7 @@ public abstract class Enemy : Character
 
     protected override void FixedUpdate()
     {
+        EnsureInRoom();
         base.FixedUpdate();
     }
 
@@ -1221,5 +1222,19 @@ public abstract class Enemy : Character
             }
             attackingCostlyNodes = new Dictionary<List<int>, int>();
         }
+    }
+
+    /// <summary>
+    /// Ensures the enemy is inside the room it is supposed to be in (and not in the walls)
+    /// </summary>
+    public void EnsureInRoom()
+    {
+        if(GraphBuilder.instance == null)
+        {
+            Debug.LogWarning("Graph Builder instance is not assigned!");
+            return;
+        }
+        Vector3 closest = GraphBuilder.instance.FindClosestNode(transform.position, this).GetPosition(gameObject);
+        if ((closest - transform.position).magnitude > 1) transform.position = closest;
     }
 }
