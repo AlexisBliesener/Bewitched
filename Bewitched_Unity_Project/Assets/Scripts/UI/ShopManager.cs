@@ -32,7 +32,7 @@ public class ShopManager : MonoBehaviour
     private Button[] buyUpgradeButtons;
     [Tooltip("List of placeholder buttons for the upgrades that can be sold")]
     private Button[] sellUpgradeButtons;
-    
+
     [Header("Pop-ups")]
     [Tooltip("Pop up text for when the player has insufficient funds to buy an upgrade.")]
     public GameObject NoSoulText;
@@ -40,6 +40,8 @@ public class ShopManager : MonoBehaviour
     public GameObject descriptionGO;
     [Tooltip("Description text, child of descriptionGO.")]
     private TMP_Text descriptionText;
+    [Tooltip("The slot that the last bought evocation came from")]
+    private Button lastBuyButton;
 
     /// <summary>
     /// It sets the instance of the ShopManager class. And allow only one instance of the class.
@@ -174,6 +176,93 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Restores an upgrade to the last button that was bought from
+    /// </summary>
+    /// <param name="data">The upgrade to restore</param>
+    public void RestoreUpgrade(DropData data)
+    {
+        Debug.Log(lastBuyButton.name);
+        Debug.Log(data.GetDropName());
+        // Attach button text for name and price
+        TMP_Text[] buttonText = lastBuyButton.GetComponentsInChildren<TMP_Text>(true);
+        foreach (var t in buttonText)
+        {
+            if (t != null)
+            {
+                if (t.name == "Name")
+                {
+                    t.text = data.GetDropName();
+                }
+                else if (t.name == "BuyPrice")
+                {
+                    t.text = data.GetBuyAmount().ToString();
+                }
+
+            }
+            else
+            {
+                Debug.LogWarning($"Cannot attach drop name {data.GetDropName()} and drop price {data.GetBuyAmount()} to button");
+            }
+        }
+
+        // Attach button icon
+        Image buttonIcon = lastBuyButton.GetComponent<Image>();
+        if (buttonIcon != null)
+        {
+            buttonIcon.sprite = data.GetIcon();
+        }
+        else
+        {
+            Debug.LogWarning($"Cannot attach drop icon {data.GetDropName()} to button");
+        }
+
+        lastBuyButton.onClick.RemoveAllListeners();
+        lastBuyButton.onClick.AddListener(() =>
+        {
+            DropData chosenUpgrade = data;
+
+            if (DropSystem.Instance.BuyUpgrade(chosenUpgrade))
+            {
+                // Bought upgrade, gave souls
+                lastBuyButton.gameObject.SetActive(false);
+                UpdateSellOptions();
+                if (!EventSystem.current.currentSelectedGameObject.activeInHierarchy)
+                {
+                    SelectNextActiveButton(buyUpgradeButtons);
+                }
+            }
+            else
+            {
+                // Not enough souls to buy requested upgrade
+                ShowPopup(NoSoulText, 3f);
+            }
+        });
+
+        // Description Events
+        EventTrigger trigger = lastBuyButton.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = lastBuyButton.gameObject.AddComponent<EventTrigger>();
+        }
+        trigger.triggers.Clear();
+
+        lastBuyButton.gameObject.SetActive(true);
+
+        // OnSelect event (controller highlight or hover)
+        EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+        selectEntry.eventID = EventTriggerType.Select;
+        selectEntry.callback.AddListener((eventData) => { ShowDescription(data.GetDescription()); });
+        trigger.triggers.Add(selectEntry);
+
+        // OnDeselect event (leaving the button)
+        EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+        deselectEntry.eventID = EventTriggerType.Deselect;
+        deselectEntry.callback.AddListener((eventData) => { HideDescription(); });
+        trigger.triggers.Add(deselectEntry);
+
+    }
+
+    /// <summary>
     /// Updated the placeholder shop buttons with the name and icons of the random drops that can be bought.
     /// </summary>
     private void UpdateBuyOptions(List<DropData> options)
@@ -233,6 +322,7 @@ public class ShopManager : MonoBehaviour
                 if (DropSystem.Instance.BuyUpgrade(chosenUpgrade))
                 {
                     // Bought upgrade, gave souls
+                    lastBuyButton = buyUpgradeButtons[capturedIndex];
                     buyUpgradeButtons[capturedIndex].gameObject.SetActive(false);
                     UpdateSellOptions();
                     if (!EventSystem.current.currentSelectedGameObject.activeInHierarchy)
