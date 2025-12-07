@@ -215,6 +215,7 @@ public class EventSystemRoom2 : MonoBehaviour
                 if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
                 {
                     wall.enabled = true;
+                    lastStayingEnemy.GetComponent<EventDryad>().killDryad = true;
                     fightState = FightState.Finished;
                 }
                 break;
