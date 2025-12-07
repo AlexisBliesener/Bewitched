@@ -1215,6 +1215,11 @@ public abstract class Enemy : Character
     /// </summary>
     public void EnsureInRoom()
     {
+        if(GraphBuilder.instance == null)
+        {
+            Debug.LogWarning("Graph Builder instance is not assigned!");
+            return;
+        }
         Vector3 closest = GraphBuilder.instance.FindClosestNode(transform.position, this).GetPosition(gameObject);
         if ((closest - transform.position).magnitude > 1) transform.position = closest;
     }
