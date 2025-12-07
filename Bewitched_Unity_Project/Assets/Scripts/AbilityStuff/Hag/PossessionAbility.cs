@@ -140,6 +140,8 @@ public class PossessionAbility : MonoBehaviour
     private float timeCounterLocked = 0;
     [Tooltip("eleths animator script")]
     private ElethAnimator elethAnimator;
+    [Tooltip("True if the vfxs are disabled")]
+    private bool vfxDisabled = false;
 
     #region Saving/Loading
     /// <summary>
@@ -261,7 +263,7 @@ public class PossessionAbility : MonoBehaviour
         currentPossesionDistance = startingPossessionDistance;
         possessionCharge = hitsToCharge;
 
-        if(eleth != null)
+        if (eleth != null)
         {
             elethAnimator = eleth.GetComponent<ElethAnimator>();
         }
@@ -349,12 +351,26 @@ public class PossessionAbility : MonoBehaviour
         }
     }
 
-    private bool vfxDisabled = false;
+    /// <summary>
+    /// Enables or disables all possession-related VFX. 
+    /// When disabled, UpdateInPossessionVFX() will force all VFX off.
+    /// </summary>
+    /// <param name="val">True to disable VFX, false to enable them.</param>
     public void SetVFXDisabled(bool val)
     {
         vfxDisabled = val;
     }
 
+    /// <summary>
+    /// Updates which possession VFX should be active based on:
+    /// - Whether VFX are globally disabled
+    /// - Which character is currently controlled
+    /// - Whether the current character is dead
+    /// - Special handling for Eleth and the Old Hag
+    ///  
+    /// Ensures the correct VFX is shown for possession state,
+    /// and logs warnings if VFX references are missing.
+    /// </summary>
     private void UpdateInPossessionVFX()
     {
         if (vfxDisabled)
@@ -883,7 +899,7 @@ public class PossessionAbility : MonoBehaviour
         else
         {
             Debug.LogWarning("Possession Ability Slider is not Set!");
-        }  
+        }
     }
 
     /// Gets the base focus time for possession
