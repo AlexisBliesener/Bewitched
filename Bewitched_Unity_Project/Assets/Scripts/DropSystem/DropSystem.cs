@@ -140,6 +140,9 @@ public class DropSystem : MonoBehaviour
         if (upgradeSelectionUI != null)
         {
             upgradeSelectionUI.SetActive(true);
+            //Plays UpgradeOpen and ducks audio
+            AudioManager.TryPlayOneShot("UpgradeOpen");
+            AudioManager.OpenUIAudio(0.8f);
         }
         else
         {
@@ -261,6 +264,8 @@ public class DropSystem : MonoBehaviour
                 drop.IncreaseStack();
             }
             HUDManager.Instance.AddUpgrade(drop);
+            //Plays upgrade select sound effect
+            AudioManager.TryPlayOneShot("UpgradeSelect");
         }
         else
         {
@@ -353,15 +358,7 @@ public class DropSystem : MonoBehaviour
             Debug.LogWarning("HUDManager not assigned.");
         }
         //Sound Effect Implementation for sell sound effect
-        if (AudioManager.manager != null)
-        {
-            AudioManager.TryPlayOneShot("ShopSell", PlayerController.instance.currentCharacter.gameObject);
-        }
-        else
-        {
-            Debug.LogWarning("Audio Manager instance is null!");
-        }
-
+        if(refundSoul) AudioManager.TryPlayOneShot("ShopSell", PlayerController.instance.currentCharacter.gameObject);
         return true;
     }
 
@@ -373,6 +370,7 @@ public class DropSystem : MonoBehaviour
         if (PlayerController.instance == null || PlayerController.instance.GetHag() == null) return;
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
+        AudioManager.TryPlayOneShot("ShopSell");
     }
     /// <summary>
     /// This function will deactives the whole stack and activates the new upgrade
