@@ -723,10 +723,13 @@ public class GraphBuilder : MonoBehaviour
         if (enemy == null) return false;
         if (enemySearches.ContainsKey(enemy))
         {
-            if (enemySearches[enemy]) return false;
+            if (enemySearches[enemy])
+            {
+                return false;
+            }
             return true;
         }
-        return false;
+        return true;
     }
 
     /// <summary>

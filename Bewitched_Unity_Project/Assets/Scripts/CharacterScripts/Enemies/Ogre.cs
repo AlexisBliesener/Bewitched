@@ -368,13 +368,13 @@ public class Ogre : Enemy
 
         if (currentPrimaryComboStep == 1)
         {
-            endForward = Quaternion.AngleAxis(batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(-7 * batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            endForward = Quaternion.AngleAxis(batSwingAngle[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(-7 * batSwingAngle[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
         }
         else
         {
-            endForward = Quaternion.AngleAxis(-batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
-            startForward = Quaternion.AngleAxis(7 * batSwingAngle[currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            endForward = Quaternion.AngleAxis(-batSwingAngle[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
+            startForward = Quaternion.AngleAxis(7 * batSwingAngle[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep] / 8, Vector3.up) * transform.forward;
         }
 
         GameObject pivot = Instantiate(batPivot, transform.position + offsetPivotBat, transform.rotation, transform);
@@ -383,7 +383,7 @@ public class Ogre : Enemy
 
         GameObject batHitbox = Instantiate(batHitboxPrefab, pivot.transform);
         DefaultHitbox batHitboxHitbox = batHitbox.GetComponent<DefaultHitbox>();
-        batHitboxHitbox.Init(this, dmg: batSwingDamage[currentPrimaryComboStep], status: batSwingEffects[currentPrimaryComboStep], attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
+        batHitboxHitbox.Init(this, dmg: batSwingDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: batSwingEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: 0.542f / ogreAnimator.GetPrimaryComboMult(currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep));
         pivotHitbox.AttachHitbox(batHitboxHitbox);
 
         RaycastHit hitInfo;
