@@ -18,6 +18,7 @@ public class NarrativeStatePopup : MonoBehaviour
         PlayerPossessionDraining,
         BreakWallActivated,
         OgrePossessionAvailable,
+        DryadPossessionAvailable,
         NarrativeTrigger,
         RoomDoorsOpened,
         None
@@ -26,19 +27,26 @@ public class NarrativeStatePopup : MonoBehaviour
     private Dictionary<NarrativeState, int> lastUsedIndex = new Dictionary<NarrativeState, int>()
     {
         { NarrativeState.OgrePossessionAvailable, -1 },
+        { NarrativeState.DryadPossessionAvailable, -1 },
         { NarrativeState.PlayerPossessionDraining, -1 },
         { NarrativeState.RoomDoorsOpened, -1 },
         { NarrativeState.BreakWallActivated, -1 },
     };
 
     [SerializeField, Tooltip("Th priority states, the first is the most important and it will override the others")]
-    private List<NarrativeState> priorityStates = new List<NarrativeState>() { NarrativeState.PlayerPossessionDraining, NarrativeState.BreakWallActivated, NarrativeState.OgrePossessionAvailable, NarrativeState.NarrativeTrigger, NarrativeState.RoomDoorsOpened, NarrativeState.None};
+    private List<NarrativeState> priorityStates = new List<NarrativeState>() { 
+        NarrativeState.PlayerPossessionDraining, NarrativeState.BreakWallActivated, 
+        NarrativeState.OgrePossessionAvailable, NarrativeState.DryadPossessionAvailable, 
+        NarrativeState.NarrativeTrigger, NarrativeState.RoomDoorsOpened, 
+        NarrativeState.None};
     [SerializeField, Tooltip("States in this list will be queued if they trigger while a higher priority narrative is already active. They will automatically show once the high priority state finishes.")]
     private List<NarrativeState> statesAllowedToQueue = new List<NarrativeState>() {  NarrativeState.RoomDoorsOpened };
     [SerializeField, Tooltip("Player Possession Draining Texts"), TextArea(3, 10)]
     private List<string> playerPossessionDrainingTexts;
     [SerializeField, Tooltip("Ogre Possession Available Texts"), TextArea(3, 10)]
     private List<string> ogrePossessionAvailableTexts;
+    [SerializeField, Tooltip("Dryad Possession Available Texts"), TextArea(3, 10)]
+    private List<string> dryadPossessionAvailableTexts;
     [SerializeField, Tooltip("Room Doors Opened Texts"), TextArea(3, 10)]
     private List<string> roomDoorsOpenedTexts;
     [SerializeField, Tooltip("Break Wall Activated Texts"), TextArea(3, 10)]
@@ -208,6 +216,8 @@ public class NarrativeStatePopup : MonoBehaviour
         {
             case NarrativeState.OgrePossessionAvailable:
                 return ogrePossessionAvailableTexts;
+            case NarrativeState.DryadPossessionAvailable:
+                return dryadPossessionAvailableTexts;
             case NarrativeState.PlayerPossessionDraining:
                 return playerPossessionDrainingTexts;
             case NarrativeState.RoomDoorsOpened:

@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a0b0b79ea52a480eb041658ac9f7f2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  priorityStates: 000000000100000002000000030000000400000005000000
+  priorityStates: 00000000010000000200000003000000040000000500000006000000
   statesAllowedToQueue: 04000000
   playerPossessionDrainingTexts:
   - '"This body is out of power. I''m being drained.
@@ -53,6 +53,8 @@ MonoBehaviour:
     body."'
   ogrePossessionAvailableTexts:
   - He's weak! I have to take control of him now!
+  dryadPossessionAvailableTexts:
+  - 'Dryad possession available '
   roomDoorsOpenedTexts:
   - '"A way out opened. Forward..."'
   - '"A new pathway is available now."'
