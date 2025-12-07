@@ -181,8 +181,8 @@ public class ShopManager : MonoBehaviour
     /// <param name="data">The upgrade to restore</param>
     public void RestoreUpgrade(DropData data)
     {
-        Debug.Log(lastBuyButton.name);
-        Debug.Log(data.GetDropName());
+        SoulSystem.Instance.AddSouls(data.GetBuyAmount());
+
         // Attach button text for name and price
         TMP_Text[] buttonText = lastBuyButton.GetComponentsInChildren<TMP_Text>(true);
         foreach (var t in buttonText)
