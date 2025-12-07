@@ -138,6 +138,8 @@ public class PossessionAbility : MonoBehaviour
     private bool counterLocked = false;
     [Tooltip("The time counter was locked at")]
     private float timeCounterLocked = 0;
+    [Tooltip("eleths animator script")]
+    private ElethAnimator elethAnimator;
 
     #region Saving/Loading
     /// <summary>
@@ -258,6 +260,15 @@ public class PossessionAbility : MonoBehaviour
         currentPossessionAngle = startingPossessionAngle;
         currentPossesionDistance = startingPossessionDistance;
         possessionCharge = hitsToCharge;
+
+        if(eleth != null)
+        {
+            elethAnimator = eleth.GetComponent<ElethAnimator>();
+        }
+        else
+        {
+            Debug.LogWarning("Eleth is not set!");
+        }
 
         possessionCollider = GetComponentInChildren<PossessionCollider>();
 
@@ -407,7 +418,7 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started && possessionCharge == hitsToCharge && currentCharacter.attackState == Character.AttackState.Neutral)
+        if (!elethAnimator.GetInPossession() && context.started && possessionCharge == hitsToCharge && currentCharacter.attackState == Character.AttackState.Neutral)
         {
             eleth.AnimatePossess();
             StartCoroutine(FirePossession());
@@ -733,7 +744,7 @@ public class PossessionAbility : MonoBehaviour
         if (possessionAbilitySlider != null)
         {
             float progresss = possessionCharge;
-            if (possessionCharge < hitsToCharge && possessionChargeTime > 0f && !isPossessing)
+            if (possessionCharge < hitsToCharge && possessionChargeTime > 0f)
             {
                 progresss += Mathf.Clamp01((Time.time - possessionChargeTimer) / possessionChargeTime);
             }
@@ -865,6 +876,14 @@ public class PossessionAbility : MonoBehaviour
     public void SetHitsToCharge(int val)
     {
         hitsToCharge = val;
+        if (possessionAbilitySlider != null)
+        {
+            possessionAbilitySlider.maxValue = val;
+        }
+        else
+        {
+            Debug.LogWarning("Possession Ability Slider is not Set!");
+        }  
     }
 
     /// Gets the base focus time for possession
