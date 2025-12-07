@@ -141,8 +141,15 @@ public class DropSystem : MonoBehaviour
         {
             upgradeSelectionUI.SetActive(true);
             //Plays UpgradeOpen and ducks audio
-            AudioManager.TryPlayOneShot("UpgradeOpen");
-            AudioManager.OpenUIAudio(0.8f);
+            if (AudioManager.manager != null)
+            {
+                AudioManager.TryPlayOneShot("UpgradeOpen");
+                AudioManager.OpenUIAudio(0.8f);
+            }
+            else
+            {
+                Debug.LogWarning("Audio Manager is not assigned!");
+            }
         }
         else
         {
@@ -265,7 +272,14 @@ public class DropSystem : MonoBehaviour
             }
             HUDManager.Instance.AddUpgrade(drop);
             //Plays upgrade select sound effect
-            AudioManager.TryPlayOneShot("UpgradeSelect");
+            if (AudioManager.manager != null)
+            {
+                AudioManager.TryPlayOneShot("UpgradeSelect");
+            }
+            else
+            {
+                Debug.LogWarning("Audio Manager is not assigned!");
+            }
         }
         else
         {
@@ -358,7 +372,15 @@ public class DropSystem : MonoBehaviour
             Debug.LogWarning("HUDManager not assigned.");
         }
         //Sound Effect Implementation for sell sound effect
-        if(refundSoul) AudioManager.TryPlayOneShot("ShopSell", PlayerController.instance.currentCharacter.gameObject);
+        if(AudioManager.manager != null)
+        {
+            if (refundSoul) AudioManager.TryPlayOneShot("ShopSell", PlayerController.instance.currentCharacter.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("Audio Manager instance is null!");
+        }
+
         return true;
     }
 
