@@ -185,6 +185,12 @@ public class AnimationAudio : MonoBehaviour
         if (!possessed) return;
         StartOneShot(anim);
     }
+
+    public void StartOneShotOnPossessEvent(AnimationEvent anim)
+    {
+        if(!possessed && !isEventEnemy) return;
+        StartOneShot(anim);
+    }
     /// <summary>
     /// Stops a playing 
     /// </summary>
