@@ -49,7 +49,7 @@ public class AnimationAudio : MonoBehaviour
     void Start()
     {
         destroyCallback = new EVENT_CALLBACK(AnimationEventDestroyCallback);
-        animEvents = new();
+        animEvents=new();
         eventsPlaying = new();
         if (!character)
         {
@@ -213,6 +213,16 @@ public class AnimationAudio : MonoBehaviour
         return path;
     }
 
+    public static string GetPath(EventReference ev)
+    {
+        if (!ev.IsNull)
+        {
+            RuntimeManager.StudioSystem.lookupPath(ev.Guid,out string path);
+            return path;
+        }
+        return null;
+    }
+
     /// <summary>
     /// Registers destroy callback on the passed event instance and stores the animation clip name that started this event as user data.
     /// </summary>
@@ -303,10 +313,9 @@ public class AnimationAudio : MonoBehaviour
         AudioManager.TryGetReference(currentAnim.stringParameter,out EventReference evRef);
         foreach(var pair in animEvents)
         {
-            pair.Value.getDescription(out var description);
-            description.getPath(out string path);
+            string path = GetPath(pair.Value);
             //If this animation clip has the event we're looking for, move it
-            if (path == evRef.ToString())
+            if (path == GetPath(evRef))
             {
                 MoveEventWithStrings(clipName,pair.Key);
                 return;
@@ -314,6 +323,28 @@ public class AnimationAudio : MonoBehaviour
         }
         //If no animation clip is playing the event we want, start a new event instead.
         StartEvent(currentAnim);
+    }
+
+    void StopEventByName(string name)
+    {
+        if(animEvents.Count==0) return;
+        if(AudioManager.TryGetReference(name,out EventReference evRef))
+        {
+            
+            foreach(var pair in animEvents)
+            {
+                string refPath=GetPath(evRef);
+                string path=GetPath(pair.Value);
+                if (path == refPath)
+                {
+                    animEvents.Remove(pair.Key);
+                    pair.Value.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                    //Debug.LogError("STOPPED"+path);
+                    return;
+                }
+            }
+        }
+        else Debug.LogError("Given event name does not exist");
     }
 
     /// <summary>
