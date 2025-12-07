@@ -850,12 +850,12 @@ MonoBehaviour:
   m_BindingMode: 5
   m_SplineCurvature: 0.2
   m_Orbits:
-  - m_Height: 7.5
+  - m_Height: 3.3
     m_Radius: 2
-  - m_Height: 2.4
-    m_Radius: 5
-  - m_Height: 1.8
-    m_Radius: 6
+  - m_Height: 0.31
+    m_Radius: 3.16
+  - m_Height: -0.4
+    m_Radius: 2
   m_LegacyHeadingBias: 3.4028235e+38
   m_Rigs:
   - {fileID: -7915123920520235109}
@@ -885,12 +885,12 @@ MonoBehaviour:
   m_DistanceLimit: 10
   m_MinimumOcclusionTime: 0.3
   m_CameraRadius: 0.6
-  m_Strategy: 2
-  m_MaximumEffort: 6
-  m_SmoothingTime: 0.495
-  m_Damping: 2.43
-  m_DampingWhenOccluded: 1.14
-  m_OptimalTargetDistance: 0
+  m_Strategy: 0
+  m_MaximumEffort: 4
+  m_SmoothingTime: 0
+  m_Damping: 0
+  m_DampingWhenOccluded: 0
+  m_OptimalTargetDistance: 3
 --- !u!114 &680384686044171620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -904,7 +904,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lookAtPoint: {fileID: 0}
-  yOffset: 1.48
+  yOffset: 0.74
   xOffset: 1
   character: {fileID: 0}
 --- !u!1 &8752018961073673753

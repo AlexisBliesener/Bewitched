@@ -82,7 +82,7 @@ MonoBehaviour:
   primaryAnimationDelay:
   - 0
   - 0.05
-  - 0
+  - 0.5
   secondaryAnimationDelay: 0.5
   walkSpeedMult: 1
   idleSpeedMult: 1
@@ -91,9 +91,9 @@ MonoBehaviour:
   primaryWindupSpeedMultPlayer: 5
   primaryWindupSpeedMultEnemy: 0.96
   primaryComboSpeedMultPlayer:
-  - 1.3
-  - 1.3
-  - 1
+  - 1.8
+  - 1.8
+  - 1.7
   primaryComboSpeedMultEnemy:
   - 0.7
   - 0.7
@@ -137,20 +137,20 @@ MonoBehaviour:
   primaryCooldown: 0
   primaryAttackCost: 0
   primaryAICost: 2
-  secondaryCooldown: 0.25
-  secondaryAttackCost: 10
+  secondaryCooldown: 2
+  secondaryAttackCost: 15
   secondaryAICost: 6
   health: {fileID: 7573160092936169644}
   canPossess: 1
   primaryComboSteps: 3
   primaryComboResetTime:
   - 0.6
-  - 0.6
   - 0.7
+  - 0.9
   primaryComboMinTime:
   - 0.4
-  - 0.4
   - 0.5
+  - 0.7
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -234,7 +234,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 15
   offSetForward: 0.5
-  secondaryCounterWindow: 0
+  secondaryCounterWindow: 0.9
   spinDamage: 15
   spinDodgeDistance: 2
   spinDodgeInputTime: 0.75
@@ -248,8 +248,8 @@ MonoBehaviour:
   lowHealthAngleRange: 80
   maxDriftSpeed: 4
   maxSpinDeflectAngle: 20
-  minSpinDelay: 0.4
-  maxSpinDelay: 1.1
+  minSpinDelay: 0.9
+  maxSpinDelay: 0.9
   minPatrolDistance: 1
   maxPatrolDistance: 3
   communicationRange: 30

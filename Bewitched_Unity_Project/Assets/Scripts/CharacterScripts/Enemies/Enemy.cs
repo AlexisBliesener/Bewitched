@@ -280,6 +280,15 @@ public abstract class Enemy : Character
             Debug.LogWarning("Player controller is not set!");
         }
 
+        if (velocity.magnitude < 0.5f || pathState != PathState.Set || currentPath == null)
+        {
+            animateMove = false;
+        }
+        else
+        {
+            animateMove = true;
+        }
+
         // Sets if the enemy needs to do he windup and move part of the primary attack
         if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z),
             transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
@@ -296,6 +305,7 @@ public abstract class Enemy : Character
 
     protected override void FixedUpdate()
     {
+        EnsureInRoom();
         base.FixedUpdate();
     }
 
@@ -318,19 +328,19 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
-        animateMove = true;
-        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
+        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null)
+        {
+            return;
+        }
 
 
         if (pathState != PathState.Set)
         {
-            animateMove = false;
             return;
         }
         
         if (currentPath == null) // No path, decelerate to 0
         {
-            animateMove = false;
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
@@ -341,9 +351,14 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            animateMove = false;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
+
+            if (velocity.magnitude < 0.5f)
+            {
+                velocity = Vector3.zero;
+            }
+
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
         }
@@ -380,13 +395,13 @@ public abstract class Enemy : Character
             velocity = velocity.normalized * movementSpeed;
         }
 
-        if (velocity.magnitude < 0.01f)
+
+        if (velocity.magnitude < 0.5f)
         {
-            animateMove = false;
             velocity = Vector3.zero;
         }
 
-        GetCharacterController().Move(velocity * Time.deltaTime);
+         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
     /// <summary>
@@ -1207,5 +1222,19 @@ public abstract class Enemy : Character
             }
             attackingCostlyNodes = new Dictionary<List<int>, int>();
         }
+    }
+
+    /// <summary>
+    /// Ensures the enemy is inside the room it is supposed to be in (and not in the walls)
+    /// </summary>
+    public void EnsureInRoom()
+    {
+        if(GraphBuilder.instance == null)
+        {
+            Debug.LogWarning("Graph Builder instance is not assigned!");
+            return;
+        }
+        Vector3 closest = GraphBuilder.instance.FindClosestNode(transform.position, this).GetPosition(gameObject);
+        if ((closest - transform.position).magnitude > 1) transform.position = closest;
     }
 }

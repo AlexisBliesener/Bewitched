@@ -230,7 +230,7 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"No drop script found for drop {drop.GetDropName()}");
             return;
         }
-        ;
+        
         if (drop.GetDropScript().GetComponent<IDrop>() == null)
         {
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
@@ -401,6 +401,18 @@ public class DropSystem : MonoBehaviour
             SpawnDropPickup(PlayerController.instance.currentCharacter.transform.position);
             dropUpgrade = false;
         }
+    }
+    /// <summary>
+    /// Resets all evocations
+    /// </summary>
+    public void ResetDrops() // AKA Evoication..
+    {
+        foreach (DropData drop in playerUpgrades)
+        {
+            drop.Deactivate();
+            drop.ResetStack();
+        }
+        playerUpgrades.Clear();
     }
 
 

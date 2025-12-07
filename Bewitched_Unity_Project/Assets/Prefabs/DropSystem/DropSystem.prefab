@@ -48,6 +48,8 @@ MonoBehaviour:
   - 15
   - 30
   - 45
+  - 60
+  - 75
 --- !u!1 &1689055857934838755
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,11 +141,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   decreaseHealthPercent:
   - 50
-  - 75
-  - 87.5
+  - 70
+  - 80
+  - 85
+  - 90
   increaseDamagePercent:
   - 100
+  - 150
   - 200
+  - 250
   - 300
 --- !u!1 &5725360512968179944
 GameObject:
@@ -239,11 +245,13 @@ MonoBehaviour:
   - 1.25
   - 1.5
   - 2
+  - 2.5
   shieldDurations:
   - 5
   - 6
   - 7
   - 8
+  - 9
   shieldSlider: {fileID: 0}
   enemyHealthSlider: {fileID: 0}
 --- !u!1 &6538570816644836317
@@ -292,6 +300,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageMultiplier:
   - 1.25
+  - 1.5
+  - 1.75
+  - 2
+  - 2.5
   buffDuration: 5
   startFlashSpeed: 3
   endFlashSpeed: 8
@@ -342,19 +354,37 @@ MonoBehaviour:
   explosionRadiusMin:
   - 5
   - 7
+  - 9
+  - 11
+  - 13
   explosionRadiusMax:
   - 20
+  - 22.5
   - 25
+  - 27.5
+  - 30
   explosionMinDamage:
   - 15
   - 20
+  - 25
+  - 30
+  - 35
   explosionMaxDamage:
   - 75
-  - 100
+  - 90
+  - 105
+  - 120
+  - 135
   playerExplodeDamage:
   - 10
   - 10
+  - 11
+  - 11
+  - 12
   enemyExplosionTime:
+  - 1
+  - 1
+  - 1
   - 1
   - 1
   characters:
@@ -421,8 +451,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerUpgrades: []
-  dropChance: 40
-  salvageAmount: 10
+  dropChance: 30
+  salvageAmount: 20
   upgradeSelectionUI: {fileID: 0}
   swapUpgradeUI: {fileID: 0}
   pendingSwap:
@@ -489,7 +519,7 @@ MonoBehaviour:
     sellAmount: 20
   - dropName: Backup Plan
     description: Decrease the time it takes for the possession ability to recharge
-      when knocked out of an enemy.
+      when not possessing.
     dropID: 7
     icon: {fileID: 21300000, guid: d38e34d7b6ed46c4f945628cc810707f, type: 3}
     rarityIndex: 2
@@ -522,7 +552,7 @@ MonoBehaviour:
     buyAmount: 40
     sellAmount: 20
   - dropName: Glass Cannon
-    description: Half the Witch's total health. Increase all damage done by 100%
+    description: Cut the Witch's total health down. Increase all damage done by 50%
     dropID: 11
     icon: {fileID: 21300000, guid: ba70cc3706fcc9646834844fa0b07e2b, type: 3}
     rarityIndex: 1
@@ -594,6 +624,8 @@ MonoBehaviour:
   - 1.25
   - 1.5
   - 1.75
+  - 2
+  - 2.5
 --- !u!1 &8637887266863425160
 GameObject:
   m_ObjectHideFlags: 0
@@ -638,7 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e8151a7d8b3740f7af08eefaabb7b64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitsNeeded: 030000000200000001000000
+  hitsNeeded: 04000000030000000200000001000000
 --- !u!1 &8654940293131745072
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,7 +719,11 @@ MonoBehaviour:
   - 15
   - 20
   - 25
+  - 30
+  - 35
   stunDurationPercentPerStack:
   - 10
   - 15
   - 20
+  - 25
+  - 30
