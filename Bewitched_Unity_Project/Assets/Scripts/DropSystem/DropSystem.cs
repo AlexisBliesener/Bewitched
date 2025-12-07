@@ -402,6 +402,18 @@ public class DropSystem : MonoBehaviour
             dropUpgrade = false;
         }
     }
+    /// <summary>
+    /// Resets all evocations
+    /// </summary>
+    public void ResetDrops() // AKA Evoication..
+    {
+        foreach (DropData drop in playerUpgrades)
+        {
+            drop.Deactivate();
+            drop.ResetStack();
+        }
+        playerUpgrades.Clear();
+    }
 
 
     #region Saving/Loading
