@@ -261,7 +261,14 @@ public class PossessionAbility : MonoBehaviour
         currentPossesionDistance = startingPossessionDistance;
         possessionCharge = hitsToCharge;
 
-        elethAnimator = eleth.GetComponent<ElethAnimator>();
+        if(eleth != null)
+        {
+            elethAnimator = eleth.GetComponent<ElethAnimator>();
+        }
+        else
+        {
+            Debug.LogWarning("Eleth is not set!");
+        }
 
         possessionCollider = GetComponentInChildren<PossessionCollider>();
 
@@ -869,7 +876,14 @@ public class PossessionAbility : MonoBehaviour
     public void SetHitsToCharge(int val)
     {
         hitsToCharge = val;
-        possessionAbilitySlider.maxValue = val;
+        if (possessionAbilitySlider != null)
+        {
+            possessionAbilitySlider.maxValue = val;
+        }
+        else
+        {
+            Debug.LogWarning("Possession Ability Slider is not Set!");
+        }  
     }
 
     /// Gets the base focus time for possession
