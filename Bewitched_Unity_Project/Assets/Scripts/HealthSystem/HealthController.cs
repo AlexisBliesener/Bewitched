@@ -70,11 +70,14 @@ public class HealthController : MonoBehaviour
     [Tooltip("Holds the cororuntine playing the vignette hit effect")]
     private Coroutine vignetteHitCorountine;
 
+    [Tooltip("If true, this character is an event enemy")]
+    private bool isEventEnemy = false;
     private void Awake()
     {
         CurrentHealth = maxHealth;
         maxHealthBase = maxHealth;
         NotifyHealthChanged();
+        isEventEnemy = GetComponent<EventEnemy>();
     }
 
     private void Start()
@@ -131,6 +134,7 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Set current health directly. Clamped between 0 and max health.
     /// Does not trigger OnDamaged or OnHealed events, but will trigger OnDeath if set to zero.
+    /// If the character is an event enemy, it will set the health to max health
     /// </summary>
     public void SetCurrentHealth(float current)
     {
@@ -163,7 +167,6 @@ public class HealthController : MonoBehaviour
     public virtual void SubHealth(float amt, Character damageBy = null)
     {
         if (IsDead || amt <= 0f || invincible) return;
-
         float old = CurrentHealth;
         float finalDamage = amt;
         if(PlayerController.instance != null && PlayerController.instance.currentCharacter != GetCharacter())
@@ -183,7 +186,12 @@ public class HealthController : MonoBehaviour
                 Debug.LogWarning("Vamprism upgrade instance is not set!");
             }
         }
-        
+
+        // prevenet event enemy from dying (if this damage would kill the event enemy, it will be reduced to stays at 1 )
+        if (isEventEnemy && CurrentHealth - finalDamage <= 0)
+        {
+            finalDamage = Mathf.Max(CurrentHealth - 1, 0);  
+        }
         CurrentHealth = Mathf.Max(0f, CurrentHealth - finalDamage);
 
         if (CurrentHealth  == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag && PlayerController.instance.currentCharacter == GetComponent<Character>())
