@@ -415,6 +415,7 @@ public class EventSystemRoom2 : MonoBehaviour
         eventEnemy.GetEnemy().canPossess = false;
         eventEnemy.GetEnemy().lobotimzed = false;
         eventEnemy.GetEnemy().health.SetInvincible(false);
+        eventEnemy.GetEnemy().health.IsDead = false;
         eventEnemy.GetEnemy().GetComponent<EventDryad>().Revive();
         NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.DryadPossessionAvailable);
         // sharedCurrentHealth = Mathf.Min(healthTotal, sharedCurrentHealth + (healthTotal / Mathf.Max(1, enemiesEvent.Count)) - healthbefore); // add back the health of the revived enemy to the shared health (if it was last enemy then only add the reamining health of the max health..)

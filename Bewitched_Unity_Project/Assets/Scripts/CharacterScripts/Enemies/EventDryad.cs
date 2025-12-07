@@ -4,7 +4,7 @@ using FMOD.Studio;
 [RequireComponent(typeof(EventEnemy))]
 public class EventDryad : Dryad
 {
-    [Tooltip("If true, the dryad will die for real when Die is called")]
+    [Tooltip("If true, the dryad will die for real when Die is called"), HideInInspector]
     public bool killDryad = false;
     public override void Die()
     {
