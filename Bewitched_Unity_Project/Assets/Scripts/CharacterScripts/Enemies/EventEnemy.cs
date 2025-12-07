@@ -5,6 +5,7 @@ using UnityEngine;
 
 // This is the event enemy for the event system
 [RequireComponent(typeof(Enemy))]
+[DisallowMultipleComponent]
 public class EventEnemy : MonoBehaviour
 {
     [Tooltip("The enemy that is controlled by this event enemy")]
