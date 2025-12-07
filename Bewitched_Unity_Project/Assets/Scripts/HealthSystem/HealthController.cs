@@ -96,8 +96,8 @@ public class HealthController : MonoBehaviour
             IsDead = true;
             OnDeath?.Invoke(gameObject);
         }
-
-        if(isDraining && PlayerController.instance.currentCharacter == PlayerController.instance.oldHag)
+        
+        if(isDraining && (PlayerController.instance.currentCharacter == PlayerController.instance.oldHag || PlayerController.instance.currentCharacter != GetCharacter()))
         {
             isDraining = false;
 

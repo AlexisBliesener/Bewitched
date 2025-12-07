@@ -234,7 +234,7 @@ public class NarrativeStatePopup : MonoBehaviour
     /// <param name="newCharacter">The new character</param>
     private void OnCharacterControlChange(Character newCharacter)
     {
-        if (newCharacter == PlayerController.instance.oldHag && currentState == NarrativeState.PlayerPossessionDraining)
+        if (currentState == NarrativeState.PlayerPossessionDraining)
         {
             HideNarrativePanel(NarrativeState.PlayerPossessionDraining);
         }
