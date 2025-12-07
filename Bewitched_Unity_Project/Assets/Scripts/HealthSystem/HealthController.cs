@@ -134,7 +134,6 @@ public class HealthController : MonoBehaviour
     /// <summary>
     /// Set current health directly. Clamped between 0 and max health.
     /// Does not trigger OnDamaged or OnHealed events, but will trigger OnDeath if set to zero.
-    /// If the character is an event enemy, it will set the health to max health
     /// </summary>
     public void SetCurrentHealth(float current)
     {
