@@ -129,10 +129,7 @@ public class MainMenuManager : MonoBehaviour
     public void LoadLevel(string sceneName)
     {
         StartCoroutine(LoadLevelCoroutine(sceneName));
-        if (SoulSystem.Instance != null)
-        {
-            SoulSystem.Instance.ResetSouls();
-        }
+        ResetSystems();
     }
     /// <summary>
     /// Loads level with coroutine
@@ -152,6 +149,21 @@ public class MainMenuManager : MonoBehaviour
         while (!asyncOperation.isDone)
         {
             yield return null;
+        }
+    }
+
+    // <summary>
+    /// Resets all systems
+    /// </summary>
+    public void ResetSystems()
+    {
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetSouls();
+        }
+        if (DropSystem.Instance != null)
+        {
+            DropSystem.Instance.ResetDrops();
         }
     }
 }
