@@ -230,7 +230,7 @@ public class DropSystem : MonoBehaviour
             Debug.LogError($"No drop script found for drop {drop.GetDropName()}");
             return;
         }
-        ;
+        
         if (drop.GetDropScript().GetComponent<IDrop>() == null)
         {
             Debug.LogError($"Drop script {drop.GetDropScript().name} does not implement IDrop");
