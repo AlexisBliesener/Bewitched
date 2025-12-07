@@ -8,7 +8,6 @@ using UnityEngine.InputSystem.Interactions;
 /// <summary>
 /// This has to be attached to a character (player or enemy)
 /// </summary>
-[DisallowMultipleComponent]
 public class HealthController : MonoBehaviour
 {
     [Tooltip("File ending for saving/loading.")]

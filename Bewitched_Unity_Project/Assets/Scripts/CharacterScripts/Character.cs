@@ -11,7 +11,6 @@ using NaughtyAttributes;
 
 [RequireComponent(typeof(HealthController))]
 [RequireComponent(typeof(CharacterAnimator))]
-[DisallowMultipleComponent]
 public abstract class Character : MonoBehaviour
 {
     // Abstract class for characters in our game
