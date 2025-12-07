@@ -407,7 +407,6 @@ MonoBehaviour:
   rotationTime: 0.3
   possessionAbilitySlider: {fileID: 0}
   secondaryHealthBar: {fileID: 0}
-  crossHair: {fileID: 0}
   pulseScale: 1.15
   pulseTime: 0.25
   eleth: {fileID: 4187543847772924108}
@@ -777,6 +776,10 @@ PrefabInstance:
     - target: {fileID: 503252666731616131, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0.000000016486158
+      objectReference: {fileID: 0}
+    - target: {fileID: 1515034274812679110, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}
+      propertyPath: aimCam
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1847222282280203633, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1211,10 +1214,11 @@ PrefabInstance:
       value: -0.14109252
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8031855291452487708, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1847222282280203633, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}
-      insertIndex: 4
+      insertIndex: 3
       addedObject: {fileID: 6794094216723382213}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 66478bfb5308f024982e49dc629d2e30, type: 3}

@@ -19,6 +19,8 @@ public abstract class Enemy : Character
     public float minStopDistance = 0.5f;
     [Tooltip("Last seen time buffer"), Range(0, 10)]
     public float seenBuffer = 0.5f;
+    [SerializeField, Tooltip("The scale the possession target VFX will be on this enemy")]
+    private Vector3 possessionVFXScale;
 
     [Header("Sight Settings")]
     [Tooltip("Sight Range"), Range(0, 360)]
@@ -224,6 +226,11 @@ public abstract class Enemy : Character
         counterIndicatorVFX = null;
     }
 
+    public Vector3 GetPossessionTargetVFXScale()
+    {
+        return possessionVFXScale;
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -273,6 +280,15 @@ public abstract class Enemy : Character
             Debug.LogWarning("Player controller is not set!");
         }
 
+        if (velocity.magnitude < 0.5f || pathState != PathState.Set || currentPath == null)
+        {
+            animateMove = false;
+        }
+        else
+        {
+            animateMove = true;
+        }
+
         // Sets if the enemy needs to do he windup and move part of the primary attack
         if (!playerControlling || (lockedCharacter != null && Vector3.Distance(new Vector3(lockedCharacter.transform.position.x, transform.position.y, lockedCharacter.transform.position.z),
             transform.position) - lockedCharacter.sizeRadius - sizeRadius > moveToTargetDistance))
@@ -287,9 +303,10 @@ public abstract class Enemy : Character
         }
     }
 
-    protected virtual void FixedUpdate()
+    protected override void FixedUpdate()
     {
-
+        EnsureInRoom();
+        base.FixedUpdate();
     }
 
     /// <summary>
@@ -311,19 +328,19 @@ public abstract class Enemy : Character
     /// </summary>
     public void AIMove()
     {
-        animateMove = true;
-        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null) return;
+        if (aiState == AIMovementState.PlayerControlled || lobotimzed || dead || gameObject == null)
+        {
+            return;
+        }
 
 
         if (pathState != PathState.Set)
         {
-            animateMove = false;
             return;
         }
         
         if (currentPath == null) // No path, decelerate to 0
         {
-            animateMove = false;
             velocity -= velocity.normalized * deceleration * Time.deltaTime;
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
@@ -334,9 +351,14 @@ public abstract class Enemy : Character
 
         if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance + stoppingDistance)
         {
-            animateMove = false;
             if (Vector3.Distance(transform.position, currentPath.GetDestinationPosition(gameObject)) <= minStopDistance) velocity = Vector3.zero;
             else velocity -= velocity.normalized * deceleration * Time.deltaTime;
+
+            if (velocity.magnitude < 0.5f)
+            {
+                velocity = Vector3.zero;
+            }
+
             GetCharacterController().Move(velocity * Time.deltaTime);
             return;
         }
@@ -373,14 +395,13 @@ public abstract class Enemy : Character
             velocity = velocity.normalized * movementSpeed;
         }
 
-        if (velocity.magnitude < 0.01f)
+
+        if (velocity.magnitude < 0.5f)
         {
-            animateMove = false;
             velocity = Vector3.zero;
         }
 
-        velocity += Vector3.up * Physics.gravity.y * Time.deltaTime;
-        GetCharacterController().Move(velocity * Time.deltaTime);
+         GetCharacterController().Move(velocity * Time.deltaTime);
     }
 
     /// <summary>
@@ -473,6 +494,8 @@ public abstract class Enemy : Character
     public override void Die()
     {
         dead = true;
+        //Death sound effect
+        DoDeathSoundEffect();
         if (playerControlling)
         {
             if (GrandFinale.instance.GetActive())
@@ -1114,11 +1137,7 @@ public abstract class Enemy : Character
     public virtual void DoHitSoundEffect(float damage)
     {
         if (hitEventReference.IsNull) return;
-        if (health.CurrentHealth - damage <= 0)
-        {
-            DoDeathSoundEffect();
-            return;
-        }
+        if(health.CurrentHealth - damage <= 0) return;
         EventInstance ev = RuntimeManager.CreateInstance(hitEventReference);
         RuntimeManager.AttachInstanceToGameObject(ev, gameObject);
         ev.setParameterByName("Damage", damage / health.GetMaxHealth());
@@ -1203,5 +1222,19 @@ public abstract class Enemy : Character
             }
             attackingCostlyNodes = new Dictionary<List<int>, int>();
         }
+    }
+
+    /// <summary>
+    /// Ensures the enemy is inside the room it is supposed to be in (and not in the walls)
+    /// </summary>
+    public void EnsureInRoom()
+    {
+        if(GraphBuilder.instance == null)
+        {
+            Debug.LogWarning("Graph Builder instance is not assigned!");
+            return;
+        }
+        Vector3 closest = GraphBuilder.instance.FindClosestNode(transform.position, this).GetPosition(gameObject);
+        if ((closest - transform.position).magnitude > 1) transform.position = closest;
     }
 }

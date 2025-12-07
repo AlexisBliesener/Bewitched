@@ -40,6 +40,20 @@ public class ElethAnimator : CharacterAnimator
     }
 
     /// <summary>
+    /// Returns true if elet is in the possession animation
+    /// </summary>
+    /// <returns>True if eleth is possessing</returns>
+    public bool GetInPossession()
+    {
+        AnimatorClipInfo[] clip = animator.GetCurrentAnimatorClipInfo(0);
+        if (clip[0].clip.name == ("PlayerAttackNew"))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Switches the character's animation state and updates the Animator accordingly.
     /// Specific to the eleth animator adds in the possession state
     /// </summary>

@@ -66,7 +66,6 @@ public class CameraController : MonoBehaviour
     public void SetInCombat(bool val)
     {
         inCombat = val;
-        UpdateCam();
     }
 
     /// <summary>
@@ -176,6 +175,11 @@ public class CameraController : MonoBehaviour
         if (!listener.attenuationObject) listener.attenuationObject = currentCharacter.gameObject;
     }
 
+    private void Update()
+    {
+        UpdateCam();
+    }
+
     /// <summary>
     /// Updates camera priorities based on whether the player is aiming.
     /// Prevents switching while in a transition.
@@ -207,14 +211,9 @@ public class CameraController : MonoBehaviour
     /// <param name="context">The input context containing look delta values.</param>
     public void Look(InputAction.CallbackContext context)
     {
-        if(context.started)
-        {
-            looking = true;
-        }
-        else if(context.canceled)
-        {
-            looking = false;
-        }
+        Vector2 lookInput = context.ReadValue<Vector2>();
+
+        looking = lookInput != Vector2.zero;
     }
 
     /// <summary>
@@ -280,7 +279,6 @@ public class CameraController : MonoBehaviour
     {
         yield return new WaitForSeconds(TRANSITION_TIME);
         transitioning = false;
-        UpdateCam();
     }
 
     /// <summary>

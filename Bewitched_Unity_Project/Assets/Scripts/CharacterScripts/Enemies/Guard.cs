@@ -12,19 +12,19 @@ public class Guard : Enemy
     [SerializeField] GameObject lanceHandlePrefab;
     [Tooltip("Lance Tip Prefab")]
     [SerializeField] GameObject lanceTipPrefab;
-    [Tooltip("Thrust Speed"), ReadOnly]
-    [SerializeField] float thrustSpeed = 20;
+    [Tooltip("Thrust Speed")]
+    [SerializeField] float[] thrustSpeed = { 10 };
     [Tooltip("Lance Handle Damage")]
-    [SerializeField] float lanceHandleDamage = 20;
+    [SerializeField] float[] lanceHandleDamage = { 10 };
     [Tooltip("Lance Tip Damage")]
-    [SerializeField] float lanceTipDamage = 5;
+    [SerializeField] float[] lanceTipDamage = { 10 };
     [Tooltip("Lance Thrust Duration")]
     [SerializeField] float lanceDuration = 0.5f;
     [Tooltip("Lance range")]
     [SerializeField] float lanceRange = 1.2f;
 
-    [SerializeField] AttackStatusEffects lanceTipEffects;
-    [SerializeField] AttackStatusEffects lanceHandleEffects;
+    [SerializeField] AttackStatusEffects[] lanceTipEffects;
+    [SerializeField] AttackStatusEffects[] lanceHandleEffects;
 
     [Tooltip("Shield Prefab")]
     [SerializeField] GameObject shieldPrefab;
@@ -173,6 +173,7 @@ public class Guard : Enemy
     // Update is called once per frame
     protected override void FixedUpdate()
     {
+        base.FixedUpdate();
         if (dead || lobotimzed) return;
         ManageSurrounding();
         ResetAttackingArea();
@@ -190,8 +191,6 @@ public class Guard : Enemy
         {
             lockedCharacter = currentPlayer;
         }
-
-        base.FixedUpdate();
     }
 
     /// <summary>
@@ -219,12 +218,6 @@ public class Guard : Enemy
     /// </summary>
     public override IEnumerator BeginPrimary()
     {
-        while (shieldStatus != ShieldStatus.Lowered)
-        {
-            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
-            yield return null;
-        }
-
         if (gameObject != null)
         {
             if (playerControlling)
@@ -314,6 +307,12 @@ public class Guard : Enemy
     /// </summary>
     public IEnumerator LanceWindup(Character tempLockedCharacter)
     {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
+            yield return null;
+        }
+
         inCounter = false;
         attackState = AttackState.Windup;
         // save the current position to use the y value later
@@ -355,8 +354,8 @@ public class Guard : Enemy
             float dis = Vector3.Distance(tempLockedCharacter.transform.position, transform.position);
             Vector3 direction = (tempLockedCharacter.transform.position - transform.position).normalized;
             float oldY = targetPos.y;
-            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange);
-            float buffer = sizeRadius + lanceRange;
+            targetPos = tempLockedCharacter.transform.position - direction * (GetCharacterController().radius + tempLockedCharacter.GetCharacterController().radius + lanceRange - 1.5f);
+            float buffer = sizeRadius + lanceRange - 1.5f;
             RaycastHit hit;
             // Raycast to check for environment collision
             if (Physics.Raycast(transform.position + (direction * buffer), direction, out hit, dis, characters)) // Use buffer for characters so ray doesn't hit self
@@ -429,7 +428,7 @@ public class Guard : Enemy
                 }
                 else // attack is dodgable
                 {
-                    if (counterIndicatorVFX == null)
+                    if (counterIndicatorVFX == null && !IsPlayerControlling())
                     {
                         counterIndicatorVFX = Instantiate(counterIndicatorVFXPrefab, transform);
                         counterIndicatorVFX.transform.localPosition = new Vector3(0, 2.5f, 0);
@@ -464,11 +463,11 @@ public class Guard : Enemy
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
-        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: lanceHandleEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
-        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: lanceTipEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
         lanceTip.transform.position += transform.right * 0.25f;
 
@@ -526,15 +525,21 @@ public class Guard : Enemy
     /// <returns> Time breaks </returns>
     public IEnumerator HandleLanceThrust(Character tempLockedCharacter)
     {
+        while (shieldStatus != ShieldStatus.Lowered)
+        {
+            if (shieldStatus == ShieldStatus.Raised) ReleaseSecondary();
+            yield return null;
+        }
+
         guardAnimator.SetPrimaryMovementNeeded(false);
         attackState = AttackState.Attacking;
 
         GameObject lanceHandle = Instantiate(lanceHandlePrefab, transform);
-        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage, forwardVelocity: thrustSpeed, status: lanceHandleEffects, attackDuration: lanceDuration);
+        lanceHandle.GetComponent<DefaultHitbox>().Init(this, dmg: lanceHandleDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], forwardVelocity: thrustSpeed[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: lanceHandleEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.transform.position += transform.right * 0.25f;
 
         GameObject lanceTip = Instantiate(lanceTipPrefab, transform);
-        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage, status: lanceTipEffects, attackDuration: lanceDuration);
+        lanceTip.GetComponent<DefaultHitbox>().Init(this, dmg: lanceTipDamage[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], status: lanceTipEffects[currentPrimaryComboStep == -1 ? 0 : currentPrimaryComboStep], attackDuration: lanceDuration);
         lanceHandle.GetComponent<DefaultHitbox>().AttachHitbox(lanceTip.GetComponent<DefaultHitbox>());
         lanceTip.transform.position += transform.right * 0.25f;
 
@@ -633,7 +638,7 @@ public class Guard : Enemy
     /// </summary>
     public IEnumerator RaiseShield()
     {
-        if (shieldStatus == ShieldStatus.Lowering || shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising) yield break;
+        if (shieldStatus == ShieldStatus.Lowering || shieldStatus == ShieldStatus.Raised || shieldStatus == ShieldStatus.Raising || attackingPrimary) yield break;
         shieldStatus = ShieldStatus.Raising;
         float timeStarted = Time.time;
         while (Time.time - timeStarted < shieldRaiseTime)
@@ -969,7 +974,10 @@ public class Guard : Enemy
     {
         float dist = Vector3.Distance(transform.position, currentPlayer.transform.position);
         float angle = Vector3.Angle(currentPlayer.transform.position - transform.position, transform.forward);
-        if (angle < aiShieldAngleThreshold / 4 && dist <= (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius) && attackState == AttackState.Neutral && !playerControlling)
+        float normalAngle = Mathf.Clamp01(angle / aiShieldAngleThreshold);
+        float normalDist = Mathf.Clamp01(dist / (currentPlayer.sizeRadius + sizeRadius + maxSurroundingRadius));
+        float score = normalAngle + normalDist;
+        if (score < 1 && attackState == AttackState.Neutral && !playerControlling)
         {
             if (shieldStatus == ShieldStatus.Lowered)
             {
