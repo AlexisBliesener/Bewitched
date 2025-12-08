@@ -520,11 +520,13 @@ public abstract class Character : MonoBehaviour
 
     public float GetCooldownPrimary()
     {
+        if(primaryCooldown == 0) return 0f;
         return primaryCooldown - (Time.time - timeLastPrimary);
     }
 
     public float GetCooldownSecondary()
     {
+        if (secondaryCooldown == 0) return 0f;
         return secondaryCooldown - (Time.time - timeLastSecondary);
     }
 
