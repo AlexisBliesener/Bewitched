@@ -205,7 +205,7 @@ public class Goblin : Enemy
 
         if (playerControlling)
         {
-            tempLockedChar = PlayerController.instance.GetLockedTarget();
+           // tempLockedChar = PlayerController.instance.GetLockedTarget();
             aiControlledOnPrimary = false;
             if (tempWindingup)
             {
