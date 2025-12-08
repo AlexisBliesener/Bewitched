@@ -488,6 +488,7 @@ public class PlayerController : MonoBehaviour
                 Debug.DrawRay(currentCharacter.transform.position, lockedCharacter.transform.position - currentCharacter.transform.position, Color.green);
             }
         }
+
     }
 
     /// <summary>
