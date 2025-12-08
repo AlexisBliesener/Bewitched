@@ -359,6 +359,8 @@ public class PossessionAbility : MonoBehaviour
     public void SetVFXDisabled(bool val)
     {
         vfxDisabled = val;
+        UpdateTargetVFX();
+        UpdateInPossessionVFX();
     }
 
     /// <summary>
@@ -366,7 +368,7 @@ public class PossessionAbility : MonoBehaviour
     /// - Whether VFX are globally disabled
     /// - Which character is currently controlled
     /// - Whether the current character is dead
-    /// - Special handling for Eleth and the Old Hag
+    /// - Special handling for Eleth 
     ///  
     /// Ensures the correct VFX is shown for possession state,
     /// and logs warnings if VFX references are missing.

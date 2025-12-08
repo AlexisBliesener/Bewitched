@@ -146,6 +146,7 @@ public class Hag : Character
     protected override void OnDeath(GameObject enemyGameObject)
     {
         AnimateDeath();
+        PossessionAbility.instance.SetVFXDisabled(true);
         //This is temporary until we implement the big "You Died" UI Banner thing.
         //This is just so Andrew actually hears this sound effect.
 
