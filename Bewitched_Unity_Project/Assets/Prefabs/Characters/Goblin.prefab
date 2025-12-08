@@ -91,9 +91,9 @@ MonoBehaviour:
   primaryWindupSpeedMultPlayer: 5
   primaryWindupSpeedMultEnemy: 0.96
   primaryComboSpeedMultPlayer:
-  - 1.8
-  - 1.8
-  - 1.7
+  - 1.5
+  - 1.5
+  - 1.4
   primaryComboSpeedMultEnemy:
   - 0.7
   - 0.7
@@ -621,6 +621,18 @@ PrefabInstance:
       propertyPath: m_LookAt
       value: 
       objectReference: {fileID: 5440037364262398324}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_Damping
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_SmoothingTime
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_DampingWhenOccluded
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8999118498012031588, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_Lens.FieldOfView
       value: 60
