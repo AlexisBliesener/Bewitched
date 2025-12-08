@@ -14702,6 +14702,7 @@ GameObject:
   - component: {fileID: 9088355431104860637}
   - component: {fileID: 8364466376549776880}
   - component: {fileID: 4158721181722796467}
+  - component: {fileID: 778538640305888123}
   m_Layer: 0
   m_Name: IndicatorEffect
   m_TagString: Untagged
@@ -19591,3 +19592,17 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &778538640305888123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7690807259707339217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85902fb90733cf4bb1829546562b201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waitTillSet: 0
+  timeToDestroy: 0.5
