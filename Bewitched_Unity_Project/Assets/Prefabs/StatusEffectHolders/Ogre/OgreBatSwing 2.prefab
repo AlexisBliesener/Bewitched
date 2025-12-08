@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8272664035834377806}
   - component: {fileID: 7793958904629133350}
   m_Layer: 0
-  m_Name: OgreBatSwing
+  m_Name: OgreBatSwing 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,10 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackName: OgreBatSwing
-  knockbackAmount: 500
-  knockbackMinimum: 500
-  knockbackMaximum: 500
-  knockbackRange: 500
+  knockbackAmount: -500
+  knockbackMinimum: 800
+  knockbackMaximum: 800
+  knockbackRange: 800
   knockbackType: 2
   timeSlowDuration: 0
   slowTimeScale: 0
