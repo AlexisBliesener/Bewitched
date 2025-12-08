@@ -482,6 +482,7 @@ public class PossessionAbility : MonoBehaviour
 
     private IEnumerator Dodge(Vector3 dodgeDirection)
     {
+        PlayerController.instance.SetCounterAvaliable(null);
         if (currentCharacter != eleth)
         {
             StartCoroutine(RespawnEleth());
