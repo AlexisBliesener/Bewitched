@@ -256,8 +256,8 @@ public class AnimationAudio : MonoBehaviour
     void MoveEventWithStrings(string destination, string target)
     {
         if (destination == target) return;
-        if (animEvents.ContainsKey(destination)) throw new ArgumentException("An event is already playing from this clip!");
-        if (!animEvents.ContainsKey(target)) throw new ArgumentException("No event from the given animation clip name was found.");
+        if (animEvents.ContainsKey(destination)) Debug.LogError("An event is already playing from this clip!");
+        if (!animEvents.ContainsKey(target)) Debug.LogError("No event from the given animation clip name was found.");
 
         EventInstance ev = animEvents[target];
         //If the event already has user data, update it
@@ -287,8 +287,8 @@ public class AnimationAudio : MonoBehaviour
         string key = currentAnim.stringParameter;
         string clipName = currentAnim.animatorClipInfo.clip.name;
         if (key == clipName) return;
-        if (animEvents.ContainsKey(clipName)) throw new ArgumentException("An event is already playing from this clip!");
-        if (!animEvents.ContainsKey(key)) throw new ArgumentException("No event from the given animation clip name was found.");
+        if (animEvents.ContainsKey(clipName)) Debug.LogError("An event is already playing from this clip!");
+        if (!animEvents.ContainsKey(key)) Debug.LogError("No event from the given animation clip name was found.");
 
         EventInstance ev = animEvents[key];
         //If the event already has user data, update it
