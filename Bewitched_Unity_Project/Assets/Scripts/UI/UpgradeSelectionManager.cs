@@ -67,7 +67,6 @@ public class UpgradeSelectionManager : MonoBehaviour
         
         StartCoroutine(SetFirstButtonDelay());
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
     }
 
 

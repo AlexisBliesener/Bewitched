@@ -103,7 +103,6 @@ public class SwapUpgradeManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
 
         UpdateSelectedUpgrade();
     }

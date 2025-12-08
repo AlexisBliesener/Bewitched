@@ -58,7 +58,6 @@ public class PauseManager : MonoBehaviour
     {
         OpenScreen(mainPauseScreen);
         EventSystem.current.SetSelectedGameObject(pauseButton);
-        Cursor.lockState = CursorLockMode.None;
         //Audio
         AudioManager.OpenUIAudio();
     }

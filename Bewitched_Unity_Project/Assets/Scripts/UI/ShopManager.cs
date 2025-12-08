@@ -69,7 +69,6 @@ public class ShopManager : MonoBehaviour
     private void OnEnable()
     {
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
         BuyUI.SetActive(true);
         SellUI.SetActive(false);
         StartCoroutine(SetFirstButtonDelay());

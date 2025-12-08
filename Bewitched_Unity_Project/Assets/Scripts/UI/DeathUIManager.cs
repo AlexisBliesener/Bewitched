@@ -39,11 +39,9 @@ public class DeathUIManager : MonoBehaviour
         if (deathScreen != null && deathScreen.activeInHierarchy == false)
         {
             deathScreen.SetActive(true);
-            Debug.Log("script");
         }
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
 
         /// Get upgrade slot placeholders
         upgradeSlots = new Image[statsScreen.transform.childCount];
