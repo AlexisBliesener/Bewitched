@@ -201,13 +201,6 @@ public class AnimationAudio : MonoBehaviour
         else Debug.LogError($"No event from {clipName} currently playing!");
     }
 
-    public void StopAllEvents(AnimationEvent anim)
-    {
-        foreach(EventInstance ev in animEvents.Values)
-        {
-            ev.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-        }
-    }
 
     /// <summary>
     /// Gets the path of the given event instance
