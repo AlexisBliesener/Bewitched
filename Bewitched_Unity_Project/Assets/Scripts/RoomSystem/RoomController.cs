@@ -228,8 +228,6 @@ public class RoomController : MonoBehaviour
 
         ChangeState(RoomState.Cleared);
         UnlockDoors();
-        //change to out of combat music
-        AudioManager.ChangeMusicParameter("InCombat", "False");
         OnRoomCleared?.Invoke(this);
     }
 
@@ -338,6 +336,7 @@ public class RoomController : MonoBehaviour
         {
             Debug.LogWarning("CameraController instance is not set");
         }
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.RoomDoorsOpened);
     }
 
     /// <summary>
@@ -365,6 +364,8 @@ public class RoomController : MonoBehaviour
         {
             NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.RoomDoorsOpened);
         }
+        //change to out of combat music
+        AudioManager.ChangeMusicParameter("InCombat", "False");
     }
 
     /// <summary>

@@ -25,7 +25,7 @@ public class PossessionAbility : MonoBehaviour
     private const string FILE_ENDING = ".json";
 
     [Header("Possession Settings")]
-    [SerializeField, Tooltip("The possession drain on eleth when the enemy possessed is dead, in percentage of health per second"), Range(0f,100f)]
+    [SerializeField, Tooltip("The possession drain on eleth when the enemy possessed is dead, in percentage of health per second"), Range(0f, 100f)]
     private float possessionDrain;
     [SerializeField, Tooltip("The grace period eleth will get in a 'dead' enemy before she starts taking possession drain damage")]
     private float possessionDrainGracePeriod = 0.5f;
@@ -41,11 +41,9 @@ public class PossessionAbility : MonoBehaviour
     private Slider possessionAbilitySlider;
     [SerializeField, Tooltip("UI element that displays the currently controlled character's health bar.")]
     private GameObject secondaryHealthBar;
-    [SerializeField, Tooltip("Crosshair image that changes color based on possession availability.")]
-    private Image crossHair;
-    [SerializeField, Range(1,2), Tooltip("The scale of the pulse when the slider is at the max value")]
+    [SerializeField, Range(1, 2), Tooltip("The scale of the pulse when the slider is at the max value")]
     private float pulseScale = 1.15f;
-    [SerializeField, Range(0,1), Tooltip("The time it takes to pulse the slider when it's at the max value")]
+    [SerializeField, Range(0, 1), Tooltip("The time it takes to pulse the slider when it's at the max value")]
     private float pulseTime = 0.25f;
 
     [Header("Character References")]
@@ -140,6 +138,10 @@ public class PossessionAbility : MonoBehaviour
     private bool counterLocked = false;
     [Tooltip("The time counter was locked at")]
     private float timeCounterLocked = 0;
+    [Tooltip("eleths animator script")]
+    private ElethAnimator elethAnimator;
+    [Tooltip("True if the vfxs are disabled")]
+    private bool vfxDisabled = false;
 
     #region Saving/Loading
     /// <summary>
@@ -261,6 +263,15 @@ public class PossessionAbility : MonoBehaviour
         currentPossesionDistance = startingPossessionDistance;
         possessionCharge = hitsToCharge;
 
+        if (eleth != null)
+        {
+            elethAnimator = eleth.GetComponent<ElethAnimator>();
+        }
+        else
+        {
+            Debug.LogWarning("Eleth is not set!");
+        }
+
         possessionCollider = GetComponentInChildren<PossessionCollider>();
 
         if (possessionCollider != null)
@@ -307,17 +318,80 @@ public class PossessionAbility : MonoBehaviour
     {
         UpdateUI();
         UpdateState();
-        //UpdateCrossHair();
         UpdateTargetVFX();
 
-        if(counterLocked && Time.time - timeCounterLocked > counterLockDuration)
+        if (counterLocked && Time.time - timeCounterLocked > counterLockDuration)
         {
-           counterLocked = false; 
+            counterLocked = false;
         }
 
-        if(currentCharacter != eleth)
+        UpdateInPossessionVFX();
+
+        if (startedHoldTime != -1)
         {
-            if(PlayerController.instance.currentCharacter.health.CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
+            currentPossesionDistance = Mathf.Lerp(startingPossessionDistance, endingPossesionDistance, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+            currentPossessionAngle = Mathf.Lerp(startingPossessionAngle, endingPossesionAngle, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
+        }
+        else
+        {
+            currentPossesionDistance = startingPossessionDistance;
+            currentPossessionAngle = startingPossessionAngle;
+        }
+
+        if (possessionTrigger != null)
+        {
+            possessionTrigger.transform.position = currentCharacter.transform.position;
+        }
+
+        // Keep Hag aligned with possessed character
+        if (currentCharacter != eleth)
+        {
+            eleth.transform.position = currentCharacter.transform.position;
+            eleth.transform.rotation = currentCharacter.transform.rotation;
+        }
+    }
+
+    /// <summary>
+    /// Enables or disables all possession-related VFX. 
+    /// When disabled, UpdateInPossessionVFX() will force all VFX off.
+    /// </summary>
+    /// <param name="val">True to disable VFX, false to enable them.</param>
+    public void SetVFXDisabled(bool val)
+    {
+        vfxDisabled = val;
+        UpdateTargetVFX();
+        UpdateInPossessionVFX();
+    }
+
+    /// <summary>
+    /// Updates which possession VFX should be active based on:
+    /// - Whether VFX are globally disabled
+    /// - Which character is currently controlled
+    /// - Whether the current character is dead
+    /// - Special handling for Eleth 
+    ///  
+    /// Ensures the correct VFX is shown for possession state,
+    /// and logs warnings if VFX references are missing.
+    /// </summary>
+    private void UpdateInPossessionVFX()
+    {
+        if (vfxDisabled)
+        {
+            if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
+            {
+                enemyInPossessionVFX.SetActive(false);
+                elethInPossessionVFX.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("In Possession VFXs are not assigned!");
+            }
+            return;
+        }
+
+        if (currentCharacter != eleth)
+        {
+            if (PlayerController.instance.currentCharacter.health.CurrentHealth == 0 && PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
             {
                 if (enemyInPossessionVFX != null && elethInPossessionVFX != null)
                 {
@@ -354,29 +428,6 @@ public class PossessionAbility : MonoBehaviour
                 Debug.LogWarning("In Possession VFXs are not assigned!");
             }
         }
-
-        if (startedHoldTime != -1)
-        {
-            currentPossesionDistance = Mathf.Lerp(startingPossessionDistance, endingPossesionDistance, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
-            currentPossessionAngle = Mathf.Lerp(startingPossessionAngle, endingPossesionAngle, Mathf.Clamp01((Time.time - startedHoldTime) / timeToFocus));
-        }
-        else
-        {
-            currentPossesionDistance = startingPossessionDistance;
-            currentPossessionAngle = startingPossessionAngle;
-        }
-
-        if (possessionTrigger != null)
-        {
-            possessionTrigger.transform.position = currentCharacter.transform.position;
-        }
-
-        // Keep Hag aligned with possessed character
-        if (currentCharacter != eleth)
-        {
-            eleth.transform.position = currentCharacter.transform.position;
-            eleth.transform.rotation = currentCharacter.transform.rotation;
-        }
     }
 
     /// <summary>
@@ -385,14 +436,14 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="context">The input action callback context.</param>
     public void Possess(InputAction.CallbackContext context)
     {
-        if (context.started && possessionCharge == hitsToCharge && currentCharacter.attackState == Character.AttackState.Neutral)
+        if (!elethAnimator.GetInPossession() && context.started && possessionCharge == hitsToCharge && currentCharacter.attackState == Character.AttackState.Neutral)
         {
-             eleth.AnimatePossess();
-             StartCoroutine(FirePossession());
+            eleth.AnimatePossess();
+            StartCoroutine(FirePossession());
         }
         else
         {
-             return;
+            return;
         }
     }
 
@@ -408,14 +459,14 @@ public class PossessionAbility : MonoBehaviour
         counteringEnemy = PlayerController.instance.GetCounterAvailable();
         if (counteringEnemy != null)
         {
-            if(!counterLocked)
+            if (!counterLocked)
             {
                 StartCoroutine(Dodge(counteringEnemy.transform.forward));
             }
         }
-        else if(currentCharacter != eleth)
+        else if (currentCharacter != eleth)
         {
-            if(!counterLocked)
+            if (!counterLocked)
             {
                 StartCoroutine(Dodge(-currentCharacter.transform.forward));
             }
@@ -431,25 +482,26 @@ public class PossessionAbility : MonoBehaviour
 
     private IEnumerator Dodge(Vector3 dodgeDirection)
     {
-        if(currentCharacter != eleth)
+        PlayerController.instance.SetCounterAvaliable(null);
+        if (currentCharacter != eleth)
         {
             StartCoroutine(RespawnEleth());
         }
 
         PlayerController.instance.SetAllowMovement(false);
         currentCharacter.health.SetInvincible(true);
-        foreach(GameObject go in currentCharacter.GetModel())
+        foreach (GameObject go in currentCharacter.GetModel())
         {
             go.SetActive(false);
         }
-    
-        GameObject vfx1 =  Instantiate(teleportVFX, currentCharacter.transform.position, Quaternion.identity);
+
+        GameObject vfx1 = Instantiate(teleportVFX, currentCharacter.transform.position, Quaternion.identity);
         yield return new WaitForSeconds(0.1f);
         RaycastHit hitInfo;
         Vector3 moveDist;
-        if(Physics.Raycast(currentCharacter.transform.position, dodgeDirection, out hitInfo, dodgeDistance, environmentLayer))
+        if (Physics.Raycast(currentCharacter.transform.position, dodgeDirection, out hitInfo, dodgeDistance, environmentLayer))
         {
-             moveDist = (dodgeDirection.normalized * hitInfo.distance);
+            moveDist = (dodgeDirection.normalized * hitInfo.distance);
         }
         else
         {
@@ -476,7 +528,7 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter.health.SetInvincible(false);
         yield return new WaitForSeconds(0.3f);
         Destroy(vfx1);
-        
+
         yield return new WaitForSeconds(0.3f);
         Destroy(vfx2);
     }
@@ -513,7 +565,7 @@ public class PossessionAbility : MonoBehaviour
         // Gets either the target being aimed at, the countering enemy, or null if neither exist
         Character target = possessionState == PossessionStates.canPossess ? currentPossessableEnemy : null;
 
-        if(possessionOverride != null)
+        if (possessionOverride != null)
         {
             target = possessionOverride;
         }
@@ -542,7 +594,7 @@ public class PossessionAbility : MonoBehaviour
             CharacterControlChangeEvent?.Invoke(target);
 
             // Possession smoke VFX
-            if(smokeCloudVFX != null)
+            if (smokeCloudVFX != null)
             {
                 Instantiate(smokeCloudVFX, new Vector3(target.transform.position.x,
                     target.transform.position.y + target.GetComponent<CharacterController>().height / 2,
@@ -565,7 +617,7 @@ public class PossessionAbility : MonoBehaviour
         }
 
         // Possession fire VFX
-        if(firingVFX != null)
+        if (firingVFX != null)
         {
             Instantiate(firingVFX, eleth.transform.position + new Vector3(eleth.transform.forward.x, 1f, eleth.transform.forward.z), eleth.transform.rotation);
         }
@@ -576,68 +628,51 @@ public class PossessionAbility : MonoBehaviour
 
         isPossessing = false;
     }
-    
+
     /// <summary>
     /// Updates the aim target VFX
     /// Places it on the enemy being targeted or disabled it if there is no enemy being targeted
     /// </summary>
     private void UpdateTargetVFX()
     {
-        if(targetVFX != null)
+        if (vfxDisabled)
         {
-            if (possessionOverride != null && possessionOverride == currentPossessableEnemy && currentCharacter != possessionOverride)
-            {
-                targetVFX.SetActive(true);
-                targetVFX.transform.position = possessionOverride.transform.position;
-            }
-            else if(PlayerController.instance.GetCounterAvailable() && PlayerController.instance.GetCounterAvailable() != PlayerController.instance.currentCharacter)
-            {
-                targetVFX.SetActive(true);
-                targetVFX.transform.position = PlayerController.instance.GetCounterAvailable().transform.position;
-            }
-            else if (PlayerController.instance.GetCounterAvailable() == PlayerController.instance.currentCharacter)
+            if (targetVFX != null)
             {
                 targetVFX.SetActive(false);
             }
             else
             {
-                if (possessionState == PossessionStates.canPossess && currentPossessableEnemy != null)
-                {
-                    targetVFX.SetActive(true);
-                    targetVFX.transform.position = currentPossessableEnemy.transform.position;
-                }
-                else
-                {
-                    targetVFX.SetActive(false);
-                }
+                Debug.LogWarning("In Possession VFXs are not assigned!");
             }
+            return;
+        }
+
+        if (targetVFX != null)
+        {
+            if (possessionOverride != null && possessionOverride == currentPossessableEnemy && currentCharacter != possessionOverride)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.localScale = possessionOverride.GetPossessionTargetVFXScale();
+                targetVFX.transform.position = possessionOverride.transform.position;
+            }
+            else if (possessionState == PossessionStates.canPossess && currentPossessableEnemy != null)
+            {
+                targetVFX.SetActive(true);
+                targetVFX.transform.localScale = currentPossessableEnemy.GetComponent<Enemy>().GetPossessionTargetVFXScale();
+                targetVFX.transform.position = currentPossessableEnemy.transform.position;
+            }
+            else
+            {
+                targetVFX.SetActive(false);
+            }
+
         }
         else
         {
             Debug.LogWarning("Target Possession VFX not assigned!");
         }
     }
-
-    /// <summary>
-    /// Updates the color of the cross hair baised on if the player can currently possess
-    /// </summary>
-    //private void UpdateCrossHair()
-    //{
-    //    if (crossHair == null)
-    //    {
-    //        Debug.LogWarning("Crosshair image is not assigned!");
-    //        return;
-    //    }
-
-    //    if (possessionState == PossessionStates.canNotPossess)
-    //    {
-    //        crossHair.color = Color.white;
-    //    }
-    //    else
-    //    {
-    //        crossHair.color = Color.red;
-    //    }
-    //}
 
     /// <summary>
     /// Updates the state of possession ability to tell if the player can currently possess or not
@@ -651,12 +686,12 @@ public class PossessionAbility : MonoBehaviour
             return;
         }
 
-        if(PlayerController.instance == null)
+        if (PlayerController.instance == null)
         {
             Debug.LogWarning("PlayerController instance is not set!");
             return;
         }
-        else if(Camera.main == null)
+        else if (Camera.main == null)
         {
             Debug.LogWarning("Main camera does not exist!");
             return;
@@ -679,7 +714,7 @@ public class PossessionAbility : MonoBehaviour
             foreach (Character character in possessionColliderScript.GetCharactersInPossession())
             {
                 if (character.canPossess == false) continue;
-                Vector3 toCharacter = new Vector3( character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
+                Vector3 toCharacter = new Vector3(character.transform.position.x, 0, character.transform.position.z) - new Vector3(currentCharacter.transform.position.x, 0, currentCharacter.transform.position.z);
 
                 toCharacter = toCharacter.normalized;
 
@@ -728,9 +763,9 @@ public class PossessionAbility : MonoBehaviour
         if (possessionAbilitySlider != null)
         {
             float progresss = possessionCharge;
-            if (possessionCharge < hitsToCharge && possessionChargeTime > 0f && !isPossessing)
+            if (possessionCharge < hitsToCharge && possessionChargeTime > 0f)
             {
-                progresss += Mathf.Clamp01((Time.time - possessionChargeTimer) / possessionChargeTime); 
+                progresss += Mathf.Clamp01((Time.time - possessionChargeTimer) / possessionChargeTime);
             }
             possessionAbilitySlider.value = Mathf.Clamp(progresss, 0f, hitsToCharge);
         }
@@ -763,11 +798,11 @@ public class PossessionAbility : MonoBehaviour
     /// <param name="newCharacter">The new character to switch control to.</param>
     public void SwitchCharacter(Character newCharacter)
     {
-        if(currentCharacter != eleth)
+        if (currentCharacter != eleth)
         {
             currentCharacter.SetControlled(false);
         }
-        
+
         currentCharacter.GetComponent<HealthController>().EnableUpdateModel(false);
 
         PlayerController.instance.SeteCharacterController(newCharacter.GetComponent<CharacterController>());
@@ -825,7 +860,7 @@ public class PossessionAbility : MonoBehaviour
         currentCharacter = newCharacter;
         PlayerController.instance.currentCharacter = newCharacter;
 
-        if(currentCharacter.GetComponent<CharacterController>() != null )
+        if (currentCharacter.GetComponent<CharacterController>() != null)
         {
             currentCharacter.GetComponent<CharacterController>().enabled = true;
         }
@@ -860,8 +895,16 @@ public class PossessionAbility : MonoBehaviour
     public void SetHitsToCharge(int val)
     {
         hitsToCharge = val;
+        if (possessionAbilitySlider != null)
+        {
+            possessionAbilitySlider.maxValue = val;
+        }
+        else
+        {
+            Debug.LogWarning("Possession Ability Slider is not Set!");
+        }
     }
-    
+
     /// Gets the base focus time for possession
     /// </summary>
     /// <returns>The base focus time</returns>
@@ -869,7 +912,7 @@ public class PossessionAbility : MonoBehaviour
     {
         return timeToFocus;
     }
-    
+
     /// <summary>
     /// Sets the time to focus possession
     /// </summary>

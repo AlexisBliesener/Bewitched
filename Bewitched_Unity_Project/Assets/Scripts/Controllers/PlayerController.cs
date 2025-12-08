@@ -233,11 +233,7 @@ public class PlayerController : MonoBehaviour
                     velocity = Vector3.zero;
                 }
 
-                velocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
-
                 characterController.Move(velocity * Time.fixedDeltaTime);
-                //if (!CameraController.GetIsAiming())
-                //{
                 if (velocity.sqrMagnitude > 0.01f)
                 {
                     Quaternion targetRotation = Quaternion.LookRotation(new Vector3(velocity.x, 0, velocity.z));
@@ -247,7 +243,6 @@ public class PlayerController : MonoBehaviour
                         currentCharacter.GetRotationSpeed() * Time.fixedDeltaTime
                     );
                 }
-                //}
             }
             else
             {
@@ -320,7 +315,6 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            //Debug.Log("Started");
             if (currentCharacter.CheckPrimaryUsable())
             {
                 StartCoroutine(currentCharacter.BeginPrimary());

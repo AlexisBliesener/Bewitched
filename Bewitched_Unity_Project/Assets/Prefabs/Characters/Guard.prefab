@@ -610,7 +610,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1441328694381242113}
-  - {fileID: 6916268630296089007}
   - {fileID: 7492039651854021199}
   - {fileID: 4266822383875426835}
   m_Father: {fileID: 0}
@@ -713,7 +712,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   combatCam: {fileID: 5932320290104139070}
-  aimCam: {fileID: 6566429386791374651}
+  aimCam: {fileID: 0}
   exploreCam: {fileID: 2001437859121643839}
   attackEffects: []
   effectJSONs: []
@@ -726,6 +725,7 @@ MonoBehaviour:
   cantAttack: 0
   minStopDistance: 2
   seenBuffer: 0.5
+  possessionVFXScale: {x: 2, y: 2, z: 2}
   sightRange: 20
   maxSightAngle: 60
   hearingRange: 2
@@ -764,17 +764,32 @@ MonoBehaviour:
     Path: event:/SoundEffects/Character/Guard/GuardDeath
   lanceHandlePrefab: {fileID: 6030035221385674492, guid: 2e241567de03351419e43ae575a4f58f, type: 3}
   lanceTipPrefab: {fileID: 260659877905249004, guid: ddac5c52e64358b4382c214f3b1b8c38, type: 3}
-  thrustSpeed: 10
-  lanceHandleDamage: 10
-  lanceTipDamage: 10
+  thrustSpeed:
+  - 10
+  - 10
+  - 10
+  lanceHandleDamage:
+  - 10
+  - 10
+  - 10
+  lanceTipDamage:
+  - 10
+  - 10
+  - 10
   lanceDuration: 0.2
   lanceRange: 3.5
-  lanceTipEffects: {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
-  lanceHandleEffects: {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
+  lanceTipEffects:
+  - {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  - {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  - {fileID: 6471327808154729738, guid: fd4ea7ae6026a9a48be1eb0916acca17, type: 3}
+  lanceHandleEffects:
+  - {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
+  - {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
+  - {fileID: 5740521537954571957, guid: c42529fa80e7966449b7dd832e19ca31, type: 3}
   shieldPrefab: {fileID: 5297234261058955286, guid: 3a6774d7279d5db47991fcb9a194ed59, type: 3}
   shieldRaiseTime: 0
   shieldLowerTime: 0.2
-  aiShieldAngleThreshold: 225
+  aiShieldAngleThreshold: 55
   aiShieldDropDelay: 3
   shieldKnockbackAmount: 800
   numPatrolPoints: 3
@@ -901,7 +916,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 66
   lowHealthCoefficient: 0.3
-  decayRate: 6
+  decayRate: 5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   IsDead: 0
   deathUI: {fileID: 0}
@@ -4830,85 +4845,4 @@ MonoBehaviour:
 Transform:
   m_CorrespondingSourceObject: {fileID: 8849058670864348330, guid: e67b82beb483b8d45a18cef0ed9ea06a, type: 3}
   m_PrefabInstance: {fileID: 2105214729412921061}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &2731735772285787084
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 5676647201243763400}
-    m_Modifications:
-    - target: {fileID: 4605732067638001908, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_Name
-      value: AimCamGuard
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 3.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9136035124665685239, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_Follow
-      value: 
-      objectReference: {fileID: 5676647201243763400}
-    - target: {fileID: 9136035124665685239, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-      propertyPath: m_LookAt
-      value: 
-      objectReference: {fileID: 5676647201243763400}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
---- !u!114 &6566429386791374651 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 9136035124665685239, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-  m_PrefabInstance: {fileID: 2731735772285787084}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &6916268630296089007 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8796258614549121635, guid: 99f390c4b0b5d8b44a1366cad6cc01ec, type: 3}
-  m_PrefabInstance: {fileID: 2731735772285787084}
   m_PrefabAsset: {fileID: 0}

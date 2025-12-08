@@ -40,9 +40,10 @@ public class Hag : Character
         SetBaseStats();
     }
 
-    private void FixedUpdate()
+    protected override void FixedUpdate()
     {
         CreateLocalInvalidArea();
+        base.FixedUpdate();
     }
 
     protected override void Awake()
@@ -145,6 +146,7 @@ public class Hag : Character
     protected override void OnDeath(GameObject enemyGameObject)
     {
         AnimateDeath();
+        PossessionAbility.instance.SetVFXDisabled(true);
         //This is temporary until we implement the big "You Died" UI Banner thing.
         //This is just so Andrew actually hears this sound effect.
 
@@ -188,11 +190,6 @@ public class Hag : Character
             fadeImage.color = bkgColor;
             yield return null;
         }
-    }
-
-    private void Update()
-    {
-
     }
 
     public IEnumerator KnockBackCone()

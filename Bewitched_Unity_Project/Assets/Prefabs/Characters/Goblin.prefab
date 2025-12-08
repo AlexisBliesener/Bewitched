@@ -36,7 +36,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7881905517430963790}
-  - {fileID: 8521601074778480039}
   - {fileID: 1391281232613630084}
   - {fileID: 3535906645723728001}
   m_Father: {fileID: 0}
@@ -83,7 +82,7 @@ MonoBehaviour:
   primaryAnimationDelay:
   - 0
   - 0.05
-  - 0
+  - 0.5
   secondaryAnimationDelay: 0.5
   walkSpeedMult: 1
   idleSpeedMult: 1
@@ -92,9 +91,9 @@ MonoBehaviour:
   primaryWindupSpeedMultPlayer: 5
   primaryWindupSpeedMultEnemy: 0.96
   primaryComboSpeedMultPlayer:
-  - 1.3
-  - 1.3
-  - 1
+  - 1.5
+  - 1.5
+  - 1.4
   primaryComboSpeedMultEnemy:
   - 0.7
   - 0.7
@@ -138,20 +137,20 @@ MonoBehaviour:
   primaryCooldown: 0
   primaryAttackCost: 0
   primaryAICost: 2
-  secondaryCooldown: 0.25
-  secondaryAttackCost: 10
+  secondaryCooldown: 2
+  secondaryAttackCost: 15
   secondaryAICost: 6
   health: {fileID: 7573160092936169644}
   canPossess: 1
   primaryComboSteps: 3
   primaryComboResetTime:
   - 0.6
-  - 0.6
   - 0.7
+  - 0.9
   primaryComboMinTime:
   - 0.4
-  - 0.4
   - 0.5
+  - 0.7
   characters:
     serializedVersion: 2
     m_Bits: 128
@@ -162,7 +161,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   combatCam: {fileID: 7366819368138191194}
-  aimCam: {fileID: 2707158058739157426}
+  aimCam: {fileID: 0}
   exploreCam: {fileID: 2385471442869079945}
   attackEffects: []
   effectJSONs: []
@@ -175,6 +174,7 @@ MonoBehaviour:
   cantAttack: 0
   minStopDistance: 1
   seenBuffer: 0.5
+  possessionVFXScale: {x: 1.3, y: 1.3, z: 1.3}
   sightRange: 15
   maxSightAngle: 60
   hearingRange: 2
@@ -234,7 +234,7 @@ MonoBehaviour:
   dashDuration: 0.25
   dashDamage: 15
   offSetForward: 0.5
-  secondaryCounterWindow: 0
+  secondaryCounterWindow: 0.9
   spinDamage: 15
   spinDodgeDistance: 2
   spinDodgeInputTime: 0.75
@@ -248,12 +248,11 @@ MonoBehaviour:
   lowHealthAngleRange: 80
   maxDriftSpeed: 4
   maxSpinDeflectAngle: 20
-  minSpinDelay: 0.4
-  maxSpinDelay: 1.1
+  minSpinDelay: 0.9
+  maxSpinDelay: 0.9
   minPatrolDistance: 1
   maxPatrolDistance: 3
   communicationRange: 30
-  aiControlledOnPrimary: 0
 --- !u!114 &-6918275186734421657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -385,7 +384,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 45
   lowHealthCoefficient: 0.3
-  decayRate: 4
+  decayRate: 5.5
   miniBarPrefab: {fileID: 5953934447981615635, guid: e9cf4d7145a9f134e84ac24aeab346b2, type: 3}
   IsDead: 0
   deathUI: {fileID: 0}
@@ -622,6 +621,18 @@ PrefabInstance:
       propertyPath: m_LookAt
       value: 
       objectReference: {fileID: 5440037364262398324}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_Damping
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_SmoothingTime
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8952607639160755596, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
+      propertyPath: m_DampingWhenOccluded
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8999118498012031588, guid: b6ec58eb400bb12418cad50aee20f478, type: 3}
       propertyPath: m_Lens.FieldOfView
       value: 60
@@ -1890,87 +1901,6 @@ MonoBehaviour:
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f2bd6c30292b3d40b9bd4ea2be3454f, type: 3}
   m_PrefabInstance: {fileID: 7703581107334453669}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &8531066395399869806
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 8130052294440983001}
-    m_Modifications:
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 1.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -1.8
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6049933293014424796, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_Follow
-      value: 
-      objectReference: {fileID: 8130052294440983001}
-    - target: {fileID: 6049933293014424796, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_LookAt
-      value: 
-      objectReference: {fileID: 8130052294440983001}
-    - target: {fileID: 8738539158087891648, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-      propertyPath: m_Name
-      value: AimCamGoblin
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0722b006697117642a9a606b31234b9f, type: 3}
---- !u!114 &2707158058739157426 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6049933293014424796, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-  m_PrefabInstance: {fileID: 8531066395399869806}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &8521601074778480039 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 10872696134355145, guid: 0722b006697117642a9a606b31234b9f, type: 3}
-  m_PrefabInstance: {fileID: 8531066395399869806}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8983926587493664892
 PrefabInstance:

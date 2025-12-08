@@ -1713,7 +1713,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4911051384731142775}
-  - {fileID: 4025982187509525444}
   - {fileID: 7097254504253231342}
   - {fileID: 2513422875647078092}
   m_Father: {fileID: 0}
@@ -1780,7 +1779,7 @@ MonoBehaviour:
   dev: 1
   characterName: Ogre
   modelPieces: []
-  movementSpeed: 2
+  movementSpeed: 5
   approachSpeed: 3
   acceleration: 15
   deceleration: 11
@@ -1822,7 +1821,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   combatCam: {fileID: 1466940615192578388}
-  aimCam: {fileID: 5937843310075497128}
+  aimCam: {fileID: 0}
   exploreCam: {fileID: 358946371927884933}
   attackEffects: []
   effectJSONs: []
@@ -1835,6 +1834,7 @@ MonoBehaviour:
   cantAttack: 0
   minStopDistance: 2.25
   seenBuffer: 0.5
+  possessionVFXScale: {x: 10, y: 10, z: 10}
   sightRange: 50
   maxSightAngle: 70
   hearingRange: 2
@@ -1873,13 +1873,20 @@ MonoBehaviour:
     Path: event:/SoundEffects/Character/Ogre/OgreDeath
   batHitboxPrefab: {fileID: 3266930682550461916, guid: f9791627755f53043a950c79ed274ac2, type: 3}
   batPivot: {fileID: 326237258621897175, guid: f6d6591cea902ca4891bb476ce9ea268, type: 3}
-  batSwingEffects: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+  batSwingEffects:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   slamHitboxPrefab: {fileID: 6510291210064350421, guid: 96eb300afe7536d428f09d3b0b28d30a, type: 3}
   slamBatEffects: {fileID: 0}
   slamImpactEffects: {fileID: 0}
   screamEffects: {fileID: 672220797181763766, guid: de26c15ccbc089d48a764cd1a4e29c3d, type: 3}
-  batSwingDamage: 30
-  batSwingAngle: 120
+  batSwingDamage:
+  - 40
+  - 40
+  batSwingAngle:
+  - 60
+  - 60
   ogreJumpGravity: 40
   ogreJumpSpeed: 25
   ogreJumpBatDamage: 50
@@ -1923,6 +1930,7 @@ MonoBehaviour:
   miniBarPrefab: {fileID: 0}
   IsDead: 0
   deathUI: {fileID: 0}
+  vignetteUI: {fileID: 0}
   kill: 0
   flashSpeed: 1.5
   healthBarUI: {fileID: 0}
@@ -2958,7 +2966,7 @@ PrefabInstance:
       objectReference: {fileID: 2960459343609472341}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[0].m_Height
-      value: 15
+      value: 10.73
       objectReference: {fileID: 0}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[0].m_Radius
@@ -2966,19 +2974,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[1].m_Height
-      value: 10.61
+      value: 8.77
       objectReference: {fileID: 0}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[1].m_Radius
-      value: 7
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[2].m_Height
-      value: 10.3
+      value: 1.15
       objectReference: {fileID: 0}
     - target: {fileID: 5749346846026184747, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_Orbits.Array.data[2].m_Radius
-      value: 2
+      value: 6.78
       objectReference: {fileID: 0}
     - target: {fileID: 7961393265994922804, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3041,99 +3049,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4173945801234227601, guid: fa0f52385db8ebc43a02d8161dea9d19, type: 3}
   m_PrefabInstance: {fileID: 6598431825822134655}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &6693667577451793983
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2960459343609472341}
-    m_Modifications:
-    - target: {fileID: 1045919462775751831, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_Follow
-      value: 
-      objectReference: {fileID: 4911051384731142775}
-    - target: {fileID: 1045919462775751831, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LookAt
-      value: 
-      objectReference: {fileID: 4911051384731142775}
-    - target: {fileID: 7446665516721001020, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: ShoulderOffset.x
-      value: 2.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 7446665516721001020, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: ShoulderOffset.y
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 7446665516721001020, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: ShoulderOffset.z
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 1.8000011
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.4333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.0000023841858
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7868750717795341024, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-      propertyPath: m_Name
-      value: AimCamOgre
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
---- !u!4 &4025982187509525444 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7726917240085177851, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-  m_PrefabInstance: {fileID: 6693667577451793983}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &5937843310075497128 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1045919462775751831, guid: 4ca9750be9d2b7c40a9697338fb0728e, type: 3}
-  m_PrefabInstance: {fileID: 6693667577451793983}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &7102589940962368485
 PrefabInstance:
   m_ObjectHideFlags: 0

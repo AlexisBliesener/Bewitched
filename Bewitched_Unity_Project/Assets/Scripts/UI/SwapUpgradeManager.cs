@@ -103,7 +103,6 @@ public class SwapUpgradeManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
 
         UpdateSelectedUpgrade();
     }
@@ -312,6 +311,7 @@ public class SwapUpgradeManager : MonoBehaviour
         if (buyUpgradeUI != null && buyUpgradeUI.activeInHierarchy)
         {
             buyUpgradeUI.SetActive(true);
+            ShopManager.Instance.RestoreUpgrade(pending);
             EventSystem.current.SetSelectedGameObject(buyUpgradeButton);
         }
         else if (DropSystem.Instance.upgradeSelectionUI != null)

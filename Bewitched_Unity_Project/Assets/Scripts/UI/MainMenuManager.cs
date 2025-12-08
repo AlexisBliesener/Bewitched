@@ -26,6 +26,8 @@ public class MainMenuManager : MonoBehaviour
     public GameObject upgradeSystemScreen;
     [Tooltip("The Loading Screen")]
     public GameObject loadingScreen;
+    [Tooltip("The Credits Screen")]
+    public GameObject creditsScreen;
 
     [Header("First Selected Buttons")]
     [Tooltip("The first button to be selected when Pause menu is opened.")]
@@ -40,6 +42,8 @@ public class MainMenuManager : MonoBehaviour
     public GameObject enemiesButton;
     [Tooltip("The first button to be selected when the Upgrade Systems menu is opened")]
     public GameObject upgradeSystemButton;
+    [Tooltip("The first button to be selected when the Upgrade Systems menu is opened")]
+    public GameObject creditsButton;
     
 
 
@@ -51,7 +55,8 @@ public class MainMenuManager : MonoBehaviour
     {
         OpenScreen(mainScreen);
         EventSystem.current.SetSelectedGameObject(mainButton);
-        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 1.0f;
+        Cursor.lockState = CursorLockMode.Locked ;
         AudioManager.SubscribeCheckClick();
     }
 
@@ -76,6 +81,7 @@ public class MainMenuManager : MonoBehaviour
         upgradeScreen.SetActive(false);
         enemiesScreen.SetActive(false);
         upgradeSystemScreen.SetActive(false);
+        creditsScreen.SetActive(false);
     }
 
     /// <summary>
@@ -109,6 +115,10 @@ public class MainMenuManager : MonoBehaviour
         {
             EventSystem.current.SetSelectedGameObject(upgradeSystemButton);
         }
+        else if (screen == creditsScreen)
+        {
+            EventSystem.current.SetSelectedGameObject(creditsButton);
+        }
     }
 
     /// <summary>
@@ -129,10 +139,7 @@ public class MainMenuManager : MonoBehaviour
     public void LoadLevel(string sceneName)
     {
         StartCoroutine(LoadLevelCoroutine(sceneName));
-        if (SoulSystem.Instance != null)
-        {
-            SoulSystem.Instance.ResetSouls();
-        }
+        ResetSystems();
     }
     /// <summary>
     /// Loads level with coroutine
@@ -152,6 +159,21 @@ public class MainMenuManager : MonoBehaviour
         while (!asyncOperation.isDone)
         {
             yield return null;
+        }
+    }
+
+    // <summary>
+    /// Resets all systems
+    /// </summary>
+    public void ResetSystems()
+    {
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetSouls();
+        }
+        if (DropSystem.Instance != null)
+        {
+            DropSystem.Instance.ResetDrops();
         }
     }
 }

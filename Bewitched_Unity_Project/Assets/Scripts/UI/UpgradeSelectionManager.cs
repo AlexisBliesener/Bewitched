@@ -66,11 +66,7 @@ public class UpgradeSelectionManager : MonoBehaviour
         }
         
         StartCoroutine(SetFirstButtonDelay());
-        //Plays UpgradeOpen and ducks audio
-        AudioManager.TryPlayOneShot("UpgradeOpen");
-        AudioManager.OpenUIAudio(0.8f);
         Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
     }
 
 
@@ -165,8 +161,6 @@ public class UpgradeSelectionManager : MonoBehaviour
             {
                 DropSystem.Instance.SelectDropsOption(options[capturedIndex]);
                 CloseScreen();
-                //Plays upgrade select sound effect
-                AudioManager.TryPlayOneShot("UpgradeSelect");
             });
         }
 

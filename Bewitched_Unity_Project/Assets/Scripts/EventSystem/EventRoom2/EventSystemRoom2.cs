@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.Serialization;
+using FMOD.Studio;
+using FMODUnity;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -178,6 +178,7 @@ public class EventSystemRoom2 : MonoBehaviour
                     // Make the enemy able to be possessed if it the dizzy duration has not passed 
                     lastStayingEnemy.GetEnemy().canPossess = true;
                     lastStayingEnemy.GetEnemy().lobotimzed = true;
+                    NarrativeStatePopup.instance?.ShowNarrativePanel(NarrativeStatePopup.NarrativeState.DryadPossessionAvailable);
                     lastStayingEnemy.GetEnemy().aiState = (Enemy.AIMovementState.Blocked);
                     return;
                 }
@@ -214,6 +215,7 @@ public class EventSystemRoom2 : MonoBehaviour
                 if (RoomSystem.Instance.GetActiveRoomController().GetActiveEnemyCount() == 1)
                 {
                     wall.enabled = true;
+                    lastStayingEnemy.GetComponent<EventDryad>().killDryad = true;
                     fightState = FightState.Finished;
                 }
                 break;
@@ -329,6 +331,15 @@ public class EventSystemRoom2 : MonoBehaviour
             TakeDownEnemy(healthController);
             enemyDefeatedCount += 1;
         }
+        //Hit sound effects here because of the jank health bar
+        else
+        {
+            if(AudioManager.TryPlayInstance("DryadHit",out EventInstance ev, true, healthController.gameObject))
+            {
+                ev.setParameterByNameWithLabel("Event","True");
+            }
+
+        }
 
         // check if we need to start the possession phase 
         if (enemyDefeatedCount >= Mathf.Max(1, enemiesEvent.Count) - 1)
@@ -375,6 +386,10 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void TakeDownEnemy(HealthController healthController)
     {
+        //Death sound effect
+        if(AudioManager.TryPlayInstance("DryadDeath",out EventInstance ev,spatializedSource: healthController.gameObject)){
+            ev.setParameterByNameWithLabel("Event","True");
+        }
         healthController.KillEnemy();
         EventEnemy enemy = healthController.GetComponent<EventEnemy>();
         if (enemy == null)
@@ -392,6 +407,7 @@ public class EventSystemRoom2 : MonoBehaviour
     /// </summary>
     private void ReviveEnemy(EventEnemy eventEnemy)
     {
+        Debug.Log("revive");
         float healthbefore = eventEnemy.GetEnemy().health.GetHealth();
         eventEnemy.GetEnemy().health.SetHealthToMax();
         eventEnemy.SetState(EventEnemy.EventEnemyState.Attacking);
@@ -399,7 +415,9 @@ public class EventSystemRoom2 : MonoBehaviour
         eventEnemy.GetEnemy().canPossess = false;
         eventEnemy.GetEnemy().lobotimzed = false;
         eventEnemy.GetEnemy().health.SetInvincible(false);
+        eventEnemy.GetEnemy().health.IsDead = false;
         eventEnemy.GetEnemy().GetComponent<EventDryad>().Revive();
+        NarrativeStatePopup.instance?.HideNarrativePanel(NarrativeStatePopup.NarrativeState.DryadPossessionAvailable);
         // sharedCurrentHealth = Mathf.Min(healthTotal, sharedCurrentHealth + (healthTotal / Mathf.Max(1, enemiesEvent.Count)) - healthbefore); // add back the health of the revived enemy to the shared health (if it was last enemy then only add the reamining health of the max health..)
     }
 }
