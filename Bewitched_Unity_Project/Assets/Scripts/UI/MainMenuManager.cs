@@ -55,6 +55,7 @@ public class MainMenuManager : MonoBehaviour
     {
         OpenScreen(mainScreen);
         EventSystem.current.SetSelectedGameObject(mainButton);
+        Time.timeScale = 1.0f;
         Cursor.lockState = CursorLockMode.Locked ;
         AudioManager.SubscribeCheckClick();
     }
