@@ -251,6 +251,13 @@ public class Ogre : Enemy
         {
             timeStarted += Time.deltaTime;
             SetMovementValues(false);
+            if (tempLockedCharacter)
+            {
+                Vector3 direc = tempLockedCharacter.transform.position - transform.position;
+                direc.y = 0;
+                Quaternion rotationVal = Quaternion.LookRotation(direc.normalized);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, rotationVal, rotationalVelocity);
+            }
             yield return null;
         }
         inPrimaryWindup = false;
