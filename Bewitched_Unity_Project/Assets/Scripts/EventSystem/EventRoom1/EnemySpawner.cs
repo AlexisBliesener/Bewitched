@@ -83,7 +83,10 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // After spawning all the enemies, hide all the goblins on the stands
-        fakeGoblinPlaceHolder.SetActive(false);
+        if (fakeGoblinPlaceHolder != null)
+        {
+            fakeGoblinPlaceHolder.SetActive(false);
+        }
         realPlaceHolder.SetActive(false);
         yield break;
     }
