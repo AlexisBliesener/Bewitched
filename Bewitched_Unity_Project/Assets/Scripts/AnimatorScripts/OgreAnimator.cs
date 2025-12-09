@@ -166,11 +166,13 @@ public class OgreAnimator : CharacterAnimator
             case "Idle":
                 animator.SetFloat("IdleSpeedMult", idleSpeedMult);
                 animator.SetTrigger("Idle");
+                animator.SetTrigger("Swing");
                 canChange = true;
                 break;
             case "Run":
                 animator.SetFloat("WalkSpeedMult", walkSpeedMult);
                 animator.SetTrigger("Run");
+                animator.SetTrigger("Swing");
                 canChange = true;
                 break;
             case "PrimaryAttack":
