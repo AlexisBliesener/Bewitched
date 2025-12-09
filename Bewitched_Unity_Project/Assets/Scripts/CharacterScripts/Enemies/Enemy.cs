@@ -462,8 +462,7 @@ public abstract class Enemy : Character
 
     public void SetPlayerInfo()
     {
-        GameObject controller = GameObject.FindWithTag("PlayerController");
-        playerController = controller.GetComponent<PlayerController>();
+        playerController = PlayerController.instance;
 
         hag = playerController.GetHag();
         currentPlayer = playerController.GetCurrentCharacter();
