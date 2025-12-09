@@ -130,8 +130,9 @@ public class GuardAnimator : CharacterAnimator
             animator.SetTrigger("LegsRun");
         }
 
-            SwitchState(newState);
+        SwitchState(newState);
     }
+
     protected override void Update()
     {
         base.Update();
@@ -151,7 +152,7 @@ public class GuardAnimator : CharacterAnimator
     }
 
     /// <summary>
-    /// Called when the goblin ends its primary attack
+    /// Called when the guard ends its primary attack
     /// Allows the animator to change states
     /// </summary>
     public void EndPrimary()
