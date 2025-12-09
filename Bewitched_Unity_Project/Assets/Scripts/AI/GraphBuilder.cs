@@ -936,7 +936,7 @@ public class GraphBuilder : MonoBehaviour
     private IEnumerator RetryPath(Enemy enemy)
     {
         yield return null;
-        enemy.FindPath();
+        StartCoroutine(enemy.FindPath());
     }
 
     /// <summary>

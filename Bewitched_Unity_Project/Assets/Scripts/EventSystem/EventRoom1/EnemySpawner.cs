@@ -79,10 +79,14 @@ public class EnemySpawner : MonoBehaviour
         for (int i = 0; i < enemiesSpawn; i++)
         {
             SpawnLastEnemy(i);
+            yield return new WaitForSeconds(0.2f);
         }
 
         // After spawning all the enemies, hide all the goblins on the stands
-        fakeGoblinPlaceHolder.SetActive(false);
+        if (fakeGoblinPlaceHolder != null)
+        {
+            fakeGoblinPlaceHolder.SetActive(false);
+        }
         realPlaceHolder.SetActive(false);
         yield break;
     }
@@ -98,7 +102,7 @@ public class EnemySpawner : MonoBehaviour
             GameObject spawnPoint = initialSpawnPoints[UnityEngine.Random.Range(0, initialSpawnPoints.Count)];
             Enemy enemy = Instantiate(enemyPrefab, spawnPoint.transform.position, spawnPoint.transform.rotation, gameObject.transform).GetComponent<Enemy>();
             yield return null; // wait for one frame to make sure the enemy is spawned and called (Start) function on the enemy since the enemy is calling the AiState to Patrol
-            enemy.aiState = Enemy.AIMovementState.Blocked;
+            enemy.TransitionToState(Enemy.AIMovementState.Blocked);
             enemy.sightRange = 150;
             enemy.health.OnDeath += OnEnemyDeath;
             roomController.AddEnemy(enemy);
@@ -160,7 +164,7 @@ public class EnemySpawner : MonoBehaviour
         enemyPlaceHolder.SetActive(false); // set it to inactive to spawn the enemy in the place holder 
         Enemy enemy = Instantiate(enemyPrefab, enemyPlaceHolder.transform.position, enemyPlaceHolder.transform.rotation, gameObject.transform).GetComponent<Enemy>();
         // we will stop the ai to make the enemy jumping down from the stands
-        enemy.aiState = Enemy.AIMovementState.Blocked;
+        enemy.TransitionToState(Enemy.AIMovementState.Blocked);
         // To make the goblin that jumps down to see the player
         enemy.sightRange = 150;
         enemy.health.OnDeath += OnEnemyDeath;
@@ -199,7 +203,8 @@ public class EnemySpawner : MonoBehaviour
             enemy.health.SetCurrentHealth(1);
         }
         // Set the enemy to patrol
-        enemy.aiState = Enemy.AIMovementState.Chasing;
+        enemy.TransitionToState(Enemy.AIMovementState.Patrolling);
+        enemy.lobotimzed = false;
     }
     /// <summary>
     /// Unsubscribe from the enemy death event when destroyed
@@ -219,10 +224,15 @@ public class EnemySpawner : MonoBehaviour
     public void Activate()
     {
         if (roomController == null) return;
-        // Set all the enimies to patrolling (This is only for the enimies that are spawned on start)
+        StartCoroutine(StartAttack());
+    }
+
+    private IEnumerator StartAttack()
+    {
         foreach (Enemy enemy in roomController.roomEnemies)
         {
-            enemy.aiState = Enemy.AIMovementState.Patrolling;
+            enemy.TransitionToState(Enemy.AIMovementState.Chasing);
+            yield return new WaitForSeconds(0.2f);
         }
     }
 }

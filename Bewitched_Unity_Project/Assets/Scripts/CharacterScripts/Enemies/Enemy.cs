@@ -1233,7 +1233,13 @@ public abstract class Enemy : Character
             Debug.LogWarning("Graph Builder instance is not assigned!");
             return;
         }
-        Vector3 closest = GraphBuilder.instance.FindClosestNode(transform.position, this).GetPosition(gameObject);
-        if ((closest - transform.position).magnitude > 1) transform.position = closest;
+        Node closest = GraphBuilder.instance.FindClosestNode(transform.position, this);
+        if (closest == null)
+        {
+            Debug.LogWarning("No closest node found on ensure in room");
+            return;
+        }
+        Vector3 closestPos = closest.GetPosition(gameObject);
+        if ((closestPos - transform.position).magnitude > 1) transform.position = closestPos;
     }
 }
