@@ -4935,6 +4935,7 @@ GameObject:
   - component: {fileID: 3402175129246364986}
   - component: {fileID: 394097668127329232}
   - component: {fileID: 2523832307594266979}
+  - component: {fileID: 8629730679806778764}
   m_Layer: 0
   m_Name: DryadSecondaryVFX
   m_TagString: Untagged
@@ -9860,6 +9861,20 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &8629730679806778764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6363304338309024264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85902fb90733cf4bb1829546562b201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waitTillSet: 0
+  timeToDestroy: 1
 --- !u!1 &7142706749993172682
 GameObject:
   m_ObjectHideFlags: 0

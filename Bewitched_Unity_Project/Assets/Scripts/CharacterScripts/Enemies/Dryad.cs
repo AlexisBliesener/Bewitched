@@ -28,6 +28,8 @@ public class Dryad : Enemy
 
     [Tooltip("Damage dealt by spore")]
     [SerializeField] private float sporeDamage = 0.5f;
+    [SerializeField, Tooltip("Dryad secondary vfx")]
+    private GameObject secondaryVFX;
 
     [Tooltip("Status effects for spores"), ShowIf(nameof(dev))]
     [SerializeField] private AttackStatusEffects sporeEffect;
@@ -266,6 +268,7 @@ public class Dryad : Enemy
             yield return new WaitForSeconds(sporeWindupTime);
         }
 
+        Instantiate(secondaryVFX, transform.position, Quaternion.identity);
 
         attackState = AttackState.Attacking;
 
