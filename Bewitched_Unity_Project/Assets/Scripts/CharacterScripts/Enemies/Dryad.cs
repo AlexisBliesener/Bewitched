@@ -455,6 +455,7 @@ public class Dryad : Enemy
     /// </summary>
     public override IEnumerator FindPath()
     {
+        if (playerControlling) yield break;
         if (aiState == AIMovementState.Patrolling)
         {
             if (pathState == PathState.Unset)
