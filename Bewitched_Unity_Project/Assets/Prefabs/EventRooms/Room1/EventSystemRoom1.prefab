@@ -98095,7 +98095,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 2305004250363809269, guid: e00dc79e828bf034cbcd718582cd9860, type: 3}
   maxEnemiesLimit: 4
-  maxEnemiesJumpDownLimit: 10
+  maxEnemiesJumpDownLimit: 6
   realPlaceHolder: {fileID: 9160731942704458024}
   fakeGoblinPlaceHolder: {fileID: 6641379451321430705}
   placeHolderEnemies: []
@@ -166725,7 +166725,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Path: {fileID: 7412903111564223498}
-  m_PathPosition: 14.46954
+  m_PathPosition: 14.45754
   m_PositionUnits: 0
   m_PathOffset: {x: 0, y: 0, z: 0}
   m_XDamping: 0
@@ -246556,7 +246556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   director: {fileID: 4305219277856290452}
-  flashingVFX: {fileID: 4383814504454264901}
+  flashingVFX: {fileID: 0}
 --- !u!1 &8749810466043742782
 GameObject:
   m_ObjectHideFlags: 0
@@ -260678,6 +260678,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8779971123827739072}
     m_Modifications:
+    - target: {fileID: 95629402848296670, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 95629402848296670, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 95629402848296670, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -2
+      objectReference: {fileID: 0}
     - target: {fileID: 603149444997494150, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_BindingMode
       value: 4
@@ -260714,6 +260726,22 @@ PrefabInstance:
       propertyPath: m_Lens.NearClipPlane
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1284138181032367303, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345539947603430639, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345539947603430639, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345539947603430639, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -2
+      objectReference: {fileID: 0}
     - target: {fileID: 1550553221792695933, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Lens.FieldOfView
       value: 90
@@ -260725,6 +260753,10 @@ PrefabInstance:
     - target: {fileID: 1550553221792695933, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Lens.NearClipPlane
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1747903822940092423, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2033851871083870944, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_BindingMode
@@ -260790,6 +260822,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3841694795503266744, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3841694795503266744, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 7.629503
+      objectReference: {fileID: 0}
+    - target: {fileID: 3841694795503266744, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -4.555903
+      objectReference: {fileID: 0}
     - target: {fileID: 4459257458175739104, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_BindingMode
       value: 5
@@ -260802,6 +260846,18 @@ PrefabInstance:
       propertyPath: m_FollowOffset.z
       value: -2
       objectReference: {fileID: 0}
+    - target: {fileID: 4522701400726846736, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FieldOfView
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4522701400726846736, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FarClipPlane
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 4522701400726846736, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
+      objectReference: {fileID: 0}
     - target: {fileID: 4617507247762384029, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_BindingMode
       value: 4
@@ -260813,6 +260869,10 @@ PrefabInstance:
     - target: {fileID: 4617507247762384029, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_FollowOffset.z
       value: -2.534541
+      objectReference: {fileID: 0}
+    - target: {fileID: 4794920289926513340, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 5160061024352176312, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Lens.FieldOfView
@@ -260874,6 +260934,22 @@ PrefabInstance:
       propertyPath: m_FollowOffset.z
       value: -3.718481
       objectReference: {fileID: 0}
+    - target: {fileID: 5651824003000538259, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5651824003000538259, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 7.629503
+      objectReference: {fileID: 0}
+    - target: {fileID: 5651824003000538259, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -4.555903
+      objectReference: {fileID: 0}
+    - target: {fileID: 5765999755318136425, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: primaryAnimationDelay.Array.size
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5941656768047984119, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Lens.FieldOfView
       value: 90
@@ -260885,6 +260961,42 @@ PrefabInstance:
     - target: {fileID: 5941656768047984119, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Lens.NearClipPlane
       value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772103373880863011, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772103373880863011, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772103373880863011, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874992382102652104, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_BindingMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874992382102652104, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.y
+      value: 7.629503
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874992382102652104, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_FollowOffset.z
+      value: -4.555903
+      objectReference: {fileID: 0}
+    - target: {fileID: 6929012651935819543, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FieldOfView
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6929012651935819543, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FarClipPlane
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 6929012651935819543, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 7357877285543014215, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_Name
@@ -260905,6 +261017,38 @@ PrefabInstance:
     - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: characterName
       value: Orfis Bone-Snapper
+      objectReference: {fileID: 0}
+    - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: slamBatEffects
+      value: 
+      objectReference: {fileID: 672220797181763766, guid: cdc0d962ed3a0814a9ab59485c2b4a3c, type: 3}
+    - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: slamImpactEffects
+      value: 
+      objectReference: {fileID: 4723035996690180317, guid: b42ff8684a1bc764a8cf97358d607add, type: 3}
+    - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: batSwingEffects.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: batSwingEffects.Array.data[0]
+      value: 
+      objectReference: {fileID: 7793958904629133350, guid: c5f379c3cec783c469845f7f41102f1d, type: 3}
+    - target: {fileID: 8254770659915325466, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: batSwingEffects.Array.data[1]
+      value: 
+      objectReference: {fileID: 7793958904629133350, guid: 0b57ca580fc227548bd0afa374df3064, type: 3}
+    - target: {fileID: 8607058170391539368, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FieldOfView
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8607058170391539368, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.FarClipPlane
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 8607058170391539368, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
+      propertyPath: m_Lens.NearClipPlane
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 8685189818675577015, guid: 8be9da0266a9047489583e4a89dd992d, type: 3}
       propertyPath: m_BindingMode
@@ -261101,11 +261245,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 119beaccb7812954f9d09528c99ee668, type: 3}
---- !u!1 &4383814504454264901 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6565268497318663646, guid: 119beaccb7812954f9d09528c99ee668, type: 3}
-  m_PrefabInstance: {fileID: 7479059482669895067}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5258389680317556878 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3401195685392295189, guid: 119beaccb7812954f9d09528c99ee668, type: 3}
@@ -261444,7 +261583,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 133
+  m_VersionIndex: 154
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
