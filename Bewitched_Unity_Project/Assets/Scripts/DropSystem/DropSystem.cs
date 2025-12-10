@@ -304,7 +304,7 @@ public class DropSystem : MonoBehaviour
         SelectDropsOption(drop,true);
         //Sound Effect implementation for buying
         //this is a static funtion that null checks itself, you shouldn't have to null check it here
-        AudioManager.TryPlayOneShot("ShopBuy");
+        AudioManager.TryPlayOneShot("ShopBuy",PlayerController.instance.currentCharacter.gameObject);
         return true;
     }
 
