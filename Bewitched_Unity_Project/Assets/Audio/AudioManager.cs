@@ -62,7 +62,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if the event was found, false otherwise</returns>
     public static bool TryGetReference(string name, out EventReference eventRef)
     {
-        if (manager==null)
+        if (manager==null||manager.refSheet==null)
         {
             eventRef = new();
             return false;
@@ -79,7 +79,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if an event was successfully instantiated, false otherwise</returns>
     public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true, GameObject spatializedSource = null)
     {
-        if (manager==null)
+        if (manager==null||manager.refSheet==null)
         {
             instance = new();
             return false;
@@ -104,6 +104,7 @@ public class AudioManager : MonoBehaviour
     public static bool TryPlayOneShot(string name, GameObject spatializedSource = null)
     {
         if (manager==null) return false;
+        if(manager.refSheet==null) return false;
         if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
@@ -121,6 +122,7 @@ public class AudioManager : MonoBehaviour
     public static void OpenUIAudio(float transitionTime = 0.8f)
     {
         if (manager==null) return;
+        if (manager.refSheet==null) return;
         if (manager.activeSnapshots.ContainsKey("UIOpen")) return;
         //Subscribes CheckClick to suitable UI Actions
         SubscribeCheckClick();
@@ -148,6 +150,7 @@ public class AudioManager : MonoBehaviour
     public static void CloseUIAudio(float transitionTime = 0.8f)
     {
         if (manager==null) return;
+        if(manager.refSheet==null) return;
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
         if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
         //Unsubscribe CheckClick from UI Actions
