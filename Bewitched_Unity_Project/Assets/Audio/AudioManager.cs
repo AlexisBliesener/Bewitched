@@ -62,7 +62,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if the event was found, false otherwise</returns>
     public static bool TryGetReference(string name, out EventReference eventRef)
     {
-        if (!manager)
+        if (manager==null||manager.refSheet==null)
         {
             eventRef = new();
             return false;
@@ -79,7 +79,7 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if an event was successfully instantiated, false otherwise</returns>
     public static bool TryPlayInstance(string name, out EventInstance instance, bool release = true, GameObject spatializedSource = null)
     {
-        if (!manager)
+        if (manager==null||manager.refSheet==null)
         {
             instance = new();
             return false;
@@ -103,7 +103,8 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if the event was instantiated and played, false otherwise</returns>
     public static bool TryPlayOneShot(string name, GameObject spatializedSource = null)
     {
-        if (!manager) return false;
+        if (manager==null) return false;
+        if(manager.refSheet==null) return false;
         if (manager.refSheet.eventRefs.TryGetValue(name, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
@@ -120,7 +121,8 @@ public class AudioManager : MonoBehaviour
     /// <param name="transitionTime">The amount of time it takes to fully transition into this snapshot</param>
     public static void OpenUIAudio(float transitionTime = 0.8f)
     {
-        if (!manager) return;
+        if (manager==null) return;
+        if (manager.refSheet==null) return;
         if (manager.activeSnapshots.ContainsKey("UIOpen")) return;
         //Subscribes CheckClick to suitable UI Actions
         SubscribeCheckClick();
@@ -147,7 +149,8 @@ public class AudioManager : MonoBehaviour
     /// <param name="transitionTime">The amount of time for music and sound effects to fade back in</param>
     public static void CloseUIAudio(float transitionTime = 0.8f)
     {
-        if (!manager) return;
+        if (manager==null) return;
+        if(manager.refSheet==null) return;
         if (!manager.activeSnapshots.ContainsKey("UIOpen")) return;
         if (manager.pauseCoroutine != null) manager.StopCoroutine(manager.pauseCoroutine);
         //Unsubscribe CheckClick from UI Actions
@@ -182,7 +185,7 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public static void SubscribeCheckClick()
     {
-        if (!manager) return;
+        if (manager==null) return;
         if(!manager.clickSubscribed){
             manager.UIInput.actionsAsset["UI/Submit"].performed += manager.CheckClick;
             manager.UIInput.actionsAsset["UI/Click"].canceled += manager.CheckClick;
@@ -194,7 +197,7 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public static void UnsubscribeCheckClick()
     {
-        if (!manager) return;
+        if (manager==null) return;
         if(manager.clickSubscribed){
             manager.UIInput.actionsAsset["UI/Submit"].performed -= manager.CheckClick;
             manager.UIInput.actionsAsset["UI/Click"].canceled -= manager.CheckClick;
@@ -221,7 +224,8 @@ public class AudioManager : MonoBehaviour
     /// <returns>True if snapshot was successfully started, false otherwise</returns>
     public static bool TryPlaySnapshot(string snapshotName)
     {
-        if (!manager) return false;
+        if (manager==null) return false;
+        if(manager.refSheet==null) return false;
         if (manager.refSheet.snapshotRefs.TryGetValue(snapshotName, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
@@ -243,7 +247,8 @@ public class AudioManager : MonoBehaviour
     /// <param name="allowFadeout">Whether or not to allow fadeout, defaults to true</param>
     public static void StopSnapshot(string snapshotName,bool allowFadeout=true)
     {
-        if (!manager) return;
+        if (manager==null) return;
+        if(manager.refSheet==null) return;
         if (manager.activeSnapshots.TryGetValue(snapshotName, out EventInstance snapshot))
         {
             snapshot.stop(allowFadeout? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);

@@ -141,6 +141,7 @@ public class DropSystem : MonoBehaviour
         {
             upgradeSelectionUI.SetActive(true);
             //Plays UpgradeOpen and ducks audio
+
             if (AudioManager.manager != null)
             {
                 AudioManager.TryPlayOneShot("UpgradeOpen");
@@ -148,7 +149,7 @@ public class DropSystem : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Audio Manager is not assigned!");
+                Debug.LogWarning("Audio manager is not assigned!");
             }
         }
         else
@@ -231,7 +232,7 @@ public class DropSystem : MonoBehaviour
     /// It will activate the drop 
     /// This often called from the ui to select a drop.
     /// </summary>
-    public void SelectDropsOption(DropData drop)
+    public void SelectDropsOption(DropData drop,bool buy=false)
     {
 
         if (drop == null) return;
@@ -274,11 +275,11 @@ public class DropSystem : MonoBehaviour
             //Plays upgrade select sound effect
             if (AudioManager.manager != null)
             {
-                AudioManager.TryPlayOneShot("UpgradeSelect");
+                if (!buy) AudioManager.TryPlayOneShot("UpgradeSelect");
             }
             else
             {
-                Debug.LogWarning("Audio Manager is not assigned!");
+                Debug.LogWarning("Audio manager is not assigned!");
             }
         }
         else
@@ -314,15 +315,16 @@ public class DropSystem : MonoBehaviour
 
         // Subtract souls from the player
         SoulSystem.Instance.UseSoulCurrency(drop.GetBuyAmount());
-        SelectDropsOption(drop);
+        SelectDropsOption(drop,true);
         //Sound Effect implementation for buying
-        if (AudioManager.manager != null)
+        //this is a static funtion that null checks itself, you shouldn't have to null check it here
+        if(AudioManager.manager != null)
         {
             AudioManager.TryPlayOneShot("ShopBuy", PlayerController.instance.currentCharacter.gameObject);
         }
         else
         {
-            Debug.LogWarning("Audio Manager instance is null!");
+            Debug.LogWarning("Audio manager is not assigned!");
         }
 
         return true;
@@ -378,7 +380,7 @@ public class DropSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Audio Manager instance is null!");
+            Debug.LogWarning("Audio manager is not assigned!");
         }
 
         return true;
@@ -392,7 +394,15 @@ public class DropSystem : MonoBehaviour
         if (PlayerController.instance == null || PlayerController.instance.GetHag() == null) return;
         // Add specified amount of health to the player
         PlayerController.instance.GetHag().health.AddHealth(salvageAmount);
-        AudioManager.TryPlayOneShot("ShopSell");
+
+        if(AudioManager.manager != null)
+        {
+            AudioManager.TryPlayOneShot("ShopSell");
+        }
+        else
+        {
+            Debug.LogWarning("Audio manger is not assigned!");
+        }
     }
     /// <summary>
     /// This function will deactives the whole stack and activates the new upgrade

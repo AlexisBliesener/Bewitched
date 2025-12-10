@@ -128,6 +128,15 @@ public class ElethAnimator : CharacterAnimator
 
     protected override void Update()
     {
+        if(PlayerController.instance.currentCharacter != PlayerController.instance.oldHag)
+        {
+            animator.enabled = false;
+        }
+        else
+        {
+            animator.enabled = true;
+        }
+
         if (overriding) return;
 
         // prevent walk and run animations from clipping into walls
