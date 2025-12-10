@@ -225,6 +225,7 @@ public class AudioManager : MonoBehaviour
     public static bool TryPlaySnapshot(string snapshotName)
     {
         if (manager==null) return false;
+        if(manager.refSheet==null) return false;
         if (manager.refSheet.snapshotRefs.TryGetValue(snapshotName, out EventReference evRef))
         {
             EventInstance ev = RuntimeManager.CreateInstance(evRef);
@@ -247,6 +248,7 @@ public class AudioManager : MonoBehaviour
     public static void StopSnapshot(string snapshotName,bool allowFadeout=true)
     {
         if (manager==null) return;
+        if(manager.refSheet==null) return;
         if (manager.activeSnapshots.TryGetValue(snapshotName, out EventInstance snapshot))
         {
             snapshot.stop(allowFadeout? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
