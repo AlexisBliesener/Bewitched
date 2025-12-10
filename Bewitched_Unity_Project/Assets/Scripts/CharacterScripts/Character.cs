@@ -946,7 +946,7 @@ public abstract class Character : MonoBehaviour
     /// </summary>
     public void ApplyGravity()
     {
-        if (GetCharacterController() != null && !GetCharacterController().isGrounded)
+        if (GetCharacterController() != null && ((PlayerController.instance.currentCharacter != this && this != PlayerController.instance.oldHag) || !GetCharacterController().isGrounded))
         {
             gravVelocity += Vector3.up * Physics.gravity.y * Time.fixedDeltaTime;
             GetCharacterController().Move(gravVelocity * Time.fixedDeltaTime);
